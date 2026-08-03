@@ -1,5 +1,5 @@
-const CACHE='profe-jaime-v3-4-0';
-const LOCAL=['./','index.html','styles.css','app-v34.js?v=340','manifest.webmanifest','icon.svg','avatar-profe-jaime.png','icon-profe-jaime.png'];
+const CACHE='profe-jaime-v3-5-0';
+const LOCAL=['./','index.html','styles.css','app-v35.js?v=340','manifest.webmanifest','icon.svg','avatar-profe-jaime.png','icon-profe-jaime.png'];
 const OPTIONAL=[
  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
  'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',

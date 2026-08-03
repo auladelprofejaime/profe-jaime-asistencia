@@ -1,21 +1,17 @@
-PROFE JAIME CONTROL ESCOLAR — VERSIÓN 2.4
+PROFE JAIME CONTROL ESCOLAR v2.6
 
-CAMBIOS PRINCIPALES
-- Avatar profesional del Profe Jaime integrado en encabezado, pantalla de inicio e ícono.
-- Nueva pantalla Inicio con accesos directos y resumen de grupos, alumnos, actividades y asistencias.
-- Botón permanente GUARDAR TODO en la parte superior.
-- Botón Guardar todo también en Inicio, Alumnos y Reportes.
-- Todos los listados, cuadrículas y reportes se ordenan automáticamente de forma alfabética por nombre dentro de cada turno y grupo.
-- El número de lista continúa visible, pero ya no define el orden.
-- Se conservan asistencia, actividades, seguimiento 3.º A, PDF y respaldo/restauración.
+CORRECCIONES
+- Los reportes se generan como archivos PDF reales.
+- La vista previa incluye Regresar a la app, Compartir PDF, Guardar PDF e Imprimir.
+- En iPad, Compartir PDF abre la hoja de compartir; elige WhatsApp.
+- El reporte de seguimiento de 3.º A explica verde, amarillo, rojo y blanco.
+- El rojo indica atención urgente y aclara que el alumno debe acercarse con el docente para confirmar si existe posibilidad de ponerse al corriente. Cada maestro decide si acepta trabajos atrasados.
+- Avatar con fondo blanco.
+- Ícono de pantalla de inicio con el avatar.
 
 ACTUALIZACIÓN EN GITHUB
-1. Descomprime este ZIP.
-2. En el mismo repositorio: Add file > Upload files.
-3. Sube todos los archivos sueltos, incluidos avatar-profe-jaime.png e icon-profe-jaime.png.
-4. Pulsa Commit changes.
-5. Espera 1–3 minutos. Cierra la app por completo y vuelve a abrirla.
-6. Si aún ves la versión anterior, abre la URL en Safari, recarga y vuelve a agregarla a pantalla de inicio.
+Sube todos los archivos sueltos y pulsa Commit changes. No es necesario borrar antes los archivos que tengan el mismo nombre.
+Después espera 1–3 minutos, cierra por completo la app y vuelve a abrirla. Si el ícono anterior continúa, elimina el acceso de la pantalla de inicio y agrégalo nuevamente desde Safari.
 
-DATOS
-La actualización usa la misma base local ProfeJaimeAsistenciaDB, por lo que no debe borrar los datos existentes. Antes de actualizar, pulsa Guardar todo para descargar un respaldo JSON.
+IMPORTANTE
+Abre la app con internet al menos una vez después de actualizar, para que se descargue y guarde el generador de PDF.

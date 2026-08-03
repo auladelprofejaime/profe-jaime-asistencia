@@ -1,210 +1,40 @@
-
-const DB_NAME='ProfeJaimeAsistenciaDB', DB_VERSION=1;
-let db, deferredPrompt;
-const $=s=>document.querySelector(s);
-const $$=s=>[...document.querySelectorAll(s)];
-const today=()=>new Date().toISOString().slice(0,10);
-const normalize=s=>String(s??'').trim();
-const lower=s=>normalize(s).toLowerCase();
-const safe=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const txStore=(name,mode='readonly')=>db.transaction(name,mode).objectStore(name);
-const reqP=req=>new Promise((res,rej)=>{req.onsuccess=()=>res(req.result);req.onerror=()=>rej(req.error)});
-const all=(store)=>reqP(txStore(store).getAll());
-const put=(store,val)=>reqP(txStore(store,'readwrite').put(val));
-const del=(store,key)=>reqP(txStore(store,'readwrite').delete(key));
-const clear=(store)=>reqP(txStore(store,'readwrite').clear());
-
-function openDB(){
- return new Promise((res,rej)=>{
-  const r=indexedDB.open(DB_NAME,DB_VERSION);
-  r.onupgradeneeded=e=>{
-   const d=e.target.result;
-   if(!d.objectStoreNames.contains('students')){
-    const s=d.createObjectStore('students',{keyPath:'id'});
-    s.createIndex('group','group'); s.createIndex('shift','shift');
-   }
-   if(!d.objectStoreNames.contains('attendance')){
-    const a=d.createObjectStore('attendance',{keyPath:'key'});
-    a.createIndex('date','date'); a.createIndex('studentId','studentId');
-   }
-  };
-  r.onsuccess=()=>{db=r.result;res(db)}; r.onerror=()=>rej(r.error);
- });
-}
-
-function setView(name){
- $$('.view').forEach(v=>v.classList.toggle('active',v.id===name));
- $$('.tab').forEach(t=>t.classList.toggle('active',t.dataset.view===name));
- if(name==='scanner') refreshScanner();
- if(name==='students') renderStudents();
- if(name==='history') renderHistory();
-}
-
-async function getStudents(){return (await all('students')).sort((a,b)=>a.shift.localeCompare(b.shift)||String(a.group).localeCompare(String(b.group),undefined,{numeric:true})||Number(a.number)-Number(b.number))}
-async function getAttendance(){return (await all('attendance')).sort((a,b)=>b.timestamp.localeCompare(a.timestamp))}
-function unique(vals){return [...new Set(vals.filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),undefined,{numeric:true}))}
-
-async function refreshSelectors(){
- const students=await getStudents();
- const shifts=unique(students.map(s=>s.shift));
- const currentShift=$('#scanShift').value;
- $('#scanShift').innerHTML=shifts.length?shifts.map(x=>`<option>${safe(x)}</option>`).join(''):'<option>Sin alumnos</option>';
- if(shifts.includes(currentShift)) $('#scanShift').value=currentShift;
- refreshGroups();
- $('#historyShift').innerHTML='<option value="">Todos</option>'+shifts.map(x=>`<option>${safe(x)}</option>`).join('');
- refreshHistoryGroups();
-}
-async function refreshGroups(){
- const students=await getStudents(), shift=$('#scanShift').value, old=$('#scanGroup').value;
- const groups=unique(students.filter(s=>s.shift===shift).map(s=>s.group));
- $('#scanGroup').innerHTML=groups.length?groups.map(x=>`<option>${safe(x)}</option>`).join(''):'<option>Sin grupo</option>';
- if(groups.includes(old)) $('#scanGroup').value=old;
- refreshScanner();
-}
-async function refreshHistoryGroups(){
- const students=await getStudents(), shift=$('#historyShift').value, old=$('#historyGroup').value;
- const groups=unique(students.filter(s=>!shift||s.shift===shift).map(s=>s.group));
- $('#historyGroup').innerHTML='<option value="">Todos</option>'+groups.map(x=>`<option>${safe(x)}</option>`).join('');
- if(groups.includes(old)) $('#historyGroup').value=old;
-}
-
-async function refreshScanner(){
- if(!db)return;
- const students=await getStudents(), attendance=await getAttendance();
- const shift=$('#scanShift').value, group=$('#scanGroup').value, date=$('#scanDate').value;
- const roster=students.filter(s=>s.shift===shift&&String(s.group)===String(group));
- const records=attendance.filter(a=>a.date===date&&a.shift===shift&&String(a.group)===String(group));
- $('#presentCount').textContent=records.length;
- $('#totalCount').textContent=roster.length;
- $('#missingCount').textContent=Math.max(0,roster.length-records.length);
- const box=$('#todayList');
- if(!records.length){box.className='list empty';box.textContent='Aún no hay registros.';return}
- box.className='list';
- box.innerHTML=records.sort((a,b)=>b.timestamp.localeCompare(a.timestamp)).map(a=>`
-  <div class="row"><div><strong>${safe(a.name||'Sin nombre')}</strong>
-  <small>ID ${safe(a.studentId)} · Lista ${safe(a.number)} · ${new Date(a.timestamp).toLocaleTimeString('es-MX')}</small></div>
-  <div class="row-actions"><button class="delete" data-delete-att="${safe(a.key)}">Eliminar</button></div></div>`).join('');
- $$('[data-delete-att]').forEach(b=>b.onclick=async()=>{if(confirm('¿Eliminar este registro?')){await del('attendance',b.dataset.deleteAtt);refreshScanner();}});
-}
-
-function status(type,title,text){
- const p=$('#statusPanel');p.className='status '+type;
- $('.status-icon').textContent=type==='success'?'✓':type==='error'?'⛔':type==='warning'?'⚠':'▣';
- $('#statusTitle').textContent=title;$('#statusText').textContent=text;
- clearTimeout(status.timer);status.timer=setTimeout(()=>{p.className='status neutral';$('.status-icon').textContent='▣';$('#statusTitle').textContent='Escanea la credencial';$('#statusText').textContent='El lector escribirá el ID y enviará Enter.'},2200);
-}
-
-async function register(){
- const id=normalize($('#scanInput').value);
- $('#scanInput').value='';$('#scanInput').focus();
- if(!id)return;
- const student=await reqP(txStore('students').get(id));
- if(!student){status('warning','ID no encontrado',`El código ${id} no está cargado.`);return}
- const shift=$('#scanShift').value,group=$('#scanGroup').value,date=$('#scanDate').value;
- if(student.shift!==shift||String(student.group)!==String(group)){
-  status('warning','Alumno de otro grupo',`${student.name||id} pertenece a ${student.shift}, grupo ${student.group}.`);return
- }
- const key=`${date}|${id}`;
- const exists=await reqP(txStore('attendance').get(key));
- if(exists){status('error','YA REGISTRADO',`${exists.name||id} · ${new Date(exists.timestamp).toLocaleTimeString('es-MX')}`);return}
- const rec={key,date,studentId:id,name:student.name,shift:student.shift,group:String(student.group),number:student.number,timestamp:new Date().toISOString(),status:'Presente'};
- await put('attendance',rec);
- status('success','REGISTRADO',`${student.name||id} · Lista ${student.number}`);
- if(navigator.vibrate)navigator.vibrate(70);
- refreshScanner();
-}
-
-async function saveStudent(e){
- e.preventDefault();
- const original=$('#editingOriginalId').value;
- const student={id:normalize($('#studentId').value),shift:normalize($('#studentShift').value),group:normalize($('#studentGroup').value),number:Number($('#studentNumber').value),name:normalize($('#studentName').value)};
- if(!student.id||!student.group||!student.name||!student.number)return;
- if(original&&original!==student.id)await del('students',original);
- await put('students',student);
- e.target.reset();$('#editingOriginalId').value='';$('#studentFormTitle').textContent='Agregar alumno manualmente';$('#cancelEditBtn').classList.add('hidden');
- await refreshSelectors();renderStudents();
-}
-async function renderStudents(){
- const q=lower($('#studentSearch').value), students=await getStudents();
- const filtered=students.filter(s=>!q||[s.id,s.shift,s.group,s.number,s.name].some(v=>lower(v).includes(q)));
- const box=$('#studentsList');
- if(!filtered.length){box.className='list empty';box.textContent=students.length?'No se encontraron coincidencias.':'No hay alumnos cargados.';return}
- box.className='list';box.innerHTML=filtered.map(s=>`<div class="row"><div><strong>${safe(s.name)}</strong><small>ID ${safe(s.id)} · ${safe(s.shift)} · Grupo ${safe(s.group)} · Lista ${safe(s.number)}</small></div><div class="row-actions"><button class="edit" data-edit="${safe(s.id)}">Editar</button><button class="delete" data-del="${safe(s.id)}">Eliminar</button></div></div>`).join('');
- $$('[data-edit]').forEach(b=>b.onclick=async()=>{const s=await reqP(txStore('students').get(b.dataset.edit));$('#editingOriginalId').value=s.id;$('#studentId').value=s.id;$('#studentShift').value=s.shift;$('#studentGroup').value=s.group;$('#studentNumber').value=s.number;$('#studentName').value=s.name;$('#studentFormTitle').textContent='Editar alumno';$('#cancelEditBtn').classList.remove('hidden');$('#studentForm').scrollIntoView({behavior:'smooth'})});
- $$('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('¿Eliminar este alumno?')){await del('students',b.dataset.del);await refreshSelectors();renderStudents();}});
-}
-
-function pick(obj,names){
- const entries=Object.entries(obj);
- for(const n of names){const found=entries.find(([k])=>lower(k).replace(/[.\s_]/g,'')===lower(n).replace(/[.\s_]/g,''));if(found)return found[1]}
- return '';
-}
-async function importExcel(file){
- const msg=$('#importMessage');msg.className='message';msg.textContent='Leyendo archivo...';
- try{
-  if(typeof XLSX==='undefined')throw new Error('No se pudo cargar el lector de Excel. Conecta el iPad a internet una vez y vuelve a abrir la app.');
-  const data=await file.arrayBuffer(), wb=XLSX.read(data,{type:'array'});
-  const preferred=wb.SheetNames.find(n=>lower(n).includes('base_alumnos'))||wb.SheetNames[0];
-  const rows=XLSX.utils.sheet_to_json(wb.Sheets[preferred],{defval:''});
-  let count=0, skipped=0;
-  for(const r of rows){
-   const s={
-    id:normalize(pick(r,['ID','ID ESCANEADO'])),
-    shift:normalize(pick(r,['Turno']))||'Matutino',
-    group:normalize(pick(r,['Grupo'])),
-    number:Number(pick(r,['No. de lista','No de lista','Numero de lista','Número de lista'])),
-    name:normalize(pick(r,['Nombre del alumno','Nombre','Alumno']))
-   };
-   if(s.id&&s.group&&s.number){await put('students',s);count++;}else skipped++;
-  }
-  msg.className='message good';msg.textContent=`Importación terminada: ${count} alumnos cargados${skipped?`, ${skipped} filas omitidas`:''}.`;
-  await refreshSelectors();renderStudents();
- }catch(err){msg.className='message bad';msg.textContent=err.message||'No fue posible importar el archivo.'}
-}
-
-async function renderHistory(){
- const records=await getAttendance();
- const from=$('#historyFrom').value,to=$('#historyTo').value,shift=$('#historyShift').value,group=$('#historyGroup').value;
- const filtered=records.filter(a=>(!from||a.date>=from)&&(!to||a.date<=to)&&(!shift||a.shift===shift)&&(!group||String(a.group)===String(group)));
- const box=$('#historyList');
- if(!filtered.length){box.className='list empty';box.textContent='No hay registros con esos filtros.';return}
- box.className='list';box.innerHTML=filtered.map(a=>`<div class="row"><div><strong>${safe(a.name||a.studentId)}</strong><small>${safe(a.date)} · ${safe(a.shift)} · Grupo ${safe(a.group)} · Lista ${safe(a.number)} · ${new Date(a.timestamp).toLocaleTimeString('es-MX')}</small></div><div class="row-actions"><button class="delete" data-hdel="${safe(a.key)}">Eliminar</button></div></div>`).join('');
- $$('[data-hdel]').forEach(b=>b.onclick=async()=>{if(confirm('¿Eliminar este registro?')){await del('attendance',b.dataset.hdel);renderHistory();}});
-}
-function download(name,text,type='text/csv;charset=utf-8'){
- const blob=new Blob(['\ufeff'+text],{type}),url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);
-}
-async function exportHistory(){
- const records=await getAttendance();
- const from=$('#historyFrom').value,to=$('#historyTo').value,shift=$('#historyShift').value,group=$('#historyGroup').value;
- const f=records.filter(a=>(!from||a.date>=from)&&(!to||a.date<=to)&&(!shift||a.shift===shift)&&(!group||String(a.group)===String(group)));
- const esc=v=>`"${String(v??'').replaceAll('"','""')}"`;
- const csv=['Fecha,Hora,ID,Nombre,Turno,Grupo,No. de lista,Estatus',...f.map(a=>[a.date,new Date(a.timestamp).toLocaleTimeString('es-MX'),a.studentId,a.name,a.shift,a.group,a.number,a.status].map(esc).join(','))].join('\n');
- download(`asistencia_${today()}.csv`,csv);
-}
-async function showMissing(){
- const students=await getStudents(),attendance=await getAttendance(),shift=$('#scanShift').value,group=$('#scanGroup').value,date=$('#scanDate').value;
- const present=new Set(attendance.filter(a=>a.date===date&&a.shift===shift&&String(a.group)===String(group)).map(a=>a.studentId));
- const missing=students.filter(s=>s.shift===shift&&String(s.group)===String(group)&&!present.has(s.id));
- $('#missingList').innerHTML=missing.length?missing.map(s=>`<div class="row"><div><strong>${safe(s.name||'Sin nombre')}</strong><small>ID ${safe(s.id)} · Lista ${safe(s.number)}</small></div></div>`).join(''):'<div class="list empty">No hay faltantes.</div>';
- $('#missingDialog').showModal();
-}
-
-window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')});
-$('#installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null;$('#installBtn').classList.add('hidden')}};
-$$('.tab').forEach(t=>t.onclick=()=>setView(t.dataset.view));
-$('#scanDate').value=today();$('#historyFrom').value=today();$('#historyTo').value=today();
-$('#registerBtn').onclick=register;$('#scanInput').addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();register()}});
-$('#scanShift').onchange=refreshGroups;$('#scanGroup').onchange=refreshScanner;$('#scanDate').onchange=refreshScanner;
-$('#studentForm').onsubmit=saveStudent;$('#studentSearch').oninput=renderStudents;
-$('#cancelEditBtn').onclick=()=>{$('#studentForm').reset();$('#editingOriginalId').value='';$('#studentFormTitle').textContent='Agregar alumno manualmente';$('#cancelEditBtn').classList.add('hidden')};
-$('#excelFile').onchange=e=>{const f=e.target.files[0];if(f)importExcel(f);e.target.value=''};
-$('#downloadTemplateBtn').onclick=()=>download('plantilla_alumnos.csv','ID,Turno,Grupo,No. de lista,Nombre del alumno\n22001,Matutino,22,1,Nombre Apellido');
-$('#deleteAllStudentsBtn').onclick=async()=>{if(confirm('¿Borrar todos los alumnos? El historial de asistencia se conservará.')){await clear('students');await refreshSelectors();renderStudents()}};
-$('#historyShift').onchange=async()=>{await refreshHistoryGroups();renderHistory()};
-['historyFrom','historyTo','historyGroup'].forEach(id=>$('#'+id).onchange=renderHistory);
-$('#exportHistoryBtn').onclick=exportHistory;
-$('#deleteHistoryBtn').onclick=async()=>{if(confirm('¿Borrar definitivamente todo el historial?')){await clear('attendance');renderHistory();refreshScanner()}};
-$('#showMissingBtn').onclick=showMissing;$('#closeMissingBtn').onclick=()=>$('#missingDialog').close();
-
-(async()=>{await openDB();await refreshSelectors();await refreshScanner();$('#scanInput').focus();if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js')})();
+const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)],today=()=>new Date().toISOString().slice(0,10),norm=v=>String(v??'').trim(),low=v=>norm(v).toLowerCase(),esc=v=>String(v??'').replace(/[&<>'"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+const subjects=['Artes','Inglés','Español','Matemáticas','Formación Cívica y Ética','Formación Humana','Química','Historia','Educación Física'];
+const states=['🟢 Al corriente','🟡 Requiere atención','🔴 Atención prioritaria','⚪ Sin información'];
+let db,activeActivity=null;const DB='ProfeJaimeControl',VER=4;
+function req(r){return new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)})}function store(n,m='readonly'){return db.transaction(n,m).objectStore(n)}function all(n){return req(store(n).getAll())}function put(n,v){return req(store(n,'readwrite').put(v))}function del(n,k){return req(store(n,'readwrite').delete(k))}function clear(n){return req(store(n,'readwrite').clear())}
+function openDB(){return new Promise((ok,no)=>{const r=indexedDB.open(DB,VER);r.onupgradeneeded=e=>{const d=e.target.result;for(const [n,key] of [['students','id'],['attendance','key'],['activities','id'],['marks','key'],['tracking','key'],['settings','key']])if(!d.objectStoreNames.contains(n))d.createObjectStore(n,{keyPath:key})};r.onsuccess=()=>{db=r.result;ok()};r.onerror=()=>no(r.error)})}
+const NAV=[['home','Inicio'],['attendance','Asistencia'],['activities','Actividades'],['tracking','Seguimiento 3.º A'],['students','Alumnos'],['reports','Reportes'],['settings','Configuración']];
+function go(id){$$('.view').forEach(x=>x.classList.toggle('active',x.id===id));$$('#nav button').forEach(x=>x.classList.toggle('active',x.dataset.go===id));if(id==='home')home();if(id==='attendance')refreshAttendance();if(id==='activities')refreshActivities();if(id==='tracking')refreshTracking();if(id==='students')renderStudents()}
+function weekValue(d=new Date()){const x=new Date(Date.UTC(d.getFullYear(),d.getMonth(),d.getDate()));x.setUTCDate(x.getUTCDate()+4-(x.getUTCDay()||7));const y=new Date(Date.UTC(x.getUTCFullYear(),0,1));return `${x.getUTCFullYear()}-W${String(Math.ceil((((x-y)/86400000)+1)/7)).padStart(2,'0')}`}
+function download(name,text,type='application/json'){const b=new Blob([text],{type}),u=URL.createObjectURL(b),a=document.createElement('a');a.href=u;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(u),1000)}
+async function students(){return (await all('students')).sort((a,b)=>a.shift.localeCompare(b.shift)||String(a.group).localeCompare(String(b.group),undefined,{numeric:true})||+a.number-+b.number)}
+const uniq=a=>[...new Set(a.filter(Boolean))].sort((x,y)=>String(x).localeCompare(String(y),undefined,{numeric:true}));
+async function fillSelectors(){const s=await students(),sh=uniq(s.map(x=>x.shift));for(const id of ['attShift','actShift']){const el=$('#'+id),old=el.value;el.innerHTML=sh.map(x=>`<option>${esc(x)}</option>`).join('')||'<option>Sin alumnos</option>';if(sh.includes(old))el.value=old}await fillGroups('att');await fillGroups('act');const titular=s.filter(x=>norm(x.group).replace('°','').replace('º','').toUpperCase()==='3A');$('#trackStudent').innerHTML=titular.map(x=>`<option value="${esc(x.id)}">${esc(x.number)}. ${esc(x.name)}</option>`).join('')||'<option value="">Sin alumnos 3A</option>'}
+async function fillGroups(prefix){const s=await students(),shift=$(`#${prefix}Shift`).value,el=$(`#${prefix}Group`),old=el.value,g=uniq(s.filter(x=>x.shift===shift).map(x=>x.group));el.innerHTML=g.map(x=>`<option>${esc(x)}</option>`).join('')||'<option>Sin grupo</option>';if(g.includes(old))el.value=old}
+function setStatus(id,type,title,text){const p=$('#'+id);p.className='scanStatus '+type;p.innerHTML=`<h3>${esc(title)}</h3><p>${esc(text)}</p>`;clearTimeout(p.t);p.t=setTimeout(()=>{p.className='scanStatus';p.innerHTML='<h3>Escanea la credencial</h3><p>El lector escribe el ID y envía Enter.</p>'},2200)}
+async function home(){const s=await students(),a=await all('attendance'),acts=await all('activities');$('#todayText').textContent=new Date().toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'});$('#homeStats').innerHTML=[['Alumnos',s.length],['Asistencias hoy',a.filter(x=>x.date===today()).length],['Actividades',acts.length],['Grupos',uniq(s.map(x=>x.shift+'|'+x.group)).length]].map(([n,v])=>`<div class="stat"><strong>${v}</strong><span>${n}</span></div>`).join('')}
+async function refreshAttendance(){const s=await students(),a=await all('attendance'),shift=$('#attShift').value,group=$('#attGroup').value,date=$('#attDate').value,roster=s.filter(x=>x.shift===shift&&String(x.group)===String(group)),r=a.filter(x=>x.date===date&&x.shift===shift&&String(x.group)===String(group));$('#attStats').innerHTML=[['Presentes',r.length],['Alumnos',roster.length],['Faltantes',Math.max(0,roster.length-r.length)]].map(([n,v])=>`<div class="stat"><strong>${v}</strong><span>${n}</span></div>`).join('');$('#attList').innerHTML=r.length?r.sort((x,y)=>y.timestamp.localeCompare(x.timestamp)).map(x=>`<div class="row"><div><b>${esc(x.name)}</b><br><small>Lista ${esc(x.number)} · ${new Date(x.timestamp).toLocaleTimeString('es-MX')}</small></div><button data-adel="${esc(x.key)}">Eliminar</button></div>`).join(''):'<p>Sin registros.</p>';$$('[data-adel]').forEach(b=>b.onclick=async()=>{if(confirm('¿Eliminar registro?')){await del('attendance',b.dataset.adel);refreshAttendance()}})}
+async function registerAttendance(){const id=norm($('#attScan').value);$('#attScan').value='';$('#attScan').focus();if(!id)return;const s=await req(store('students').get(id));if(!s)return setStatus('attStatus','warn','ID no encontrado',id);if(s.shift!==$('#attShift').value||String(s.group)!==String($('#attGroup').value))return setStatus('attStatus','warn','Alumno de otro grupo',`${s.name} · ${s.shift} ${s.group}`);const key=`${$('#attDate').value}|${id}`,old=await req(store('attendance').get(key));if(old)return setStatus('attStatus','bad','⛔ YA REGISTRADO',`${s.name} · ${new Date(old.timestamp).toLocaleTimeString('es-MX')}`);await put('attendance',{key,date:$('#attDate').value,studentId:id,name:s.name,shift:s.shift,group:s.group,number:s.number,timestamp:new Date().toISOString()});setStatus('attStatus','good','✅ REGISTRADO',`${s.name} · Lista ${s.number}`);refreshAttendance()}
+async function showMissing(){const s=await students(),a=await all('attendance'),shift=$('#attShift').value,group=$('#attGroup').value,date=$('#attDate').value,p=new Set(a.filter(x=>x.date===date&&x.shift===shift&&String(x.group)===String(group)).map(x=>x.studentId)),m=s.filter(x=>x.shift===shift&&String(x.group)===String(group)&&!p.has(x.id));$('#missingList').innerHTML=m.map(x=>`<div class="row"><div><b>${esc(x.name)}</b><br><small>Lista ${esc(x.number)} · ID ${esc(x.id)}</small></div></div>`).join('')||'<p>No hay faltantes.</p>';$('#missingDialog').showModal()}
+async function refreshActivities(){const acts=(await all('activities')).filter(x=>x.shift===$('#actShift').value&&String(x.group)===String($('#actGroup').value)&&x.week===$('#actWeek').value).sort((a,b)=>a.date.localeCompare(b.date));$('#activityChips').innerHTML=acts.map(x=>`<button class="chip ${activeActivity===x.id?'active':''}" data-act="${x.id}">${esc(x.name)}</button>`).join('')||'<p>No hay actividades en esta semana.</p>';$$('[data-act]').forEach(b=>b.onclick=()=>{activeActivity=b.dataset.act;$('#activityScanCard').classList.remove('hidden');const a=acts.find(x=>x.id===activeActivity);$('#activeActivityTitle').textContent=a.name;refreshActivities();$('#actScan').focus()});await renderGrid(acts)}
+async function createActivity(e){e.preventDefault();const name=norm($('#activityName').value),date=$('#activityDate').value;if(!name||!date)return;const id=crypto.randomUUID();await put('activities',{id,name,date,week:$('#actWeek').value,shift:$('#actShift').value,group:$('#actGroup').value,created:new Date().toISOString()});activeActivity=id;$('#activityDialog').close();$('#activityScanCard').classList.remove('hidden');$('#activeActivityTitle').textContent=name;$('#activityName').value='';refreshActivities();setTimeout(()=>$('#actScan').focus(),100)}
+async function registerActivity(){const id=norm($('#actScan').value);$('#actScan').value='';$('#actScan').focus();if(!id||!activeActivity)return;const s=await req(store('students').get(id)),a=await req(store('activities').get(activeActivity));if(!s)return setStatus('actStatus','warn','ID no encontrado',id);if(s.shift!==a.shift||String(s.group)!==String(a.group))return setStatus('actStatus','warn','Alumno de otro grupo',`${s.name} · ${s.group}`);const key=`${activeActivity}|${id}`,old=await req(store('marks').get(key));if(old?.status==='yes')return setStatus('actStatus','bad','⛔ YA REGISTRADO',s.name);await put('marks',{key,activityId:activeActivity,studentId:id,status:'yes',timestamp:new Date().toISOString()});setStatus('actStatus','good','✅ ENTREGADO',`${s.name} · Lista ${s.number}`);refreshActivities()}
+async function finishActivity(){if(!activeActivity)return;const a=await req(store('activities').get(activeActivity)),s=(await students()).filter(x=>x.shift===a.shift&&String(x.group)===String(a.group)),marks=await all('marks'),done=new Set(marks.filter(x=>x.activityId===activeActivity).map(x=>x.studentId));if(confirm('¿Marcar con ❌ a quienes no fueron escaneados?'))for(const st of s)if(!done.has(st.id))await put('marks',{key:`${activeActivity}|${st.id}`,activityId:activeActivity,studentId:st.id,status:'no',timestamp:new Date().toISOString()});activeActivity=null;$('#activityScanCard').classList.add('hidden');refreshActivities()}
+async function renderGrid(acts){const s=(await students()).filter(x=>x.shift===$('#actShift').value&&String(x.group)===String($('#actGroup').value)),m=await all('marks'),map=new Map(m.map(x=>[x.key,x.status]));if(!s.length)return $('#activityGrid').innerHTML='<p>No hay alumnos.</p>';let h='<table class="activityTable"><thead><tr><th class="studentCol">No. y alumno</th>'+acts.map(a=>`<th>${esc(a.name)}</th>`).join('')+'</tr></thead><tbody>';for(const st of s){h+=`<tr><td class="studentCol"><b>${esc(st.number)}. ${esc(st.name)}</b></td>`+acts.map(a=>{const k=`${a.id}|${st.id}`,v=map.get(k)||'';return `<td><button class="mark" data-mark="${esc(k)}" data-a="${a.id}" data-s="${esc(st.id)}">${v==='yes'?'✅':v==='no'?'❌':'⬜'}</button></td>`}).join('')+'</tr>'}h+='</tbody></table>';$('#activityGrid').innerHTML=h;$$('[data-mark]').forEach(b=>b.onclick=async()=>{const old=await req(store('marks').get(b.dataset.mark)),next=!old?'yes':old.status==='yes'?'no':old.status==='no'?'': 'yes';if(!next)await del('marks',b.dataset.mark);else await put('marks',{key:b.dataset.mark,activityId:b.dataset.a,studentId:b.dataset.s,status:next,timestamp:new Date().toISOString()});refreshActivities()})}
+async function clearWeek(){if(!confirm('¿Vaciar todas las marcas de esta semana?'))return;const acts=(await all('activities')).filter(x=>x.shift===$('#actShift').value&&String(x.group)===String($('#actGroup').value)&&x.week===$('#actWeek').value),ids=new Set(acts.map(x=>x.id)),m=await all('marks');for(const x of m)if(ids.has(x.activityId))await del('marks',x.key);refreshActivities()}
+async function refreshTracking(){await fillSelectors();const id=$('#trackStudent').value,w=$('#trackWeek').value,key=`${w}|${id}`,rec=await req(store('tracking').get(key));$('#subjects').innerHTML=subjects.map(sub=>`<div class="subject"><h4>${esc(sub)}</h4><div class="stateBtns">${states.map(st=>`<button data-sub="${esc(sub)}" data-state="${esc(st)}" class="${rec?.subjects?.[sub]===st?'selected':''}">${esc(st)}</button>`).join('')}</div></div>`).join('');$('#trackNotes').value=rec?.notes||'';$('#trackPeriod').value=rec?.period||'Periodo 1';$$('[data-sub]').forEach(b=>b.onclick=()=>{$$(`[data-sub="${CSS.escape(b.dataset.sub)}"]`).forEach(x=>x.classList.remove('selected'));b.classList.add('selected')})}
+async function saveTracking(){const id=$('#trackStudent').value,w=$('#trackWeek').value;if(!id)return alert('No hay alumno seleccionado.');const obj={};subjects.forEach(s=>{const b=$(`[data-sub="${CSS.escape(s)}"].selected`);obj[s]=b?b.dataset.state:'⚪ Sin información'});await put('tracking',{key:`${w}|${id}`,week:w,studentId:id,period:$('#trackPeriod').value,subjects:obj,notes:$('#trackNotes').value,timestamp:new Date().toISOString()});alert('Seguimiento guardado.')}
+async function renderStudents(){const q=low($('#studentSearch').value),s=await students(),f=s.filter(x=>!q||[x.id,x.name,x.group,x.shift,x.number].some(v=>low(v).includes(q)));$('#studentList').innerHTML=f.map(x=>`<div class="row"><div><b>${esc(x.name)}</b><br><small>ID ${esc(x.id)} · ${esc(x.shift)} · Grupo ${esc(x.group)} · Lista ${esc(x.number)}</small></div><div class="rowBtns"><button data-edit="${esc(x.id)}" class="yellow">Editar</button><button data-del="${esc(x.id)}">Eliminar</button></div></div>`).join('')||'<p>No hay alumnos.</p>';$$('[data-edit]').forEach(b=>b.onclick=async()=>{const x=await req(store('students').get(b.dataset.edit));$('#editOriginal').value=x.id;$('#sId').value=x.id;$('#sShift').value=x.shift;$('#sGroup').value=x.group;$('#sNumber').value=x.number;$('#sName').value=x.name;$('#cancelEdit').classList.remove('hidden');$('#studentForm').scrollIntoView({behavior:'smooth'})});$$('[data-del]').forEach(b=>b.onclick=async()=>{if(confirm('¿Eliminar alumno?')){await del('students',b.dataset.del);await fillSelectors();renderStudents()}})}
+async function saveStudent(e){e.preventDefault();const x={id:norm($('#sId').value),shift:$('#sShift').value,group:norm($('#sGroup').value),number:+$('#sNumber').value,name:norm($('#sName').value)},old=$('#editOriginal').value;if(old&&old!==x.id)await del('students',old);await put('students',x);e.target.reset();$('#editOriginal').value='';$('#cancelEdit').classList.add('hidden');await fillSelectors();renderStudents()}
+function pick(o,names){for(const [k,v] of Object.entries(o))if(names.some(n=>low(k).replace(/[.\s_]/g,'')===low(n).replace(/[.\s_]/g,'')))return v;return ''}
+async function importExcel(file){const msg=$('#importMsg');try{if(!window.XLSX)throw Error('No cargó el lector de Excel. Abre la app con internet y vuelve a intentar.');const wb=XLSX.read(await file.arrayBuffer(),{type:'array'}),sn=wb.SheetNames.find(x=>low(x).includes('base_alumnos')||low(x).includes('base de datos'))||wb.SheetNames[0],rows=XLSX.utils.sheet_to_json(wb.Sheets[sn],{defval:''});let n=0;for(const r of rows){const x={id:norm(pick(r,['ID','ID escaneado'])),shift:norm(pick(r,['Turno']))||'Vespertino',group:norm(pick(r,['Grupo']))||'3A',number:+pick(r,['No. de lista','No de lista','Número de lista']),name:norm(pick(r,['Nombre del alumno','Nombre completo del alumno','Nombre','Alumno']))};if(!x.id&&x.number)x.id=`3A${String(x.number).padStart(2,'0')}`;if(x.id&&x.number&&x.name){await put('students',x);n++}}msg.textContent=`Importación terminada: ${n} alumnos.`;await fillSelectors();renderStudents()}catch(e){msg.textContent=e.message}}
+async function backup(){const data={version:'2.3',created:new Date().toISOString(),students:await all('students'),attendance:await all('attendance'),activities:await all('activities'),marks:await all('marks'),tracking:await all('tracking'),settings:await all('settings')};download(`Profe_Jaime_respaldo_${today()}.json`,JSON.stringify(data,null,2))}
+async function restore(file){try{const d=JSON.parse(await file.text());for(const n of ['students','attendance','activities','marks','tracking','settings']){await clear(n);for(const x of d[n]||[])await put(n,x)}await fillSelectors();alert('Copia restaurada correctamente.');go('home')}catch(e){alert('No se pudo restaurar: '+e.message)}}
+async function saveSettings(e){e.preventDefault();for(const [k,id] of [['teacher','teacherName'],['school','schoolName'],['mainGroup','mainGroup'],['schoolYear','schoolYear']])await put('settings',{key:k,value:$('#'+id).value});alert('Configuración guardada.')}
+async function loadSettings(){const s=Object.fromEntries((await all('settings')).map(x=>[x.key,x.value]));$('#teacherName').value=s.teacher||'Profr. Jaime Armando Pérez Vázquez';$('#schoolName').value=s.school||'';$('#mainGroup').value=s.mainGroup||'3A';$('#schoolYear').value=s.schoolYear||'2026–2027'}
+async function pdfWeekly(){if(!window.jspdf)return alert('Abre la app con internet una vez para cargar el generador PDF.');const {jsPDF}=window.jspdf,doc=new jsPDF({orientation:'landscape'}),acts=(await all('activities')).filter(x=>x.shift===$('#actShift').value&&String(x.group)===String($('#actGroup').value)&&x.week===$('#actWeek').value).sort((a,b)=>a.date.localeCompare(b.date)),s=(await students()).filter(x=>x.shift===$('#actShift').value&&String(x.group)===String($('#actGroup').value)),m=new Map((await all('marks')).map(x=>[x.key,x.status])),cfg=Object.fromEntries((await all('settings')).map(x=>[x.key,x.value]));doc.setFontSize(16);doc.text('PROFE JAIME · REPORTE SEMANAL DE ACTIVIDADES',14,14);doc.setFontSize(10);doc.text(`${cfg.teacher||'Profr. Jaime Armando Pérez Vázquez'} | ${$('#actShift').value} | Grupo ${$('#actGroup').value} | ${$('#actWeek').value}`,14,21);let y=30;const widths=[12,65,...acts.map(()=>25)],headers=['No.','Alumno',...acts.map(x=>x.name.slice(0,14))];doc.setFillColor(245,196,0);doc.rect(10,y,widths.reduce((a,b)=>a+b),8,'F');let x=10;headers.forEach((h,i)=>{doc.text(h,x+2,y+5);x+=widths[i]});y+=8;for(const st of s){if(y>190){doc.addPage();y=15}x=10;const vals=[String(st.number),st.name,...acts.map(a=>{const v=m.get(`${a.id}|${st.id}`);return v==='yes'?'SI':v==='no'?'NO':'-'})];vals.forEach((v,i)=>{doc.rect(x,y,widths[i],7);doc.text(String(v).slice(0,i===1?30:12),x+2,y+5);x+=widths[i]});y+=7}doc.save(`Actividades_${$('#actGroup').value}_${$('#actWeek').value}.pdf`)}
+async function pdfTracking(){if(!window.jspdf)return alert('Abre la app con internet una vez.');const id=$('#trackStudent').value,s=await req(store('students').get(id)),r=await req(store('tracking').get(`${$('#trackWeek').value}|${id}`));if(!s||!r)return alert('Primero guarda el seguimiento.');const {jsPDF}=window.jspdf,doc=new jsPDF(),cfg=Object.fromEntries((await all('settings')).map(x=>[x.key,x.value]));doc.setFontSize(16);doc.text('REPORTE DE SEGUIMIENTO ACADÉMICO',14,16);doc.setFontSize(10);doc.text(`Alumno: ${s.name}`,14,25);doc.text(`Grupo: 3.º A | Semana: ${r.week} | ${r.period}`,14,31);doc.text(`Titular: ${cfg.teacher||'Profr. Jaime Armando Pérez Vázquez'}`,14,37);let y=47;for(const sub of subjects){doc.setFillColor(245,196,0);doc.rect(14,y,55,9,'F');doc.text(sub,16,y+6);doc.rect(69,y,125,9);doc.text((r.subjects?.[sub]||'⚪ Sin información').replace(/[🟢🟡🔴⚪]/g,''),72,y+6);y+=11}doc.text('Observaciones:',14,y+5);doc.text(doc.splitTextToSize(r.notes||'Sin observaciones generales.',175),14,y+12);doc.save(`Seguimiento_${s.name.replace(/\s+/g,'_')}_${r.week}.pdf`)}
+async function exportAttendance(){const a=await all('attendance'),csv=['Fecha,Hora,ID,Nombre,Turno,Grupo,No. lista',...a.map(x=>[x.date,new Date(x.timestamp).toLocaleTimeString('es-MX'),x.studentId,x.name,x.shift,x.group,x.number].map(v=>`"${String(v??'').replaceAll('"','""')}"`).join(','))].join('\n');download(`Asistencia_${today()}.csv`,'\ufeff'+csv,'text/csv;charset=utf-8')}
+function bind(){const nav=$('#nav');nav.innerHTML=NAV.map(([id,n])=>`<button data-go="${id}">${n}</button>`).join('');$$('[data-go]').forEach(b=>b.onclick=()=>go(b.dataset.go));$('#attRegister').onclick=registerAttendance;$('#attScan').onkeydown=e=>{if(e.key==='Enter')registerAttendance()};$('#showAttMissing').onclick=showMissing;$('#attShift').onchange=async()=>{await fillGroups('att');refreshAttendance()};$('#attGroup').onchange=refreshAttendance;$('#attDate').onchange=refreshAttendance;$('#actShift').onchange=async()=>{await fillGroups('act');refreshActivities()};$('#actGroup').onchange=refreshActivities;$('#actWeek').onchange=refreshActivities;$('#newActivity').onclick=()=>{$('#activityDate').value=today();$('#activityDialog').showModal()};$('#activityForm').onsubmit=createActivity;$('#actRegister').onclick=registerActivity;$('#actScan').onkeydown=e=>{if(e.key==='Enter')registerActivity()};$('#finishActivity').onclick=finishActivity;$('#markAllPending').onclick=clearWeek;$('#pdfWeekly').onclick=pdfWeekly;$('#trackStudent').onchange=refreshTracking;$('#trackWeek').onchange=refreshTracking;$('#saveTracking').onclick=saveTracking;$('#trackingPdf').onclick=pdfTracking;$('#studentForm').onsubmit=saveStudent;$('#studentSearch').oninput=renderStudents;$('#studentFile').onchange=e=>{if(e.target.files[0])importExcel(e.target.files[0]);e.target.value=''};$('#templateBtn').onclick=()=>download('plantilla_alumnos.csv','ID,Turno,Grupo,No. de lista,Nombre del alumno\n22001,Matutino,22,1,Nombre Apellido','text/csv');$('#clearStudents').onclick=async()=>{if(confirm('¿Borrar todos los alumnos?')){await clear('students');await fillSelectors();renderStudents()}};$('#cancelEdit').onclick=()=>{$('#studentForm').reset();$('#editOriginal').value='';$('#cancelEdit').classList.add('hidden')};$('#saveAllTop').onclick=backup;$('#saveAllReport').onclick=backup;$('#restoreFile').onchange=e=>e.target.files[0]&&restore(e.target.files[0]);$('#settingsForm').onsubmit=saveSettings;$('#exportAttendance').onclick=exportAttendance;$('#reportActivities').onclick=pdfWeekly;$('#reportTracking').onclick=pdfTracking}
+(async()=>{await openDB();bind();$('#attDate').value=today();$('#actWeek').value=weekValue();$('#trackWeek').value=weekValue();await loadSettings();await fillSelectors();go('home');if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js')})();

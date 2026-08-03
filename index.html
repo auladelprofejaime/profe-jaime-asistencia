@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>Profe Jaime Control Escolar</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar del Profe Jaime"><div><h1>Profe Jaime</h1><p>Control Escolar · v2.8</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar del Profe Jaime"><div><h1>Profe Jaime</h1><p>Control Escolar · v2.9</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs">
 <button data-view="home" class="tab active">Inicio</button><button data-view="attendance" class="tab">Asistencia</button><button data-view="activities" class="tab">Actividades</button><button data-view="titular" class="tab">3.º A</button><button data-view="students" class="tab">Alumnos</button><button data-view="reports" class="tab">Reportes</button>
 </nav>
@@ -47,7 +47,7 @@
   <p class="hint">Toca una celda para cambiar: vacío → ✓ → ✕ → vacío.</p><div id="activityGrid" class="tablewrap"></div>
  </div>
  <div id="act-manage" class="actpane">
-  <form id="activityForm" class="card formgrid"><h2>Crear actividad</h2><label>Turno<select id="newActShift"></select></label><label>Grupo<select id="newActGroup"></select></label><label>Fecha<input id="newActDate" type="date" required></label><label>Semana<input id="newActWeek" placeholder="Ej. 31 ago–4 sep" required></label><label class="wide">Nombre de la actividad<input id="newActName" placeholder="Ej. Dictado 1" required></label><label>Tipo<select id="newActType"><option>Actividad</option><option>Cuaderno</option><option>Tarea</option><option>Dictado</option><option>Proyecto</option><option>Examen</option><option>Otro</option></select></label><div class="wide actions"><button class="primary">Guardar actividad</button></div></form>
+  <form id="activityForm" class="card formgrid"><h2 id="activityFormTitle">Crear actividad</h2><input type="hidden" id="editActivityId"><label>Turno<select id="newActShift"></select></label><label>Grupo<select id="newActGroup"></select></label><label>Fecha<input id="newActDate" type="date" required></label><label>Semana<input id="newActWeek" placeholder="Ej. 31 ago–4 sep" required></label><label class="wide">Nombre de la actividad<input id="newActName" placeholder="Ej. Dictado 1" required></label><label>Tipo<select id="newActType"><option>Actividad</option><option>Cuaderno</option><option>Tarea</option><option>Dictado</option><option>Proyecto</option><option>Examen</option><option>Otro</option></select></label><div class="wide actions"><button id="saveActivityBtn" class="primary">Guardar actividad</button><button id="cancelActivityEdit" type="button" class="secondary hidden">Cancelar edición</button></div></form>
   <div class="card"><h2>Actividades creadas</h2><div id="activitiesList" class="list empty">No hay actividades.</div></div>
  </div>
 </section>

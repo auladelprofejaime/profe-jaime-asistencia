@@ -1,3 +1,7 @@
+VERSIÓN 2.7
+
+Corrección: los reportes PDF se abren dentro de la misma app, sin ventanas emergentes. Incluye Regresar, Compartir PDF, Guardar PDF e Imprimir.
+
 PROFE JAIME CONTROL ESCOLAR v2.6
 
 CORRECCIONES

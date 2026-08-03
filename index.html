@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>Profe Jaime Control Escolar</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar del Profe Jaime"><div><h1>Profe Jaime</h1><p>Control Escolar · v3.3</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar del Profe Jaime"><div><h1>Profe Jaime</h1><p>Control Escolar · v3.4</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs">
 <button data-view="home" class="tab active">Inicio</button><button data-view="attendance" class="tab">Asistencia</button><button data-view="activities" class="tab">Actividades</button><button data-view="titular" class="tab">3.º A</button><button data-view="students" class="tab">Alumnos</button><button data-view="reports" class="tab">Reportes</button>
 </nav>
@@ -43,8 +43,7 @@
   <div class="actions"><button id="actClose" class="danger-outline">Finalizar y marcar faltantes ✕</button><button id="actReopen" class="secondary">Dejar pendientes</button></div>
  </div>
  <div id="act-grid" class="actpane">
-  <div class="card grid4"><label>Turno<select id="gridShift"></select></label><label>Grupo<select id="gridGroup"></select></label><label>Semana<select id="gridWeek"></select></label><label>Acción<button id="gridPdf" class="secondary">Preparar PDF semanal</button></label></div>
-  <div class="card"><div class="section"><div><h2>Orden de actividades</h2><p class="hint">Usa las flechas para decidir cómo aparecerán en la cuadrícula y en el reporte.</p></div></div><div id="activityOrderList" class="order-list empty">No hay actividades en esta semana.</div></div>
+  <div class="card grid4"><label>Turno<select id="gridShift"></select></label><label>Grupo<select id="gridGroup"></select></label><label>Semana<select id="gridWeek"></select></label><label>Acción<button id="gridPdf" class="secondary">PDF semanal</button></label></div>
   <p class="hint">Toca una celda para cambiar: vacío → ✓ → ✕ → vacío.</p><div id="activityGrid" class="tablewrap"></div>
  </div>
  <div id="act-manage" class="actpane">
@@ -80,4 +79,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v33.js?v=330"></script></body></html>
+<script src="app-v34.js?v=340"></script></body></html>

@@ -8,3 +8,5 @@
 @media(max-width:480px){.welcome{grid-template-columns:1fr;text-align:center}.welcome-avatar{max-height:220px}.welcome-copy{padding:0 12px 18px}.home-menu{grid-template-columns:1fr}.topbar h1{font-size:18px}.topbar p{font-size:10px}.save-all{font-size:0}.save-all:after{content:'Guardar';font-size:11px}}
 
 .save-state{margin:10px 0 0;font-weight:800;color:#5d513f}.warning-note{background:#fff3c4;border-left:5px solid #d97706;padding:10px;border-radius:8px}.top-actions .mini{white-space:nowrap}@media(max-width:620px){#updateAppBtn{font-size:0}#updateAppBtn:after{content:'Actualizar';font-size:11px}.top-actions{gap:5px}}
+
+.activity-edit{background:#f5c400!important;color:#211b12!important;border:2px solid #c79d00!important;min-width:96px}

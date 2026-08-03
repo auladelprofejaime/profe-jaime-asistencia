@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#f5c400" />
+  <title>Profe Jaime Asistencia</title>
+  <link rel="manifest" href="manifest.webmanifest" />
+  <link rel="stylesheet" href="styles.css" />
+  <link rel="apple-touch-icon" href="icon.svg" />
+</head>
+<body>
+<header class="topbar">
+  <div class="brand-mark">PJ</div>
+  <div>
+    <h1>Profe Jaime</h1>
+    <p>Asistencia</p>
+  </div>
+  <button id="installBtn" class="ghost hidden">Instalar</button>
+</header>
+
+<nav class="tabs" aria-label="Secciones">
+  <button class="tab active" data-view="scanner">Escanear</button>
+  <button class="tab" data-view="students">Alumnos</button>
+  <button class="tab" data-view="history">Historial</button>
+</nav>
+
+<main>
+  <section id="scanner" class="view active">
+    <div class="card controls">
+      <label>Turno
+        <select id="scanShift"></select>
+      </label>
+      <label>Grupo
+        <select id="scanGroup"></select>
+      </label>
+      <label>Fecha
+        <input id="scanDate" type="date" />
+      </label>
+    </div>
+
+    <div class="stats">
+      <div><strong id="presentCount">0</strong><span>Presentes</span></div>
+      <div><strong id="totalCount">0</strong><span>Alumnos</span></div>
+      <div><strong id="missingCount">0</strong><span>Faltantes</span></div>
+    </div>
+
+    <div id="statusPanel" class="status neutral">
+      <span class="status-icon">▣</span>
+      <h2 id="statusTitle">Escanea la credencial</h2>
+      <p id="statusText">El lector escribirá el ID y enviará Enter.</p>
+    </div>
+
+    <div class="scan-box">
+      <input id="scanInput" inputmode="numeric" autocomplete="off"
+             placeholder="ID del alumno" aria-label="ID escaneado" />
+      <button id="registerBtn" class="primary">Registrar</button>
+    </div>
+
+    <div class="card">
+      <div class="section-title">
+        <h3>Presentes de hoy</h3>
+        <button id="showMissingBtn" class="secondary">Ver faltantes</button>
+      </div>
+      <div id="todayList" class="list empty">Aún no hay registros.</div>
+    </div>
+  </section>
+
+  <section id="students" class="view">
+    <div class="card">
+      <h2>Cargar alumnos</h2>
+      <p class="help">Importa un Excel con columnas: ID, Turno, Grupo, No. de lista y Nombre del alumno.</p>
+      <div class="actions">
+        <label class="file-button">
+          Importar Excel
+          <input id="excelFile" type="file" accept=".xlsx,.xls,.csv" />
+        </label>
+        <button id="downloadTemplateBtn" class="secondary">Plantilla CSV</button>
+        <button id="deleteAllStudentsBtn" class="danger-outline">Borrar alumnos</button>
+      </div>
+      <p id="importMessage" class="message"></p>
+    </div>
+
+    <form id="studentForm" class="card form-grid">
+      <h2 id="studentFormTitle">Agregar alumno manualmente</h2>
+      <input type="hidden" id="editingOriginalId" />
+      <label>ID
+        <input id="studentId" required inputmode="numeric" />
+      </label>
+      <label>Turno
+        <select id="studentShift" required>
+          <option>Matutino</option>
+          <option>Vespertino</option>
+        </select>
+      </label>
+      <label>Grupo
+        <input id="studentGroup" required />
+      </label>
+      <label>No. de lista
+        <input id="studentNumber" required inputmode="numeric" type="number" min="1" />
+      </label>
+      <label class="wide">Nombre del alumno
+        <input id="studentName" required />
+      </label>
+      <div class="wide actions">
+        <button class="primary" type="submit">Guardar alumno</button>
+        <button id="cancelEditBtn" class="secondary hidden" type="button">Cancelar edición</button>
+      </div>
+    </form>
+
+    <div class="card">
+      <div class="section-title">
+        <h2>Lista de alumnos</h2>
+        <input id="studentSearch" class="search" placeholder="Buscar nombre, ID o grupo" />
+      </div>
+      <div id="studentsList" class="list empty">No hay alumnos cargados.</div>
+    </div>
+  </section>
+
+  <section id="history" class="view">
+    <div class="card controls history-filters">
+      <label>Desde
+        <input id="historyFrom" type="date" />
+      </label>
+      <label>Hasta
+        <input id="historyTo" type="date" />
+      </label>
+      <label>Turno
+        <select id="historyShift"><option value="">Todos</option></select>
+      </label>
+      <label>Grupo
+        <select id="historyGroup"><option value="">Todos</option></select>
+      </label>
+    </div>
+    <div class="card">
+      <div class="section-title">
+        <h2>Registros guardados</h2>
+        <div class="actions">
+          <button id="exportHistoryBtn" class="secondary">Exportar CSV</button>
+          <button id="deleteHistoryBtn" class="danger-outline">Borrar historial</button>
+        </div>
+      </div>
+      <div id="historyList" class="list empty">No hay registros.</div>
+    </div>
+  </section>
+</main>
+
+<dialog id="missingDialog">
+  <div class="dialog-head">
+    <h2>Faltantes</h2>
+    <button id="closeMissingBtn" class="icon-btn">×</button>
+  </div>
+  <div id="missingList" class="list"></div>
+</dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

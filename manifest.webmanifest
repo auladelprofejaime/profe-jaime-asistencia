@@ -1,0 +1,17 @@
+{
+  "name": "Profe Jaime Asistencia",
+  "short_name": "PJ Asistencia",
+  "description": "Control de asistencia escolar mediante escaneo de credenciales.",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#fff9e8",
+  "theme_color": "#f5c400",
+  "icons": [
+    {
+      "src": "icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

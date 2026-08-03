@@ -1,0 +1,34 @@
+PROFE JAIME ASISTENCIA — VERSIÓN 1
+
+Incluye:
+- Importación de alumnos desde Excel, XLS o CSV.
+- Alta, edición y eliminación manual de alumnos.
+- Campos: ID, turno, grupo, número de lista y nombre.
+- Registro con lector de códigos que funcione como teclado.
+- Avisos REGISTRADO, YA REGISTRADO, ID NO ENCONTRADO y OTRO GRUPO.
+- Presentes y faltantes por fecha, turno y grupo.
+- Historial permanente en el dispositivo mediante IndexedDB.
+- Consulta por fechas, turno y grupo.
+- Exportación del historial a CSV compatible con Excel.
+- Diseño amarillo y rojo.
+- Instalable como app web en iPad.
+
+IMPORTANTE
+Los datos se guardan en el navegador del dispositivo. No borres los datos de Safari ni uses navegación privada.
+La importación de Excel usa una biblioteca que se descarga la primera vez; abre la app con internet al menos una vez.
+
+CÓMO PROBAR EN COMPUTADORA
+1. Descomprime la carpeta.
+2. Abre una terminal dentro de ella.
+3. Ejecuta: python -m http.server 8000
+4. Abre http://localhost:8000
+
+CÓMO USAR EN IPAD
+Debes publicar la carpeta en un servicio HTTPS, por ejemplo GitHub Pages, Netlify o un servidor escolar.
+Después, abre la dirección en Safari y usa Compartir > Agregar a pantalla de inicio.
+
+FORMATO DE EXCEL
+La app reconoce estas columnas:
+ID | Turno | Grupo | No. de lista | Nombre del alumno
+
+También reconoce la hoja BASE_ALUMNOS de tu archivo actual.

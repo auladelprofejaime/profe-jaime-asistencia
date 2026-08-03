@@ -1,0 +1,21 @@
+PROFE JAIME CONTROL ESCOLAR — VERSIÓN 2.4
+
+CAMBIOS PRINCIPALES
+- Avatar profesional del Profe Jaime integrado en encabezado, pantalla de inicio e ícono.
+- Nueva pantalla Inicio con accesos directos y resumen de grupos, alumnos, actividades y asistencias.
+- Botón permanente GUARDAR TODO en la parte superior.
+- Botón Guardar todo también en Inicio, Alumnos y Reportes.
+- Todos los listados, cuadrículas y reportes se ordenan automáticamente de forma alfabética por nombre dentro de cada turno y grupo.
+- El número de lista continúa visible, pero ya no define el orden.
+- Se conservan asistencia, actividades, seguimiento 3.º A, PDF y respaldo/restauración.
+
+ACTUALIZACIÓN EN GITHUB
+1. Descomprime este ZIP.
+2. En el mismo repositorio: Add file > Upload files.
+3. Sube todos los archivos sueltos, incluidos avatar-profe-jaime.png e icon-profe-jaime.png.
+4. Pulsa Commit changes.
+5. Espera 1–3 minutos. Cierra la app por completo y vuelve a abrirla.
+6. Si aún ves la versión anterior, abre la URL en Safari, recarga y vuelve a agregarla a pantalla de inicio.
+
+DATOS
+La actualización usa la misma base local ProfeJaimeAsistenciaDB, por lo que no debe borrar los datos existentes. Antes de actualizar, pulsa Guardar todo para descargar un respaldo JSON.

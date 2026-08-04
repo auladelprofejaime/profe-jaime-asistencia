@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.6</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.7</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -27,7 +27,19 @@
 <section id="home" class="view active">
  <div class="welcome card">
   <img src="avatar-profe-jaime.png" alt="Avatar profesional de El Aula del Profe Jaime" class="welcome-avatar">
-  <div class="welcome-copy"><span class="eyebrow">PROFE JAIME</span><h2>Control Escolar</h2><p id="welcomeDate">Tu herramienta para registrar, consultar y respaldar el trabajo escolar.</p><div class="actions"><button id="homeSaveAll" class="primary">Guardar todo dentro de la app</button><button id="homeRestoreInternal" class="secondary">Restaurar último guardado</button></div><p id="lastInternalSave" class="save-state">Todavía no hay un guardado interno adicional.</p></div>
+  <div class="welcome-copy"><span class="eyebrow">PROFE JAIME</span><h2>Control Escolar</h2><p id="welcomeDate">Tu herramienta para registrar, consultar y respaldar el trabajo escolar.</p><div class="actions">
+  <button id="homeSaveAll" class="primary">Guardar todo dentro de la app</button>
+  <button id="homeRestoreInternal" class="secondary">Restaurar último guardado</button>
+</div>
+<div class="device-backup-box">
+  <h3>Cambiar de dispositivo o proteger tus datos</h3>
+  <p>Descarga un archivo con toda la información y guárdalo en iCloud Drive, OneDrive o Google Drive.</p>
+  <div class="actions">
+    <button id="homeExportBackup" class="secondary" type="button">Exportar respaldo</button>
+    <label class="filebtn alt">Importar respaldo<input id="homeRestoreFile" type="file" accept=".json,application/json"></label>
+  </div>
+</div>
+<p id="lastInternalSave" class="save-state">Todavía no hay un guardado interno adicional.</p></div>
  </div>
  <div class="home-summary">
   <div class="summary-card"><b id="homeGroups">0</b><span>Grupos</span></div><div class="summary-card"><b id="homeStudents">0</b><span>Alumnos</span></div><div class="summary-card"><b id="homeActivities">0</b><span>Actividades</span></div><div class="summary-card"><b id="homeAttendance">0</b><span>Asistencias guardadas</span></div>
@@ -153,13 +165,22 @@
 </section>
 
 <section id="students" class="view">
- <div class="card"><h2>Cargar alumnos</h2><p class="hint">Reconoce: ID, Turno, Grupo, No. de lista y Nombre del alumno. Para 3.º A también puedes cargar correo.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo opcional<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json"></label></div><p id="studentMsg" class="message"></p></div>
+ <div class="card"><h2>Cargar alumnos</h2><p class="hint">Reconoce: ID, Turno, Grupo, No. de lista y Nombre del alumno. Para 3.º A también puedes cargar correo.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
  <form id="studentForm" class="card formgrid"><h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden"><label>ID<input id="studentId" required inputmode="numeric"></label><label>Turno<select id="studentShift"><option>Matutino</option><option>Vespertino</option></select></label><label>Grupo<input id="studentGroup" required></label><label>No. de lista<input id="studentNumber" type="number" min="1" required></label><label class="wide">Nombre<input id="studentName" required></label><label class="wide">Correo institucional del alumno (opcional)<input id="studentEmail" type="email" autocomplete="email" placeholder="alumno@correo.edu.mx"></label><div class="wide actions"><button class="primary">Guardar</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div></form>
  <div class="card"><div class="section"><h2>Lista de alumnos</h2><input id="studentSearch" placeholder="Buscar nombre, ID o grupo"></div><div id="studentsList" class="list empty">No hay alumnos.</div></div>
 </section>
 
 <section id="reports" class="view">
  <div class="card"><div class="section"><div><h2>Reportes</h2><p class="hint">Los reportes se abren en una vista preparada para imprimir o guardar como PDF desde el iPad.</p></div><button id="saveAllReports" class="primary">Guardar dentro de la app</button></div></div>
+<div class="card device-backup-box">
+  <h2>Respaldo para otro dispositivo</h2>
+  <p class="hint">Exporta un archivo con alumnos, correos, asistencias, actividades, calificaciones, metodologías, seguimiento y configuración.</p>
+  <div class="actions">
+    <button id="reportsExportBackup" class="secondary" type="button">Exportar respaldo</button>
+    <label class="filebtn alt">Importar respaldo<input id="reportsRestoreFile" type="file" accept=".json,application/json"></label>
+  </div>
+  <p class="warning-note">Guarda el archivo en iCloud Drive, OneDrive o Google Drive. Al importarlo en otro iPad, reemplazará la información que exista en esa app.</p>
+</div>
  <div class="report-cards"><button id="weeklyReportShortcut" class="reportcard"><b>Reporte semanal de actividades</b><span>Cuadrícula grupal con ✓ y ✕</span></button><button id="attendanceReport" class="reportcard"><b>Reporte de asistencia</b><span>Presentes, retardos y faltantes por fecha</span></button><button id="titularReportShortcut" class="reportcard"><b>Reporte individual 3.º A</b><span>Seguimiento por materia y semana</span></button></div>
 </section>
 </main>
@@ -167,4 +188,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v56.js?v=560"></script></body></html>
+<script src="app-v57.js?v=570"></script></body></html>

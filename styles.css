@@ -45,3 +45,116 @@
   background:#fff8d6;
   border:1px solid #e8cf61;
 }
+
+
+/* v5.2: menú principal desplegable */
+.dropdown-nav{
+  display:block;
+  position:sticky;
+  top:77px;
+  z-index:9;
+  padding:8px 14px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  overflow:visible;
+}
+.main-menu{
+  position:relative;
+  max-width:1100px;
+  margin:0 auto;
+}
+.main-menu summary{
+  list-style:none;
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  border:2px solid var(--line);
+  border-radius:14px;
+  background:#fffdf6;
+  color:var(--ink);
+  cursor:pointer;
+  user-select:none;
+  box-shadow:0 5px 14px rgba(65,43,5,.08);
+}
+.main-menu summary::-webkit-details-marker{display:none}
+.main-menu summary::marker{display:none}
+.main-menu[open] summary{
+  border-color:var(--r);
+  border-bottom-left-radius:8px;
+  border-bottom-right-radius:8px;
+}
+.menu-title{
+  color:var(--r);
+  font-weight:950;
+  font-size:17px;
+}
+#currentSection{
+  flex:1;
+  text-align:left;
+  font-size:17px;
+}
+.menu-arrow{
+  font-size:22px;
+  color:var(--r);
+  transition:transform .18s ease;
+}
+.main-menu[open] .menu-arrow{transform:rotate(180deg)}
+.menu-panel{
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  right:0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  padding:10px;
+  background:#fff;
+  border:2px solid var(--r);
+  border-radius:14px;
+  box-shadow:0 18px 45px rgba(60,35,0,.22);
+  max-height:62vh;
+  overflow:auto;
+}
+.dropdown-nav .tab{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  min-height:52px;
+  padding:10px 13px;
+  border:2px solid var(--line);
+  border-radius:12px;
+  background:#fffdf6;
+  color:var(--ink);
+  box-shadow:none;
+  text-align:left;
+  white-space:normal;
+}
+.dropdown-nav .tab span{
+  min-width:35px;
+  height:35px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:var(--y);
+  color:var(--rd);
+  font-weight:950;
+}
+.dropdown-nav .tab.active{
+  color:var(--r);
+  border-color:var(--r);
+  background:#fff3f3;
+  box-shadow:none;
+}
+.dropdown-nav .tab.active span{
+  background:var(--r);
+  color:#fff;
+}
+@media(max-width:600px){
+  .menu-panel{grid-template-columns:1fr}
+}
+@media print{
+  .dropdown-nav{display:none!important}
+}

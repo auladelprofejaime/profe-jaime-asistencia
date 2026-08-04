@@ -4,9 +4,24 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.1</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
-<nav class="tabs">
-<button data-view="home" class="tab active">Inicio</button><button data-view="attendance" class="tab">Asistencia</button><button data-view="activities" class="tab">Actividades</button><button data-view="methodologies" class="tab">Metodologías</button><button data-view="titular" class="tab">3.º A</button><button data-view="students" class="tab">Alumnos</button><button data-view="reports" class="tab">Reportes</button>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.2</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<nav class="tabs dropdown-nav">
+  <details id="mainMenu" class="main-menu">
+    <summary aria-label="Abrir menú principal">
+      <span class="menu-title">☰ Menú</span>
+      <strong id="currentSection">Inicio</strong>
+      <span class="menu-arrow">⌄</span>
+    </summary>
+    <div class="menu-panel">
+      <button data-view="home" class="tab active"><span>⌂</span>Inicio</button>
+      <button data-view="attendance" class="tab"><span>▣</span>Asistencia</button>
+      <button data-view="activities" class="tab"><span>●</span>Actividades</button>
+      <button data-view="methodologies" class="tab"><span>%</span>Metodologías</button>
+      <button data-view="titular" class="tab"><span>3A</span>Seguimiento 3.º A</button>
+      <button data-view="students" class="tab"><span>♟</span>Alumnos</button>
+      <button data-view="reports" class="tab"><span>▤</span>Reportes</button>
+    </div>
+  </details>
 </nav>
 <main>
 <section id="home" class="view active">
@@ -144,4 +159,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v51.js?v=510"></script></body></html>
+<script src="app-v52.js?v=520"></script></body></html>

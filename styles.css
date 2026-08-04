@@ -35,3 +35,13 @@
 @media(max-width:650px){
   .criterion-row,.assignment-row{grid-template-columns:1fr}
 }
+
+
+/* v5.1: reporte individual de metodología */
+.individual-report-help{
+  margin-top:10px;
+  padding:12px;
+  border-radius:12px;
+  background:#fff8d6;
+  border:1px solid #e8cf61;
+}

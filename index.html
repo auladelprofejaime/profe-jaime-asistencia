@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.0</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.1</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs">
 <button data-view="home" class="tab active">Inicio</button><button data-view="attendance" class="tab">Asistencia</button><button data-view="activities" class="tab">Actividades</button><button data-view="methodologies" class="tab">Metodologías</button><button data-view="titular" class="tab">3.º A</button><button data-view="students" class="tab">Alumnos</button><button data-view="reports" class="tab">Reportes</button>
 </nav>
@@ -70,6 +70,8 @@
       <label>Turno<select id="metShift"></select></label>
       <label>Grupo<select id="metGroup"></select></label>
       <label class="wide">Nombre de la metodología<input id="metName" placeholder="Ej. Evaluación de septiembre" required></label>
+      <label>Materia<input id="metSubject" value="Español" placeholder="Ej. Español" required></label>
+      <label>Mes evaluado<input id="metMonth" placeholder="Ej. Septiembre 2026" required></label>
       <div class="wide section"><h3>Criterios y porcentajes</h3><button id="addCriterionBtn" type="button" class="secondary">Agregar criterio</button></div>
       <div id="criteriaEditor" class="wide criteria-editor"></div>
       <div class="wide percentage-total">Total: <strong id="criteriaTotal">0%</strong> <span id="criteriaValidation"></span></div>
@@ -105,7 +107,10 @@
     <div class="card">
       <div class="section">
         <h2>Resultados</h2>
-        <button id="methodologyPdfBtn" class="secondary" type="button">Generar PDF</button>
+        <div class="actions">
+          <button id="methodologyPdfBtn" class="secondary" type="button">PDF general</button>
+          <button id="methodologyIndividualPdfBtn" class="primary" type="button">PDF individual por alumno</button>
+        </div>
       </div>
       <div id="methodologyResults" class="tablewrap"><div class="empty">Pulsa Calcular.</div></div>
     </div>
@@ -139,4 +144,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v50.js?v=500"></script></body></html>
+<script src="app-v51.js?v=510"></script></body></html>

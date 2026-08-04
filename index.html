@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v6.0</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v6.1</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -19,6 +19,7 @@
       <button data-view="methodologies" class="tab"><span>%</span>Metodologías</button>
       <button data-view="titular" class="tab"><span>3A</span>Seguimiento 3.º A</button>
       <button data-view="students" class="tab"><span>♟</span>Alumnos</button>
+      <button data-view="dossier" class="tab"><span>👤</span>Expediente del alumno</button>
       <button data-view="reports" class="tab"><span>▤</span>Reportes</button>
     </div>
   </details>
@@ -50,6 +51,7 @@
   <button data-go="methodologies" class="home-button"><span>%</span><b>Metodologías</b><small>Criterios, porcentajes y cálculo de calificaciones</small></button>
   <button data-go="titular" class="home-button"><span>3A</span><b>Seguimiento 3.º A</b><small>Captura y reporte individual</small></button>
   <button data-go="students" class="home-button"><span>☷</span><b>Alumnos</b><small>Importar, agregar y ordenar</small></button>
+  <button data-go="dossier" class="home-button"><span>👤</span><b>Expediente del alumno</b><small>Datos, contactos e historial individual</small></button>
   <button data-go="reports" class="home-button"><span>PDF</span><b>Reportes</b><small>Listos para guardar o compartir</small></button>
  </div>
 </section>
@@ -165,10 +167,36 @@
 </section>
 
 <section id="students" class="view">
- <div class="card"><h2>Cargar alumnos</h2><p class="hint">Reconoce: ID, Turno, Grupo, No. de lista y Nombre del alumno. Para 3.º A también puedes cargar correo.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
- <form id="studentForm" class="card formgrid"><h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden"><label>ID<input id="studentId" required inputmode="numeric"></label><label>Turno<select id="studentShift"><option>Matutino</option><option>Vespertino</option></select></label><label>Grupo<input id="studentGroup" required></label><label>No. de lista<input id="studentNumber" type="number" min="1" required></label><label class="wide">Nombre<input id="studentName" required></label><label class="wide">Correo institucional del alumno (opcional)<input id="studentEmail" type="email" autocomplete="email" placeholder="alumno@correo.edu.mx"></label><div class="wide actions"><button class="primary">Guardar</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div></form>
+ <div class="card"><h2>Cargar alumnos</h2><p class="hint">Reconoce datos escolares y de contacto: ID, turno, grupo, lista, nombre, correo, tutor, teléfono, observaciones, incidencias y fecha de nacimiento.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
+ <form id="studentForm" class="card formgrid">
+<h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden">
+<label>ID del alumno<input id="studentId" required></label>
+<label>Turno<select id="studentShift"><option>Matutino</option><option>Vespertino</option></select></label>
+<label>Grupo<input id="studentGroup" required></label>
+<label>No. de lista<input id="studentNumber" type="number" min="1" required></label>
+<label class="wide">Nombre completo<input id="studentName" required></label>
+<label class="wide">Correo institucional<input id="studentEmail" type="email" autocomplete="email" placeholder="alumno@correo.edu.mx"></label>
+<label class="wide">Nombre del padre, madre o tutor<input id="studentGuardian" placeholder="Nombre completo"></label>
+<label class="wide">Teléfono del padre, madre o tutor (WhatsApp)<input id="studentPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Incluye lada; ejemplo: 5512345678"></label>
+<label>Fecha de nacimiento (opcional)<input id="studentBirthdate" type="date"></label>
+<label class="wide">Observaciones<textarea id="studentObservations" rows="4"></textarea></label>
+<label class="wide">Incidencias (opcional)<textarea id="studentIncidents" rows="4"></textarea></label>
+<div class="wide actions"><button class="primary">Guardar expediente</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div>
+</form>
  <div class="card"><div class="section"><h2>Lista de alumnos</h2><input id="studentSearch" placeholder="Buscar nombre, ID o grupo"></div><div id="studentsList" class="list empty">No hay alumnos.</div></div>
 </section>
+
+<section id="dossier" class="view">
+<div class="card dossier-selector"><div><h2>Expediente del alumno</h2><p class="hint">Selecciona un alumno o toca su nombre desde la lista.</p></div><label>Alumno<select id="dossierStudent"></select></label></div>
+<div id="dossierEmpty" class="card empty">Selecciona un alumno para consultar su expediente.</div>
+<div id="dossierContent" class="hidden">
+<div class="dossier-header card"><div><span id="dossierShiftBadge" class="shift-badge"></span><h2 id="dossierName">Alumno</h2><p id="dossierSchoolLine"></p></div><div class="actions"><button id="dossierEdit" class="secondary" type="button">Editar expediente</button><button id="dossierPdf" class="secondary" type="button">Generar PDF</button></div></div>
+<div class="dossier-grid">
+<article class="card dossier-card"><h3>👤 Información del alumno</h3><dl id="dossierStudentInfo"></dl></article>
+<article class="card dossier-card"><h3>📞 Contacto</h3><dl id="dossierContactInfo"></dl><div id="dossierContactActions" class="actions contact-actions"></div></article>
+<article class="card dossier-card"><h3>📊 Historial</h3><div id="dossierHistory" class="history-grid"></div></article>
+<article class="card dossier-card"><h3>📝 Observaciones</h3><div class="note-block"><b>Observaciones</b><p id="dossierObservations">Sin observaciones.</p></div><div class="note-block"><b>Incidencias</b><p id="dossierIncidents">Sin incidencias registradas.</p></div></article>
+</div></div></section>
 
 <section id="reports" class="view">
  <div class="card"><div class="section"><div><h2>Reportes</h2><p class="hint">Los reportes se abren en una vista preparada para imprimir o guardar como PDF desde el iPad.</p></div><button id="saveAllReports" class="primary">Guardar dentro de la app</button></div></div>
@@ -193,4 +221,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v60.js?v=600"></script></body></html>
+<script src="app-v61.js?v=610"></script></body></html>

@@ -254,3 +254,15 @@ button.danger{
 @media(max-width:650px){
   .delete-options{grid-template-columns:1fr}
 }
+
+/* v6.1 expediente */
+.formgrid textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:11px;font:inherit;resize:vertical}
+.student-open{cursor:pointer}.student-open:hover strong,.student-open:focus strong{color:#991822;text-decoration:underline}
+.dossier-selector{display:grid;grid-template-columns:1fr minmax(260px,420px);gap:16px;align-items:end}
+.dossier-header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.dossier-header h2{margin:7px 0 4px}.shift-badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#f5c400;color:#211b12;font-weight:900}.shift-badge.vespertino{background:#c9232d;color:#fff}
+.dossier-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.dossier-card h3{margin-top:0;color:#991822}
+.dossier-card dl{display:grid;grid-template-columns:minmax(130px,.75fr) 1.25fr;gap:9px 14px;margin:0}.dossier-card dt{font-weight:900;color:#574d3e}.dossier-card dd{margin:0;word-break:break-word}
+.history-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.history-item{padding:13px;border-radius:13px;background:#fff8d6;border:1px solid #dfc75c}.history-item b{display:block;font-size:1.7rem;color:#991822}.history-item span{display:block;margin-top:3px;font-weight:800}
+.note-block{padding:12px;margin-top:10px;border-radius:12px;background:#f7f4ed;border:1px solid var(--line)}.note-block p{white-space:pre-wrap;margin:6px 0 0}.contact-actions{margin-top:16px}.contact-actions button{flex:1 1 190px}
+@media(max-width:760px){.dossier-selector,.dossier-grid{grid-template-columns:1fr}.dossier-header{align-items:flex-start;flex-direction:column}.dossier-card dl{grid-template-columns:1fr}.dossier-card dd{margin-bottom:6px}}

@@ -2,7 +2,7 @@
   "id": "./",
   "name": "El Aula del Profe Jaime",
   "short_name": "Aula Profe Jaime",
-  "description": "Asistencia, actividades, metodologías, reportes por PDF, imagen y seguimiento escolar.",
+  "description": "Control escolar con expedientes, contactos, asistencia, actividades y reportes PDF.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#fff9e8",

@@ -200,3 +200,13 @@
   .titular-report-actions{grid-column:auto}
   .titular-report-actions button{width:100%}
 }
+
+
+/* v5.4: envío del reporte 3.º A como PDF */
+.pdf-email-note{
+  padding:12px;
+  border-radius:12px;
+  background:#fff8d6;
+  border:1px solid #e8cf61;
+  color:#5f4b00;
+}

@@ -210,3 +210,47 @@
 .backup-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
 .backup-summary div{padding:10px;background:#fff;border:1px solid var(--line);border-radius:10px}
 @media(max-width:520px){.backup-summary{grid-template-columns:1fr}}
+
+
+/* v6.0: administración y borrado selectivo de datos */
+.danger-zone{
+  border:2px solid #c9232d;
+  background:#fff3f3;
+}
+button.danger{
+  background:#c9232d;
+  color:#fff;
+  border-color:#991822;
+}
+.delete-options{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:12px 0;
+}
+.delete-option{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:12px;
+  background:#fff;
+  border:1px solid #d8caca;
+  border-radius:12px;
+}
+.delete-option input{
+  width:22px;
+  height:22px;
+  flex:0 0 auto;
+}
+.delete-option b{display:block}
+.delete-option small{display:block;color:#665b5b;margin-top:3px}
+.delete-total{
+  padding:12px;
+  border-radius:12px;
+  background:#ffe0e0;
+  color:#7c1119;
+  font-weight:800;
+}
+@media(max-width:650px){
+  .delete-options{grid-template-columns:1fr}
+}

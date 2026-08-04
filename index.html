@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.9</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v6.0</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -181,6 +181,11 @@
   </div>
   <p class="warning-note">Guarda el archivo en iCloud Drive, OneDrive o Google Drive. Al importarlo en otro iPad, reemplazará la información que exista en esa app.</p>
 </div>
+<div class="card danger-zone">
+  <h2>Administración de datos</h2>
+  <p class="hint">Elige qué información deseas eliminar. Esta acción no se puede deshacer, salvo que antes hayas exportado un respaldo.</p>
+  <button id="openDeleteRecords" class="danger" type="button">Borrar registros…</button>
+</div>
  <div class="report-cards"><button id="weeklyReportShortcut" class="reportcard"><b>Reporte semanal de actividades</b><span>Cuadrícula grupal con ✓ y ✕</span></button><button id="attendanceReport" class="reportcard"><b>Reporte de asistencia</b><span>Presentes, retardos y faltantes por fecha</span></button><button id="titularReportShortcut" class="reportcard"><b>Reporte individual 3.º A</b><span>Seguimiento por materia y semana</span></button></div>
 </section>
 </main>
@@ -188,4 +193,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v59.js?v=590"></script></body></html>
+<script src="app-v60.js?v=600"></script></body></html>

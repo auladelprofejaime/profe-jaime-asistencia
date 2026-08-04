@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.2</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v5.3</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -139,14 +139,23 @@
   <div class="card"><div class="section"><h2>Seguimiento académico · 3.º A</h2><button id="titSaveAll" class="primary">Guardar semana</button></div><p class="hint">Toca el estado de cada materia. Verde: al corriente; amarillo: requiere atención; rojo: atención prioritaria; blanco: sin información.</p><div id="titularGrid" class="tablewrap"></div></div>
  </div>
  <div id="tit-individual" class="titpane">
-  <div class="card grid4"><label>Alumno<select id="titStudent"></select></label><label>Semana<select id="titSavedWeek"></select></label><label>Grupo<input value="3.º A" disabled></label><label>Acción<button id="titPdf" class="secondary">Generar PDF</button></label></div>
+  <div class="card titular-report-controls">
+  <label>Alumno<select id="titStudent"></select></label>
+  <label>Semana<select id="titSavedWeek"></select></label>
+  <label>Grupo<input value="3.º A" disabled></label>
+  <div class="titular-report-actions">
+    <button id="titPdf" class="secondary" type="button">Generar PDF</button>
+    <button id="titImage" class="secondary" type="button">Generar imagen</button>
+    <button id="titEmail" class="primary" type="button">Enviar por correo</button>
+  </div>
+</div>
   <div id="titPreview" class="report-preview"></div>
  </div>
 </section>
 
 <section id="students" class="view">
  <div class="card"><h2>Cargar alumnos</h2><p class="hint">Reconoce: ID, Turno, Grupo, No. de lista y Nombre del alumno. Para 3.º A también puedes cargar correo.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo opcional<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json"></label></div><p id="studentMsg" class="message"></p></div>
- <form id="studentForm" class="card formgrid"><h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden"><label>ID<input id="studentId" required inputmode="numeric"></label><label>Turno<select id="studentShift"><option>Matutino</option><option>Vespertino</option></select></label><label>Grupo<input id="studentGroup" required></label><label>No. de lista<input id="studentNumber" type="number" min="1" required></label><label class="wide">Nombre<input id="studentName" required></label><label class="wide">Correo institucional (opcional)<input id="studentEmail" type="email"></label><div class="wide actions"><button class="primary">Guardar</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div></form>
+ <form id="studentForm" class="card formgrid"><h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden"><label>ID<input id="studentId" required inputmode="numeric"></label><label>Turno<select id="studentShift"><option>Matutino</option><option>Vespertino</option></select></label><label>Grupo<input id="studentGroup" required></label><label>No. de lista<input id="studentNumber" type="number" min="1" required></label><label class="wide">Nombre<input id="studentName" required></label><label class="wide">Correo institucional del alumno (opcional)<input id="studentEmail" type="email" autocomplete="email" placeholder="alumno@correo.edu.mx"></label><div class="wide actions"><button class="primary">Guardar</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div></form>
  <div class="card"><div class="section"><h2>Lista de alumnos</h2><input id="studentSearch" placeholder="Buscar nombre, ID o grupo"></div><div id="studentsList" class="list empty">No hay alumnos.</div></div>
 </section>
 
@@ -159,4 +168,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v52.js?v=520"></script></body></html>
+<script src="app-v53.js?v=530"></script></body></html>

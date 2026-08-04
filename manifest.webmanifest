@@ -2,7 +2,7 @@
   "id": "./",
   "name": "El Aula del Profe Jaime",
   "short_name": "Aula Profe Jaime",
-  "description": "Control escolar de El Aula del Profe Jaime.",
+  "description": "Asistencia, actividades, metodologías y seguimiento escolar.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#fff9e8",

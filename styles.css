@@ -12,3 +12,26 @@
 .activity-edit{background:#f5c400!important;color:#211b12!important;border:2px solid #c79d00!important;min-width:96px}
 
 .order-list{display:flex;flex-direction:column;gap:8px}.order-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}.order-item strong{display:block}.order-item small{color:var(--muted)}.order-actions{display:flex;gap:6px}.order-actions button{border:2px solid #d0a600;background:var(--y);border-radius:9px;padding:7px 11px;font-weight:900}.report-options{display:flex;flex-direction:column;gap:8px;margin:12px 0}.report-option{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:11px;background:#fff}.report-option input{width:24px;height:24px;min-height:0}.report-option .move{display:flex;gap:5px}.report-option .move button{border:1px solid #d0a600;background:var(--y);border-radius:8px;padding:6px 9px;font-weight:900}.offline-note{background:#ecfdf5;border:1px solid #86efac;color:#166534;padding:10px;border-radius:10px;font-weight:700}
+
+
+/* v5.0: actividades numéricas y metodologías */
+.metpane{display:none}.metpane.active{display:block}
+.criteria-editor{display:flex;flex-direction:column;gap:10px}
+.criterion-row{display:grid;grid-template-columns:1fr 140px auto;gap:10px;align-items:end;padding:12px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.criterion-row button{min-height:46px}
+.percentage-total{padding:12px;border-radius:12px;background:#fff8d6;border:1px solid #e8cf61;font-size:17px}
+.percentage-total strong{font-size:22px;color:var(--red)}
+.percentage-total .ok{color:var(--green);font-weight:800}
+.percentage-total .bad{color:var(--red);font-weight:800}
+.numeric-score{width:68px!important;min-height:38px!important;padding:6px!important;text-align:center;font-weight:900;border-radius:9px!important}
+.mark.numeric{background:#fff}
+.activity-mode{display:inline-block;margin-left:7px;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:900}
+.activity-mode.delivery{background:#dcfce7;color:#166534}
+.activity-mode.numeric{background:#dbeafe;color:#1e40af}
+.assignment-row{display:grid;grid-template-columns:minmax(180px,1fr) 220px;gap:12px;align-items:center;background:white;border:1px solid var(--line);padding:12px;border-radius:14px}
+.assignment-row small{display:block;color:var(--muted)}
+.grade-good{font-weight:900;color:#166534}.grade-pending{font-weight:900;color:#b45309}
+.methodology-summary{margin:10px 0;padding:12px;border-radius:12px;background:#fff8d6;border:1px solid #e8cf61}
+@media(max-width:650px){
+  .criterion-row,.assignment-row{grid-template-columns:1fr}
+}

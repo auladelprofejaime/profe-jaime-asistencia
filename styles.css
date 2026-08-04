@@ -266,3 +266,32 @@ button.danger{
 .history-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.history-item{padding:13px;border-radius:13px;background:#fff8d6;border:1px solid #dfc75c}.history-item b{display:block;font-size:1.7rem;color:#991822}.history-item span{display:block;margin-top:3px;font-weight:800}
 .note-block{padding:12px;margin-top:10px;border-radius:12px;background:#f7f4ed;border:1px solid var(--line)}.note-block p{white-space:pre-wrap;margin:6px 0 0}.contact-actions{margin-top:16px}.contact-actions button{flex:1 1 190px}
 @media(max-width:760px){.dossier-selector,.dossier-grid{grid-template-columns:1fr}.dossier-header{align-items:flex-start;flex-direction:column}.dossier-card dl{grid-template-columns:1fr}.dossier-card dd{margin-bottom:6px}}
+
+
+/* v6.2: periodos, extras y puntos disponibles */
+.period-actions{margin:10px 0 14px}
+.month-closed{
+  display:inline-block;padding:5px 9px;border-radius:999px;
+  background:#d9d9d9;color:#333;font-size:.82rem;font-weight:900
+}
+.month-open{
+  display:inline-block;padding:5px 9px;border-radius:999px;
+  background:#dff5e4;color:#176529;font-size:.82rem;font-weight:900
+}
+.extra-input{
+  width:74px!important;min-width:74px;text-align:center;padding:7px!important
+}
+.points-cell{min-width:145px}
+.points-cell button{margin-top:5px;width:100%;padding:7px 8px;font-size:.8rem}
+.grade-rounded{font-size:1.05rem;font-weight:1000;color:#991822}
+.points-positive{font-weight:1000;color:#176529}
+.points-modal-number{
+  width:100%;font-size:2rem;text-align:center;font-weight:900;
+  padding:14px;border:2px solid #d7aa00;border-radius:14px
+}
+.quick-points{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.quick-points button{padding:12px 6px}
+.period-summary{
+  padding:12px;border-radius:13px;background:#fff8d6;border:1px solid #dfc75c;margin-bottom:10px
+}
+@media(max-width:650px){.quick-points{grid-template-columns:repeat(2,1fr)}}

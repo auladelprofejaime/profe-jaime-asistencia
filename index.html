@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v6.1</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v6.2</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -90,6 +90,7 @@
   <div class="subtabs">
     <button data-mettab="manage" class="sub active">Crear metodología</button>
     <button data-mettab="calculate" class="sub">Calcular calificaciones</button>
+    <button data-mettab="quarter" class="sub">Resumen trimestral</button>
   </div>
 
   <div id="met-manage" class="metpane active">
@@ -100,7 +101,12 @@
       <label>Grupo<select id="metGroup"></select></label>
       <label class="wide">Nombre de la metodología<input id="metName" placeholder="Ej. Evaluación de septiembre" required></label>
       <label>Materia<input id="metSubject" value="Español" placeholder="Ej. Español" required></label>
-      <label>Mes evaluado<input id="metMonth" placeholder="Ej. Septiembre 2026" required></label>
+      <label>Ciclo escolar<input id="metCycle" placeholder="Ej. 2026-2027" required></label>
+      <label>Trimestre<select id="metQuarter"><option value="1">Primer trimestre</option><option value="2">Segundo trimestre</option><option value="3">Tercer trimestre</option></select></label>
+      <label>Mes evaluado<select id="metMonth" required>
+        <option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+        <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
+      </select></label>
       <div class="wide section"><h3>Criterios y porcentajes</h3><button id="addCriterionBtn" type="button" class="secondary">Agregar criterio</button></div>
       <div id="criteriaEditor" class="wide criteria-editor"></div>
       <div class="wide percentage-total">Total: <strong id="criteriaTotal">0%</strong> <span id="criteriaValidation"></span></div>
@@ -141,9 +147,30 @@
           <button id="methodologyIndividualPdfBtn" class="primary" type="button">PDF individual por alumno</button>
         </div>
       </div>
+      <p class="hint">La calificación decimal conserva décimas. El redondeo solo sube cuando la décima es 6 o mayor; .5 permanece en el entero inferior. La máxima visible es 10.</p>
+      <div id="methodologyMonthActions" class="actions period-actions hidden">
+        <button id="closeMethodologyMonthBtn" class="secondary" type="button">Cerrar mes</button>
+        <button id="newMethodologyMonthBtn" class="primary" type="button">Iniciar nuevo mes</button>
+      </div>
       <div id="methodologyResults" class="tablewrap"><div class="empty">Pulsa Calcular.</div></div>
     </div>
   </div>
+  <div id="met-quarter" class="metpane">
+    <div class="card grid4">
+      <label>Turno<select id="quarterShift"></select></label>
+      <label>Grupo<select id="quarterGroup"></select></label>
+      <label>Ciclo escolar<input id="quarterCycle" placeholder="Ej. 2026-2027"></label>
+      <label>Trimestre<select id="quarterNumber"><option value="1">Primer trimestre</option><option value="2">Segundo trimestre</option><option value="3">Tercer trimestre</option></select></label>
+    </div>
+    <div class="card">
+      <div class="section">
+        <div><h2>Promedio trimestral</h2><p class="hint">En matutino promedia las calificaciones finales decimales de los meses cerrados del trimestre.</p></div>
+        <div class="actions"><button id="calculateQuarterBtn" class="primary" type="button">Calcular trimestre</button><button id="quarterPdfBtn" class="secondary" type="button">Generar PDF</button></div>
+      </div>
+      <div id="quarterResults" class="tablewrap"><div class="empty">Selecciona ciclo y trimestre.</div></div>
+    </div>
+  </div>
+
 </section>
 
 <section id="titular" class="view">
@@ -221,4 +248,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v61.js?v=610"></script></body></html>
+<script src="app-v62.js?v=620"></script></body></html>

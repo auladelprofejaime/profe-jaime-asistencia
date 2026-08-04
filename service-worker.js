@@ -1,9 +1,9 @@
-const CACHE='profe-jaime-v3-9-0';
+const CACHE='aula-profe-jaime-v4-0-0';
 const LOCAL=[
  './',
  './index.html',
  './styles.css',
- './app-v39.js?v=390',
+ './app-v40.js?v=400',
  './manifest.webmanifest',
  './icon.svg',
  './avatar-profe-jaime.png',

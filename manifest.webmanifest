@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "Profe Jaime Control Escolar",
-  "short_name": "Profe Jaime",
-  "description": "Asistencia, actividades con escáner, seguimiento de 3.º A, reportes y respaldos.",
+  "name": "El Aula del Profe Jaime",
+  "short_name": "Aula Profe Jaime",
+  "description": "Control escolar de El Aula del Profe Jaime.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#fff9e8",

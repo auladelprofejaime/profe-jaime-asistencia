@@ -303,3 +303,7 @@ button.danger{
 .mini-list{margin-top:12px;display:grid;gap:7px}.mini-item{background:#f7f4ed;border:1px solid var(--line);border-radius:10px;padding:9px}.mini-item small{display:block;color:#666}
 .message-inbox{display:grid;gap:10px}.message-card{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff}.message-card.unread{border-left:6px solid #c9232d}.message-card small{color:#666}
 @media(max-width:900px){.portal-content-grid{grid-template-columns:1fr}}
+
+/* v7.1: materiales por archivo o enlace */
+.material-source-badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#fff8d6;border:1px solid #dfc75c;font-size:.78rem;font-weight:800;margin-left:4px}
+.material-file-name{display:block;margin-top:4px;color:#5f5548;font-size:.86rem}

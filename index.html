@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v7.0</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v7.1</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -286,10 +286,23 @@
       <div id="noticeList" class="mini-list"></div>
     </form>
     <form id="materialForm" class="card">
-      <h3>Material</h3><label>Grupo (vacío = todos)<input id="materialGroup"></label>
+      <h3>Material</h3>
+      <label>Grupo (vacío = todos)<input id="materialGroup"></label>
       <label>Título<input id="materialTitle" required></label>
-      <label>Tipo<select id="materialType"><option>PDF</option><option>Video</option><option>Archivo</option><option>Material complementario</option></select></label>
-      <label>Enlace<input id="materialUrl" type="url" required placeholder="https://..."></label>
+      <label>Tipo<select id="materialType">
+        <option>PDF</option>
+        <option>Video</option>
+        <option>Archivo</option>
+        <option>Imagen</option>
+        <option>Material complementario</option>
+      </select></label>
+      <label>Origen<select id="materialSource">
+        <option value="file">Subir archivo desde el iPad</option>
+        <option value="url">Usar enlace</option>
+      </select></label>
+      <label id="materialFileWrap">Archivo<input id="materialFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.txt,.zip,application/pdf,image/*"></label>
+      <label id="materialUrlWrap" class="hidden">Enlace<input id="materialUrl" type="url" placeholder="https://..."></label>
+      <p id="materialHelp" class="hint">El archivo quedará guardado localmente hasta conectar Supabase Storage.</p>
       <button class="primary">Publicar material</button>
       <div id="materialList" class="mini-list"></div>
     </form>
@@ -314,4 +327,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v70.js?v=700"></script></body></html>
+<script src="app-v71.js?v=710"></script></body></html>

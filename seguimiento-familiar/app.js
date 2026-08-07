@@ -7,12 +7,36 @@ function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===i
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
 import {all,getStudentBundle,getAvailability} from '../shared/local-adapter.js';
+import {verifyPin,changePin} from '../shared/auth-utils.js';
 import {normalizePhone} from '../shared/data-contract.js';
 let id='',bundle=null;
+let scanner=null;
 async function init(){
- let list=(await all('students')).sort((a,b)=>String(a.name).localeCompare(String(b.name),'es'));$('#familyStudent').innerHTML=list.length?list.map(s=>`<option value="${esc(s.id)}">${esc(s.name||s.id)} · ${esc(s.group)}</option>`).join(''):'<option>Sin alumnos</option>';
- if(list.length){id=list[0].id;await load()}$('#familyStudent').onchange=async e=>{id=e.target.value;await load()};$('#contactTeacher').onclick=openWhatsApp;await updateContact();
+ $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#contactTeacher').onclick=openWhatsApp;
+ const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');if(saved){try{let s=JSON.parse(saved);id=s.studentId;await enterPortal()}catch(e){clearSession()}}
 }
+function saveSession(remember){const data=JSON.stringify({studentId:id,role:'parent'});(remember?localStorage:sessionStorage).setItem('familySession',data)}
+function clearSession(){localStorage.removeItem('familySession');sessionStorage.removeItem('familySession')}
+async function doLogin(){
+ const sid=$('#loginId').value.trim(),pin=$('#loginPin').value.trim(),error=$('#loginError');error.textContent='';
+ if(!sid||!pin){error.textContent='Escribe el ID del alumno y tu PIN.';return}
+ const result=await verifyPin(sid,'parent',pin);
+ if(!result.ok){if(result.reason==='locked'){let mins=Math.max(1,Math.ceil((result.lockedUntil-Date.now())/60000));error.textContent=`Has excedido el número de intentos permitidos. Intenta nuevamente en ${mins} minutos.`}else if(result.reason==='shift')error.textContent='Seguimiento Familiar solo está disponible para el turno matutino.';else if(result.reason==='not_provisioned')error.textContent='El acceso familiar todavía no ha sido preparado por el profesor.';else error.textContent='ID o PIN incorrecto.';return}
+ id=sid;if(result.mustChange){await forceChangePin();return}saveSession($('#rememberSession').checked);await enterPortal();
+}
+async function forceChangePin(){
+ $('#loginGate').innerHTML=`<div class="login-card"><div class="change-pin"><h2>Bienvenido</h2><p>Por seguridad debes crear un PIN personal para la familia.</p><label>Nuevo PIN<input id="newPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><label>Confirmar PIN<input id="confirmPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><button id="savePersonalPin" class="action">Guardar nuevo PIN</button><div id="changePinError" class="login-error"></div></div></div>`;
+ $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';await changePin(id,'parent',a);saveSession(false);await enterPortal()};
+}
+async function enterPortal(){bundle=await getStudentBundle(id);if(!bundle){clearSession();return}$('#loginGate').classList.add('hidden');$('#portalApp').classList.remove('hidden');await load()}
+function logout(){clearSession();location.reload()}
+async function startScanner(){
+ if(typeof Html5Qrcode==='undefined'){return $('#loginError').textContent='No fue posible cargar el lector. Puedes escribir el ID manualmente.'}
+ $('#scanIdBtn').classList.add('hidden');$('#stopScanBtn').classList.remove('hidden');scanner=new Html5Qrcode('barcodeReader');
+ const formats=[Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.ITF];
+ try{await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:120},formatsToSupport:formats},decoded=>{$('#loginId').value=decoded;stopScanner()},()=>{})}catch(e){$('#loginError').textContent='No se pudo abrir la cámara. Revisa el permiso de cámara.';stopScanner()}
+}
+async function stopScanner(){if(scanner){try{await scanner.stop();await scanner.clear()}catch(e){}scanner=null}$('#scanIdBtn')?.classList.remove('hidden');$('#stopScanBtn')?.classList.add('hidden')}
 function grade(){let list=(bundle?.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[id]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));return list[0]?.gradeRecords?.[id]||null}
 async function load(){bundle=await getStudentBundle(id);if(!bundle)return;$('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;renderAll();await updateContact()}
 function renderAll(){let g=grade(),att=bundle.attendance,missing=bundle.activities.filter(a=>{let r=bundle.activityRecords.find(x=>x.key===`${a.id}|${id}`);return (a.evaluationMode||'delivery')==='delivery'&&r?.status==='no'}).length;

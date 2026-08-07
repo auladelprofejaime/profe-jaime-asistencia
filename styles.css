@@ -307,3 +307,20 @@ button.danger{
 /* v7.1: materiales por archivo o enlace */
 .material-source-badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#fff8d6;border:1px solid #dfc75c;font-size:.78rem;font-weight:800;margin-left:4px}
 .material-file-name{display:block;margin-top:4px;color:#5f5548;font-size:.86rem}
+
+/* v7.2 acceso a portales */
+.portal-access-card{border:2px solid #d7aa00;background:#fffaf0;margin-bottom:14px}.auth-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.auth-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}.auth-box h4{margin:0 0 6px}.auth-status{font-size:.87rem;color:#655d50;margin:5px 0 10px}.temp-pin-result{font-size:1.7rem;font-weight:1000;letter-spacing:.15em;background:#211b12;color:#ffd43b;padding:10px 12px;border-radius:12px;text-align:center;margin:8px 0}
+@media(max-width:650px){.auth-grid{grid-template-columns:1fr}}
+
+/* v7.4 estado de acceso */
+.access-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:.78rem;font-weight:900;white-space:nowrap}
+.access-pill.gray{background:#f1f1f1;color:#595959;border:1px solid #d9d9d9}
+.access-pill.yellow{background:#fff3bf;color:#725b00;border:1px solid #e5cb58}
+.access-pill.green{background:#dff6e7;color:#146c37;border:1px solid #9bd6ad}
+.access-pill.red{background:#ffe1e3;color:#a51d2a;border:1px solid #efadb4}
+.access-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.access-summary-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.access-summary-box b{display:block;font-size:1.5rem}
+.table-wrap{overflow:auto}.access-table{width:100%;border-collapse:collapse}.access-table th,.access-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.access-table th{font-size:.82rem;color:#665f54}
+.student-access-mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+@media(max-width:760px){.access-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}

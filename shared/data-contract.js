@@ -1,5 +1,5 @@
 
-export const ECOSYSTEM_VERSION='7.0';
+export const ECOSYSTEM_VERSION='7.1';
 export const DB_NAME='ProfeJaimeAsistenciaDB';
 
 export const STORES={
@@ -51,3 +51,5 @@ export function normalizePhone(phone){
   if(d.length===10)d='52'+d;
   return d;
 }
+
+// materials: source ('file'|'url'), fileName, mime, size, fileData (local), storagePath (Supabase futuro), url.

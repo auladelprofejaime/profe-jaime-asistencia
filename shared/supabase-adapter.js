@@ -30,6 +30,7 @@ materials
 study_topics
 student_messages
 portal_reports
+storage bucket previsto: materials
 
 Seguridad futura:
 - Profesor: lectura/escritura.

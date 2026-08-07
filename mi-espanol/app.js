@@ -7,18 +7,42 @@ function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===i
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
 import {all,getStudentBundle,getAvailability,put} from '../shared/local-adapter.js';
+import {verifyPin,changePin} from '../shared/auth-utils.js';
 let currentId='',bundle=null;
 function recordMap(){return new Map((bundle?.activityRecords||[]).map(r=>[r.key,r]))}
+let scanner=null;
 async function init(){
- const list=(await all('students')).sort((a,b)=>String(a.name).localeCompare(String(b.name),'es'));
- $('#studentPicker').innerHTML=list.length?list.map(s=>`<option value="${esc(s.id)}">${esc(s.name||s.id)} · ${esc(s.group)}</option>`).join(''):'<option>Sin alumnos en este dispositivo</option>';
- if(list.length){currentId=list[0].id;$('#studentPicker').value=currentId;await load()}
- $('#studentPicker').onchange=async e=>{currentId=e.target.value;await load()};
+ $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;
  $('#acceptChat').onclick=()=>{$('#chatPolicy').hidden=true;$('#chatComposer').hidden=false};
- $('#writeTeacher').onclick=()=>$('#messageBox').hidden=false;
- $$('[data-faq]').forEach(b=>b.onclick=()=>showFaq(b.dataset.faq));
- $('#sendStudentMessage').onclick=sendMessage;
+ $('#writeTeacher').onclick=()=>$('#messageBox').hidden=false;$$('[data-faq]').forEach(b=>b.onclick=()=>showFaq(b.dataset.faq));$('#sendStudentMessage').onclick=sendMessage;
+ const saved=localStorage.getItem('miEspanolSession')||sessionStorage.getItem('miEspanolSession');
+ if(saved){try{let s=JSON.parse(saved);currentId=s.studentId;await enterPortal()}catch(e){clearSession()}}
 }
+function saveSession(remember){const data=JSON.stringify({studentId:currentId,role:'student'});(remember?localStorage:sessionStorage).setItem('miEspanolSession',data)}
+function clearSession(){localStorage.removeItem('miEspanolSession');sessionStorage.removeItem('miEspanolSession')}
+async function doLogin(){
+ const id=$('#loginId').value.trim(),pin=$('#loginPin').value.trim(),error=$('#loginError');error.textContent='';
+ if(!id||!pin){error.textContent='Escribe tu ID y PIN.';return}
+ const result=await verifyPin(id,'student',pin);
+ if(!result.ok){if(result.reason==='locked'){let mins=Math.max(1,Math.ceil((result.lockedUntil-Date.now())/60000));error.textContent=`Has excedido el número de intentos permitidos. Intenta nuevamente en ${mins} minutos.`}else if(result.reason==='shift')error.textContent='Mi Español solo está disponible para el turno matutino.';else if(result.reason==='not_provisioned')error.textContent='Tu acceso todavía no ha sido preparado por el profesor.';else error.textContent='ID o PIN incorrecto.';return}
+ currentId=id;
+ if(result.mustChange){await forceChangePin('student');return}
+ saveSession($('#rememberSession').checked);await enterPortal();
+}
+async function forceChangePin(role){
+ const html=`<div class="change-pin"><h2>Bienvenido</h2><p>Por seguridad debes crear un PIN personal.</p><label>Nuevo PIN<input id="newPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><label>Confirmar PIN<input id="confirmPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><button id="savePersonalPin" class="action primary">Guardar nuevo PIN</button><div id="changePinError" class="login-error"></div></div>`;
+ $('#loginGate').innerHTML=`<div class="login-card">${html}</div>`;
+ $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';await changePin(currentId,role,a);saveSession($('#rememberSession')?.checked||false);await enterPortal()};
+}
+async function enterPortal(){bundle=await getStudentBundle(currentId);if(!bundle){clearSession();return}$('#loginGate').classList.add('hidden');$('#portalApp').classList.remove('hidden');await load()}
+function logout(){clearSession();location.reload()}
+async function startScanner(){
+ if(typeof Html5Qrcode==='undefined'){return $('#loginError').textContent='No fue posible cargar el lector. Puedes escribir el ID manualmente.'}
+ $('#scanIdBtn').classList.add('hidden');$('#stopScanBtn').classList.remove('hidden');scanner=new Html5Qrcode('barcodeReader');
+ const formats=[Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.ITF];
+ try{await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:120},formatsToSupport:formats},decoded=>{$('#loginId').value=decoded;stopScanner()},()=>{})}catch(e){$('#loginError').textContent='No se pudo abrir la cámara. Revisa el permiso de cámara.';stopScanner()}
+}
+async function stopScanner(){if(scanner){try{await scanner.stop();await scanner.clear()}catch(e){}scanner=null}$('#scanIdBtn')?.classList.remove('hidden');$('#stopScanBtn')?.classList.add('hidden')}
 function showFaq(q){
  const answers={'¿Cuándo se entrega?':'Revisa la tarjeta de la actividad: ahí aparece la fecha registrada por el profesor.','¿Qué debo hacer?':'Abre la actividad y revisa la descripción o el material asociado. Si no es suficiente, puedes escribir al profesor.','¿Cómo se califica?':'Consulta Calificaciones. La metodología y los criterios dependen del periodo configurado por el profesor.','¿Dónde encuentro el material?':'En la sección Materiales encontrarás los enlaces publicados para tu grupo.'};
  $('#faqAnswer').textContent=answers[q]||''}

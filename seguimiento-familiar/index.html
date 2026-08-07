@@ -1,1 +1,10 @@
-
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff"><title>Seguimiento Familiar</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"></head>
+<body><header><img src="profe-jaime.png"><div><h1>Seguimiento Familiar</h1><small>El Aula del Profe Jaime · v7.0</small></div></header><main>
+<section id="home" class="view active"><div class="hero"><div><small>SEGUIMIENTO ACADÉMICO</small><h2 id="familyHello">Bienvenido</h2><p class="muted">Información clara y sencilla.</p></div><img src="profe-jaime.png"></div><div class="card" style="margin-top:14px"><label>Modo preparación local: seleccione alumno<select id="familyStudent"></select></label><small class="muted">Con Supabase se sustituirá por acceso seguro del tutor.</small></div><div id="familySummary" class="big-grid"></div><div id="familyNotice" style="margin-top:14px"></div></section>
+<section id="attendance" class="view"><h2>Asistencia</h2><div id="familyAttendance" class="cards"></div></section>
+<section id="activities" class="view"><h2>Actividades</h2><div id="familyActivities" class="cards"></div></section>
+<section id="grades" class="view"><h2>Promedio</h2><div id="familyGrades"></div></section>
+<section id="reports" class="view"><h2>Reportes</h2><div id="familyReports" class="cards"></div></section>
+<section id="contact" class="view"><h2>Contacto</h2><div class="card"><h3>Contactar al profesor</h3><p id="contactSchedule" class="muted"></p><button id="contactTeacher" class="action">Contactar al profesor</button><div id="contactMessage" class="notice" style="margin-top:12px"></div></div></section>
+</main><nav><button data-view="home" class="active">Inicio</button><button data-view="attendance">Asistencia</button><button data-view="activities">Actividades</button><button data-view="grades">Promedio</button><button data-view="reports">Reporte</button><button data-view="contact">Contacto</button></nav>
+<script type="module" src="app.js"></script></body></html>

@@ -1,0 +1,15 @@
+{
+  "name": "Seguimiento Familiar",
+  "short_name": "Seguimiento",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#f6f1e7",
+  "theme_color": "#ffffff",
+  "icons": [
+    {
+      "src": "icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}

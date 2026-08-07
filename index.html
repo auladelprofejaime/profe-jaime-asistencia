@@ -4,7 +4,7 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v6.2</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v7.0</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -21,6 +21,9 @@
       <button data-view="students" class="tab"><span>♟</span>Alumnos</button>
       <button data-view="dossier" class="tab"><span>👤</span>Expediente del alumno</button>
       <button data-view="reports" class="tab"><span>▤</span>Reportes</button>
+      <button data-view="availability" class="tab"><span>◷</span>Disponibilidad</button>
+      <button data-view="content" class="tab"><span>✦</span>Contenido</button>
+      <button data-view="messages" class="tab"><span>✉</span>Mensajes</button>
     </div>
   </details>
 </nav>
@@ -244,8 +247,71 @@
  <div class="report-cards"><button id="weeklyReportShortcut" class="reportcard"><b>Reporte semanal de actividades</b><span>Cuadrícula grupal con ✓ y ✕</span></button><button id="attendanceReport" class="reportcard"><b>Reporte de asistencia</b><span>Presentes, retardos y faltantes por fecha</span></button><button id="titularReportShortcut" class="reportcard"><b>Reporte individual 3.º A</b><span>Seguimiento por materia y semana</span></button></div>
 </section>
 </main>
+
+<section id="availability" class="view">
+  <div class="card">
+    <h2>Disponibilidad</h2>
+    <p class="hint">Esta configuración será consultada por Mi Español y Seguimiento Familiar.</p>
+    <form id="availabilityForm" class="formgrid">
+      <label>Hora de inicio<input id="availabilityStart" type="time" value="12:00"></label>
+      <label>Hora de fin<input id="availabilityEnd" type="time" value="15:00"></label>
+      <label>Vacaciones desde<input id="vacationStart" type="date"></label>
+      <label>Vacaciones hasta<input id="vacationEnd" type="date"></label>
+      <label class="wide">Días hábiles<div class="weekday-picker">
+        <label><input type="checkbox" data-weekday="1" checked> Lun</label>
+        <label><input type="checkbox" data-weekday="2" checked> Mar</label>
+        <label><input type="checkbox" data-weekday="3" checked> Mié</label>
+        <label><input type="checkbox" data-weekday="4" checked> Jue</label>
+        <label><input type="checkbox" data-weekday="5" checked> Vie</label>
+      </div></label>
+      <label class="wide">Fechas de Consejo Técnico / suspensión<input id="technicalDates" placeholder="2026-09-25, 2026-10-30"></label>
+      <label class="wide">Aviso temporal<textarea id="temporaryNotice" rows="3" placeholder="Ej. Esta semana la atención terminará a las 2:00 p.m."></textarea></label>
+      <label class="wide switchline"><input id="attentionSuspended" type="checkbox"> Suspender atención temporalmente</label>
+      <div class="wide actions"><button class="primary">Guardar disponibilidad</button></div>
+    </form>
+  </div>
+</section>
+
+<section id="content" class="view">
+  <div class="card">
+    <h2>Contenido para los portales</h2>
+    <p class="hint">Aquí publicas información que podrán consultar alumnos y familias.</p>
+  </div>
+  <div class="portal-content-grid">
+    <form id="noticeForm" class="card">
+      <h3>Aviso</h3><label>Grupo (vacío = todos)<input id="noticeGroup"></label>
+      <label>Título<input id="noticeTitle" required></label>
+      <label>Mensaje<textarea id="noticeText" rows="4" required></textarea></label>
+      <button class="primary">Publicar aviso</button>
+      <div id="noticeList" class="mini-list"></div>
+    </form>
+    <form id="materialForm" class="card">
+      <h3>Material</h3><label>Grupo (vacío = todos)<input id="materialGroup"></label>
+      <label>Título<input id="materialTitle" required></label>
+      <label>Tipo<select id="materialType"><option>PDF</option><option>Video</option><option>Archivo</option><option>Material complementario</option></select></label>
+      <label>Enlace<input id="materialUrl" type="url" required placeholder="https://..."></label>
+      <button class="primary">Publicar material</button>
+      <div id="materialList" class="mini-list"></div>
+    </form>
+    <form id="topicForm" class="card">
+      <h3>Tema trabajado</h3><label>Grupo (vacío = todos)<input id="topicGroup"></label>
+      <label>Tema<input id="topicTitle" required></label>
+      <label>Conceptos / notas<textarea id="topicNotes" rows="4" placeholder="Conceptos vistos que después podrán alimentar trivias con IA."></textarea></label>
+      <button class="primary">Publicar tema</button>
+      <div id="topicList" class="mini-list"></div>
+    </form>
+  </div>
+</section>
+
+<section id="messages" class="view">
+  <div class="card">
+    <div class="section"><div><h2>Mensajes del alumnado</h2><p class="hint">Mensajería escolar interna. La respuesta desde aquí queda preparada para la futura sincronización.</p></div><button id="refreshMessages" class="secondary">Actualizar</button></div>
+    <div id="teacherMessages" class="message-inbox"><div class="empty">No hay mensajes.</div></div>
+  </div>
+</section>
+
 <dialog id="dialog"><div class="dialoghead"><h2 id="dialogTitle">Detalle</h2><button id="dialogClose">×</button></div><div id="dialogBody"></div></dialog>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v62.js?v=620"></script></body></html>
+<script src="app-v70.js?v=700"></script></body></html>

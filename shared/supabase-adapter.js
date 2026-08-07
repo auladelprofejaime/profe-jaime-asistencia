@@ -30,6 +30,7 @@ materials
 study_topics
 student_messages
 portal_reports
+portal_auth
 storage bucket previsto: materials
 
 Seguridad futura:
@@ -37,4 +38,13 @@ Seguridad futura:
 - Alumno: lectura solo de su student_id + inserción de sus mensajes.
 - Padre/tutor: lectura solo de sus alumnos vinculados.
 - RLS obligatorio.
+*/
+
+/*
+Autenticación futura:
+- portal_auth debe vivir en Supabase con RLS y funciones seguras.
+- Nunca almacenar PIN en texto plano en Supabase.
+- El cliente debe enviar PIN a una función RPC/Edge Function para verificación.
+- Alumno y padre usan el mismo student_id pero roles y credenciales separadas.
+- Solo Matutino tendrá registros portal_auth.
 */

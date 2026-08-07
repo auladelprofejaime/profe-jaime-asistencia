@@ -54,3 +54,7 @@ export async function getStudentBundle(studentId){
     reports:reports.filter(r=>!r.group||same(r.group,student.group)||r.studentId===studentId)
   };
 }
+
+
+export async function getPortalAuth(studentId,role){return get('portalAuth',`${studentId}|${role}`)}
+export async function putPortalAuth(value){return put('portalAuth',value)}

@@ -66,26 +66,69 @@ async function enableFamilyNotifications(){
 }
 
 async function init(){
- try{await ensureFamilyServiceWorker()}catch(e){console.warn('SW',e)}
- $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#contactTeacher').onclick=openWhatsApp;
- $('#enableFamilyNotif').onclick=enableFamilyNotifications;
- const tm=$('#contactTestMode');
- if(tm){
-   tm.checked=localStorage.getItem('familyContactTestMode')==='1';
-   tm.onchange=()=>localStorage.setItem('familyContactTestMode',tm.checked?'1':'0');
+ const loading=$('#sessionLoading');
+ const login=$('#loginGate');
+ let released=false;
+
+ const releaseToLogin=()=>{
+   if(released)return;
+   released=true;
+   loading?.classList.add('hidden');
+   login?.classList.remove('hidden');
+ };
+
+ // Seguro anti-bloqueo: nunca quedarse en Recuperando sesión.
+ const hardTimeout=setTimeout(releaseToLogin,4000);
+
+ try{
+   // El service worker se prepara EN SEGUNDO PLANO.
+   // Nunca debe bloquear la entrada a la app.
+   ensureFamilyServiceWorker().catch(e=>console.warn('SW',e));
+
+   $('#loginBtn').onclick=doLogin;
+   $('#logoutBtn').onclick=logout;
+   $('#scanIdBtn').onclick=startScanner;
+   $('#stopScanBtn').onclick=stopScanner;
+   $('#contactTeacher').onclick=openWhatsApp;
+   $('#enableFamilyNotif')&&($('#enableFamilyNotif').onclick=enableFamilyNotifications);
+
+   const tm=$('#contactTestMode');
+   if(tm){
+     tm.checked=localStorage.getItem('familyContactTestMode')==='1';
+     tm.onchange=()=>localStorage.setItem('familyContactTestMode',tm.checked?'1':'0');
+   }
+
+   const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');
+
+   if(saved){
+     try{
+       const s=JSON.parse(saved);
+       id=s.studentId||'';
+       currentToken=s.token||'';
+
+       if(currentToken){
+         // La validación también tiene límite de tiempo.
+         const entered=await Promise.race([
+           enterPortal(),
+           new Promise(resolve=>setTimeout(()=>resolve(false),3500))
+         ]);
+
+         if(entered){
+           clearTimeout(hardTimeout);
+           released=true;
+           return;
+         }
+       }
+     }catch(e){
+       console.warn('Sesión familiar guardada inválida',e);
+     }
+   }
+ }catch(e){
+   console.warn('Inicio App padres',e);
  }
 
- const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');
- if(saved){
-   try{
-     const s=JSON.parse(saved);
-     id=s.studentId;currentToken=s.token||'';
-     if(currentToken && await enterPortal())return;
-   }catch(e){console.warn('Sesión familiar guardada inválida',e)}
-   clearSession();
- }
- $('#sessionLoading')?.classList.add('hidden');
- $('#loginGate')?.classList.remove('hidden');
+ clearTimeout(hardTimeout);
+ releaseToLogin();
 }
 function saveSession(remember){const data=JSON.stringify({studentId:id,role:'parent',token:currentToken});(remember?localStorage:sessionStorage).setItem('familySession',data)}
 function clearSession(){localStorage.removeItem('familySession');sessionStorage.removeItem('familySession')}
@@ -104,21 +147,23 @@ async function forceChangePin(){
  $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';let r=await changePortalPin(currentToken,a);if(!r?.ok)return $('#changePinError').textContent='No se pudo guardar el PIN.';saveSession(remember);await enterPortal()};
 }
 async function enterPortal(){
- let raw;
- try{raw=await portalGetBundle(currentToken)}catch(e){raw=null}
- if(!raw?.ok){
-   clearSession();currentToken='';
+ try{
+   const raw=await portalGetBundle(currentToken);
+   if(!raw?.ok)return false;
+
+   bundle=raw;
+   id=bundle.student.id;
+
    $('#sessionLoading')?.classList.add('hidden');
-   $('#loginGate')?.classList.remove('hidden');
-   $('#portalApp')?.classList.add('hidden');
+   $('#loginGate')?.classList.add('hidden');
+   $('#portalApp')?.classList.remove('hidden');
+
+   await load();
+   return true;
+ }catch(e){
+   console.warn('No se pudo recuperar la sesión',e);
    return false;
  }
- bundle=raw;id=bundle.student.id;
- $('#sessionLoading')?.classList.add('hidden');
- $('#loginGate')?.classList.add('hidden');
- $('#portalApp')?.classList.remove('hidden');
- await load();
- return true;
 }
 async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}
 async function startScanner(){

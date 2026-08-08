@@ -6,7 +6,7 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=800';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
 let currentId='',bundle=null,currentToken='';
 let studentSWRegistration=null;
 
@@ -24,8 +24,19 @@ async function init(){
  $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;
  $('#acceptChat').onclick=()=>{$('#chatPolicy').hidden=true;$('#chatComposer').hidden=false};
  $('#writeTeacher').onclick=()=>$('#messageBox').hidden=false;$('#studentNotifBtn').onclick=openStudentNotifications;$('#refreshStudentChat').onclick=refreshStudentPortal;$$('[data-faq]').forEach(b=>b.onclick=()=>showFaq(b.dataset.faq));$('#sendStudentMessage').onclick=sendMessage;
+
  const saved=localStorage.getItem('miEspanolSession')||sessionStorage.getItem('miEspanolSession');
- if(saved){try{let s=JSON.parse(saved);currentId=s.studentId;currentToken=s.token||'';if(currentToken)await enterPortal();else clearSession()}catch(e){clearSession()}}
+ if(saved){
+   try{
+     const s=JSON.parse(saved);
+     currentId=s.studentId;
+     currentToken=s.token||'';
+     if(currentToken && await enterPortal())return;
+   }catch(e){console.warn('Sesión guardada inválida',e)}
+   clearSession();
+ }
+ $('#sessionLoading')?.classList.add('hidden');
+ $('#loginGate')?.classList.remove('hidden');
 }
 function saveSession(remember){const data=JSON.stringify({studentId:currentId,role:'student',token:currentToken});(remember?localStorage:sessionStorage).setItem('miEspanolSession',data)}
 function clearSession(){localStorage.removeItem('miEspanolSession');sessionStorage.removeItem('miEspanolSession')}
@@ -47,9 +58,21 @@ async function forceChangePin(){
  $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';let r=await changePortalPin(currentToken,a);if(!r?.ok)return $('#changePinError').textContent='No se pudo guardar el PIN.';saveSession(remember);await enterPortal()};
 }
 async function enterPortal(){
- let raw=await portalGetBundle(currentToken);
- if(!raw?.ok){clearSession();location.reload();return}
- bundle=raw;currentId=bundle.student.id;$('#loginGate').classList.add('hidden');$('#portalApp').classList.remove('hidden');await load();
+ let raw;
+ try{raw=await portalGetBundle(currentToken)}catch(e){raw=null}
+ if(!raw?.ok){
+   clearSession();currentToken='';
+   $('#sessionLoading')?.classList.add('hidden');
+   $('#loginGate')?.classList.remove('hidden');
+   $('#portalApp')?.classList.add('hidden');
+   return false;
+ }
+ bundle=raw;currentId=bundle.student.id;
+ $('#sessionLoading')?.classList.add('hidden');
+ $('#loginGate')?.classList.add('hidden');
+ $('#portalApp')?.classList.remove('hidden');
+ await load();
+ return true;
 }
 async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}
 async function startScanner(){

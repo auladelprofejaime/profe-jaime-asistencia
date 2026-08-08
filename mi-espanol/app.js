@@ -13,7 +13,7 @@ let scanner=null;
 async function init(){
  $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;
  $('#acceptChat').onclick=()=>{$('#chatPolicy').hidden=true;$('#chatComposer').hidden=false};
- $('#writeTeacher').onclick=()=>$('#messageBox').hidden=false;$$('[data-faq]').forEach(b=>b.onclick=()=>showFaq(b.dataset.faq));$('#sendStudentMessage').onclick=sendMessage;
+ $('#writeTeacher').onclick=()=>$('#messageBox').hidden=false;$('#studentNotifBtn').onclick=openStudentNotifications;$('#refreshStudentChat').onclick=refreshStudentPortal;$$('[data-faq]').forEach(b=>b.onclick=()=>showFaq(b.dataset.faq));$('#sendStudentMessage').onclick=sendMessage;
  const saved=localStorage.getItem('miEspanolSession')||sessionStorage.getItem('miEspanolSession');
  if(saved){try{let s=JSON.parse(saved);currentId=s.studentId;currentToken=s.token||'';if(currentToken)await enterPortal();else clearSession()}catch(e){clearSession()}}
 }
@@ -52,10 +52,74 @@ async function stopScanner(){if(scanner){try{await scanner.stop();await scanner.
 function showFaq(q){
  const answers={'¿Cuándo se entrega?':'Revisa la tarjeta de la actividad: ahí aparece la fecha registrada por el profesor.','¿Qué debo hacer?':'Abre la actividad y revisa la descripción o el material asociado. Si no es suficiente, puedes escribir al profesor.','¿Cómo se califica?':'Consulta Calificaciones. La metodología y los criterios dependen del periodo configurado por el profesor.','¿Dónde encuentro el material?':'En la sección Materiales encontrarás los enlaces publicados para tu grupo.'};
  $('#faqAnswer').textContent=answers[q]||''}
+
+let studentPollTimer=null;
+function studentNotifKey(){return `miEspanolNotificationsV78:${currentId||'none'}`}
+function studentSnapshotKey(){return `miEspanolSnapshotV78:${currentId||'none'}`}
+function readStudentNotifs(){try{return JSON.parse(localStorage.getItem(studentNotifKey())||'[]')}catch{return []}}
+function saveStudentNotifs(list){localStorage.setItem(studentNotifKey(),JSON.stringify(list.slice(0,120)));renderStudentNotifBadge()}
+function renderStudentNotifBadge(){let c=readStudentNotifs().filter(x=>!x.read).length,el=$('#studentNotifCount');if(!el)return;el.textContent=c;el.classList.toggle('hidden',!c)}
+async function studentSystemNotification(title,body,target='home'){
+ if(!('Notification' in window)||Notification.permission!=='granted')return;
+ try{let reg=await navigator.serviceWorker.ready;await reg.showNotification(title,{body,icon:'icon.png',badge:'icon.png',tag:'student-'+Date.now(),data:{target}})}catch(e){console.warn(e)}
+}
+function addStudentNotification(n){
+ let list=readStudentNotifs();if(list.some(x=>x.id===n.id))return;
+ list.unshift({...n,read:false,created:n.created||new Date().toISOString()});saveStudentNotifs(list);studentSystemNotification(n.title,n.body,n.target||'home');
+}
+async function enableStudentNotifications(){
+ if(!('Notification' in window))return alert('Este dispositivo no admite notificaciones web.');
+ let p=await Notification.requestPermission();
+ alert(p==='granted'?'Notificaciones activadas.':'No se concedió permiso. En iPhone, instala Mi Español en la pantalla de inicio para recibirlas.');
+}
+function openStudentNotifications(){
+ let list=readStudentNotifs();
+ let panel=$('#studentNotifPanel');
+ if(!panel){document.body.insertAdjacentHTML('beforeend',`<div id="studentNotifPanel" class="student-notif-panel hidden"><div class="student-notif-card"><button id="studentNotifClose" class="student-notif-close">×</button><h2>Notificaciones</h2><div class="student-notif-tools"><button id="enableStudentNotif" class="action primary">Activar notificaciones</button><button id="readStudentNotif" class="action">Marcar todo leído</button></div><div id="studentNotifList"></div></div></div>`);panel=$('#studentNotifPanel');$('#studentNotifClose').onclick=()=>panel.classList.add('hidden')}
+ panel.classList.remove('hidden');
+ $('#studentNotifList').innerHTML=list.length?list.map(n=>`<div class="student-notif-item ${n.read?'':'unread'}"><b>${esc(n.title)}</b><p>${esc(n.body||'')}</p><small>${new Date(n.created).toLocaleString('es-MX')}</small></div>`).join(''):'<div class="muted">No hay notificaciones.</div>';
+ $('#enableStudentNotif').onclick=enableStudentNotifications;
+ $('#readStudentNotif').onclick=()=>{saveStudentNotifs(readStudentNotifs().map(n=>({...n,read:true})));openStudentNotifications()};
+}
+function snapshotFromBundle(b){
+ return {
+   notices:Object.fromEntries((b.notices||[]).map(x=>[String(x.id),x.created||x.published_at||''])),
+   materials:Object.fromEntries((b.materials||[]).map(x=>[String(x.id),x.title||''])),
+   activities:Object.fromEntries((b.activities||[]).map(x=>[String(x.id),x.date||x.name||''])),
+   topics:Object.fromEntries((b.studyTopics||[]).map(x=>[String(x.id),x.title||''])),
+   replies:Object.fromEntries((b.messages||[]).filter(x=>x.teacher_reply).map(x=>[String(x.id),x.replied_at||x.teacher_reply]))
+ };
+}
+function processStudentChanges(b){
+ const key=studentSnapshotKey(),now=snapshotFromBundle(b),raw=localStorage.getItem(key);
+ if(!raw){localStorage.setItem(key,JSON.stringify(now));renderStudentNotifBadge();return}
+ let old={};try{old=JSON.parse(raw)||{}}catch{}
+ for(const n of b.notices||[])if(!(String(n.id) in (old.notices||{})))addStudentNotification({id:'notice-'+n.id,title:'Nuevo aviso',body:n.title||n.text||'Hay un aviso nuevo.',target:'home'});
+ for(const m of b.materials||[])if(!(String(m.id) in (old.materials||{})))addStudentNotification({id:'material-'+m.id,title:'Nuevo material',body:m.title||'Se publicó un material nuevo.',target:'materials'});
+ for(const a of b.activities||[])if(!(String(a.id) in (old.activities||{})))addStudentNotification({id:'activity-'+a.id,title:'Nueva actividad',body:a.name||'Se publicó una actividad nueva.',target:'activities'});
+ for(const t of b.studyTopics||[])if(!(String(t.id) in (old.topics||{})))addStudentNotification({id:'topic-'+t.id,title:'Nuevo tema para estudiar',body:t.title||'Hay un tema nuevo en Estudiar.',target:'study'});
+ for(const m of b.messages||[])if(m.teacher_reply && (old.replies||{})[String(m.id)]!==(m.replied_at||m.teacher_reply))addStudentNotification({id:'reply-'+m.id+'-'+(m.replied_at||m.teacher_reply),title:'El profesor respondió',body:String(m.teacher_reply).slice(0,120),target:'chat'});
+ localStorage.setItem(key,JSON.stringify(now));
+}
+function renderChatHistory(){
+ const box=$('#studentChatHistory');if(!box)return;
+ let msgs=(bundle.messages||[]).slice().sort((a,b)=>String(a.sent_at||a.created_at||'').localeCompare(String(b.sent_at||b.created_at||'')));
+ box.innerHTML=msgs.length?msgs.map(m=>`<div class="chat-entry"><div class="bubble student"><b>${esc(m.category||'Consulta')}</b><div>${esc(m.message||'')}</div><small>${m.sent_at?new Date(m.sent_at).toLocaleString('es-MX'):''}</small></div>${m.teacher_reply?`<div class="bubble teacher"><b>Profe Jaime</b><div>${esc(m.teacher_reply)}</div><small>${m.replied_at?new Date(m.replied_at).toLocaleString('es-MX'):''}</small></div>`:'<div class="reply-pending">Pendiente de respuesta</div>'}</div>`).join(''):'<div class="muted">Todavía no hay mensajes.</div>';
+}
+async function refreshStudentPortal(){
+ let fresh=await portalGetBundle(currentToken);if(!fresh?.ok)return;
+ processStudentChanges(fresh);bundle=fresh;
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();
+}
+function startStudentPolling(){
+ if(studentPollTimer)clearInterval(studentPollTimer);
+ studentPollTimer=setInterval(()=>refreshStudentPortal().catch(()=>{}),20000);
+}
 async function load(){
  bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;
+ processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentNotifBadge();startStudentPolling();
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
@@ -145,6 +209,6 @@ async function sendMessage(){
  let text=$('#studentMessage').value.trim();if(!text)return;
  let a=bundle.availability||{},now=new Date(),day=now.getDay(),hm=now.toTimeString().slice(0,5),date=now.toISOString().slice(0,10),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd,closed=a.suspended||vac||(a.technicalCouncilDates||[]).includes(date)||!(a.days||[]).includes(day)||hm<a.start||hm>a.end;
  let r=await portalSendMessage(currentToken,$('#chatCategory').value,text);if(!r?.ok)return $('#chatStatus').textContent='No se pudo enviar el mensaje.';
- $('#studentMessage').value='';$('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';
+ $('#studentMessage').value='';$('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';await refreshStudentPortal();
 }
 init();

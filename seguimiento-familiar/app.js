@@ -234,5 +234,16 @@ function renderAll(){
 async function openReport(rid){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
 async function isAvailable(){let a=bundle.availability||{},now=new Date(),date=now.toISOString().slice(0,10),hm=now.toTimeString().slice(0,5),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd;return {a,open:!a.suspended&&!vac&&!(a.technicalCouncilDates||[]).includes(date)&&(a.days||[]).includes(now.getDay())&&hm>=a.start&&hm<=a.end}}
 async function updateContact(){let {a,open}=await isAvailable();$('#contactSchedule').textContent=`Horario de atención: lunes a viernes, ${a.start||'12:00'} a ${a.end||'15:00'}.`;$('#contactTeacher').disabled=!open;$('#contactMessage').textContent=open?'El botón está disponible dentro del horario de atención.':'El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Los mensajes enviados fuera de este horario serán respondidos el siguiente día hábil.'}
-async function openWhatsApp(){let {open}=await isAvailable();if(!open)return updateContact();let s=bundle.student,msg=`Buenas tardes, profesor Jaime.%0A%0ASoy el padre/madre de ${encodeURIComponent(s.name||'')} del grupo ${encodeURIComponent(s.group||'')}.%0A%0AMe comunico para realizar la siguiente consulta:%0A`;window.open(`https://wa.me/?text=${msg}`,'_blank')}
+async function openWhatsApp(){
+ let {open}=await isAvailable();
+ if(!open)return updateContact();
+
+ let s=bundle.student;
+ let studentName=String(s.name||'').trim()||'el alumno';
+ let group=String(s.group_name||s.group||'').trim()||'sin grupo';
+ let message=`Buen día, profesor Jaime. Soy padre, madre o tutor de ${studentName}, del grupo ${group}. Me comunico por el siguiente motivo:`;
+ let url=`https://wa.me/527731931419?text=${encodeURIComponent(message)}`;
+
+ window.location.href=url;
+}
 init();

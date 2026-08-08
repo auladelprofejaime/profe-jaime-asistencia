@@ -1,4 +1,4 @@
-const CACHE='seguimiento-familiar-v8-0';
+const CACHE='seguimiento-familiar-v8-1';
 const FILES=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./profe-jaime.png','./icon.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{
@@ -36,5 +36,32 @@ self.addEventListener('fetch',event=>{
      if(res?.ok){const c=await caches.open(CACHE);await c.put(req,res.clone())}
      return res;
    }catch(e){return (await caches.match(req))||Response.error()}
+ })());
+});
+
+
+self.addEventListener('push',event=>{
+ let data={title:'Seguimiento Familiar',body:'Hay una actualización escolar.',target:'home'};
+ try{if(event.data)data={...data,...event.data.json()}}catch(e){try{data.body=event.data.text()}catch(_){}}
+ event.waitUntil(self.registration.showNotification(data.title,{
+   body:data.body,
+   icon:'./icon.png',
+   badge:'./icon.png',
+   tag:'family-'+(data.event||Date.now()),
+   data:{target:data.target||'home'}
+ }));
+});
+
+self.addEventListener('notificationclick',event=>{
+ const target=event.notification?.data?.target||'home';
+ event.notification.close();
+ event.waitUntil((async()=>{
+   const wins=await clients.matchAll({type:'window',includeUncontrolled:true});
+   if(wins.length){
+     const win=wins[0];await win.focus();
+     try{win.postMessage({type:'OPEN_PUSH_TARGET',target})}catch(e){}
+     return;
+   }
+   await clients.openWindow('./?push='+encodeURIComponent(target));
  })());
 });

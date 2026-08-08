@@ -6,13 +6,81 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle} from '../shared/supabase-adapter.js?v=800';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
 import {normalizePhone} from '../shared/data-contract.js';
 let id='',bundle=null,currentToken='';
 let scanner=null;
+let familySWRegistration=null;
+
+async function ensureFamilyServiceWorker(){
+ if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=810',{scope:'./'});
+ await navigator.serviceWorker.ready;
+ return familySWRegistration;
+}
+function vapidBytes(base64String){
+ const padding='='.repeat((4-base64String.length%4)%4),base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+ const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+async function syncFamilyPushSubscription(){
+ if(!currentToken)throw new Error('Primero inicia sesión en Seguimiento Familiar.');
+ if(!('Notification' in window))throw new Error('Este dispositivo no admite notificaciones web.');
+ if(Notification.permission!=='granted')throw new Error('El permiso de notificaciones no está concedido.');
+ if(!('PushManager' in window))throw new Error('Web Push no está disponible. En iPhone abre Seguimiento Familiar desde el icono agregado a la pantalla de inicio.');
+ const reg=familySWRegistration||await ensureFamilyServiceWorker();
+ let sub=await reg.pushManager.getSubscription();
+ if(!sub){
+   sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(WEB_PUSH_VAPID_PUBLIC_KEY)});
+ }
+ await registerPortalPush(currentToken,sub);
+ localStorage.setItem(`familyPushRegistered:${id}`,'1');
+ updateFamilyPushStatus();
+ return true;
+}
+function updateFamilyPushStatus(){
+ const el=$('#familyPushStatus');if(!el)return;
+ if(Notification.permission==='granted'&&localStorage.getItem(`familyPushRegistered:${id}`)==='1'){
+   el.innerHTML='<b>✓ Este dispositivo está registrado para recibir notificaciones push.</b>';
+ }else if(Notification.permission==='denied'){
+   el.textContent='Las notificaciones están bloqueadas en este dispositivo.';
+ }else{
+   el.textContent='Las notificaciones todavía no están activadas en este dispositivo.';
+ }
+}
+async function enableFamilyNotifications(){
+ const status=$('#familyPushStatus');
+ try{
+   if(status)status.textContent='Preparando notificaciones…';
+   await ensureFamilyServiceWorker();
+   if(!('Notification' in window))throw new Error('Este dispositivo no admite notificaciones web.');
+   let permission=Notification.permission;
+   if(permission!=='granted')permission=await Notification.requestPermission();
+   if(permission!=='granted')throw new Error('No se concedió permiso para notificaciones.');
+   await syncFamilyPushSubscription();
+   alert('Notificaciones de Seguimiento Familiar activadas correctamente.');
+ }catch(e){
+   console.error(e);
+   if(status)status.textContent='No se pudo activar: '+(e.message||e);
+   alert('No se pudo activar las notificaciones: '+(e.message||e));
+ }
+}
+
 async function init(){
+ try{await ensureFamilyServiceWorker()}catch(e){console.warn('SW',e)}
  $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#contactTeacher').onclick=openWhatsApp;
- const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');if(saved){try{let s=JSON.parse(saved);id=s.studentId;currentToken=s.token||'';if(currentToken)await enterPortal();else clearSession()}catch(e){clearSession()}}
+ $('#enableFamilyNotif').onclick=enableFamilyNotifications;
+
+ const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');
+ if(saved){
+   try{
+     const s=JSON.parse(saved);
+     id=s.studentId;currentToken=s.token||'';
+     if(currentToken && await enterPortal())return;
+   }catch(e){console.warn('Sesión familiar guardada inválida',e)}
+   clearSession();
+ }
+ $('#sessionLoading')?.classList.add('hidden');
+ $('#loginGate')?.classList.remove('hidden');
 }
 function saveSession(remember){const data=JSON.stringify({studentId:id,role:'parent',token:currentToken});(remember?localStorage:sessionStorage).setItem('familySession',data)}
 function clearSession(){localStorage.removeItem('familySession');sessionStorage.removeItem('familySession')}
@@ -30,7 +98,23 @@ async function forceChangePin(){
  $('#loginGate').innerHTML=`<div class="login-card"><div class="change-pin"><h2>Bienvenido</h2><p>Por seguridad debes crear un PIN personal para la familia.</p><label>Nuevo PIN<input id="newPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><label>Confirmar PIN<input id="confirmPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><button id="savePersonalPin" class="action">Guardar nuevo PIN</button><div id="changePinError" class="login-error"></div></div></div>`;
  $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';let r=await changePortalPin(currentToken,a);if(!r?.ok)return $('#changePinError').textContent='No se pudo guardar el PIN.';saveSession(remember);await enterPortal()};
 }
-async function enterPortal(){let raw=await portalGetBundle(currentToken);if(!raw?.ok){clearSession();location.reload();return}bundle=raw;id=bundle.student.id;$('#loginGate').classList.add('hidden');$('#portalApp').classList.remove('hidden');await load()}
+async function enterPortal(){
+ let raw;
+ try{raw=await portalGetBundle(currentToken)}catch(e){raw=null}
+ if(!raw?.ok){
+   clearSession();currentToken='';
+   $('#sessionLoading')?.classList.add('hidden');
+   $('#loginGate')?.classList.remove('hidden');
+   $('#portalApp')?.classList.add('hidden');
+   return false;
+ }
+ bundle=raw;id=bundle.student.id;
+ $('#sessionLoading')?.classList.add('hidden');
+ $('#loginGate')?.classList.add('hidden');
+ $('#portalApp')?.classList.remove('hidden');
+ await load();
+ return true;
+}
 async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}
 async function startScanner(){
  if(typeof Html5Qrcode==='undefined'){return $('#loginError').textContent='No fue posible cargar el lector. Puedes escribir el ID manualmente.'}
@@ -40,7 +124,7 @@ async function startScanner(){
 }
 async function stopScanner(){if(scanner){try{await scanner.stop();await scanner.clear()}catch(e){}scanner=null}$('#scanIdBtn')?.classList.remove('hidden');$('#stopScanBtn')?.classList.add('hidden')}
 function grade(){let list=(bundle?.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[id]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));return list[0]?.gradeRecords?.[id]||null}
-async function load(){bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;$('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;renderAll();await updateContact()}
+async function load(){bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;$('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;renderAll();await updateContact();updateFamilyPushStatus();if(Notification.permission==='granted')syncFamilyPushSubscription().catch(()=>{})}
 function portalDate(v){
  if(!v)return 'Sin fecha';
  const d=new Date(v+'T12:00:00');

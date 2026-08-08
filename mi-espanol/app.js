@@ -6,7 +6,7 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage} from '../shared/supabase-adapter.js';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js';
 let currentId='',bundle=null,currentToken='';
 function recordMap(){return new Map((bundle?.activityRecords||[]).map(r=>[r.key,r]))}
 let scanner=null;
@@ -54,6 +54,17 @@ function showFaq(q){
  $('#faqAnswer').textContent=answers[q]||''}
 
 let studentPollTimer=null;
+function vapidBytes(base64String){
+ const padding='='.repeat((4-base64String.length%4)%4),base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+ const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+async function syncStudentPushSubscription(){
+ if(!('serviceWorker' in navigator)||!('PushManager' in window)||Notification.permission!=='granted'||!currentToken)return false;
+ const reg=await navigator.serviceWorker.ready;
+ let sub=await reg.pushManager.getSubscription();
+ if(!sub)sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:vapidBytes(WEB_PUSH_VAPID_PUBLIC_KEY)});
+ await registerPortalPush(currentToken,sub);return true;
+}
 function studentNotifKey(){return `miEspanolNotificationsV78:${currentId||'none'}`}
 function studentSnapshotKey(){return `miEspanolSnapshotV78:${currentId||'none'}`}
 function readStudentNotifs(){try{return JSON.parse(localStorage.getItem(studentNotifKey())||'[]')}catch{return []}}
@@ -70,7 +81,7 @@ function addStudentNotification(n){
 async function enableStudentNotifications(){
  if(!('Notification' in window))return alert('Este dispositivo no admite notificaciones web.');
  let p=await Notification.requestPermission();
- alert(p==='granted'?'Notificaciones activadas.':'No se concedió permiso. En iPhone, instala Mi Español en la pantalla de inicio para recibirlas.');
+ if(p==='granted'){try{await syncStudentPushSubscription();alert('Notificaciones push activadas. Llegarán aunque Mi Español esté cerrada.')}catch(e){alert('Se concedió permiso, pero no se pudo registrar el push: '+(e.message||e))}}else alert('No se concedió permiso. En iPhone, instala Mi Español en la pantalla de inicio para recibirlas.');
 }
 function openStudentNotifications(){
  let list=readStudentNotifs();
@@ -119,7 +130,7 @@ async function load(){
  bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentNotifBadge();startStudentPolling();
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentNotifBadge();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
@@ -208,7 +219,8 @@ async function openReport(id){alert('El reporte está registrado, pero la apertu
 async function sendMessage(){
  let text=$('#studentMessage').value.trim();if(!text)return;
  let a=bundle.availability||{},now=new Date(),day=now.getDay(),hm=now.toTimeString().slice(0,5),date=now.toISOString().slice(0,10),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd,closed=a.suspended||vac||(a.technicalCouncilDates||[]).includes(date)||!(a.days||[]).includes(day)||hm<a.start||hm>a.end;
- let r=await portalSendMessage(currentToken,$('#chatCategory').value,text);if(!r?.ok)return $('#chatStatus').textContent='No se pudo enviar el mensaje.';
+ let r=await portalSendMessage(currentToken,$('#chatCategory').value,text);if(!r?.ok)return $('#chatStatus').textContent='No se pudo enviar el mensaje.';try{await sendPortalPushEvent(currentToken,'new_message',{message:text,category:$('#chatCategory').value})}catch(e){console.warn('push message',e)};
  $('#studentMessage').value='';$('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';await refreshStudentPortal();
 }
+window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){const t=e.data.target||'home';$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id===t));if(t==='chat')refreshStudentPortal().catch(()=>{})}});
 init();

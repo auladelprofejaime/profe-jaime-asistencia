@@ -74,13 +74,71 @@ function renderMaterials(){
  $('#materialCards').innerHTML=bundle.materials.length?bundle.materials.map(m=>`<button class="card action" data-material="${esc(m.id)}"><b>${esc(m.title)}</b><p class="muted">${esc(m.type)} · ${m.source==='file'?'Archivo':'Enlace'}</p>${m.fileName?`<small class="muted">${esc(m.fileName)}</small>`:''}</button>`).join(''):'<div class="card muted">Sin materiales publicados.</div>';
  $$('[data-material]').forEach(b=>b.onclick=()=>openMaterial(b.dataset.material));
 }
-function openMaterial(id){
+async function openMaterial(id){
  const m=bundle.materials.find(x=>x.id===id);if(!m)return;
- if(m.publicUrl)window.open(m.publicUrl,'_blank');
- else if(m.url)window.open(m.url,'_blank');
- else alert('Este material todavía no tiene un archivo o enlace disponible.');
+ if(m.publicUrl){
+   try{
+     const r=await fetch(m.publicUrl,{method:'HEAD',cache:'no-store'});
+     if(r.ok){window.open(m.publicUrl,'_blank');return}
+   }catch(e){}
+   alert('El archivo todavía no está disponible en Supabase. Pide al profesor que pulse “Sincronizar ahora” una vez más.');
+   return;
+ }
+ if(m.url){window.open(m.url,'_blank');return}
+ alert('Este material todavía no tiene un archivo o enlace disponible.');
 }
-function renderStudy(){$('#studyTopics').innerHTML=bundle.studyTopics.length?bundle.studyTopics.map(t=>`<div class="card"><b>${esc(t.title)}</b><p class="muted">${esc(t.notes||'Tema trabajado')}</p><div class="question-actions"><button class="action">Trivia rápida</button><button class="action">Examen</button><button class="action">Pregunta del día</button><button class="action">Repaso</button></div><small class="muted">Generación automática con IA: preparada para una versión futura.</small></div>`).join(''):'<div class="card muted">Todavía no hay temas publicados.</div>'}
+function studySentences(topic){
+ const raw=[topic.title,topic.notes,topic.description,topic.content].filter(Boolean).join('. ');
+ return raw.split(/[.!?;\n]+/).map(x=>x.trim()).filter(x=>x.length>12);
+}
+function studyWords(topic){
+ const stop=new Set(['para','como','esta','este','estos','estas','desde','entre','sobre','todo','todos','todas','pero','porque','cuando','donde','quien','cual','unos','unas','del','las','los','una','uno','que','con','por','más','muy','sin','sus','son','ser','es','se','la','el','un','y','o','a','de','en']);
+ return [...new Set(studySentences(topic).join(' ').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').match(/[a-zñ]{5,}/g)||[])].filter(w=>!stop.has(w));
+}
+function shuffled(a){return [...a].sort(()=>Math.random()-.5)}
+function makeStudyQuestions(topic,count=10){
+ const sentences=studySentences(topic),words=studyWords(topic),qs=[];
+ for(let i=0;i<count;i++){
+   const s=sentences[i%Math.max(sentences.length,1)]||`El tema trabajado es ${topic.title}.`;
+   let candidates=words.filter(w=>s.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').includes(w));
+   let answer=candidates[Math.floor(Math.random()*Math.max(candidates.length,1))]||words[i%Math.max(words.length,1)]||String(topic.title||'tema').split(/\s+/)[0];
+   let re=new RegExp(`\\b${answer}\\b`,'i');
+   let prompt=s.replace(re,'_____');
+   if(prompt===s)prompt=`¿Cuál de estas palabras se relaciona directamente con el tema "${topic.title}"?`;
+   let distract=shuffled(words.filter(w=>w!==answer)).slice(0,3);
+   while(distract.length<3)distract.push(['concepto','ejemplo','contexto','lectura'][distract.length]);
+   qs.push({prompt,answer,options:shuffled([answer,...distract])});
+ }
+ return qs;
+}
+function ensureStudyModal(){
+ let el=$('#studyModal');if(el)return el;
+ document.body.insertAdjacentHTML('beforeend',`<div id="studyModal" class="study-modal hidden"><div class="study-panel"><button id="closeStudyModal" class="study-close">×</button><div id="studyGame"></div></div></div>`);
+ $('#closeStudyModal').onclick=()=>$('#studyModal').classList.add('hidden');
+ return $('#studyModal');
+}
+function openStudyMode(topicId,mode){
+ const topic=bundle.studyTopics.find(t=>String(t.id)===String(topicId));if(!topic)return;
+ ensureStudyModal();const modal=$('#studyModal'),game=$('#studyGame');modal.classList.remove('hidden');
+ if(mode==='review'){
+   const parts=studySentences(topic);
+   game.innerHTML=`<h2>Repaso · ${esc(topic.title)}</h2><p class="muted">Lee cada tarjeta antes de continuar.</p>${(parts.length?parts:[topic.notes||`Tema: ${topic.title}`]).map((x,i)=>`<div class="study-flash"><b>${i+1}</b><p>${esc(x)}</p></div>`).join('')}`;
+   return;
+ }
+ const qs=makeStudyQuestions(topic,mode==='daily'?1:10);let index=0,score=0,locked=false;
+ const title=mode==='quiz'?'Trivia rápida':mode==='exam'?'Examen':'Pregunta del día';
+ function paint(){
+   if(index>=qs.length){game.innerHTML=`<h2>${esc(title)}</h2><div class="study-result"><b>${score}/${qs.length}</b><p>${score>=Math.ceil(qs.length*.7)?'¡Buen trabajo!':'Conviene hacer un repaso y volver a intentarlo.'}</p><button id="studyAgain" class="action primary">Intentar de nuevo</button></div>`;$('#studyAgain').onclick=()=>openStudyMode(topicId,mode);return}
+   locked=false;let q=qs[index];
+   game.innerHTML=`<h2>${esc(title)} · ${esc(topic.title)}</h2><p class="muted">Pregunta ${index+1} de ${qs.length}</p><div class="study-question">${esc(q.prompt)}</div><div class="study-options">${q.options.map(o=>`<button class="action study-option" data-answer="${esc(o)}">${esc(o)}</button>`).join('')}</div><div id="studyFeedback"></div>`;
+   $$('.study-option').forEach(b=>b.onclick=()=>{if(locked)return;locked=true;let ok=b.dataset.answer===q.answer;if(ok)score++;$('#studyFeedback').innerHTML=`<div class="${ok?'study-good':'study-bad'}">${ok?'✓ Correcto':'✗ Respuesta correcta: '+esc(q.answer)}</div><button id="studyNext" class="action primary">${index+1===qs.length?'Ver resultado':'Siguiente'}</button>`;$('#studyNext').onclick=()=>{index++;paint()}});
+ }
+ paint();
+}
+function renderStudy(){
+ $('#studyTopics').innerHTML=bundle.studyTopics.length?bundle.studyTopics.map(t=>`<div class="card"><b>${esc(t.title)}</b><p class="muted">${esc(t.notes||'Tema trabajado')}</p><div class="question-actions"><button class="action" data-study="${esc(t.id)}" data-mode="quiz">Trivia rápida</button><button class="action" data-study="${esc(t.id)}" data-mode="exam">Examen</button><button class="action" data-study="${esc(t.id)}" data-mode="daily">Pregunta del día</button><button class="action" data-study="${esc(t.id)}" data-mode="review">Repaso</button></div><small class="muted">Las preguntas se crean automáticamente a partir del contenido publicado por el profesor.</small></div>`).join(''):'<div class="card muted">Todavía no hay temas publicados.</div>';
+ $$('[data-study]').forEach(b=>b.onclick=()=>openStudyMode(b.dataset.study,b.dataset.mode));
+}
 function renderReports(){$('#studentReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="card action" data-report-id="${r.id}"><b>${esc(r.title)}</b><p class="muted">${new Date(r.created).toLocaleString('es-MX')}</p></button>`).join(''):'<div class="card muted">Sin reportes archivados.</div>';$$('[data-report-id]').forEach(b=>b.onclick=()=>openReport(b.dataset.reportId))}
 async function openReport(id){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
 async function sendMessage(){

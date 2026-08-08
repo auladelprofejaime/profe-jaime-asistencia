@@ -1,8 +1,8 @@
-const CACHE='aula-profe-jaime-v7-6-2';
+const CACHE='aula-profe-jaime-v7-7';
 const LOCAL=[
- './','./index.html','./styles.css','./app-v762.js?v=762',
+ './','./index.html','./styles.css','./app-v77.js?v=770',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-profe-jaime.png',
- './shared/supabase-teacher.js?v=762'
+ './shared/supabase-teacher.js?v=770'
 ];
 const OPTIONAL=[
  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',

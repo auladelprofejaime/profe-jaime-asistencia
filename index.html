@@ -17,7 +17,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v7.6.2</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v7.7</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -286,7 +286,10 @@
 <section id="portalAccessReportCard" class="card" style="margin-top:14px">
   <div class="section">
     <div><h3>🔐 Estado de accesos a portales</h3><p class="hint">Solo alumnos del turno matutino.</p></div>
-    <button id="refreshPortalAccessReport" class="secondary" type="button">Actualizar</button>
+    <div class="actions">
+      <button id="refreshPortalAccessReport" class="secondary" type="button">Actualizar estados</button>
+      <button id="refreshAllPortalPins" class="primary" type="button">Actualizar todos los PIN temporales</button>
+    </div>
   </div>
   <div id="portalAccessSummary" class="access-summary-grid"></div>
   <div id="portalAccessTableWrap" class="table-wrap"></div>
@@ -373,4 +376,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=762"></script><script src="app-v762.js?v=762"></script></body></html>
+<script src="./shared/supabase-teacher.js?v=770"></script><script src="app-v77.js?v=770"></script></body></html>

@@ -333,3 +333,6 @@ button.danger{
 @media(max-width:650px){.cloud-sync-box{align-items:stretch;flex-direction:column}}
 
 .inactive-students-card{border:1px dashed #b9b1a5;background:#faf8f4}.inactive-badge{display:inline-block;background:#ece8e1;color:#665f55;border-radius:999px;padding:3px 8px;font-size:.75rem;font-weight:900;margin-left:6px}.cycle-close-card{border:2px solid #b72d38;background:#fff7f7}.student-inactive-header{display:inline-block;background:#5e5a55;color:#fff;border-radius:999px;padding:4px 9px;font-size:.76rem;font-weight:900;margin-left:8px}
+
+.pin-mini{margin-top:5px;display:inline-block;padding:4px 7px;border-radius:8px;background:#211b12;color:#ffd43b;font-weight:1000;letter-spacing:.12em}
+.message-card.unread{border-left:5px solid #d3212d;background:#fff9f2}

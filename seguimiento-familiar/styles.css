@@ -20,16 +20,3 @@
 .session-loading-card img{width:84px;height:84px;object-fit:contain;background:#fff;border-radius:22px}
 .session-loading-card b{font-size:1.15rem}.session-loading-card span{color:#746d64}
 .push-status{margin-top:12px;padding:12px;border-radius:14px;background:#f7f0e4;border:1px solid #e5dccb}
-
-.test-mode-line{
-  display:flex;
-  align-items:center;
-  gap:8px;
-  margin-top:12px;
-  font-size:.9rem;
-  color:#6f665b;
-}
-.test-mode-line input{
-  width:18px;
-  height:18px;
-}

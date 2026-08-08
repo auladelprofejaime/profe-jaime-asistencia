@@ -324,3 +324,12 @@ button.danger{
 .table-wrap{overflow:auto}.access-table{width:100%;border-collapse:collapse}.access-table th,.access-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.access-table th{font-size:.82rem;color:#665f54}
 .student-access-mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
 @media(max-width:760px){.access-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.teacher-login-gate{position:fixed;inset:0;z-index:9999;background:rgba(19,18,16,.88);display:grid;place-items:center;padding:18px}
+.teacher-login-gate.hidden{display:none}.teacher-login-card{width:min(440px,100%);background:#fff;border-radius:22px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.teacher-login-card img{width:78px;height:78px;object-fit:contain;float:right}.teacher-login-card label{display:block;margin:12px 0}.teacher-login-card input{width:100%;margin-top:5px}
+.remember-line{display:flex!important;gap:8px;align-items:center}.remember-line input{width:20px!important}.login-error{color:#b4232d;font-weight:800;margin-top:8px}
+.cloud-sync-box{margin:14px 0;background:#fff9dc;border:2px solid #e4bd17;border-radius:18px;padding:15px;display:flex;align-items:center;justify-content:space-between;gap:12px}.cloud-sync-box h3{margin:0 0 3px}.cloud-sync-box p{margin:0}.sync-ok{color:#15703a;font-weight:800}.sync-bad{color:#a8232e;font-weight:800}
+@media(max-width:650px){.cloud-sync-box{align-items:stretch;flex-direction:column}}
+
+.inactive-students-card{border:1px dashed #b9b1a5;background:#faf8f4}.inactive-badge{display:inline-block;background:#ece8e1;color:#665f55;border-radius:999px;padding:3px 8px;font-size:.75rem;font-weight:900;margin-left:6px}.cycle-close-card{border:2px solid #b72d38;background:#fff7f7}.student-inactive-header{display:inline-block;background:#5e5a55;color:#fff;border-radius:999px;padding:4px 9px;font-size:.76rem;font-weight:900;margin-left:8px}

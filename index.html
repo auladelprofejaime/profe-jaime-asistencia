@@ -4,7 +4,20 @@
 <meta name="theme-color" content="#f5c400"><title>El Aula del Profe Jaime</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" href="icon-profe-jaime.png">
 </head><body>
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v7.4</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<div id="teacherLoginGate" class="teacher-login-gate hidden">
+  <div class="teacher-login-card">
+    <img src="avatar-profe-jaime.png" alt="">
+    <h2>Conectar con Supabase</h2>
+    <p>Inicia sesión con la cuenta de profesor creada en Supabase.</p>
+    <label>Correo<input id="teacherLoginEmail" type="email" autocomplete="username"></label>
+    <label>Contraseña<input id="teacherLoginPassword" type="password" autocomplete="current-password"></label>
+    <label class="remember-line"><input id="teacherRemember" type="checkbox" checked> Recordar sesión</label>
+    <button id="teacherLoginBtn" class="primary" type="button">Iniciar sesión</button>
+    <div id="teacherLoginError" class="login-error"></div>
+  </div>
+</div>
+
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v7.6</p></div><div class="top-actions"><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -45,7 +58,18 @@
 </div>
 <p id="lastInternalSave" class="save-state">Todavía no hay un guardado interno adicional.</p></div>
  </div>
- <div class="home-summary">
+ 
+<div class="cloud-sync-box">
+  <div>
+    <h3>☁ Supabase</h3>
+    <p id="supabaseSyncState">Comprobando conexión…</p>
+  </div>
+  <div class="actions">
+    <button id="syncSupabaseBtn" class="primary" type="button">Sincronizar ahora</button>
+    <button id="teacherLogoutBtn" class="secondary" type="button">Cerrar sesión Supabase</button>
+  </div>
+</div>
+<div class="home-summary">
   <div class="summary-card"><b id="homeGroups">0</b><span>Grupos</span></div><div class="summary-card"><b id="homeStudents">0</b><span>Alumnos</span></div><div class="summary-card"><b id="homeActivities">0</b><span>Actividades</span></div><div class="summary-card"><b id="homeAttendance">0</b><span>Asistencias guardadas</span></div>
  </div>
  <div class="home-menu">
@@ -213,14 +237,15 @@
 <label class="wide">Incidencias (opcional)<textarea id="studentIncidents" rows="4"></textarea></label>
 <div class="wide actions"><button class="primary">Guardar expediente</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div>
 </form>
- <div class="card"><div class="section"><h2>Lista de alumnos</h2><input id="studentSearch" placeholder="Buscar nombre, ID o grupo"></div><div id="studentsList" class="list empty">No hay alumnos.</div></div>
+ <div class="card"><div class="section"><h2>Lista de alumnos activos</h2><input id="studentSearch" placeholder="Buscar nombre, ID o grupo"></div><div id="studentsList" class="list empty">No hay alumnos.</div></div>
+<div class="card inactive-students-card"><div class="section"><div><h2>Alumnos inactivos</h2><p class="hint">Conservan expediente e historial. Puedes reactivarlos cuando sea necesario.</p></div></div><div id="inactiveStudentsList" class="list empty">No hay alumnos inactivos.</div></div>
 </section>
 
 <section id="dossier" class="view">
 <div class="card dossier-selector"><div><h2>Expediente del alumno</h2><p class="hint">Selecciona un alumno o toca su nombre desde la lista.</p></div><label>Alumno<select id="dossierStudent"></select></label></div>
 <div id="dossierEmpty" class="card empty">Selecciona un alumno para consultar su expediente.</div>
 <div id="dossierContent" class="hidden">
-<div class="dossier-header card"><div><span id="dossierShiftBadge" class="shift-badge"></span><h2 id="dossierName">Alumno</h2><p id="dossierSchoolLine"></p></div><div class="actions"><button id="dossierEdit" class="secondary" type="button">Editar expediente</button><button id="dossierPdf" class="secondary" type="button">Generar PDF</button></div></div>
+<div class="dossier-header card"><div><span id="dossierShiftBadge" class="shift-badge"></span><h2 id="dossierName">Alumno</h2><p id="dossierSchoolLine"></p></div><div class="actions"><button id="dossierEdit" class="secondary" type="button">Editar expediente</button><button id="dossierPdf" class="secondary" type="button">Generar PDF</button><button id="dossierDeactivate" class="danger" type="button">Dar de baja alumno</button><button id="dossierReactivate" class="primary hidden" type="button">Reactivar alumno</button></div></div>
 <div id="portalAccessCard" class="card portal-access-card">
   <div class="section">
     <div><h3>🔐 Acceso a portales</h3><p class="hint">Solo disponible para alumnos del turno matutino. El PIN del alumno y el del padre son independientes.</p></div>
@@ -244,6 +269,11 @@
     <label class="filebtn alt">Importar respaldo<input id="reportsRestoreFile" type="file" accept=".json,application/json"></label>
   </div>
   <p class="warning-note">Guarda el archivo en iCloud Drive, OneDrive o Google Drive. Al importarlo en otro iPad, reemplazará la información que exista en esa app.</p>
+</div>
+<div class="card cycle-close-card">
+  <h2>📚 Cierre de ciclo escolar</h2>
+  <p class="hint">Conserva historiales y PDFs, deja inactivos a los alumnos y cierra sus sesiones de Mi Español y Seguimiento Familiar.</p>
+  <button id="closeSchoolCycleBtn" class="danger" type="button">Cerrar ciclo escolar…</button>
 </div>
 <div class="card danger-zone">
   <h2>Administración de datos</h2>
@@ -343,4 +373,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="app-v74.js?v=740"></script></body></html>
+<script src="../shared/supabase-teacher.js?v=750"></script><script src="app-v76.js?v=760"></script></body></html>

@@ -1,5 +1,5 @@
 
-export const ECOSYSTEM_VERSION='7.4';
+export const ECOSYSTEM_VERSION='7.6';
 export const DB_NAME='ProfeJaimeAsistenciaDB';
 
 export const STORES={

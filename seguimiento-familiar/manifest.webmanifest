@@ -2,7 +2,7 @@
   "id": "./",
   "name": "App padres",
   "short_name": "App padres",
-  "start_url": "./?v=821",
+  "start_url": "./?v=830",
   "display": "standalone",
   "background_color": "#f6f1e7",
   "theme_color": "#ffffff",

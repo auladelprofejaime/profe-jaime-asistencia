@@ -6,7 +6,7 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle} from '../shared/supabase-adapter.js';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle} from '../shared/supabase-adapter.js?v=800';
 import {normalizePhone} from '../shared/data-contract.js';
 let id='',bundle=null,currentToken='';
 let scanner=null;
@@ -41,13 +41,66 @@ async function startScanner(){
 async function stopScanner(){if(scanner){try{await scanner.stop();await scanner.clear()}catch(e){}scanner=null}$('#scanIdBtn')?.classList.remove('hidden');$('#stopScanBtn')?.classList.add('hidden')}
 function grade(){let list=(bundle?.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[id]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));return list[0]?.gradeRecords?.[id]||null}
 async function load(){bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;$('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;renderAll();await updateContact()}
-function renderAll(){let g=grade(),att=bundle.attendance,missing=bundle.activities.filter(a=>{let r=bundle.activityRecords.find(x=>x.key===`${a.id}|${id}`);return (a.evaluationMode||'delivery')==='delivery'&&r?.status==='no'}).length;
- $('#familySummary').innerHTML=[['Asistencia',att.length],['Actividades pendientes',missing],['Promedio',g?.finalDecimal?.toFixed(2)||'—'],['Avisos',bundle.notices.length],['Reportes',bundle.reports.length]].map(x=>`<button class="big-button"><b>${x[1]}</b><span>${x[0]}</span></button>`).join('');
- $('#familyNotice').innerHTML=bundle.notices.slice(0,2).map(n=>`<div class="notice"><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div>`).join('');
+function portalDate(v){
+ if(!v)return 'Sin fecha';
+ const d=new Date(v+'T12:00:00');
+ if(Number.isNaN(d.getTime()))return String(v);
+ return d.toLocaleDateString('es-MX',{day:'numeric',month:'long'});
+}
+function familyActivityState(a,r){
+ const mode=a.evaluationMode||'delivery';
+ if(mode==='numeric'&&typeof r?.score==='number')return {label:'Entregada',cls:'ok'};
+ if(r?.status==='yes')return {label:'Entregada',cls:'ok'};
+ if(r?.status==='no')return {label:'No entregada',cls:'bad'};
+ if(a.dueDate){
+   const today=new Date();today.setHours(0,0,0,0);
+   const due=new Date(a.dueDate+'T23:59:59');
+   if(due<today)return {label:'Vencida',cls:'bad'};
+ }
+ return {label:'Pendiente',cls:'warn'};
+}
+function renderAll(){
+ let g=grade(),att=bundle.attendance,map=new Map((bundle.activityRecords||[]).map(r=>[r.key,r]));
+ let pending=(bundle.activities||[]).filter(a=>{
+   let r=map.get(`${a.id}|${id}`),st=familyActivityState(a,r);
+   return st.label==='Pendiente'||st.label==='Vencida'||st.label==='No entregada';
+ }).length;
+
+ $('#familyStats').innerHTML=[
+   ['Asistencia',att.length],
+   ['Pendientes',pending],
+   ['Promedio',g?.finalDecimal?.toFixed(2)||'—'],
+   ['Avisos',bundle.notices.length]
+ ].map(x=>`<div class="stat-card"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
+
+ $('#familyNotice').innerHTML=bundle.notices.slice(0,2).map(n=>`<div class="notice"><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div>`).join('')||'<div class="notice muted">Sin avisos recientes.</div>';
+
+ $('#familyNotices').innerHTML=bundle.notices.length?bundle.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div>`).join(''):'<div class="card muted">Sin avisos.</div>';
+
+ $('#familyMaterials').innerHTML=bundle.materials.length?bundle.materials.map(m=>`<div class="card"><b>${esc(m.title)}</b><p class="muted">${esc(m.type||'Material')}</p>${m.publicUrl||m.url?`<button class="action material-open" data-url="${esc(m.publicUrl||m.url)}">Abrir material</button>`:''}</div>`).join(''):'<div class="card muted">Sin materiales.</div>';
+ $$('.material-open').forEach(b=>b.onclick=()=>window.open(b.dataset.url,'_blank'));
+
  $('#familyAttendance').innerHTML=att.length?att.sort((a,b)=>String(b.date).localeCompare(String(a.date))).slice(0,40).map(a=>`<div class="card"><b>${esc(a.date)}</b> <span class="status ${a.status==='Falta'?'bad':a.status==='Retardo'?'warn':'ok'}">${esc(a.status||'Presente')}</span></div>`).join(''):'<div class="card muted">Sin registros.</div>';
- $('#familyActivities').innerHTML=bundle.activities.length?bundle.activities.map(a=>{let r=bundle.activityRecords.find(x=>x.key===`${a.id}|${id}`),done=(a.evaluationMode||'delivery')==='numeric'?typeof r?.score==='number':r?.status==='yes';return `<div class="card"><b>${esc(a.name)}</b><p class="muted">${esc(a.date||'Sin fecha')}</p><span class="status ${done?'ok':'warn'}">${done?'Registrada':'Pendiente / sin registro'}</span></div>`}).join(''):'<div class="card muted">Sin actividades.</div>';
+
+ let acts=[...(bundle.activities||[])].sort((a,b)=>{
+   const ad=a.dueDate||'9999-12-31',bd=b.dueDate||'9999-12-31';
+   return ad.localeCompare(bd)||String(b.date||'').localeCompare(String(a.date||''));
+ });
+ $('#familyActivities').innerHTML=acts.length?acts.map(a=>{
+   let r=map.get(`${a.id}|${id}`),st=familyActivityState(a,r);
+   return `<div class="card delivery-card">
+     <div class="delivery-title">${esc(a.name)}</div>
+     <div class="delivery-line"><b>Actividad:</b> ${esc(a.name)}</div>
+     <div class="delivery-line"><b>Asignada:</b> ${esc(portalDate(a.date))}</div>
+     <div class="delivery-line"><b>Entrega:</b> ${esc(portalDate(a.dueDate))}</div>
+     <div class="delivery-line"><b>Estado:</b> <span class="status ${st.cls}">${st.label}</span></div>
+     ${typeof r?.score==='number'?`<div class="delivery-line"><b>Calificación:</b> ${r.score}/10</div>`:''}
+   </div>`;
+ }).join(''):'<div class="card muted">No hay próximas entregas publicadas.</div>';
+
  $('#familyGrades').innerHTML=`<div class="card"><h3>Promedio actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><p>Calificación redondeada: <b>${g?.rounded??'—'}</b></p></div>`;
- $('#familyReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="big-button" data-r="${r.id}"><b>PDF</b><span>${esc(r.title)}</span></button>`).join(''):'<div class="card muted">Sin reportes disponibles.</div>';$$('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));
+ $('#familyReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="big-button" data-r="${r.id}"><b>PDF</b><span>${esc(r.title)}</span></button>`).join(''):'<div class="card muted">Sin reportes disponibles.</div>';
+ $$('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));
 }
 async function openReport(rid){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
 async function isAvailable(){let a=bundle.availability||{},now=new Date(),date=now.toISOString().slice(0,10),hm=now.toTimeString().slice(0,5),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd;return {a,open:!a.suspended&&!vac&&!(a.technicalCouncilDates||[]).includes(date)&&(a.days||[]).includes(now.getDay())&&hm>=a.start&&hm<=a.end}}

@@ -1,4 +1,4 @@
-const CACHE='seguimiento-familiar-v8-1';
+const CACHE='app-padres-v8-2';
 const FILES=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./profe-jaime.png','./icon.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{
@@ -41,7 +41,7 @@ self.addEventListener('fetch',event=>{
 
 
 self.addEventListener('push',event=>{
- let data={title:'Seguimiento Familiar',body:'Hay una actualización escolar.',target:'home'};
+ let data={title:'App padres',body:'Hay una actualización escolar.',target:'home'};
  try{if(event.data)data={...data,...event.data.json()}}catch(e){try{data.body=event.data.text()}catch(_){}}
  event.waitUntil(self.registration.showNotification(data.title,{
    body:data.body,

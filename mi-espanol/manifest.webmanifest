@@ -2,13 +2,13 @@
   "id": "./",
   "name": "App estudiante",
   "short_name": "App estudiante",
-  "start_url": "./",
+  "start_url": "./?v=821",
   "display": "standalone",
   "background_color": "#0f1220",
   "theme_color": "#0f1220",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "icon-app-estudiante-v821.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

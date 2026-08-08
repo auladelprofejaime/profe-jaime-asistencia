@@ -1,4 +1,4 @@
-const CACHE='app-estudiante-v8-2';
+const CACHE='app-estudiante-v8-2-1';
 const FILES=[
   './',
   './index.html',
@@ -6,7 +6,7 @@ const FILES=[
   './app.js',
   './manifest.webmanifest',
   './profe-jaime.png',
-  './icon.png',
+  './icon-app-estudiante-v821.png',
   '../shared/supabase-adapter.js'
 ];
 
@@ -75,8 +75,8 @@ self.addEventListener('push',event=>{
 
   event.waitUntil(self.registration.showNotification(data.title,{
     body:data.body,
-    icon:'./icon.png',
-    badge:'./icon.png',
+    icon:'./icon-app-estudiante-v821.png',
+    badge:'./icon-app-estudiante-v821.png',
     tag:'push-'+(data.event||Date.now()),
     data:{target:data.target||'home'}
   }));

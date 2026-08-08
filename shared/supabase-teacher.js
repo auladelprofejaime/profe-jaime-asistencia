@@ -34,5 +34,10 @@ async function upsert(table,rows,onConflict){if(!Array.isArray(rows))rows=[rows]
 async function select(table,query=''){return rest(table+(query?('?'+query):''))}
 async function remove(table,query){return rest(table+'?'+query,{method:'DELETE',prefer:'return=minimal'})}
 async function uploadMaterial(path,data,mime='application/octet-stream'){const t=await token();if(!t)throw new Error('Sin sesión de profesor');const r=await fetch(URL+'/storage/v1/object/materials/'+path.split('/').map(encodeURIComponent).join('/'),{method:'POST',headers:headers(t,{'Content-Type':mime,'x-upsert':'true'}),body:data});return parse(r)}
-window.ProfeSupabase={URL,KEY,login,logout,restore,token,rest,rpc,upsert,select,remove,uploadMaterial,get session(){return session}};
+async function edge(name,body={}){
+ const t=await token();if(!t)throw new Error('Sin sesión de profesor');
+ const r=await fetch(URL+'/functions/v1/'+name,{method:'POST',headers:headers(t,{'Content-Type':'application/json'}),body:JSON.stringify(body)});
+ return parse(r);
+}
+window.ProfeSupabase={URL,KEY,login,logout,restore,token,rest,rpc,upsert,select,remove,uploadMaterial,edge,get session(){return session}};
 })();

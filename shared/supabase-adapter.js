@@ -49,6 +49,22 @@ export async function portalGetBundle(token){
   const availability={id:'main',days:availabilityRaw.working_days||[1,2,3,4,5],start:(availabilityRaw.start_time||'12:00').slice(0,5),end:(availabilityRaw.end_time||'15:00').slice(0,5),vacationStart:availabilityRaw.vacation_start||'',vacationEnd:availabilityRaw.vacation_end||'',technicalCouncilDates:availabilityRaw.suspension_dates||[],suspended:!!availabilityRaw.suspended,temporaryNotice:availabilityRaw.temporary_notice||''};
   return {ok:true,role:raw.role,student,attendance,activities,activityRecords,methodologies,notices,materials,studyTopics,reports,messages:raw.messages||[],availability};
 }
+export const WEB_PUSH_VAPID_PUBLIC_KEY="BNPj-HUZsEtLYTsRcRdqyYIqhq4hqjRno0QmNbHhSVe5wHeBiqnVnwMx5RU8lxyz-mNhvqbjQRLqsmhqBTdZkWg";
+export async function registerPortalPush(token,subscription){
+  const j=subscription.toJSON();
+  return request('/rest/v1/rpc/register_portal_push',{method:'POST',body:{
+    p_token:token,p_endpoint:j.endpoint,p_p256dh:j.keys?.p256dh,p_auth:j.keys?.auth,p_user_agent:navigator.userAgent
+  }});
+}
+export async function unregisterPortalPush(token,endpoint){
+  return request('/rest/v1/rpc/unregister_portal_push',{method:'POST',body:{p_token:token,p_endpoint:endpoint}});
+}
+export async function sendPortalPushEvent(token,event,body={}){
+  const r=await fetch(SUPABASE_URL+'/functions/v1/send-push',{method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:'Bearer '+SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},body:JSON.stringify({event,portal_token:token,...body})});
+  const text=await r.text();let data;try{data=text?JSON.parse(text):{}}catch{data={raw:text}}
+  if(!r.ok)throw new Error(data?.error||`Push ${r.status}`);
+  return data;
+}
 export async function portalSendMessage(token,category,message){
   return request('/rest/v1/rpc/portal_send_message',{method:'POST',body:{p_token:token,p_category:category,p_message:message}});
 }

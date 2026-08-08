@@ -1,4 +1,4 @@
-const CACHE='seguimiento-familiar-v8-1';
+const CACHE='seguimiento-familiar-v8-1-2';
 const FILES=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./profe-jaime.png','./icon.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{

@@ -1,6 +1,7 @@
 {
-  "name": "Mi Español",
-  "short_name": "Mi Español",
+  "id": "./",
+  "name": "App estudiante",
+  "short_name": "App estudiante",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#0f1220",
@@ -9,7 +10,8 @@
     {
       "src": "icon.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any maskable"
     }
   ]
 }

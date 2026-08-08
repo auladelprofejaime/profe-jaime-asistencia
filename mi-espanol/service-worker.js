@@ -1,4 +1,4 @@
-const CACHE='mi-espanol-v8-1-1';
+const CACHE='app-estudiante-v8-2';
 const FILES=[
   './',
   './index.html',
@@ -66,7 +66,7 @@ self.addEventListener('fetch',event=>{
 });
 
 self.addEventListener('push',event=>{
-  let data={title:'Mi Español',body:'Tienes una actualización.',target:'home'};
+  let data={title:'App estudiante',body:'Tienes una actualización.',target:'home'};
   try{
     if(event.data) data={...data,...event.data.json()};
   }catch(e){

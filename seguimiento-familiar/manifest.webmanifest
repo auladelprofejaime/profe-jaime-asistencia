@@ -2,13 +2,13 @@
   "id": "./",
   "name": "App padres",
   "short_name": "App padres",
-  "start_url": "./",
+  "start_url": "./?v=821",
   "display": "standalone",
   "background_color": "#f6f1e7",
   "theme_color": "#ffffff",
   "icons": [
     {
-      "src": "icon.png",
+      "src": "icon-app-padres-v821.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

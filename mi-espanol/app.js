@@ -6,13 +6,13 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=800';
 let currentId='',bundle=null,currentToken='';
 let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=792',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=800',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -186,7 +186,42 @@ function pointsAvailable(){
 function renderSummary(){let g=currentGrade(),present=bundle.attendance.filter(a=>(a.status||'Presente')!=='Falta').length;
  $('#summaryCards').innerHTML=[['Asistencia',present],['Actividades',bundle.activities.length],['Calificación actual',g?.finalDecimal?.toFixed(2)||'—'],['Puntos disponibles',pointsAvailable().toFixed(2)],['Reportes',bundle.reports.length],['Materiales',bundle.materials.length],['Avisos',bundle.notices.length]].map(x=>`<div class="tile"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('')}
 function renderNotices(){$('#homeNotices').innerHTML=bundle.notices.length?bundle.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div>`).join(''):'<div class="card muted">Sin avisos nuevos.</div>'}
-function renderActivities(){let map=recordMap();$('#activityCards').innerHTML=bundle.activities.length?bundle.activities.sort((a,b)=>String(b.date).localeCompare(String(a.date))).map(a=>{let r=map.get(`${a.id}|${currentId}`),mode=a.evaluationMode||'delivery',done=mode==='numeric'?typeof r?.score==='number':r?.status==='yes',pending=mode==='delivery'&&r?.status==='no';return `<div class="card activity"><div><b>${esc(a.name)}</b><p class="muted">${esc(a.type||'Actividad')} · ${esc(a.date||'Sin fecha')}</p></div><div>${done?'<span class="pill green">Entregada</span>':pending?'<span class="pill red">Pendiente</span>':'<span class="pill yellow">Sin registro</span>'}${typeof r?.score==='number'?`<p><b>${r.score}</b>/10</p>`:''}</div></div>`}).join(''):'<div class="card muted">No hay actividades publicadas.</div>'}
+function portalDate(v){
+ if(!v)return 'Sin fecha';
+ const d=new Date(v+'T12:00:00');
+ if(Number.isNaN(d.getTime()))return String(v);
+ return d.toLocaleDateString('es-MX',{day:'numeric',month:'long'});
+}
+function activityState(a,r){
+ const mode=a.evaluationMode||'delivery';
+ if(mode==='numeric'&&typeof r?.score==='number')return {label:'Entregada',cls:'green'};
+ if(r?.status==='yes')return {label:'Entregada',cls:'green'};
+ if(r?.status==='no')return {label:'No entregada',cls:'red'};
+ if(a.dueDate){
+   const today=new Date();today.setHours(0,0,0,0);
+   const due=new Date(a.dueDate+'T23:59:59');
+   if(due<today)return {label:'Vencida',cls:'red'};
+ }
+ return {label:'Pendiente',cls:'yellow'};
+}
+function renderActivities(){
+ let map=recordMap();
+ let acts=[...(bundle.activities||[])].sort((a,b)=>{
+   const ad=a.dueDate||'9999-12-31',bd=b.dueDate||'9999-12-31';
+   return ad.localeCompare(bd)||String(b.date||'').localeCompare(String(a.date||''));
+ });
+ $('#activityCards').innerHTML=acts.length?acts.map(a=>{
+   let r=map.get(`${a.id}|${currentId}`),st=activityState(a,r);
+   return `<div class="card delivery-card">
+     <div class="delivery-title">${esc(a.name)}</div>
+     <div class="delivery-line"><b>Actividad:</b> ${esc(a.name)}</div>
+     <div class="delivery-line"><b>Asignada:</b> ${esc(portalDate(a.date))}</div>
+     <div class="delivery-line"><b>Entrega:</b> ${esc(portalDate(a.dueDate))}</div>
+     <div class="delivery-line"><b>Estado:</b> <span class="pill ${st.cls}">${st.label}</span></div>
+     ${typeof r?.score==='number'?`<div class="delivery-line"><b>Calificación:</b> ${r.score}/10</div>`:''}
+   </div>`;
+ }).join(''):'<div class="card muted">No hay próximas entregas publicadas.</div>';
+}
 function renderAttendance(){let now=new Date(),y=now.getFullYear(),m=now.getMonth(),days=new Date(y,m+1,0).getDate(),map=new Map(bundle.attendance.filter(a=>{let d=new Date(a.date+'T12:00:00');return d.getFullYear()===y&&d.getMonth()===m}).map(a=>[Number(a.date.slice(-2)),a]));let first=new Date(y,m,1).getDay();let cells='';for(let i=0;i<first;i++)cells+='<div></div>';for(let d=1;d<=days;d++){let a=map.get(d),st=a?.status||'',c=st==='Falta'?'#ef4555':st==='Retardo'?'#ffd43b':a?'#43d17d':'';cells+=`<div class="day"><b>${d}</b>${c?`<div><span class="dot" style="background:${c}"></span> ${esc(st||'Presente')}</div>`:''}</div>`}$('#attendanceCalendar').innerHTML=cells}
 function renderGrades(){let g=currentGrade(),pct=g?Math.min(100,(Number(g.finalDecimal||0)/10)*100):0;$('#gradeContent').innerHTML=`<div class="card"><h3>Calificación actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><div class="progress"><i style="width:${pct}%"></i></div><p>Redondeada: <b>${g?.rounded??'—'}</b></p><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>`}
 function renderMaterials(){

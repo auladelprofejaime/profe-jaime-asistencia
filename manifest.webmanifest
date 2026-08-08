@@ -1,8 +1,8 @@
 {
   "id": "./",
-  "name": "El Aula del Profe Jaime",
-  "short_name": "Aula Profe Jaime",
-  "description": "Control escolar con expedientes, contactos, asistencia, actividades y reportes PDF.",
+  "name": "App docente",
+  "short_name": "App docente",
+  "description": "Aplicación docente de El Aula del Profe Jaime.",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#fff9e8",

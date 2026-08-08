@@ -1,4 +1,4 @@
-const CACHE='aula-profe-jaime-v8-0';
+const CACHE='aula-profe-jaime-v8-2';
 const LOCAL=[
  './','./index.html','./styles.css','./app-v80.js?v=800',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-profe-jaime.png',
@@ -65,7 +65,7 @@ self.addEventListener('fetch',e=>{
 
 
 self.addEventListener('push',event=>{
-  let data={title:'El Aula del Profe Jaime',body:'Tienes una actualización.',target:'home'};
+  let data={title:'App docente',body:'Tienes una actualización.',target:'home'};
   try{if(event.data)data={...data,...event.data.json()}}catch(_){try{data.body=event.data.text()}catch(__){}}
   event.waitUntil(self.registration.showNotification(data.title,{
     body:data.body,

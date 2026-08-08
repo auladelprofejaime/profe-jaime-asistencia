@@ -17,7 +17,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.2.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.4</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -316,6 +316,15 @@
       <label class="wide">Fechas de Consejo Técnico / suspensión<input id="technicalDates" placeholder="2026-09-25, 2026-10-30"></label>
       <label class="wide">Aviso temporal<textarea id="temporaryNotice" rows="3" placeholder="Ej. Esta semana la atención terminará a las 2:00 p.m."></textarea></label>
       <label class="wide switchline"><input id="attentionSuspended" type="checkbox"> Suspender atención temporalmente</label>
+      <div class="wide card" style="padding:14px;margin:0">
+        <div class="section" style="align-items:center">
+          <div>
+            <b>Contacto de padres fuera de horario</b>
+            <p class="hint" id="contactOverrideStatus">Se respeta el horario normal.</p>
+          </div>
+          <button id="contactOverrideBtn" class="secondary" type="button">🔓 Abrir contacto temporalmente</button>
+        </div>
+      </div>
       <div class="wide actions"><button class="primary">Guardar disponibilidad</button></div>
     </form>
   </div>
@@ -376,4 +385,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v822.js?v=822"></script></body></html>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v84.js?v=840"></script></body></html>

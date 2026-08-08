@@ -6,9 +6,8 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {all,getStudentBundle,getAvailability,put} from '../shared/local-adapter.js';
-import {verifyPin,changePin} from '../shared/auth-utils.js';
-let currentId='',bundle=null;
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage} from '../shared/supabase-adapter.js';
+let currentId='',bundle=null,currentToken='';
 function recordMap(){return new Map((bundle?.activityRecords||[]).map(r=>[r.key,r]))}
 let scanner=null;
 async function init(){
@@ -16,26 +15,33 @@ async function init(){
  $('#acceptChat').onclick=()=>{$('#chatPolicy').hidden=true;$('#chatComposer').hidden=false};
  $('#writeTeacher').onclick=()=>$('#messageBox').hidden=false;$$('[data-faq]').forEach(b=>b.onclick=()=>showFaq(b.dataset.faq));$('#sendStudentMessage').onclick=sendMessage;
  const saved=localStorage.getItem('miEspanolSession')||sessionStorage.getItem('miEspanolSession');
- if(saved){try{let s=JSON.parse(saved);currentId=s.studentId;await enterPortal()}catch(e){clearSession()}}
+ if(saved){try{let s=JSON.parse(saved);currentId=s.studentId;currentToken=s.token||'';if(currentToken)await enterPortal();else clearSession()}catch(e){clearSession()}}
 }
-function saveSession(remember){const data=JSON.stringify({studentId:currentId,role:'student'});(remember?localStorage:sessionStorage).setItem('miEspanolSession',data)}
+function saveSession(remember){const data=JSON.stringify({studentId:currentId,role:'student',token:currentToken});(remember?localStorage:sessionStorage).setItem('miEspanolSession',data)}
 function clearSession(){localStorage.removeItem('miEspanolSession');sessionStorage.removeItem('miEspanolSession')}
 async function doLogin(){
  const id=$('#loginId').value.trim(),pin=$('#loginPin').value.trim(),error=$('#loginError');error.textContent='';
  if(!id||!pin){error.textContent='Escribe tu ID y PIN.';return}
- const result=await verifyPin(id,'student',pin);
- if(!result.ok){if(result.reason==='locked'){let mins=Math.max(1,Math.ceil((result.lockedUntil-Date.now())/60000));error.textContent=`Has excedido el número de intentos permitidos. Intenta nuevamente en ${mins} minutos.`}else if(result.reason==='shift')error.textContent='Mi Español solo está disponible para el turno matutino.';else if(result.reason==='not_provisioned')error.textContent='Tu acceso todavía no ha sido preparado por el profesor.';else error.textContent='ID o PIN incorrecto.';return}
- currentId=id;
- if(result.mustChange){await forceChangePin('student');return}
- saveSession($('#rememberSession').checked);await enterPortal();
+ try{
+   const result=await portalLogin(id,'student',pin,$('#rememberSession').checked);
+   if(!result.ok){if(result.reason==='locked'){error.textContent='Has excedido el número de intentos permitidos. Intenta nuevamente en 10 minutos.'}else if(result.reason==='shift')error.textContent='Mi Español solo está disponible para el turno matutino.';else if(result.reason==='not_provisioned')error.textContent='Tu acceso todavía no ha sido preparado por el profesor.';else error.textContent='ID o PIN incorrecto.';return}
+   currentId=id;currentToken=result.token;
+   if(result.must_change){await forceChangePin();return}
+   saveSession($('#rememberSession').checked);await enterPortal();
+ }catch(e){error.textContent='No se pudo conectar con el sistema. Revisa tu internet e intenta nuevamente.'}
 }
-async function forceChangePin(role){
+async function forceChangePin(){
+ const remember=$('#rememberSession')?.checked||false;
  const html=`<div class="change-pin"><h2>Bienvenido</h2><p>Por seguridad debes crear un PIN personal.</p><label>Nuevo PIN<input id="newPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><label>Confirmar PIN<input id="confirmPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><button id="savePersonalPin" class="action primary">Guardar nuevo PIN</button><div id="changePinError" class="login-error"></div></div>`;
  $('#loginGate').innerHTML=`<div class="login-card">${html}</div>`;
- $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';await changePin(currentId,role,a);saveSession($('#rememberSession')?.checked||false);await enterPortal()};
+ $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';let r=await changePortalPin(currentToken,a);if(!r?.ok)return $('#changePinError').textContent='No se pudo guardar el PIN.';saveSession(remember);await enterPortal()};
 }
-async function enterPortal(){bundle=await getStudentBundle(currentId);if(!bundle){clearSession();return}$('#loginGate').classList.add('hidden');$('#portalApp').classList.remove('hidden');await load()}
-function logout(){clearSession();location.reload()}
+async function enterPortal(){
+ let raw=await portalGetBundle(currentToken);
+ if(!raw?.ok){clearSession();location.reload();return}
+ bundle=raw;currentId=bundle.student.id;$('#loginGate').classList.add('hidden');$('#portalApp').classList.remove('hidden');await load();
+}
+async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}
 async function startScanner(){
  if(typeof Html5Qrcode==='undefined'){return $('#loginError').textContent='No fue posible cargar el lector. Puedes escribir el ID manualmente.'}
  $('#scanIdBtn').classList.add('hidden');$('#stopScanBtn').classList.remove('hidden');scanner=new Html5Qrcode('barcodeReader');
@@ -47,7 +53,7 @@ function showFaq(q){
  const answers={'¿Cuándo se entrega?':'Revisa la tarjeta de la actividad: ahí aparece la fecha registrada por el profesor.','¿Qué debo hacer?':'Abre la actividad y revisa la descripción o el material asociado. Si no es suficiente, puedes escribir al profesor.','¿Cómo se califica?':'Consulta Calificaciones. La metodología y los criterios dependen del periodo configurado por el profesor.','¿Dónde encuentro el material?':'En la sección Materiales encontrarás los enlaces publicados para tu grupo.'};
  $('#faqAnswer').textContent=answers[q]||''}
 async function load(){
- bundle=await getStudentBundle(currentId);if(!bundle)return;
+ bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
  renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();
 }
@@ -70,19 +76,17 @@ function renderMaterials(){
 }
 function openMaterial(id){
  const m=bundle.materials.find(x=>x.id===id);if(!m)return;
- if(m.source==='file'&&m.fileData){
-   const blob=new Blob([m.fileData],{type:m.mime||'application/octet-stream'}),url=URL.createObjectURL(blob);
-   window.open(url,'_blank');
- }else if(m.url)window.open(m.url,'_blank');
+ if(m.publicUrl)window.open(m.publicUrl,'_blank');
+ else if(m.url)window.open(m.url,'_blank');
  else alert('Este material todavía no tiene un archivo o enlace disponible.');
 }
 function renderStudy(){$('#studyTopics').innerHTML=bundle.studyTopics.length?bundle.studyTopics.map(t=>`<div class="card"><b>${esc(t.title)}</b><p class="muted">${esc(t.notes||'Tema trabajado')}</p><div class="question-actions"><button class="action">Trivia rápida</button><button class="action">Examen</button><button class="action">Pregunta del día</button><button class="action">Repaso</button></div><small class="muted">Generación automática con IA: preparada para una versión futura.</small></div>`).join(''):'<div class="card muted">Todavía no hay temas publicados.</div>'}
 function renderReports(){$('#studentReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="card action" data-report-id="${r.id}"><b>${esc(r.title)}</b><p class="muted">${new Date(r.created).toLocaleString('es-MX')}</p></button>`).join(''):'<div class="card muted">Sin reportes archivados.</div>';$$('[data-report-id]').forEach(b=>b.onclick=()=>openReport(b.dataset.reportId))}
-async function openReport(id){let reports=await all('portalReports'),r=reports.find(x=>x.id===id);if(!r?.data)return;let blob=new Blob([r.data],{type:'application/pdf'}),url=URL.createObjectURL(blob);window.open(url,'_blank')}
+async function openReport(id){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
 async function sendMessage(){
  let text=$('#studentMessage').value.trim();if(!text)return;
- let a=await getAvailability(),now=new Date(),day=now.getDay(),hm=now.toTimeString().slice(0,5),date=now.toISOString().slice(0,10),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd,closed=a.suspended||vac||(a.technicalCouncilDates||[]).includes(date)||!(a.days||[]).includes(day)||hm<a.start||hm>a.end;
- await put('studentMessages',{id:crypto.randomUUID(),studentId:currentId,category:$('#chatCategory').value,text,created:new Date().toISOString(),teacherRead:false,reply:''});
+ let a=bundle.availability||{},now=new Date(),day=now.getDay(),hm=now.toTimeString().slice(0,5),date=now.toISOString().slice(0,10),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd,closed=a.suspended||vac||(a.technicalCouncilDates||[]).includes(date)||!(a.days||[]).includes(day)||hm<a.start||hm>a.end;
+ let r=await portalSendMessage(currentToken,$('#chatCategory').value,text);if(!r?.ok)return $('#chatStatus').textContent='No se pudo enviar el mensaje.';
  $('#studentMessage').value='';$('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';
 }
 init();

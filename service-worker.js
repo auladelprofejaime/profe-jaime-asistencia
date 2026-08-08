@@ -1,8 +1,8 @@
-const CACHE='aula-profe-jaime-v7-7';
+const CACHE='aula-profe-jaime-v7-8';
 const LOCAL=[
- './','./index.html','./styles.css','./app-v77.js?v=770',
+ './','./index.html','./styles.css','./app-v78.js?v=780',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-profe-jaime.png',
- './shared/supabase-teacher.js?v=770'
+ './shared/supabase-teacher.js?v=780'
 ];
 const OPTIONAL=[
  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
@@ -60,5 +60,14 @@ self.addEventListener('fetch',e=>{
     }catch(_){
       return await caches.match(r) || Response.error();
     }
+  })());
+});
+
+self.addEventListener('notificationclick',event=>{
+  event.notification.close();
+  event.waitUntil((async()=>{
+    const wins=await clients.matchAll({type:'window',includeUncontrolled:true});
+    if(wins.length){await wins[0].focus();return}
+    await clients.openWindow('./');
   })());
 });

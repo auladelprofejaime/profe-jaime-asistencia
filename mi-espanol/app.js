@@ -121,7 +121,10 @@ async function studentSystemNotification(title,body,target='home'){
 }
 function addStudentNotification(n){
  let list=readStudentNotifs();if(list.some(x=>x.id===n.id))return;
- list.unshift({...n,read:false,created:n.created||new Date().toISOString()});saveStudentNotifs(list);studentSystemNotification(n.title,n.body,n.target||'home');
+ // Se conserva en el centro interno de notificaciones.
+ // La notificación del sistema ya la entrega Web Push; no la repetimos aquí.
+ list.unshift({...n,read:false,created:n.created||new Date().toISOString()});
+ saveStudentNotifs(list);
 }
 async function enableStudentNotifications(){
   const status=$('#studentPushStatus');

@@ -1,4 +1,4 @@
-const CACHE='mi-espanol-v8-1';
+const CACHE='mi-espanol-v8-1-1';
 const FILES=[
   './',
   './index.html',

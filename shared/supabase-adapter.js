@@ -33,8 +33,8 @@ export async function portalGetBundle(token){
   const activities=[],activityRecords=[];
   for(const x of raw.activities||[]){
     const a=x.activity||{},d=a.data||{},r=x.record||{},rd=r.data||{};
-    activities.push({...d,id:a.id,group:a.group_name,shift:a.shift,name:a.title,date:a.activity_date,evaluationMode:a.evaluation_type||d.evaluationMode||'delivery',closed:a.closed});
-    activityRecords.push({...rd,id:r.id,key:`${r.activity_id}|${r.student_id}`,activityId:r.activity_id,studentId:r.student_id,status:r.delivered===true?'yes':r.delivered===false?'no':(rd.status||''),score:r.score,deliveryDate:r.delivery_date});
+    activities.push({...d,id:a.id,group:a.group_name,shift:a.shift,name:a.title,date:a.activity_date,dueDate:a.due_date||d.dueDate||null,evaluationMode:a.evaluation_type||d.evaluationMode||'delivery',closed:a.closed});
+    if(r?.activity_id&&r?.student_id)activityRecords.push({...rd,id:r.id,key:`${r.activity_id}|${r.student_id}`,activityId:r.activity_id,studentId:r.student_id,status:r.delivered===true?'yes':r.delivered===false?'no':(rd.status||''),score:r.score,deliveryDate:r.delivery_date});
   }
   const methodologies=(raw.methodologies||[]).map(m=>({...(m.data||{}),id:m.id,cycle:m.cycle,quarter:m.quarter,month:m.month,shift:m.shift,group:m.group_name,subject:m.subject,closed:m.closed,updated:m.updated_at}));
   const notices=(raw.notices||[]).map(n=>({id:n.id,title:n.title,text:n.body,group:n.group_name,created:n.created_at,active:n.active}));

@@ -3,13 +3,13 @@
   "name": "App docente",
   "short_name": "App docente",
   "description": "Aplicación docente de El Aula del Profe Jaime.",
-  "start_url": "./",
+  "start_url": "./?v=821",
   "display": "standalone",
   "background_color": "#fff9e8",
   "theme_color": "#f5c400",
   "icons": [
     {
-      "src": "icon-profe-jaime.png",
+      "src": "icon-app-docente-v821.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"

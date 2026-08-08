@@ -69,6 +69,7 @@ async function init(){
  try{await ensureFamilyServiceWorker()}catch(e){console.warn('SW',e)}
  $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#contactTeacher').onclick=openWhatsApp;
  $('#enableFamilyNotif').onclick=enableFamilyNotifications;
+ const tm=$('#contactTestMode');if(tm){tm.checked=localStorage.getItem('familyContactTestMode')==='1';tm.onchange=()=>localStorage.setItem('familyContactTestMode',tm.checked?'1':'0')}
 
  const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');
  if(saved){
@@ -196,12 +197,28 @@ async async function openWhatsApp(){
      if(box)box.textContent='No se pudieron cargar los datos del alumno.';
      return;
    }
+
+   const testMode=$('#contactTestMode')?.checked || localStorage.getItem('familyContactTestMode')==='1';
+
+   if(!testMode){
+     const available=await isAvailable();
+     if(!available){
+       if(box)box.textContent='El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Los mensajes enviados fuera de este horario serán respondidos el siguiente día hábil.';
+       return;
+     }
+   }
+
    const studentName=String(bundle.student.name||'').trim()||'el alumno';
    const group=String(bundle.student.group_name||bundle.student.group||'').trim()||'sin grupo';
    const teacherPhone='527731931419';
+
    const message=`Buen día, profesor Jaime. Soy padre, madre o tutor de ${studentName}, del grupo ${group}. Me comunico por el siguiente motivo:`;
    const url=`https://wa.me/${teacherPhone}?text=${encodeURIComponent(message)}`;
-   if(box)box.innerHTML='<b>Abriendo WhatsApp…</b><br>El mensaje incluye automáticamente el nombre y grupo del alumno.';
+
+   if(box)box.innerHTML=testMode
+     ? '<b>Modo prueba activo.</b><br>Se abrirá WhatsApp ignorando el horario.'
+     : '<b>Abriendo WhatsApp…</b><br>El mensaje incluye automáticamente el nombre y grupo del alumno.';
+
    window.location.href=url;
  }catch(e){
    console.error(e);

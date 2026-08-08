@@ -1,8 +1,8 @@
-const CACHE='aula-profe-jaime-v7-8';
+const CACHE='aula-profe-jaime-v7-9';
 const LOCAL=[
- './','./index.html','./styles.css','./app-v78.js?v=780',
+ './','./index.html','./styles.css','./app-v79.js?v=790',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-profe-jaime.png',
- './shared/supabase-teacher.js?v=780'
+ './shared/supabase-teacher.js?v=790'
 ];
 const OPTIONAL=[
  'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js',
@@ -63,11 +63,24 @@ self.addEventListener('fetch',e=>{
   })());
 });
 
+
+self.addEventListener('push',event=>{
+  let data={title:'El Aula del Profe Jaime',body:'Tienes una actualización.',target:'home'};
+  try{if(event.data)data={...data,...event.data.json()}}catch(_){try{data.body=event.data.text()}catch(__){}}
+  event.waitUntil(self.registration.showNotification(data.title,{
+    body:data.body,
+    icon:'./icon-profe-jaime.png',
+    badge:'./icon-profe-jaime.png',
+    tag:'push-'+(data.event||Date.now()),
+    data:{target:data.target||'home'}
+  }));
+});
 self.addEventListener('notificationclick',event=>{
+  const target=event.notification?.data?.target||'home';
   event.notification.close();
   event.waitUntil((async()=>{
     const wins=await clients.matchAll({type:'window',includeUncontrolled:true});
-    if(wins.length){await wins[0].focus();return}
-    await clients.openWindow('./');
+    if(wins.length){const w=wins[0];await w.focus();try{w.postMessage({type:'OPEN_PUSH_TARGET',target})}catch(_){}return}
+    await clients.openWindow('./?push='+encodeURIComponent(target));
   })());
 });

@@ -1,0 +1,145 @@
+-- EL AULA DEL PROFE JAIME · v8.0
+-- Próximas entregas para Mi Español y Seguimiento Familiar.
+-- Ejecutar UNA VEZ en Supabase > SQL Editor antes de subir la v8.0.
+
+alter table public.activities
+  add column if not exists due_date date;
+
+create or replace function public.portal_get_bundle(p_token text)
+returns jsonb
+language plpgsql
+security definer
+set search_path = public, extensions
+as $$
+declare
+  sid text;
+  r text;
+  result jsonb;
+begin
+  select x.student_id, x.role
+  into sid, r
+  from public.portal_session_info(p_token) x;
+
+  if sid is null then
+    return jsonb_build_object('ok',false,'reason','invalid_session');
+  end if;
+
+  select jsonb_build_object(
+    'ok', true,
+    'role', r,
+    'student',
+      jsonb_build_object(
+        'id', s.id,
+        'name', s.name,
+        'shift', s.shift,
+        'group_name', s.group_name,
+        'list_number', s.list_number
+      ),
+    'attendance',
+      coalesce((
+        select jsonb_agg(to_jsonb(a) order by a.attendance_date desc)
+        from public.attendance a
+        where a.student_id = sid
+      ), '[]'::jsonb),
+    'activities',
+      coalesce((
+        select jsonb_agg(
+          jsonb_build_object(
+            'record',
+              case
+                when ar.id is null then null
+                else to_jsonb(ar)
+              end,
+            'activity', to_jsonb(ac)
+          )
+          order by
+            ac.due_date asc nulls last,
+            ac.activity_date desc nulls last,
+            ac.created_at desc
+        )
+        from public.activities ac
+        left join public.activity_records ar
+          on ar.activity_id = ac.id
+         and ar.student_id = sid
+        where ac.visible_to_students = true
+          and lower(trim(coalesce(ac.shift,''))) = 'matutino'
+          and (
+            ac.group_name is null
+            or trim(ac.group_name) = ''
+            or lower(regexp_replace(trim(ac.group_name), '\s+', '', 'g'))
+               = lower(regexp_replace(trim(coalesce(s.group_name,'')), '\s+', '', 'g'))
+          )
+      ), '[]'::jsonb),
+    'methodologies',
+      coalesce((
+        select jsonb_agg(to_jsonb(m) order by m.updated_at desc)
+        from public.methodologies m
+        where lower(coalesce(m.shift,'')) = 'matutino'
+          and (
+            m.group_name is null
+            or m.group_name = ''
+            or m.group_name = s.group_name
+          )
+      ), '[]'::jsonb),
+    'notices',
+      coalesce((
+        select jsonb_agg(to_jsonb(n) order by n.published_at desc)
+        from public.notices n
+        where n.active = true
+          and lower(n.shift) = 'matutino'
+          and (n.group_name is null or n.group_name = '' or n.group_name = s.group_name)
+          and (n.expires_at is null or n.expires_at > now())
+      ), '[]'::jsonb),
+    'materials',
+      coalesce((
+        select jsonb_agg(to_jsonb(m) order by m.created_at desc)
+        from public.materials m
+        where m.active = true
+          and lower(m.shift) = 'matutino'
+          and (m.group_name is null or m.group_name = '' or m.group_name = s.group_name)
+      ), '[]'::jsonb),
+    'study_topics',
+      coalesce((
+        select jsonb_agg(to_jsonb(t) order by t.created_at desc)
+        from public.study_topics t
+        where t.active = true
+          and lower(t.shift) = 'matutino'
+          and (t.group_name is null or t.group_name = '' or t.group_name = s.group_name)
+      ), '[]'::jsonb),
+    'reports',
+      coalesce((
+        select jsonb_agg(to_jsonb(pr) order by pr.report_date desc)
+        from public.portal_reports pr
+        where pr.student_id = sid
+          and (
+            (r = 'student' and pr.visible_to_student = true)
+            or
+            (r = 'parent' and pr.visible_to_parent = true)
+          )
+      ), '[]'::jsonb),
+    'messages',
+      case when r = 'student' then
+        coalesce((
+          select jsonb_agg(to_jsonb(sm) order by sm.sent_at desc)
+          from public.student_messages sm
+          where sm.student_id = sid
+        ), '[]'::jsonb)
+      else '[]'::jsonb end,
+    'availability',
+      coalesce((
+        select to_jsonb(av)
+        from public.availability av
+        where av.id = 'main'
+        limit 1
+      ), '{}'::jsonb)
+  )
+  into result
+  from public.students s
+  where s.id = sid;
+
+  return coalesce(result, jsonb_build_object('ok',false,'reason','not_found'));
+end;
+$$;
+
+revoke all on function public.portal_get_bundle(text) from public;
+grant execute on function public.portal_get_bundle(text) to anon, authenticated;

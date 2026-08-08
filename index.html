@@ -17,7 +17,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v7.9</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="avatar-profe-jaime.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>El Aula del Profe Jaime</h1><p>Control Escolar · v8.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -104,7 +104,7 @@
   <p class="hint">Entrega: toca para cambiar entre pendiente, círculo verde y círculo rojo. Numérica: escribe una calificación de 0 a 10; vacío significa sin calificar.</p><div id="activityGrid" class="tablewrap"></div>
  </div>
  <div id="act-manage" class="actpane">
-  <form id="activityForm" class="card formgrid"><h2 id="activityFormTitle">Crear actividad</h2><input type="hidden" id="editActivityId"><label>Turno<select id="newActShift"></select></label><label>Grupo<select id="newActGroup"></select></label><label>Fecha<input id="newActDate" type="date" required></label><label>Semana<input id="newActWeek" placeholder="Ej. 31 ago–4 sep" required></label><label class="wide">Nombre de la actividad<input id="newActName" placeholder="Ej. Dictado 1" required></label><label>Tipo<select id="newActType"><option>Actividad</option><option>Cuaderno</option><option>Tarea</option><option>Dictado</option><option>Proyecto</option><option>Examen</option><option>Otro</option></select></label>
+  <form id="activityForm" class="card formgrid"><h2 id="activityFormTitle">Crear actividad</h2><input type="hidden" id="editActivityId"><label>Turno<select id="newActShift"></select></label><label>Grupo<select id="newActGroup"></select></label><label>Asignada<input id="newActDate" type="date" required></label><label>Fecha de entrega<input id="newActDueDate" type="date" required></label><label>Semana<input id="newActWeek" placeholder="Ej. 31 ago–4 sep" required></label><label class="wide">Nombre de la actividad<input id="newActName" placeholder="Ej. Dictado 1" required></label><label>Tipo<select id="newActType"><option>Actividad</option><option>Cuaderno</option><option>Tarea</option><option>Dictado</option><option>Proyecto</option><option>Examen</option><option>Otro</option></select></label>
 <label>Forma de evaluación<select id="newActEvaluation" required><option value="delivery">Entrega: círculo verde o rojo</option><option value="numeric">Calificación numérica de 0 a 10</option></select></label>
 <p id="evaluationHelp" class="wide hint">Las actividades de entrega pueden registrarse con el escáner. Las numéricas se capturan directamente en la cuadrícula.</p>
 <div class="wide actions"><button id="saveActivityBtn" class="primary">Guardar actividad</button><button id="cancelActivityEdit" type="button" class="secondary hidden">Cancelar edición</button></div></form>
@@ -376,4 +376,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=790"></script><script src="app-v79.js?v=790"></script></body></html>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v80.js?v=800"></script></body></html>

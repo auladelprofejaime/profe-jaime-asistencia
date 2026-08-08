@@ -6,30 +6,32 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {all,getStudentBundle,getAvailability} from '../shared/local-adapter.js';
-import {verifyPin,changePin} from '../shared/auth-utils.js';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle} from '../shared/supabase-adapter.js';
 import {normalizePhone} from '../shared/data-contract.js';
-let id='',bundle=null;
+let id='',bundle=null,currentToken='';
 let scanner=null;
 async function init(){
  $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;$('#contactTeacher').onclick=openWhatsApp;
- const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');if(saved){try{let s=JSON.parse(saved);id=s.studentId;await enterPortal()}catch(e){clearSession()}}
+ const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');if(saved){try{let s=JSON.parse(saved);id=s.studentId;currentToken=s.token||'';if(currentToken)await enterPortal();else clearSession()}catch(e){clearSession()}}
 }
-function saveSession(remember){const data=JSON.stringify({studentId:id,role:'parent'});(remember?localStorage:sessionStorage).setItem('familySession',data)}
+function saveSession(remember){const data=JSON.stringify({studentId:id,role:'parent',token:currentToken});(remember?localStorage:sessionStorage).setItem('familySession',data)}
 function clearSession(){localStorage.removeItem('familySession');sessionStorage.removeItem('familySession')}
 async function doLogin(){
  const sid=$('#loginId').value.trim(),pin=$('#loginPin').value.trim(),error=$('#loginError');error.textContent='';
  if(!sid||!pin){error.textContent='Escribe el ID del alumno y tu PIN.';return}
- const result=await verifyPin(sid,'parent',pin);
- if(!result.ok){if(result.reason==='locked'){let mins=Math.max(1,Math.ceil((result.lockedUntil-Date.now())/60000));error.textContent=`Has excedido el número de intentos permitidos. Intenta nuevamente en ${mins} minutos.`}else if(result.reason==='shift')error.textContent='Seguimiento Familiar solo está disponible para el turno matutino.';else if(result.reason==='not_provisioned')error.textContent='El acceso familiar todavía no ha sido preparado por el profesor.';else error.textContent='ID o PIN incorrecto.';return}
- id=sid;if(result.mustChange){await forceChangePin();return}saveSession($('#rememberSession').checked);await enterPortal();
+ try{
+   const result=await portalLogin(sid,'parent',pin,$('#rememberSession').checked);
+   if(!result.ok){if(result.reason==='locked')error.textContent='Has excedido el número de intentos permitidos. Intenta nuevamente en 10 minutos.';else if(result.reason==='shift')error.textContent='Seguimiento Familiar solo está disponible para el turno matutino.';else if(result.reason==='not_provisioned')error.textContent='El acceso familiar todavía no ha sido preparado por el profesor.';else error.textContent='ID o PIN incorrecto.';return}
+   id=sid;currentToken=result.token;if(result.must_change){await forceChangePin();return}saveSession($('#rememberSession').checked);await enterPortal();
+ }catch(e){error.textContent='No se pudo conectar con el sistema. Revisa tu internet e intenta nuevamente.'}
 }
 async function forceChangePin(){
+ const remember=$('#rememberSession')?.checked||false;
  $('#loginGate').innerHTML=`<div class="login-card"><div class="change-pin"><h2>Bienvenido</h2><p>Por seguridad debes crear un PIN personal para la familia.</p><label>Nuevo PIN<input id="newPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><label>Confirmar PIN<input id="confirmPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><button id="savePersonalPin" class="action">Guardar nuevo PIN</button><div id="changePinError" class="login-error"></div></div></div>`;
- $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';await changePin(id,'parent',a);saveSession(false);await enterPortal()};
+ $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';let r=await changePortalPin(currentToken,a);if(!r?.ok)return $('#changePinError').textContent='No se pudo guardar el PIN.';saveSession(remember);await enterPortal()};
 }
-async function enterPortal(){bundle=await getStudentBundle(id);if(!bundle){clearSession();return}$('#loginGate').classList.add('hidden');$('#portalApp').classList.remove('hidden');await load()}
-function logout(){clearSession();location.reload()}
+async function enterPortal(){let raw=await portalGetBundle(currentToken);if(!raw?.ok){clearSession();location.reload();return}bundle=raw;id=bundle.student.id;$('#loginGate').classList.add('hidden');$('#portalApp').classList.remove('hidden');await load()}
+async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}
 async function startScanner(){
  if(typeof Html5Qrcode==='undefined'){return $('#loginError').textContent='No fue posible cargar el lector. Puedes escribir el ID manualmente.'}
  $('#scanIdBtn').classList.add('hidden');$('#stopScanBtn').classList.remove('hidden');scanner=new Html5Qrcode('barcodeReader');
@@ -38,7 +40,7 @@ async function startScanner(){
 }
 async function stopScanner(){if(scanner){try{await scanner.stop();await scanner.clear()}catch(e){}scanner=null}$('#scanIdBtn')?.classList.remove('hidden');$('#stopScanBtn')?.classList.add('hidden')}
 function grade(){let list=(bundle?.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[id]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));return list[0]?.gradeRecords?.[id]||null}
-async function load(){bundle=await getStudentBundle(id);if(!bundle)return;$('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;renderAll();await updateContact()}
+async function load(){bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;$('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;renderAll();await updateContact()}
 function renderAll(){let g=grade(),att=bundle.attendance,missing=bundle.activities.filter(a=>{let r=bundle.activityRecords.find(x=>x.key===`${a.id}|${id}`);return (a.evaluationMode||'delivery')==='delivery'&&r?.status==='no'}).length;
  $('#familySummary').innerHTML=[['Asistencia',att.length],['Actividades pendientes',missing],['Promedio',g?.finalDecimal?.toFixed(2)||'—'],['Avisos',bundle.notices.length],['Reportes',bundle.reports.length]].map(x=>`<button class="big-button"><b>${x[1]}</b><span>${x[0]}</span></button>`).join('');
  $('#familyNotice').innerHTML=bundle.notices.slice(0,2).map(n=>`<div class="notice"><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div>`).join('');
@@ -47,8 +49,8 @@ function renderAll(){let g=grade(),att=bundle.attendance,missing=bundle.activiti
  $('#familyGrades').innerHTML=`<div class="card"><h3>Promedio actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><p>Calificación redondeada: <b>${g?.rounded??'—'}</b></p></div>`;
  $('#familyReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="big-button" data-r="${r.id}"><b>PDF</b><span>${esc(r.title)}</span></button>`).join(''):'<div class="card muted">Sin reportes disponibles.</div>';$$('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));
 }
-async function openReport(rid){let reports=await all('portalReports'),r=reports.find(x=>x.id===rid);if(!r?.data)return;let url=URL.createObjectURL(new Blob([r.data],{type:'application/pdf'}));window.open(url,'_blank')}
-async function isAvailable(){let a=await getAvailability(),now=new Date(),date=now.toISOString().slice(0,10),hm=now.toTimeString().slice(0,5),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd;return {a,open:!a.suspended&&!vac&&!(a.technicalCouncilDates||[]).includes(date)&&(a.days||[]).includes(now.getDay())&&hm>=a.start&&hm<=a.end}}
+async function openReport(rid){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
+async function isAvailable(){let a=bundle.availability||{},now=new Date(),date=now.toISOString().slice(0,10),hm=now.toTimeString().slice(0,5),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd;return {a,open:!a.suspended&&!vac&&!(a.technicalCouncilDates||[]).includes(date)&&(a.days||[]).includes(now.getDay())&&hm>=a.start&&hm<=a.end}}
 async function updateContact(){let {a,open}=await isAvailable();$('#contactSchedule').textContent=`Horario de atención: lunes a viernes, ${a.start||'12:00'} a ${a.end||'15:00'}.`;$('#contactTeacher').disabled=!open;$('#contactMessage').textContent=open?'El botón está disponible dentro del horario de atención.':'El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Los mensajes enviados fuera de este horario serán respondidos el siguiente día hábil.'}
 async function openWhatsApp(){let {open}=await isAvailable();if(!open)return updateContact();let s=bundle.student,msg=`Buenas tardes, profesor Jaime.%0A%0ASoy el padre/madre de ${encodeURIComponent(s.name||'')} del grupo ${encodeURIComponent(s.group||'')}.%0A%0AMe comunico para realizar la siguiente consulta:%0A`;window.open(`https://wa.me/?text=${msg}`,'_blank')}
 init();

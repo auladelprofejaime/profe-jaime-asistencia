@@ -6,7 +6,7 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=840';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle,updateFamilyProfile,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=890';
 import {normalizePhone} from '../shared/data-contract.js';
 let id='',bundle=null,currentToken='';
 let scanner=null;
@@ -75,6 +75,7 @@ async function init(){
  $('#stopScanBtn').onclick=stopScanner;
  $('#contactTeacher').onclick=openWhatsApp;
  $('#enableFamilyNotif').onclick=enableFamilyNotifications;
+ $('#saveFamilyProfile').onclick=saveFamilyProfile;
 
  const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');
 
@@ -117,6 +118,58 @@ async function forceChangePin(){
  $('#loginGate').innerHTML=`<div class="login-card"><div class="change-pin"><h2>Bienvenido</h2><p>Por seguridad debes crear un PIN personal para la familia.</p><label>Nuevo PIN<input id="newPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><label>Confirmar PIN<input id="confirmPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><button id="savePersonalPin" class="action">Guardar nuevo PIN</button><div id="changePinError" class="login-error"></div></div></div>`;
  $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';let r=await changePortalPin(currentToken,a);if(!r?.ok)return $('#changePinError').textContent='No se pudo guardar el PIN.';saveSession(remember);await enterPortal()};
 }
+
+function familyProfileComplete(){
+ return !!String(bundle?.student?.phone||'').trim() && !!String(bundle?.student?.birthdate||'').trim();
+}
+function showFamilyProfile(){
+ $('#portalApp')?.classList.add('hidden');
+ $('#familyProfileGate')?.classList.remove('hidden');
+ $('#profileStudentName').textContent=bundle?.student?.name||'Alumno';
+ $('#familyTutorPhone').value=bundle?.student?.phone||'';
+ $('#familyBirthDate').value=bundle?.student?.birthdate||'';
+ $('#familyProfileError').textContent='';
+}
+async function saveFamilyProfile(){
+ const phone=String($('#familyTutorPhone').value||'').replace(/\D/g,'');
+ const birthdate=$('#familyBirthDate').value;
+ const error=$('#familyProfileError');
+ error.textContent='';
+
+ if(phone.length<10||phone.length>15){
+   error.textContent='Escribe un número de WhatsApp válido, mínimo 10 dígitos.';
+   return;
+ }
+ if(!birthdate){
+   error.textContent='Selecciona la fecha de nacimiento del alumno.';
+   return;
+ }
+ if(new Date(birthdate+'T12:00:00')>new Date()){
+   error.textContent='La fecha de nacimiento no puede estar en el futuro.';
+   return;
+ }
+
+ $('#saveFamilyProfile').disabled=true;
+ try{
+   const r=await updateFamilyProfile(currentToken,phone,birthdate);
+   if(!r?.ok){
+     error.textContent='No se pudieron guardar los datos. Intenta nuevamente.';
+     return;
+   }
+   bundle.student.phone=r.tutor_phone||phone;
+   bundle.student.birthdate=r.birth_date||birthdate;
+   $('#familyProfileGate').classList.add('hidden');
+   $('#portalApp').classList.remove('hidden');
+   $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
+   renderAll();
+   await updateContact();
+ }catch(e){
+   error.textContent='No se pudieron guardar los datos. Revisa tu conexión e intenta de nuevo.';
+ }finally{
+   $('#saveFamilyProfile').disabled=false;
+ }
+}
+
 async function enterPortal(){
  let raw=null;
 
@@ -146,6 +199,13 @@ async function enterPortal(){
 
  $('#sessionLoading')?.classList.add('hidden');
  $('#loginGate')?.classList.add('hidden');
+
+ if(!familyProfileComplete()){
+   showFamilyProfile();
+   return true;
+ }
+
+ $('#familyProfileGate')?.classList.add('hidden');
  $('#portalApp')?.classList.remove('hidden');
 
  // No hacemos una segunda consulta bloqueante antes de entrar.

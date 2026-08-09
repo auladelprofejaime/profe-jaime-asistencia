@@ -1,5 +1,5 @@
-const CACHE='seguimiento-familiar-v8-1-2';
-const FILES=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./profe-jaime.png','./icon.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
+const CACHE='app-padres-v8-9';
+const FILES=['./','./index.html','./styles.css','./app.js?v=890','./manifest.webmanifest','./profe-jaime.png','./icon.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{
  self.skipWaiting();

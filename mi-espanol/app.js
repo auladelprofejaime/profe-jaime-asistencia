@@ -29,8 +29,7 @@ async function init(){
  $('#studentNotifBtn').onclick=openStudentNotifications;
  $('#refreshStudentChat').onclick=refreshStudentPortal;
  $('#sendStudentMessage').onclick=sendMessage;
- $('#startTeacherChat').onclick=startTeacherChat;
- $$('[data-chat-topic]').forEach(b=>b.onclick=()=>selectChatTopic(b.dataset.chatTopic));
+ $('#chatTopicSelect').onchange=e=>selectChatTopic(e.target.value);
 
  const saved=localStorage.getItem('miEspanolSession')||sessionStorage.getItem('miEspanolSession');
  if(saved){
@@ -219,58 +218,33 @@ function chatConversationState(){
 }
 function selectChatTopic(topic){
  selectedChatTopic=String(topic||'').trim();
- $$('[data-chat-topic]').forEach(b=>b.classList.toggle('selected',b.dataset.chatTopic===selectedChatTopic));
- const help={
-   'Actividad':'Describe qué actividad es y cuál es tu duda.',
-   'Calificación':'Indica la actividad, trabajo o periodo que quieres consultar.',
-   'Material':'Indica qué material, lectura o contenido necesitas aclarar.',
-   'Asistencia':'Explica qué registro de asistencia quieres consultar. Recuerda que las faltas no se justifican por este chat.',
-   'Problema con la plataforma':'Explica qué botón, pantalla o función no está trabajando correctamente.',
-   'Otro':'Describe brevemente el asunto escolar de Español.'
- };
- $('#chatTopicHelp').textContent=help[selectedChatTopic]||'Selecciona una opción para continuar.';
- $('#startTeacherChat').disabled=!selectedChatTopic;
-}
-function startTeacherChat(){
- if(!selectedChatTopic)return;
- newChatDraftOpen=true;
- $('#chatStartForm').hidden=true;
- $('#chatClosedNotice').hidden=true;
- $('#chatActivePanel').hidden=false;
- $('#activeChatTopic').textContent=`Motivo: ${selectedChatTopic}`;
- $('#chatWindowState').textContent='Nuevo chat';
- $('#chatWaitingNotice').textContent='Escribe tu primer mensaje. Al enviarlo, el chat quedará abierto mientras esperas respuesta del profesor.';
- $('#chatStatus').textContent='';
- $('#studentMessage').focus();
+ if(!selectedChatTopic){
+   newChatDraftOpen=false;
+   $('#chatWindowState').textContent='Nuevo chat';
+   $('#chatWaitingNotice').textContent='Elige un tema para iniciar una conversación.';
+   return;
+ }
+ const state=chatConversationState();
+ if(!state.active){
+   newChatDraftOpen=true;
+   $('#chatWindowState').textContent='Nuevo chat';
+   $('#chatWaitingNotice').textContent='Escribe tu mensaje. Al enviarlo, el chat quedará abierto mientras esperas respuesta del profesor.';
+ }
 }
 function scheduleChatClose(remaining){
  if(chatCloseTimer){clearTimeout(chatCloseTimer);chatCloseTimer=null}
  if(remaining==null||remaining<=0)return;
- chatCloseTimer=setTimeout(()=>{
-   renderChatState();
- },Math.min(remaining+250,2147483647));
+ chatCloseTimer=setTimeout(()=>renderChatState(),Math.min(remaining+250,2147483647));
 }
 function renderChatState(){
  const state=chatConversationState();
-
- if(newChatDraftOpen){
-   $('#chatStartForm').hidden=true;
-   $('#chatClosedNotice').hidden=true;
-   $('#chatActivePanel').hidden=false;
-   $('#activeChatTopic').textContent=`Motivo: ${selectedChatTopic||'Consulta'}`;
-   $('#chatWindowState').textContent='Nuevo chat';
-   $('#chatWaitingNotice').textContent='Escribe tu primer mensaje. Al enviarlo, el chat quedará abierto mientras esperas respuesta del profesor.';
-   if(chatCloseTimer){clearTimeout(chatCloseTimer);chatCloseTimer=null}
-   return;
- }
+ const topicSelect=$('#chatTopicSelect');
 
  if(state.active){
-   const topic=state.latest?.category||selectedChatTopic||'Consulta';
+   const topic=state.latest?.category||selectedChatTopic||'';
    selectedChatTopic=topic;
-   $('#chatStartForm').hidden=true;
-   $('#chatClosedNotice').hidden=true;
-   $('#chatActivePanel').hidden=false;
-   $('#activeChatTopic').textContent=`Motivo: ${topic}`;
+   newChatDraftOpen=false;
+   if(topicSelect)topicSelect.value=topic;
 
    if(state.latest?.teacher_reply){
      $('#chatWindowState').textContent='5 min para responder';
@@ -285,15 +259,20 @@ function renderChatState(){
    return;
  }
 
- $('#chatActivePanel').hidden=true;
- $('#chatStartForm').hidden=false;
- $('#chatClosedNotice').hidden=!state.closed;
- newChatDraftOpen=false;
- selectedChatTopic='';
- $$('[data-chat-topic]').forEach(b=>b.classList.remove('selected'));
- if($('#startTeacherChat'))$('#startTeacherChat').disabled=true;
- if($('#chatTopicHelp'))$('#chatTopicHelp').textContent='Selecciona una opción para continuar.';
- if(chatCloseTimer){clearTimeout(chatCloseTimer);chatCloseTimer=null}
+ if(state.closed){
+   newChatDraftOpen=false;
+   selectedChatTopic='';
+   if(topicSelect)topicSelect.value='';
+   $('#chatWindowState').textContent='Chat cerrado';
+   $('#chatWaitingNotice').textContent='La conversación anterior terminó. Selecciona un tema para iniciar una nueva.';
+   if(chatCloseTimer){clearTimeout(chatCloseTimer);chatCloseTimer=null}
+   return;
+ }
+
+ $('#chatWindowState').textContent='Nuevo chat';
+ $('#chatWaitingNotice').textContent=selectedChatTopic
+   ?'Escribe tu mensaje y envíalo.'
+   :'Elige un tema para iniciar una conversación.';
 }
 function renderChatHistory(){
  const box=$('#studentChatHistory');if(!box)return;
@@ -437,7 +416,41 @@ function renderActivities(){
    </div>`;
  }).join(''):'<div class="card muted">No hay próximas entregas publicadas.</div>';
 }
-function renderAttendance(){let now=new Date(),y=now.getFullYear(),m=now.getMonth(),days=new Date(y,m+1,0).getDate(),map=new Map(bundle.attendance.filter(a=>{let d=new Date(a.date+'T12:00:00');return d.getFullYear()===y&&d.getMonth()===m}).map(a=>[Number(a.date.slice(-2)),a]));let first=new Date(y,m,1).getDay();let cells='';for(let i=0;i<first;i++)cells+='<div></div>';for(let d=1;d<=days;d++){let a=map.get(d),st=a?.status||'',c=st==='Falta'?'#ef4555':st==='Retardo'?'#ffd43b':a?'#43d17d':'';cells+=`<div class="day"><b>${d}</b>${c?`<div><span class="dot" style="background:${c}"></span> ${esc(st||'Presente')}</div>`:''}</div>`}$('#attendanceCalendar').innerHTML=cells}
+function renderAttendance(){
+ const box=$('#attendanceList');if(!box)return;
+ const records=(bundle?.attendance||[])
+   .slice()
+   .sort((a,b)=>String(b.attendance_date||b.date||'').localeCompare(String(a.attendance_date||a.date||'')));
+
+ if(!records.length){
+   box.innerHTML='<div class="attendance-empty">Todavía no hay registros de asistencia.</div>';
+   return;
+ }
+
+ const fmtDate=value=>{
+   const s=String(value||'').slice(0,10);
+   const m=s.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+   if(!m)return s||'Sin fecha';
+   const d=new Date(Number(m[1]),Number(m[2])-1,Number(m[3]));
+   return d.toLocaleDateString('es-MX',{weekday:'long',day:'numeric',month:'long',year:'numeric'})
+     .replace(/^./,c=>c.toUpperCase());
+ };
+
+ box.innerHTML=records.map(a=>{
+   const status=String(a.status||a.attendance_status||'').trim();
+   const lowStatus=status.toLowerCase();
+   let cls='present',label=status||'Presente';
+   if(lowStatus.includes('falta')||lowStatus.includes('aus')){cls='absent';label='Falta'}
+   else if(lowStatus.includes('retardo')||lowStatus.includes('tarde')){cls='late';label='Retardo'}
+   else if(lowStatus.includes('pres')){cls='present';label='Presente'}
+
+   return `<div class="attendance-row">
+     <div class="attendance-date">${esc(fmtDate(a.attendance_date||a.date))}</div>
+     <div class="attendance-status ${cls}">${esc(label)}</div>
+   </div>`;
+ }).join('');
+}
+
 function renderGrades(){let g=currentGrade(),pct=g?Math.min(100,(Number(g.finalDecimal||0)/10)*100):0;$('#gradeContent').innerHTML=`<div class="card"><h3>Calificación actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><div class="progress"><i style="width:${pct}%"></i></div><p>Redondeada: <b>${g?.rounded??'—'}</b></p><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>`}
 function renderMaterials(){
  $('#materialCards').innerHTML=bundle.materials.length?bundle.materials.map(m=>`<button class="card action" data-material="${esc(m.id)}"><b>${esc(m.title)}</b><p class="muted">${esc(m.type)} · ${m.source==='file'?'Archivo':'Enlace'}</p>${m.fileName?`<small class="muted">${esc(m.fileName)}</small>`:''}</button>`).join(''):'<div class="card muted">Sin materiales publicados.</div>';
@@ -512,22 +525,28 @@ function renderReports(){$('#studentReports').innerHTML=bundle.reports.length?bu
 async function openReport(id){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
 async function sendMessage(){
  const state=chatConversationState();
+ let text=$('#studentMessage').value.trim();if(!text)return;
 
- if(state.closed&&!newChatDraftOpen){
-   $('#chatStatus').textContent='Esta conversación ya terminó. Inicia una nueva consulta desde el formulario.';
-   renderChatState();
-   return;
+ let category='';
+ if(state.active){
+   category=state.latest?.category||selectedChatTopic||$('#chatTopicSelect')?.value||'';
+ }else{
+   category=$('#chatTopicSelect')?.value||selectedChatTopic||'';
+   if(category)newChatDraftOpen=true;
  }
 
- let text=$('#studentMessage').value.trim();if(!text)return;
- let category=newChatDraftOpen?selectedChatTopic:(state.active?(state.latest?.category||selectedChatTopic):selectedChatTopic);
- if(!category)return $('#chatStatus').textContent='Primero selecciona el motivo de tu consulta.';
+ if(!category){
+   $('#chatStatus').textContent='Primero selecciona un tema.';
+   return;
+ }
 
  let a=bundle.availability||{},now=new Date(),day=now.getDay(),hm=now.toTimeString().slice(0,5),date=now.toISOString().slice(0,10),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd,closed=a.suspended||vac||(a.technicalCouncilDates||[]).includes(date)||!(a.days||[]).includes(day)||hm<a.start||hm>a.end;
  let r=await portalSendMessage(currentToken,category,text);
  if(!r?.ok)return $('#chatStatus').textContent='No se pudo enviar el mensaje.';
  try{await sendPortalPushEvent(currentToken,'new_message',{message:text,category})}catch(e){console.warn('push message',e)}
  $('#studentMessage').value='';
+ selectedChatTopic=category;
+ if($('#chatTopicSelect'))$('#chatTopicSelect').value=category;
  newChatDraftOpen=false;
  $('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';
  await refreshStudentPortal();

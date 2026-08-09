@@ -86,7 +86,7 @@
 
 
 <style id="student-contrast-fix-v892">
-/* v8.9.4.2 — contraste corregido */
+/* v8.9.5.2 — contraste corregido */
 
 /* Cumpleaños */
 #birthdayGreeting .birthday-greeting-card{
@@ -177,6 +177,204 @@
 }
 </style>
 
+
+<style id="student-ui-v895">
+/* CHAT */
+#chat,
+#chat *{
+  box-sizing:border-box;
+}
+#chat .card{
+  color:#f5f7ff !important;
+}
+.student-chat-card,
+.student-chat-history-card{
+  background:#141b31 !important;
+  border:1px solid #34405f !important;
+  color:#f5f7ff !important;
+}
+.student-chat-head,
+.student-chat-history-head{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  flex-wrap:wrap;
+}
+#chat h2,
+#chat h3{
+  color:#ffffff !important;
+  opacity:1 !important;
+}
+#chat .chat-help,
+#chat .chat-info,
+#chat .chat-status,
+#chat .chat-empty{
+  color:#c9d2e8 !important;
+  opacity:1 !important;
+}
+#chat .chat-field{
+  display:block;
+  margin-top:16px;
+  color:#ffffff !important;
+  font-weight:800;
+}
+#chat select,
+#chat textarea{
+  width:100%;
+  margin-top:7px;
+  border:1px solid #53607f !important;
+  border-radius:14px;
+  background:#ffffff !important;
+  color:#1f1f1f !important;
+  opacity:1 !important;
+  font:inherit;
+}
+#chat select{
+  min-height:52px;
+  padding:0 14px;
+}
+#chat textarea{
+  min-height:150px;
+  padding:14px;
+  resize:vertical;
+}
+#chat textarea::placeholder{
+  color:#777 !important;
+  opacity:1 !important;
+}
+#chat #sendStudentMessage{
+  width:100%;
+  margin-top:12px;
+  background:#ffd43b !important;
+  color:#1d1d1d !important;
+  font-weight:900 !important;
+}
+#chat .chat-state{
+  display:inline-flex;
+  align-items:center;
+  min-height:34px;
+  padding:7px 12px;
+  border-radius:999px;
+  background:#dff6e5 !important;
+  color:#17351f !important;
+  border:1px solid #9fd6ad !important;
+  font-weight:900;
+  opacity:1 !important;
+}
+#chat .chat-history{
+  display:grid;
+  gap:12px;
+  margin-top:14px;
+}
+#chat .chat-entry{
+  display:grid;
+  gap:8px;
+}
+#chat .bubble{
+  max-width:88%;
+  padding:12px 14px;
+  border-radius:16px;
+  line-height:1.4;
+  color:#ffffff !important;
+}
+#chat .bubble.student{
+  margin-left:auto;
+  background:#2c3f70 !important;
+}
+#chat .bubble.teacher{
+  margin-right:auto;
+  background:#3a2b51 !important;
+}
+#chat .bubble b,
+#chat .bubble div,
+#chat .bubble small{
+  color:#ffffff !important;
+  opacity:1 !important;
+}
+#chat .reply-pending{
+  color:#ffd76a !important;
+  font-weight:800;
+  text-align:right;
+}
+#chat #refreshStudentChat{
+  background:#202a48 !important;
+  color:#ffffff !important;
+  border:1px solid #455272 !important;
+}
+
+/* ASISTENCIA COMO LISTADO */
+#attendance .card{
+  background:#141b31 !important;
+  border:1px solid #34405f !important;
+}
+#attendance h2,
+#attendance h3{
+  color:#ffffff !important;
+}
+.attendance-help,
+.attendance-empty{
+  color:#c9d2e8 !important;
+}
+.attendance-list{
+  display:grid;
+  gap:10px;
+  margin-top:14px;
+}
+.attendance-row{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:13px 14px;
+  border-radius:14px;
+  background:#202a48;
+  border:1px solid #35415f;
+}
+.attendance-date{
+  color:#ffffff;
+  font-weight:800;
+}
+.attendance-status{
+  display:inline-flex;
+  align-items:center;
+  min-width:95px;
+  justify-content:center;
+  padding:7px 11px;
+  border-radius:999px;
+  font-weight:900;
+}
+.attendance-status.present{
+  background:#dff6e5;
+  color:#17351f;
+}
+.attendance-status.late{
+  background:#fff2c7;
+  color:#6e5300;
+}
+.attendance-status.absent{
+  background:#ffe2e5;
+  color:#7b1620;
+}
+@media(max-width:480px){
+  .attendance-row{
+    align-items:flex-start;
+    flex-direction:column;
+  }
+  .attendance-status{
+    min-width:0;
+  }
+  .student-chat-head,
+  .student-chat-history-head{
+    display:grid;
+    grid-template-columns:1fr;
+  }
+  #chat #refreshStudentChat{
+    width:100%;
+  }
+}
+</style>
+
 </head>
 <body>
 <div id="birthdayGreeting" class="birthday-greeting hidden" aria-modal="true" role="dialog">
@@ -192,7 +390,7 @@
     <button id="closeBirthdayGreeting" class="action primary" type="button">¡Gracias! 🎉</button>
   </div>
 </div>
-<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><div class="login-actions"><button id="scanIdBtn" class="action">📷 Escanear código de barras</button><button id="stopScanBtn" class="action hidden">Detener cámara</button></div><div id="barcodeReader" class="scanner-box"></div><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.9.4.1</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
+<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><div class="login-actions"><button id="scanIdBtn" class="action">📷 Escanear código de barras</button><button id="stopScanBtn" class="action hidden">Detener cámara</button></div><div id="barcodeReader" class="scanner-box"></div><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.9.5.1</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
 <main>
 <section id="home" class="view active"><div class="hero"><div><small>BIENVENIDO</small><h2 id="hello">Hola.</h2><p>Tu materia de Español, en un solo lugar.</p></div><img src="logo-app-estudiante-v821.png"></div><div class="portal-menu">
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
@@ -206,7 +404,21 @@
 </div>
 <div class="grid" id="summaryCards"></div><h3 class="section-title">Avisos recientes</h3><div id="homeNotices" class="cards"></div></section>
 <section id="activities" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Próximas entregas</h2><div id="activityCards" class="cards"></div></section>
-<section id="attendance" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Asistencia</h2><div class="card"><div id="attendanceCalendar" class="calendar"></div></div></section>
+<section id="attendance" class="view">
+<button class="back-home" data-view="home">← Inicio</button>
+<h2>Asistencia</h2>
+<div class="card">
+  <div class="attendance-list-head">
+    <div>
+      <h3>Registro de asistencia</h3>
+      <p class="attendance-help">Consulta tus registros por fecha.</p>
+    </div>
+  </div>
+  <div id="attendanceList" class="attendance-list">
+    <div class="attendance-empty">Todavía no hay registros.</div>
+  </div>
+</div>
+</section>
 <section id="grades" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Calificaciones</h2><div id="gradeContent"></div></section>
 <section id="materials" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Materiales</h2><div id="materialCards" class="cards"></div></section>
 <section id="study" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Estudiar jugando</h2><p class="muted">Solo aparecen temas publicados por el profesor.</p><div id="studyTopics" class="cards"></div></section>
@@ -215,68 +427,52 @@
 <button class="back-home" data-view="home">← Inicio</button>
 <h2>Chat del alumno</h2>
 
-<div class="card">
-  <div class="chat-history-head">
+<div class="card student-chat-card">
+  <div class="student-chat-head">
+    <div>
+      <h3>Hablar con el profe</h3>
+      <p class="chat-help">Selecciona el tema, escribe tu mensaje y envíalo.</p>
+    </div>
+    <span id="chatWindowState" class="chat-state">Nuevo chat</span>
+  </div>
+
+  <label class="chat-field">
+    Tema
+    <select id="chatTopicSelect">
+      <option value="">Selecciona un tema</option>
+      <option value="Actividad">📝 Duda sobre una actividad</option>
+      <option value="Calificación">📊 Duda sobre una calificación</option>
+      <option value="Material">📚 Duda sobre material o contenido</option>
+      <option value="Asistencia">📅 Duda sobre asistencia</option>
+      <option value="Problema con la plataforma">⚙️ Problema con la plataforma</option>
+      <option value="Otro">💬 Otro asunto escolar</option>
+    </select>
+  </label>
+
+  <div id="chatWaitingNotice" class="chat-info">
+    Elige un tema para iniciar una conversación.
+  </div>
+
+  <label class="chat-field">
+    Mensaje
+    <textarea id="studentMessage" rows="5" placeholder="Escribe tu mensaje escolar..."></textarea>
+  </label>
+
+  <button id="sendStudentMessage" class="action primary" type="button">Enviar mensaje</button>
+  <div id="chatStatus" class="chat-status"></div>
+</div>
+
+<div class="card student-chat-history-card">
+  <div class="student-chat-history-head">
     <div>
       <h3>Historial de conversación</h3>
-      <small class="muted">Tus conversaciones anteriores permanecen visibles.</small>
+      <p class="chat-help">Tus conversaciones anteriores permanecen visibles.</p>
     </div>
-    <button id="refreshStudentChat" class="action">Actualizar</button>
+    <button id="refreshStudentChat" class="action" type="button">Actualizar</button>
   </div>
   <div id="studentChatHistory" class="chat-history">
-    <div class="muted">Todavía no hay mensajes.</div>
+    <div class="chat-empty">Todavía no hay mensajes.</div>
   </div>
-</div>
-
-<div id="chatStartForm" class="card">
-  <h3>¿En qué necesitas ayuda?</h3>
-  <p class="muted">Elige primero el motivo de tu consulta.</p>
-
-  <div class="chat-topic-grid">
-    <button type="button" class="chat-topic" data-chat-topic="Actividad">📝 Duda sobre una actividad</button>
-    <button type="button" class="chat-topic" data-chat-topic="Calificación">📊 Duda sobre una calificación</button>
-    <button type="button" class="chat-topic" data-chat-topic="Material">📚 Duda sobre material o contenido</button>
-    <button type="button" class="chat-topic" data-chat-topic="Asistencia">📅 Duda sobre asistencia</button>
-    <button type="button" class="chat-topic" data-chat-topic="Problema con la plataforma">⚙️ Problema con la plataforma</button>
-    <button type="button" class="chat-topic" data-chat-topic="Otro">💬 Otro asunto escolar</button>
-  </div>
-
-  <div id="chatTopicHelp" class="chat-topic-help muted">
-    Selecciona una opción para continuar.
-  </div>
-
-  <div class="chat-policy compact">
-    <b>Recuerda:</b>
-    <p>Este chat es únicamente para asuntos escolares de Español. No se envían tareas o trabajos por este medio, no se justifican faltas y no se solicitan prórrogas.</p>
-  </div>
-
-  <button id="startTeacherChat" class="action primary" type="button" disabled>Hablar con el profe</button>
-</div>
-
-<div id="chatActivePanel" class="card" hidden>
-  <div class="active-chat-head">
-    <div>
-      <h3>Conversación activa</h3>
-      <div id="activeChatTopic" class="muted"></div>
-    </div>
-    <span id="chatWindowState" class="chat-state">Abierto</span>
-  </div>
-
-  <div id="chatWaitingNotice" class="muted">
-    El chat permanecerá abierto mientras esperas respuesta del profesor.
-  </div>
-
-  <div id="messageBox">
-    <textarea id="studentMessage" rows="5" placeholder="Escribe tu mensaje escolar..."></textarea>
-    <button id="sendStudentMessage" class="action primary" type="button">Enviar mensaje</button>
-  </div>
-  <div id="chatStatus" class="muted"></div>
-</div>
-
-<div id="chatClosedNotice" class="card" hidden>
-  <h3>Conversación finalizada</h3>
-  <p>Pasaron 5 minutos desde la respuesta del profesor sin un nuevo mensaje. El historial sigue disponible arriba.</p>
-  <p class="muted">Para iniciar otra consulta, vuelve a elegir el motivo.</p>
 </div>
 </section>
 <section id="notices" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Avisos</h2><div id="studentNotices" class="cards"></div></section>
@@ -285,9 +481,9 @@
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./service-worker.js?v=894',{scope:'./'})
+    navigator.serviceWorker.register('./service-worker.js?v=895',{scope:'./'})
       .catch(err=>console.warn('SW Mi Español',err));
   });
 }
 </script>
-<script type="module" src="app.js?v=894"></script></body></html>
+<script type="module" src="app.js?v=895"></script></body></html>

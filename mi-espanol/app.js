@@ -304,15 +304,35 @@ function renderChatHistory(){
 async function refreshStudentPortal(){
  let fresh=await portalGetBundle(currentToken);if(!fresh?.ok)return;
  processStudentChanges(fresh);bundle=fresh;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();showBirthdayGreetingIfNeeded();
 }
 function startStudentPolling(){
  if(studentPollTimer)clearInterval(studentPollTimer);
  studentPollTimer=setInterval(()=>refreshStudentPortal().catch(()=>{}),20000);
 }
 
+function normalizedStudentBirthdate(){
+ const raw=bundle?.student?.birthdate ?? bundle?.student?.birth_date ?? '';
+ if(!raw)return '';
+
+ if(raw instanceof Date && !isNaN(raw)){
+   return `${raw.getFullYear()}-${String(raw.getMonth()+1).padStart(2,'0')}-${String(raw.getDate()).padStart(2,'0')}`;
+ }
+
+ const s=String(raw).trim();
+
+ // YYYY-MM-DD or full ISO timestamp.
+ let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+ if(m)return `${m[1]}-${m[2]}-${m[3]}`;
+
+ // DD/MM/YYYY or DD-MM-YYYY, defensive fallback.
+ m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+ if(m)return `${m[3]}-${String(Number(m[2])).padStart(2,'0')}-${String(Number(m[1])).padStart(2,'0')}`;
+
+ return '';
+}
 function isStudentBirthdayToday(){
- const bd=String(bundle?.student?.birthdate||'');
+ const bd=normalizedStudentBirthdate();
  const m=bd.match(/^\d{4}-(\d{2})-(\d{2})$/);
  if(!m)return false;
  const now=new Date();
@@ -321,17 +341,22 @@ function isStudentBirthdayToday(){
 function birthdayShownKey(){
  const now=new Date();
  const date=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
- return `birthdayGreeting:${currentId}:${date}`;
+ return `birthdayGreetingV893:${currentId}:${date}`;
 }
 function showBirthdayGreetingIfNeeded(){
  if(!isStudentBirthdayToday())return;
  const key=birthdayShownKey();
- if(localStorage.getItem(key)==='1')return;
+
+ // Se muestra una vez por sesión/apertura de la app. El nuevo prefijo evita
+ // que una prueba anterior guardada en localStorage bloquee la felicitación.
+ if(sessionStorage.getItem(key)==='1')return;
+
  const first=(bundle?.student?.name||'').trim().split(/\s+/)[0]||'';
  $('#birthdayGreetingTitle').textContent=first?`¡Feliz cumpleaños, ${first}!`:'¡Feliz cumpleaños!';
  $('#birthdayGreeting').classList.remove('hidden');
+
  $('#closeBirthdayGreeting').onclick=()=>{
-   localStorage.setItem(key,'1');
+   sessionStorage.setItem(key,'1');
    $('#birthdayGreeting').classList.add('hidden');
  };
 }

@@ -3,6 +3,120 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#f5c400"><title>App docente</title>
 <link rel="manifest" href="manifest.webmanifest?v=821"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" sizes="512x512" href="icon-app-docente-v821.png?v=821">
+
+<style id="attendance-responsive-v88">
+/* v8.8: Asistencia adaptable a cualquier pantalla */
+#attendance,
+#attendance *{
+  box-sizing:border-box;
+  min-width:0;
+}
+#attendance{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+#attendance .card{
+  width:100%;
+  max-width:100%;
+}
+#attendance select,
+#attendance input,
+#attendance button{
+  max-width:100%;
+}
+#attendance .scan{
+  width:100%;
+}
+#attendance .stats{
+  width:100%;
+}
+@media (max-width:700px){
+  #attendance .grid4{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+  }
+  #attendance .grid4 label{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  #attendance .grid4 select,
+  #attendance .grid4 input{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  #attendance .stats{
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+  #attendance .stats > div{
+    min-width:0 !important;
+    padding:10px 6px !important;
+  }
+  #attendance .stats b{
+    font-size:clamp(1.25rem,7vw,2rem) !important;
+  }
+  #attendance .stats span{
+    font-size:.78rem !important;
+    overflow-wrap:anywhere;
+  }
+  #attendance .scan{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:8px !important;
+  }
+  #attendance .scan input{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  #attendance .section{
+    align-items:flex-start !important;
+    gap:10px !important;
+    flex-wrap:wrap !important;
+  }
+  #attendance .section .actions{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+  }
+  #attendance .section .actions button{
+    width:100% !important;
+    white-space:normal !important;
+    line-height:1.15 !important;
+    min-height:44px !important;
+  }
+  #attendance .row{
+    gap:8px !important;
+    align-items:flex-start !important;
+  }
+  #attendance .row > div:first-child{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    overflow-wrap:anywhere !important;
+  }
+  #attendance .rowactions{
+    flex:0 0 auto !important;
+  }
+}
+@media (max-width:430px){
+  #attendance .grid4{
+    grid-template-columns:1fr !important;
+  }
+  #attendance .scan{
+    grid-template-columns:1fr !important;
+  }
+  #attendance .scan button{
+    width:100% !important;
+  }
+  #attendance .section .actions{
+    grid-template-columns:1fr !important;
+  }
+}
+</style>
+
 </head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
@@ -17,7 +131,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.7</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.8</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -385,4 +499,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v87.js?v=870"></script></body></html>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v88.js?v=880"></script></body></html>

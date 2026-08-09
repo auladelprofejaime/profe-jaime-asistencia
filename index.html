@@ -129,6 +129,18 @@
 @media(max-width:520px){.birthday-day{grid-template-columns:1fr}.birthday-day-date{margin-bottom:2px}}
 </style>
 
+
+<style id="reset-cycle-v892">
+.reset-cycle-card{margin-top:18px;border:2px solid rgba(153,24,34,.22)}
+.reset-cycle-card h2{color:#991822}
+.reset-cycle-card .danger{width:100%;min-height:48px;font-weight:900}
+.reset-cycle-dialog{max-width:560px}
+.reset-cycle-dialog .warning-box{background:#fff1f2;border:1px solid #fecdd3;border-radius:14px;padding:14px;margin:12px 0;color:#7f1d1d}
+.reset-cycle-dialog input{width:100%;box-sizing:border-box}
+.reset-cycle-dialog .dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+@media(max-width:520px){.reset-cycle-dialog .dialog-actions{grid-template-columns:1fr}}
+</style>
+
 </head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
@@ -143,7 +155,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -371,6 +383,16 @@
 </form>
  <div class="card"><div class="section"><h2>Lista de alumnos activos</h2><input id="studentSearch" placeholder="Buscar nombre, ID o grupo"></div><div id="studentsList" class="list empty">No hay alumnos.</div></div>
 <div class="card inactive-students-card"><div class="section"><div><h2>Alumnos inactivos</h2><p class="hint">Conservan expediente e historial. Puedes reactivarlos cuando sea necesario.</p></div></div><div id="inactiveStudentsList" class="list empty">No hay alumnos inactivos.</div></div>
+
+  <div class="card reset-cycle-card">
+    <div class="section">
+      <div>
+        <h2>⚠️ Reiniciar datos de prueba</h2>
+        <p class="hint">Elimina alumnos y toda la información escolar cargada para dejar el sistema listo para iniciar un ciclo nuevo.</p>
+      </div>
+    </div>
+    <button id="resetCycleBtn" class="danger" type="button">BORRAR DATOS Y REINICIAR CICLO</button>
+  </div>
 </section>
 
 <section id="dossier" class="view">
@@ -517,4 +539,22 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v891.js?v=891"></script></body></html>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v892.js?v=892"></script>
+<dialog id="resetCycleDialog" class="reset-cycle-dialog">
+  <h2>⚠️ Reiniciar datos de prueba</h2>
+  <div class="warning-box">
+    <b>Esta acción eliminará permanentemente:</b>
+    <p>Alumnos, asistencias, actividades, registros de actividades, metodologías/calificaciones, expedientes, mensajes, reportes, sesiones de alumno/padre y suscripciones push.</p>
+    <p><b>No elimina</b> el código de las apps, tablas de Supabase, funciones, configuración técnica ni claves.</p>
+  </div>
+  <p>Para continuar escribe exactamente:</p>
+  <p><b>BORRAR TODO</b></p>
+  <input id="resetCycleConfirmText" autocomplete="off" placeholder="Escribe BORRAR TODO">
+  <div id="resetCycleStatus" class="hint"></div>
+  <div class="dialog-actions">
+    <button id="cancelResetCycle" class="secondary" type="button">Cancelar</button>
+    <button id="confirmResetCycle" class="danger" type="button" disabled>Eliminar todo</button>
+  </div>
+</dialog>
+
+</body></html>

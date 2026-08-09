@@ -141,6 +141,27 @@
 @media(max-width:520px){.reset-cycle-dialog .dialog-actions{grid-template-columns:1fr}}
 </style>
 
+
+<style id="filters-portals-v896">
+.student-list-controls{align-items:flex-end!important;gap:14px!important}
+.student-filter-controls,.portal-filter-bar{
+  display:grid;
+  grid-template-columns:minmax(130px,180px) minmax(220px,1fr);
+  gap:12px;
+  align-items:end;
+}
+.portal-filter-bar{margin:14px 0 16px}
+.student-filter-controls label,.portal-filter-bar label{font-weight:800}
+.student-filter-controls select,.student-filter-controls input,
+.portal-filter-bar select,.portal-filter-bar input{width:100%;box-sizing:border-box;margin-top:5px}
+.access-table td:first-child b{display:block}
+.access-table td:first-child small{display:block;margin-top:3px}
+@media(max-width:650px){
+  .student-filter-controls,.portal-filter-bar{grid-template-columns:1fr;width:100%}
+  .student-list-controls{align-items:stretch!important}
+}
+</style>
+
 </head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
@@ -155,7 +176,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.5</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.6</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -174,6 +195,7 @@
       <button data-view="reports" class="tab"><span>▤</span>Reportes</button>
       <button data-view="availability" class="tab"><span>◷</span>Disponibilidad</button>
       <button data-view="content" class="tab"><span>✦</span>Contenido</button>
+      <button data-view="portal-access" class="tab"><span>🔐</span>Estado de acceso a portales</button>
       <button data-view="messages" class="tab"><span>✉</span>Mensajes</button>
     </div>
   </details>
@@ -381,7 +403,34 @@
 <label class="wide">Incidencias (opcional)<textarea id="studentIncidents" rows="4"></textarea></label>
 <div class="wide actions"><button class="primary">Guardar expediente</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div>
 </form>
- <div class="card"><div class="section"><h2>Lista de alumnos activos</h2><input id="studentSearch" placeholder="Buscar nombre, ID o grupo"></div><div id="studentsList" class="list empty">No hay alumnos.</div></div>
+ <div class="card">
+  <div class="section student-list-controls">
+    <div>
+      <h2>Lista de alumnos activos</h2>
+      <p class="hint">Filtra por grupo para trabajar sin mostrar los 400 alumnos al mismo tiempo.</p>
+    </div>
+    <div class="student-filter-controls">
+      <label>Grupo
+        <select id="studentGroupFilter">
+          <option value="22" selected>22</option>
+          <option value="23">23</option>
+          <option value="24">24</option>
+          <option value="25">25</option>
+          <option value="26">26</option>
+          <option value="1ºC">1ºC</option>
+          <option value="3º A">3º A</option>
+          <option value="3º B">3º B</option>
+          <option value="3º C">3º C</option>
+          <option value="__ALL__">Todos los grupos</option>
+        </select>
+      </label>
+      <label>Buscar
+        <input id="studentSearch" placeholder="Nombre o ID">
+      </label>
+    </div>
+  </div>
+  <div id="studentsList" class="list empty">No hay alumnos.</div>
+</div>
 <div class="card inactive-students-card"><div class="section"><div><h2>Alumnos inactivos</h2><p class="hint">Conservan expediente e historial. Puedes reactivarlos cuando sea necesario.</p></div></div><div id="inactiveStudentsList" class="list empty">No hay alumnos inactivos.</div></div>
 
   <div class="card reset-cycle-card">
@@ -438,16 +487,38 @@
  <div class="report-cards"><button id="weeklyReportShortcut" class="reportcard"><b>Reporte semanal de actividades</b><span>Cuadrícula grupal con ✓ y ✕</span></button><button id="attendanceReport" class="reportcard"><b>Reporte de asistencia</b><span>Presentes, retardos y faltantes por fecha</span></button><button id="titularReportShortcut" class="reportcard"><b>Reporte individual 3.º A</b><span>Seguimiento por materia y semana</span></button></div>
 </section>
 
-<section id="portalAccessReportCard" class="card" style="margin-top:14px">
-  <div class="section">
-    <div><h3>🔐 Estado de accesos a portales</h3><p class="hint">Solo alumnos del turno matutino.</p></div>
-    <div class="actions">
-      <button id="refreshPortalAccessReport" class="secondary" type="button">Actualizar estados</button>
-      <button id="refreshAllPortalPins" class="primary" type="button">Actualizar todos los PIN temporales</button>
+<section id="portal-access" class="view">
+  <div class="card">
+    <div class="section">
+      <div>
+        <h2>🔐 Estado de acceso a portales</h2>
+        <p class="hint">Consulta únicamente cuando lo necesites. Solo corresponde a alumnos del turno matutino.</p>
+      </div>
+      <div class="actions">
+        <button id="refreshPortalAccessReport" class="secondary" type="button">Actualizar estados</button>
+        <button id="refreshAllPortalPins" class="primary" type="button">Actualizar todos los PIN temporales</button>
+      </div>
     </div>
+
+    <div class="portal-filter-bar">
+      <label>Grupo
+        <select id="portalAccessGroupFilter">
+          <option value="22" selected>22</option>
+          <option value="23">23</option>
+          <option value="24">24</option>
+          <option value="25">25</option>
+          <option value="26">26</option>
+          <option value="__ALL__">Todos los grupos</option>
+        </select>
+      </label>
+      <label>Buscar alumno
+        <input id="portalAccessSearch" placeholder="Nombre o ID">
+      </label>
+    </div>
+
+    <div id="portalAccessSummary" class="access-summary-grid"></div>
+    <div id="portalAccessTableWrap" class="table-wrap"></div>
   </div>
-  <div id="portalAccessSummary" class="access-summary-grid"></div>
-  <div id="portalAccessTableWrap" class="table-wrap"></div>
 </section>
 
 </main>
@@ -540,5 +611,5 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v895.js?v=895"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v896.js?v=896"></script>
 </body></html>

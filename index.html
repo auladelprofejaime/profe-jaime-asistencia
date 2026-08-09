@@ -155,7 +155,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.4</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.5</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -392,6 +392,7 @@
       </div>
     </div>
     <button id="resetCycleBtn" class="danger" type="button">BORRAR DATOS Y REINICIAR CICLO</button>
+    <div id="resetCycleInlineStatus" class="hint" aria-live="polite" style="margin-top:10px;font-weight:800"></div>
   </div>
 </section>
 
@@ -539,22 +540,5 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v894.js?v=894"></script>
-<dialog id="resetCycleDialog" class="reset-cycle-dialog">
-  <h2>⚠️ Reiniciar datos de prueba</h2>
-  <div class="warning-box">
-    <b>Esta acción eliminará permanentemente:</b>
-    <p>Alumnos, asistencias, actividades, registros de actividades, metodologías/calificaciones, expedientes, mensajes, reportes, sesiones de alumno/padre y suscripciones push.</p>
-    <p><b>No elimina</b> el código de las apps, tablas de Supabase, funciones, configuración técnica ni claves.</p>
-  </div>
-  <p>Para continuar escribe exactamente:</p>
-  <p><b>BORRAR TODO</b></p>
-  <input id="resetCycleConfirmText" autocomplete="off" placeholder="Escribe BORRAR TODO">
-  <div id="resetCycleStatus" class="hint" aria-live="polite"></div>
-  <div class="dialog-actions">
-    <button id="cancelResetCycle" class="secondary" type="button">Cancelar</button>
-    <button id="confirmResetCycle" class="danger" type="button" disabled>Eliminar todo</button>
-  </div>
-</dialog>
-
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v895.js?v=895"></script>
 </body></html>

@@ -27,3 +27,4 @@ IMPORTANTE
 - No borres los datos de Safari ni uses navegación privada.
 - Los PDF y Excel usan librerías que se descargan la primera vez. Abre la app con internet al menos una vez.
 Forzar despliegue
+    Forzar despliegue v8991

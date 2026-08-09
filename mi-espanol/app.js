@@ -6,7 +6,7 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=890';
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=899';
 let currentId='',bundle=null,currentToken='';
 let studentSWRegistration=null;
 
@@ -283,7 +283,7 @@ function renderChatHistory(){
 async function refreshStudentPortal(){
  let fresh=await portalGetBundle(currentToken);if(!fresh?.ok)return;
  processStudentChanges(fresh);bundle=fresh;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();showBirthdayGreetingIfNeeded().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentChatAvailability();showBirthdayGreetingIfNeeded().catch(()=>{});
 }
 function startStudentPolling(){
  if(studentPollTimer)clearInterval(studentPollTimer);
@@ -368,7 +368,7 @@ async function load(){
  bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentNotifBadge();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentChatAvailability();renderStudentNotifBadge();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
@@ -523,7 +523,42 @@ function renderStudy(){
 }
 function renderReports(){$('#studentReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="card action" data-report-id="${r.id}"><b>${esc(r.title)}</b><p class="muted">${new Date(r.created).toLocaleString('es-MX')}</p></button>`).join(''):'<div class="card muted">Sin reportes archivados.</div>';$$('[data-report-id]').forEach(b=>b.onclick=()=>openReport(b.dataset.reportId))}
 async function openReport(id){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
+
+function studentChatTodayKey(){
+ const d=new Date();
+ return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+}
+function studentChatAvailability(){
+ const a=bundle?.availability||{};
+ const today=studentChatTodayKey();
+ const overrideToday=String(a.studentChatOverrideDate||'')===today;
+ const mode=a.studentChatOverride||'auto';
+ if(overrideToday&&mode==='open')return {open:true,reason:'manual-open'};
+ if(overrideToday&&mode==='closed')return {open:false,reason:'manual-closed'};
+ const now=new Date(),day=now.getDay(),hm=now.toTimeString().slice(0,5);
+ const open=day>=1&&day<=5&&hm<'14:00';
+ return {open,reason:open?'schedule-open':'schedule-closed'};
+}
+function renderStudentChatAvailability(){
+ const state=studentChatAvailability();
+ $('#chat')?.classList.toggle('chat-closed',!state.open);
+ if($('#sendStudentMessage'))$('#sendStudentMessage').disabled=!state.open;
+ if($('#chatTopicSelect'))$('#chatTopicSelect').disabled=!state.open;
+ if($('#studentMessage'))$('#studentMessage').disabled=!state.open;
+ if(!state.open){
+   $('#chatWindowState').textContent='Chat cerrado';
+   $('#chatWaitingNotice').textContent=state.reason==='manual-closed'
+     ?'El profesor cerró temporalmente el chat durante hoy.'
+     :'El chat está cerrado. Horario de atención: lunes a viernes hasta las 2:00 p. m.';
+ }else if(!chatConversationState().active){
+   $('#chatWindowState').textContent=state.reason==='manual-open'?'Abierto por el profesor':'Chat abierto';
+   $('#chatWaitingNotice').textContent='Selecciona un tema, escribe tu mensaje y envíalo.';
+ }
+ return state.open;
+}
+
 async function sendMessage(){
+ if(!renderStudentChatAvailability()){$('#chatStatus').textContent='El chat está cerrado en este momento.';return}
  const state=chatConversationState();
  let text=$('#studentMessage').value.trim();if(!text)return;
 

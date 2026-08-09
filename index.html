@@ -186,6 +186,51 @@
 .chat-control-actions button{white-space:normal!important;min-height:44px!important}
 @media(max-width:650px){.chat-control-actions{grid-template-columns:1fr!important}}
 </style>
+
+<style id="monitor-card-v8102">
+.monitor-student-card{
+  border:2px solid rgba(245,196,0,.45);
+  background:linear-gradient(180deg,rgba(245,196,0,.09),rgba(255,255,255,.98));
+}
+.monitor-badge{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#1f2937;
+  color:#fff;
+  font-size:.76rem;
+  font-weight:900;
+  letter-spacing:.05em;
+  margin-bottom:8px;
+}
+.monitor-student-info{
+  display:grid;
+  grid-template-columns:120px minmax(220px,1fr) 150px 150px;
+  gap:10px;
+  margin-top:12px;
+}
+.monitor-student-info>div{
+  padding:12px 14px;
+  border:1px solid rgba(0,0,0,.10);
+  border-radius:13px;
+  background:#fff;
+}
+.monitor-student-info small{
+  display:block;
+  opacity:.65;
+  margin-bottom:3px;
+}
+.monitor-student-info b{display:block}
+@media(max-width:760px){
+  .monitor-student-info{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .monitor-student-info{grid-template-columns:1fr}
+  .monitor-student-card .actions{width:100%;display:grid;grid-template-columns:1fr}
+}
+</style>
+
 </head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
@@ -200,7 +245,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.10.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.10.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -431,7 +476,28 @@
 <label class="wide">Incidencias (opcional)<textarea id="studentIncidents" rows="4"></textarea></label>
 <div class="wide actions"><button class="primary">Guardar expediente</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div>
 </form>
- <div class="card">
+ 
+<div class="card monitor-student-card">
+  <div class="section">
+    <div>
+      <span class="monitor-badge">MONITOR PERMANENTE</span>
+      <h2>🧪 Alumno monitor</h2>
+      <p class="hint">Esta cuenta se conserva al reiniciar el ciclo y sirve para probar Mi Español y Seguimiento Familiar.</p>
+    </div>
+    <div class="actions">
+      <button id="openMonitorDossier" class="primary" type="button">Abrir expediente</button>
+      <button id="openMonitorPortals" class="secondary" type="button">Ver accesos a portales</button>
+    </div>
+  </div>
+  <div class="monitor-student-info">
+    <div><small>ID</small><b>00001</b></div>
+    <div><small>Nombre</small><b>Alumno Monitor del Profe</b></div>
+    <div><small>Grupo</small><b>MONITOR</b></div>
+    <div><small>Turno</small><b>Matutino</b></div>
+  </div>
+</div>
+
+<div class="card">
   <div class="section student-list-controls">
     <div>
       <h2>Lista de alumnos activos</h2>
@@ -681,5 +747,5 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8101.js?v=8101"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8102.js?v=8102"></script>
 </body></html>

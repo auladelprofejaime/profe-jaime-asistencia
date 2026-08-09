@@ -6,7 +6,7 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=890';
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=890';
 let currentId='',bundle=null,currentToken='';
 let studentSWRegistration=null;
 
@@ -304,11 +304,34 @@ function renderChatHistory(){
 async function refreshStudentPortal(){
  let fresh=await portalGetBundle(currentToken);if(!fresh?.ok)return;
  processStudentChanges(fresh);bundle=fresh;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();showBirthdayGreetingIfNeeded();
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();showBirthdayGreetingIfNeeded().catch(()=>{});
 }
 function startStudentPolling(){
  if(studentPollTimer)clearInterval(studentPollTimer);
  studentPollTimer=setInterval(()=>refreshStudentPortal().catch(()=>{}),20000);
+}
+
+async function refreshStudentBirthdate(){
+ if(!currentToken)return '';
+ try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_birth_date`,{
+     method:'POST',
+     headers:{
+       apikey:SUPABASE_PUBLISHABLE_KEY,
+       Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+       'Content-Type':'application/json'
+     },
+     body:JSON.stringify({p_token:currentToken})
+   });
+   if(!r.ok)return '';
+   const data=await r.json();
+   const birth=data?.birth_date||data?.birthdate||'';
+   if(birth&&bundle?.student)bundle.student.birthdate=birth;
+   return birth;
+ }catch(e){
+   console.warn('birthdate refresh',e);
+   return '';
+ }
 }
 
 function normalizedStudentBirthdate(){
@@ -343,7 +366,8 @@ function birthdayShownKey(){
  const date=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
  return `birthdayGreetingV893:${currentId}:${date}`;
 }
-function showBirthdayGreetingIfNeeded(){
+async function showBirthdayGreetingIfNeeded(){
+ await refreshStudentBirthdate();
  if(!isStudentBirthdayToday())return;
  const key=birthdayShownKey();
 
@@ -365,7 +389,7 @@ async function load(){
  bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentNotifBadge();showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentNotifBadge();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));

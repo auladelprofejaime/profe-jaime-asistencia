@@ -20,6 +20,7 @@ async function ensureStudentServiceWorker(){
 function recordMap(){return new Map((bundle?.activityRecords||[]).map(r=>[r.key,r]))}
 let scanner=null;
 let selectedChatTopic='';
+let newChatDraftOpen=false;
 let chatCloseTimer=null;
 const CHAT_REPLY_WINDOW_MS=5*60*1000;
 async function init(){
@@ -232,12 +233,14 @@ function selectChatTopic(topic){
 }
 function startTeacherChat(){
  if(!selectedChatTopic)return;
+ newChatDraftOpen=true;
  $('#chatStartForm').hidden=true;
  $('#chatClosedNotice').hidden=true;
  $('#chatActivePanel').hidden=false;
  $('#activeChatTopic').textContent=`Motivo: ${selectedChatTopic}`;
- $('#chatWindowState').textContent='Abierto';
- $('#chatWaitingNotice').textContent='Escribe tu mensaje. El chat quedará abierto mientras esperas respuesta del profesor.';
+ $('#chatWindowState').textContent='Nuevo chat';
+ $('#chatWaitingNotice').textContent='Escribe tu primer mensaje. Al enviarlo, el chat quedará abierto mientras esperas respuesta del profesor.';
+ $('#chatStatus').textContent='';
  $('#studentMessage').focus();
 }
 function scheduleChatClose(remaining){
@@ -249,6 +252,17 @@ function scheduleChatClose(remaining){
 }
 function renderChatState(){
  const state=chatConversationState();
+
+ if(newChatDraftOpen){
+   $('#chatStartForm').hidden=true;
+   $('#chatClosedNotice').hidden=true;
+   $('#chatActivePanel').hidden=false;
+   $('#activeChatTopic').textContent=`Motivo: ${selectedChatTopic||'Consulta'}`;
+   $('#chatWindowState').textContent='Nuevo chat';
+   $('#chatWaitingNotice').textContent='Escribe tu primer mensaje. Al enviarlo, el chat quedará abierto mientras esperas respuesta del profesor.';
+   if(chatCloseTimer){clearTimeout(chatCloseTimer);chatCloseTimer=null}
+   return;
+ }
 
  if(state.active){
    const topic=state.latest?.category||selectedChatTopic||'Consulta';
@@ -274,6 +288,7 @@ function renderChatState(){
  $('#chatActivePanel').hidden=true;
  $('#chatStartForm').hidden=false;
  $('#chatClosedNotice').hidden=!state.closed;
+ newChatDraftOpen=false;
  selectedChatTopic='';
  $$('[data-chat-topic]').forEach(b=>b.classList.remove('selected'));
  if($('#startTeacherChat'))$('#startTeacherChat').disabled=true;
@@ -422,13 +437,15 @@ function renderReports(){$('#studentReports').innerHTML=bundle.reports.length?bu
 async function openReport(id){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
 async function sendMessage(){
  const state=chatConversationState();
- if(state.closed){
+
+ if(state.closed&&!newChatDraftOpen){
    $('#chatStatus').textContent='Esta conversación ya terminó. Inicia una nueva consulta desde el formulario.';
    renderChatState();
    return;
  }
+
  let text=$('#studentMessage').value.trim();if(!text)return;
- let category=state.active?(state.latest?.category||selectedChatTopic):selectedChatTopic;
+ let category=newChatDraftOpen?selectedChatTopic:(state.active?(state.latest?.category||selectedChatTopic):selectedChatTopic);
  if(!category)return $('#chatStatus').textContent='Primero selecciona el motivo de tu consulta.';
 
  let a=bundle.availability||{},now=new Date(),day=now.getDay(),hm=now.toTimeString().slice(0,5),date=now.toISOString().slice(0,10),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd,closed=a.suspended||vac||(a.technicalCouncilDates||[]).includes(date)||!(a.days||[]).includes(day)||hm<a.start||hm>a.end;
@@ -436,6 +453,7 @@ async function sendMessage(){
  if(!r?.ok)return $('#chatStatus').textContent='No se pudo enviar el mensaje.';
  try{await sendPortalPushEvent(currentToken,'new_message',{message:text,category})}catch(e){console.warn('push message',e)}
  $('#studentMessage').value='';
+ newChatDraftOpen=false;
  $('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';
  await refreshStudentPortal();
 }

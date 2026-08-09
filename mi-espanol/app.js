@@ -19,11 +19,17 @@ async function ensureStudentServiceWorker(){
 
 function recordMap(){return new Map((bundle?.activityRecords||[]).map(r=>[r.key,r]))}
 let scanner=null;
+let selectedChatTopic='';
+let chatCloseTimer=null;
+const CHAT_REPLY_WINDOW_MS=5*60*1000;
 async function init(){
  try{await ensureStudentServiceWorker()}catch(e){console.warn('SW',e)}
  $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;
- $('#acceptChat').onclick=()=>{$('#chatPolicy').hidden=true;$('#chatComposer').hidden=false};
- $('#writeTeacher').onclick=()=>$('#messageBox').hidden=false;$('#studentNotifBtn').onclick=openStudentNotifications;$('#refreshStudentChat').onclick=refreshStudentPortal;$$('[data-faq]').forEach(b=>b.onclick=()=>showFaq(b.dataset.faq));$('#sendStudentMessage').onclick=sendMessage;
+ $('#studentNotifBtn').onclick=openStudentNotifications;
+ $('#refreshStudentChat').onclick=refreshStudentPortal;
+ $('#sendStudentMessage').onclick=sendMessage;
+ $('#startTeacherChat').onclick=startTeacherChat;
+ $$('[data-chat-topic]').forEach(b=>b.onclick=()=>selectChatTopic(b.dataset.chatTopic));
 
  const saved=localStorage.getItem('miEspanolSession')||sessionStorage.getItem('miEspanolSession');
  if(saved){
@@ -182,10 +188,103 @@ function processStudentChanges(b){
  for(const m of b.messages||[])if(m.teacher_reply && (old.replies||{})[String(m.id)]!==(m.replied_at||m.teacher_reply))addStudentNotification({id:'reply-'+m.id+'-'+(m.replied_at||m.teacher_reply),title:'El profesor respondió',body:String(m.teacher_reply).slice(0,120),target:'chat'});
  localStorage.setItem(key,JSON.stringify(now));
 }
+function sortedChatMessages(){
+ return (bundle?.messages||[]).slice().sort((a,b)=>String(a.sent_at||a.created_at||'').localeCompare(String(b.sent_at||b.created_at||'')));
+}
+function latestChatMessage(){
+ const msgs=sortedChatMessages();
+ return msgs[msgs.length-1]||null;
+}
+function chatConversationState(){
+ const latest=latestChatMessage();
+ if(!latest)return {active:false,closed:false,latest:null,remaining:0};
+
+ if(!latest.teacher_reply){
+   return {active:true,closed:false,latest,remaining:null};
+ }
+
+ const repliedAt=new Date(latest.replied_at||latest.updated_at||latest.sent_at||latest.created_at||0).getTime();
+ if(!Number.isFinite(repliedAt)||repliedAt<=0){
+   return {active:false,closed:true,latest,remaining:0};
+ }
+
+ const remaining=(repliedAt+CHAT_REPLY_WINDOW_MS)-Date.now();
+ return {
+   active:remaining>0,
+   closed:remaining<=0,
+   latest,
+   remaining:Math.max(0,remaining)
+ };
+}
+function selectChatTopic(topic){
+ selectedChatTopic=String(topic||'').trim();
+ $$('[data-chat-topic]').forEach(b=>b.classList.toggle('selected',b.dataset.chatTopic===selectedChatTopic));
+ const help={
+   'Actividad':'Describe qué actividad es y cuál es tu duda.',
+   'Calificación':'Indica la actividad, trabajo o periodo que quieres consultar.',
+   'Material':'Indica qué material, lectura o contenido necesitas aclarar.',
+   'Asistencia':'Explica qué registro de asistencia quieres consultar. Recuerda que las faltas no se justifican por este chat.',
+   'Problema con la plataforma':'Explica qué botón, pantalla o función no está trabajando correctamente.',
+   'Otro':'Describe brevemente el asunto escolar de Español.'
+ };
+ $('#chatTopicHelp').textContent=help[selectedChatTopic]||'Selecciona una opción para continuar.';
+ $('#startTeacherChat').disabled=!selectedChatTopic;
+}
+function startTeacherChat(){
+ if(!selectedChatTopic)return;
+ $('#chatStartForm').hidden=true;
+ $('#chatClosedNotice').hidden=true;
+ $('#chatActivePanel').hidden=false;
+ $('#activeChatTopic').textContent=`Motivo: ${selectedChatTopic}`;
+ $('#chatWindowState').textContent='Abierto';
+ $('#chatWaitingNotice').textContent='Escribe tu mensaje. El chat quedará abierto mientras esperas respuesta del profesor.';
+ $('#studentMessage').focus();
+}
+function scheduleChatClose(remaining){
+ if(chatCloseTimer){clearTimeout(chatCloseTimer);chatCloseTimer=null}
+ if(remaining==null||remaining<=0)return;
+ chatCloseTimer=setTimeout(()=>{
+   renderChatState();
+ },Math.min(remaining+250,2147483647));
+}
+function renderChatState(){
+ const state=chatConversationState();
+
+ if(state.active){
+   const topic=state.latest?.category||selectedChatTopic||'Consulta';
+   selectedChatTopic=topic;
+   $('#chatStartForm').hidden=true;
+   $('#chatClosedNotice').hidden=true;
+   $('#chatActivePanel').hidden=false;
+   $('#activeChatTopic').textContent=`Motivo: ${topic}`;
+
+   if(state.latest?.teacher_reply){
+     $('#chatWindowState').textContent='5 min para responder';
+     const mins=Math.max(1,Math.ceil(state.remaining/60000));
+     $('#chatWaitingNotice').textContent=`El profesor ya respondió. Puedes continuar esta conversación durante aproximadamente ${mins} min.`;
+     scheduleChatClose(state.remaining);
+   }else{
+     $('#chatWindowState').textContent='Esperando respuesta';
+     $('#chatWaitingNotice').textContent='Tu conversación sigue abierta hasta que el profesor responda.';
+     if(chatCloseTimer){clearTimeout(chatCloseTimer);chatCloseTimer=null}
+   }
+   return;
+ }
+
+ $('#chatActivePanel').hidden=true;
+ $('#chatStartForm').hidden=false;
+ $('#chatClosedNotice').hidden=!state.closed;
+ selectedChatTopic='';
+ $$('[data-chat-topic]').forEach(b=>b.classList.remove('selected'));
+ if($('#startTeacherChat'))$('#startTeacherChat').disabled=true;
+ if($('#chatTopicHelp'))$('#chatTopicHelp').textContent='Selecciona una opción para continuar.';
+ if(chatCloseTimer){clearTimeout(chatCloseTimer);chatCloseTimer=null}
+}
 function renderChatHistory(){
  const box=$('#studentChatHistory');if(!box)return;
- let msgs=(bundle.messages||[]).slice().sort((a,b)=>String(a.sent_at||a.created_at||'').localeCompare(String(b.sent_at||b.created_at||'')));
+ let msgs=sortedChatMessages();
  box.innerHTML=msgs.length?msgs.map(m=>`<div class="chat-entry"><div class="bubble student"><b>${esc(m.category||'Consulta')}</b><div>${esc(m.message||'')}</div><small>${m.sent_at?new Date(m.sent_at).toLocaleString('es-MX'):''}</small></div>${m.teacher_reply?`<div class="bubble teacher"><b>Profe Jaime</b><div>${esc(m.teacher_reply)}</div><small>${m.replied_at?new Date(m.replied_at).toLocaleString('es-MX'):''}</small></div>`:'<div class="reply-pending">Pendiente de respuesta</div>'}</div>`).join(''):'<div class="muted">Todavía no hay mensajes.</div>';
+ renderChatState();
 }
 async function refreshStudentPortal(){
  let fresh=await portalGetBundle(currentToken);if(!fresh?.ok)return;
@@ -322,10 +421,23 @@ function renderStudy(){
 function renderReports(){$('#studentReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="card action" data-report-id="${r.id}"><b>${esc(r.title)}</b><p class="muted">${new Date(r.created).toLocaleString('es-MX')}</p></button>`).join(''):'<div class="card muted">Sin reportes archivados.</div>';$$('[data-report-id]').forEach(b=>b.onclick=()=>openReport(b.dataset.reportId))}
 async function openReport(id){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
 async function sendMessage(){
+ const state=chatConversationState();
+ if(state.closed){
+   $('#chatStatus').textContent='Esta conversación ya terminó. Inicia una nueva consulta desde el formulario.';
+   renderChatState();
+   return;
+ }
  let text=$('#studentMessage').value.trim();if(!text)return;
+ let category=state.active?(state.latest?.category||selectedChatTopic):selectedChatTopic;
+ if(!category)return $('#chatStatus').textContent='Primero selecciona el motivo de tu consulta.';
+
  let a=bundle.availability||{},now=new Date(),day=now.getDay(),hm=now.toTimeString().slice(0,5),date=now.toISOString().slice(0,10),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd,closed=a.suspended||vac||(a.technicalCouncilDates||[]).includes(date)||!(a.days||[]).includes(day)||hm<a.start||hm>a.end;
- let r=await portalSendMessage(currentToken,$('#chatCategory').value,text);if(!r?.ok)return $('#chatStatus').textContent='No se pudo enviar el mensaje.';try{await sendPortalPushEvent(currentToken,'new_message',{message:text,category:$('#chatCategory').value})}catch(e){console.warn('push message',e)};
- $('#studentMessage').value='';$('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';await refreshStudentPortal();
+ let r=await portalSendMessage(currentToken,category,text);
+ if(!r?.ok)return $('#chatStatus').textContent='No se pudo enviar el mensaje.';
+ try{await sendPortalPushEvent(currentToken,'new_message',{message:text,category})}catch(e){console.warn('push message',e)}
+ $('#studentMessage').value='';
+ $('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';
+ await refreshStudentPortal();
 }
 window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){const t=e.data.target||'home';$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id===t));if(t==='chat')refreshStudentPortal().catch(()=>{})}});
 init();

@@ -67,8 +67,39 @@
 }
 </style>
 
+
+<style id="birthday-greeting-v89">
+.birthday-greeting{position:fixed;inset:0;z-index:100000;background:linear-gradient(160deg,rgba(126,20,31,.93),rgba(32,26,18,.96));display:flex;align-items:center;justify-content:center;padding:20px;padding-top:max(20px,env(safe-area-inset-top));padding-bottom:max(20px,env(safe-area-inset-bottom));overflow:hidden}
+.birthday-greeting.hidden{display:none!important}
+.birthday-greeting-card{position:relative;z-index:2;width:min(500px,100%);background:#fff;border-radius:26px;padding:28px 22px;text-align:center;box-shadow:0 25px 70px rgba(0,0,0,.35)}
+.birthday-cake{font-size:62px;line-height:1}
+.birthday-eyebrow{font-weight:900;letter-spacing:.16em;font-size:.75rem;margin-top:10px}
+.birthday-greeting-card h2{font-size:clamp(1.8rem,8vw,2.8rem);margin:.35rem 0}
+.birthday-greeting-card p{font-size:1.05rem;line-height:1.5}
+.birthday-sign{font-weight:900;margin:15px 0 20px}
+.birthday-greeting-card button{width:100%}
+.birthday-confetti span{position:absolute;font-size:clamp(24px,7vw,48px);animation:bdayFloat 3.2s ease-in-out infinite}
+.birthday-confetti span:nth-child(1){left:8%;top:12%}.birthday-confetti span:nth-child(2){right:10%;top:17%;animation-delay:.4s}.birthday-confetti span:nth-child(3){left:12%;bottom:14%;animation-delay:.8s}.birthday-confetti span:nth-child(4){right:9%;bottom:12%;animation-delay:1.2s}.birthday-confetti span:nth-child(5){left:48%;top:5%;animation-delay:1.6s}
+@keyframes bdayFloat{0%,100%{transform:translateY(0) rotate(-8deg)}50%{transform:translateY(-14px) rotate(10deg)}}
+@media(prefers-reduced-motion:reduce){.birthday-confetti span{animation:none}}
+</style>
+
 </head>
-<body><div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><div class="login-actions"><button id="scanIdBtn" class="action">📷 Escanear código de barras</button><button id="stopScanBtn" class="action hidden">Detener cámara</button></div><div id="barcodeReader" class="scanner-box"></div><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.8.2.1</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
+<body>
+<div id="birthdayGreeting" class="birthday-greeting hidden" aria-modal="true" role="dialog">
+  <div class="birthday-confetti" aria-hidden="true">
+    <span>🎉</span><span>✨</span><span>🎈</span><span>🎊</span><span>⭐</span>
+  </div>
+  <div class="birthday-greeting-card">
+    <div class="birthday-cake">🎂</div>
+    <div class="birthday-eyebrow">HOY ES TU DÍA</div>
+    <h2 id="birthdayGreetingTitle">¡Feliz cumpleaños!</h2>
+    <p>Que tengas un excelente día y un gran año. ¡Disfrútalo mucho!</p>
+    <div class="birthday-sign">— Profe Jaime</div>
+    <button id="closeBirthdayGreeting" class="action primary" type="button">¡Gracias! 🎉</button>
+  </div>
+</div>
+<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><div class="login-actions"><button id="scanIdBtn" class="action">📷 Escanear código de barras</button><button id="stopScanBtn" class="action hidden">Detener cámara</button></div><div id="barcodeReader" class="scanner-box"></div><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.9.1</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
 <main>
 <section id="home" class="view active"><div class="hero"><div><small>BIENVENIDO</small><h2 id="hello">Hola.</h2><p>Tu materia de Español, en un solo lugar.</p></div><img src="logo-app-estudiante-v821.png"></div><div class="portal-menu">
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
@@ -161,9 +192,9 @@
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./service-worker.js?v=811',{scope:'./'})
+    navigator.serviceWorker.register('./service-worker.js?v=890',{scope:'./'})
       .catch(err=>console.warn('SW Mi Español',err));
   });
 }
 </script>
-<script type="module" src="app.js?v=882"></script></body></html>
+<script type="module" src="app.js?v=890"></script></body></html>

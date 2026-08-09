@@ -6,7 +6,7 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=890';
 let currentId='',bundle=null,currentToken='';
 let studentSWRegistration=null;
 
@@ -310,11 +310,37 @@ function startStudentPolling(){
  if(studentPollTimer)clearInterval(studentPollTimer);
  studentPollTimer=setInterval(()=>refreshStudentPortal().catch(()=>{}),20000);
 }
+
+function isStudentBirthdayToday(){
+ const bd=String(bundle?.student?.birthdate||'');
+ const m=bd.match(/^\d{4}-(\d{2})-(\d{2})$/);
+ if(!m)return false;
+ const now=new Date();
+ return Number(m[1])===now.getMonth()+1 && Number(m[2])===now.getDate();
+}
+function birthdayShownKey(){
+ const now=new Date();
+ const date=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+ return `birthdayGreeting:${currentId}:${date}`;
+}
+function showBirthdayGreetingIfNeeded(){
+ if(!isStudentBirthdayToday())return;
+ const key=birthdayShownKey();
+ if(localStorage.getItem(key)==='1')return;
+ const first=(bundle?.student?.name||'').trim().split(/\s+/)[0]||'';
+ $('#birthdayGreetingTitle').textContent=first?`¡Feliz cumpleaños, ${first}!`:'¡Feliz cumpleaños!';
+ $('#birthdayGreeting').classList.remove('hidden');
+ $('#closeBirthdayGreeting').onclick=()=>{
+   localStorage.setItem(key,'1');
+   $('#birthdayGreeting').classList.add('hidden');
+ };
+}
+
 async function load(){
  bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentNotifBadge();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentNotifBadge();showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));

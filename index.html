@@ -181,6 +181,11 @@
 @media(max-width:520px){.activity-group-choices{display:grid;grid-template-columns:1fr 1fr}.activity-group-choice{border-radius:12px;justify-content:flex-start}}
 </style>
 
+<style id="student-chat-control-v899">
+.chat-control-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px!important;width:100%}
+.chat-control-actions button{white-space:normal!important;min-height:44px!important}
+@media(max-width:650px){.chat-control-actions{grid-template-columns:1fr!important}}
+</style>
 </head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
@@ -195,7 +200,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.8</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.9</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -599,7 +604,22 @@
         </div>
       </div>
       <div class="wide actions"><button class="primary">Guardar disponibilidad</button></div>
-    </form>
+    
+      <div class="wide card chat-control-card" style="padding:14px;margin:12px 0 0">
+        <div class="section">
+          <div>
+            <b>💬 Chat de alumnos</b>
+            <p class="hint">Horario automático: lunes a viernes hasta las 2:00 p. m. Sábados y domingos cerrado.</p>
+            <p id="studentChatTeacherStatus" class="hint"><b>Estado:</b> horario automático.</p>
+          </div>
+        </div>
+        <div class="actions chat-control-actions">
+          <button id="openStudentChatToday" class="primary" type="button">🟢 Abrir chat hoy</button>
+          <button id="closeStudentChatToday" class="danger-outline" type="button">🔴 Cerrar chat hoy</button>
+          <button id="autoStudentChat" class="secondary" type="button">↩️ Volver a automático</button>
+        </div>
+      </div>
+</form>
   </div>
 </section>
 
@@ -658,5 +678,5 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v898.js?v=898"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v899.js?v=899"></script>
 </body></html>

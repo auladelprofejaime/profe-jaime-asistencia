@@ -117,6 +117,18 @@
 }
 </style>
 
+
+<style id="birthdays-v89">
+.birthday-week-card{margin-top:14px}
+.birthday-week-list{display:grid;gap:9px}
+.birthday-day{display:grid;grid-template-columns:minmax(115px,150px) 1fr;gap:12px;align-items:start;padding:10px 12px;border-radius:13px;background:rgba(245,196,0,.10)}
+.birthday-day.today{background:rgba(201,35,45,.10);outline:2px solid rgba(201,35,45,.18)}
+.birthday-day-date{font-weight:900}
+.birthday-name{font-weight:800}
+.birthday-meta{display:block;font-size:.82rem;opacity:.72;margin-top:2px}
+@media(max-width:520px){.birthday-day{grid-template-columns:1fr}.birthday-day-date{margin-bottom:2px}}
+</style>
+
 </head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
@@ -131,7 +143,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.8.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -185,6 +197,12 @@
 </div>
 <div class="home-summary">
   <div class="summary-card"><b id="homeGroups">0</b><span>Grupos</span></div><div class="summary-card"><b id="homeStudents">0</b><span>Alumnos</span></div><div class="summary-card"><b id="homeActivities">0</b><span>Actividades</span></div><div class="summary-card"><b id="homeAttendance">0</b><span>Asistencias guardadas</span></div>
+ </div>
+ <div class="card birthday-week-card">
+   <div class="section">
+     <div><h2>🎂 Cumpleaños de la semana</h2><p class="hint">Alumnos que cumplen años de lunes a domingo.</p></div>
+   </div>
+   <div id="weeklyBirthdays" class="birthday-week-list"><div class="empty">Sin fechas de nacimiento registradas esta semana.</div></div>
  </div>
  <div class="home-menu">
   <button data-go="attendance" class="home-button"><span>▣</span><b>Asistencia</b><small>Matutino y vespertino con escáner</small></button>
@@ -499,4 +517,4 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v88.js?v=881"></script></body></html>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v89.js?v=890"></script></body></html>

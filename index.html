@@ -200,7 +200,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.9.9</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.10.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -440,6 +440,7 @@
     <div class="student-filter-controls">
       <label>Grupo
         <select id="studentGroupFilter">
+          <option value="MONITOR">MONITOR</option>
           <option value="22" selected>22</option>
           <option value="23">23</option>
           <option value="24">24</option>
@@ -464,8 +465,8 @@
   <div class="card reset-cycle-card">
     <div class="section">
       <div>
-        <h2>⚠️ Reiniciar datos de prueba</h2>
-        <p class="hint">Elimina alumnos y toda la información escolar cargada para dejar el sistema listo para iniciar un ciclo nuevo.</p>
+        <h2>⚠️ Reiniciar ciclo escolar</h2>
+        <p class="hint">Elimina los datos del ciclo terminado y deja el sistema listo para comenzar uno nuevo. El alumno monitor 00001 se conserva siempre.</p>
       </div>
     </div>
     <button id="resetCycleBtn" class="danger" type="button">BORRAR DATOS Y REINICIAR CICLO</button>
@@ -482,6 +483,7 @@
   <div class="dossier-selector-controls">
     <label>Grupo
       <select id="dossierGroup">
+          <option value="MONITOR">MONITOR</option>
         <option value="22" selected>22</option>
         <option value="23">23</option>
         <option value="24">24</option>
@@ -555,6 +557,7 @@
     <div class="portal-filter-bar">
       <label>Grupo
         <select id="portalAccessGroupFilter">
+          <option value="MONITOR">MONITOR</option>
           <option value="22" selected>22</option>
           <option value="23">23</option>
           <option value="24">24</option>
@@ -678,5 +681,5 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v899.js?v=899"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8100.js?v=8100"></script>
 </body></html>

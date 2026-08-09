@@ -84,6 +84,99 @@
 @media(prefers-reduced-motion:reduce){.birthday-confetti span{animation:none}}
 </style>
 
+
+<style id="student-contrast-fix-v892">
+/* v8.9.2.2 — contraste corregido */
+
+/* Cumpleaños */
+#birthdayGreeting .birthday-greeting-card{
+  background:#ffffff !important;
+  color:#211b12 !important;
+}
+#birthdayGreeting .birthday-greeting-card h2,
+#birthdayGreeting .birthday-greeting-card p,
+#birthdayGreeting .birthday-sign,
+#birthdayGreeting .birthday-eyebrow{
+  color:#211b12 !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+}
+#birthdayGreeting .birthday-eyebrow{
+  color:#991822 !important;
+}
+#birthdayGreeting .birthday-sign{
+  color:#7b151d !important;
+}
+#birthdayGreeting #closeBirthdayGreeting{
+  background:#ffd43b !important;
+  color:#211b12 !important;
+  border-color:#e7b900 !important;
+  opacity:1 !important;
+  font-weight:900 !important;
+}
+
+/* Chat: estado visible y legible */
+#chat .chat-state,
+#chat #chatWindowState{
+  color:#17351f !important;
+  background:#dff6e5 !important;
+  border:1px solid #9fd6ad !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+  font-weight:900 !important;
+}
+#chat #chatWaitingNotice,
+#chat #chatStatus,
+#chat .chat-topic-help,
+#chat .muted{
+  color:#5a5248 !important;
+  opacity:1 !important;
+}
+#chat .chat-state[data-state="closed"],
+#chat #chatWindowState.closed{
+  color:#7a151c !important;
+  background:#fde8ea !important;
+  border-color:#efb5ba !important;
+}
+
+/* Texto de tarjetas y formulario del chat */
+#chat .card,
+#chat .card h2,
+#chat .card h3,
+#chat .card p,
+#chat .card label{
+  color:#211b12 !important;
+}
+#chat .chat-topic{
+  color:#211b12 !important;
+  background:#ffffff !important;
+}
+#chat .chat-topic.selected{
+  color:#211b12 !important;
+  background:#fff4bf !important;
+}
+#chat textarea{
+  color:#211b12 !important;
+  background:#ffffff !important;
+  opacity:1 !important;
+}
+#chat textarea::placeholder{
+  color:#7a7167 !important;
+  opacity:1 !important;
+}
+
+/* Historial */
+#chat .bubble.student{
+  color:#211b12 !important;
+}
+#chat .bubble.teacher{
+  color:#211b12 !important;
+}
+#chat .reply-pending{
+  color:#7a5a00 !important;
+}
+</style>
+
 </head>
 <body>
 <div id="birthdayGreeting" class="birthday-greeting hidden" aria-modal="true" role="dialog">
@@ -99,7 +192,7 @@
     <button id="closeBirthdayGreeting" class="action primary" type="button">¡Gracias! 🎉</button>
   </div>
 </div>
-<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><div class="login-actions"><button id="scanIdBtn" class="action">📷 Escanear código de barras</button><button id="stopScanBtn" class="action hidden">Detener cámara</button></div><div id="barcodeReader" class="scanner-box"></div><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.9.1</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
+<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><div class="login-actions"><button id="scanIdBtn" class="action">📷 Escanear código de barras</button><button id="stopScanBtn" class="action hidden">Detener cámara</button></div><div id="barcodeReader" class="scanner-box"></div><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.9.2.1</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
 <main>
 <section id="home" class="view active"><div class="hero"><div><small>BIENVENIDO</small><h2 id="hello">Hola.</h2><p>Tu materia de Español, en un solo lugar.</p></div><img src="logo-app-estudiante-v821.png"></div><div class="portal-menu">
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
@@ -192,9 +285,9 @@
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./service-worker.js?v=890',{scope:'./'})
+    navigator.serviceWorker.register('./service-worker.js?v=892',{scope:'./'})
       .catch(err=>console.warn('SW Mi Español',err));
   });
 }
 </script>
-<script type="module" src="app.js?v=890"></script></body></html>
+<script type="module" src="app.js?v=892"></script></body></html>

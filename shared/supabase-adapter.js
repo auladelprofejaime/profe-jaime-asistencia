@@ -24,11 +24,17 @@ export async function changePortalPin(token,newPin){
 export async function portalLogout(token){
   return request('/rest/v1/rpc/portal_logout',{method:'POST',body:{p_token:token}});
 }
+export async function updateFamilyProfile(token,phone,birthdate){
+  return request('/rest/v1/rpc/portal_update_family_profile',{
+    method:'POST',
+    body:{p_token:token,p_tutor_phone:String(phone||''),p_birth_date:birthdate||null}
+  });
+}
 export async function portalGetBundle(token){
   const raw=await request('/rest/v1/rpc/portal_get_bundle',{method:'POST',body:{p_token:token}});
   if(!raw?.ok)return raw;
   const studentRaw=raw.student||{};
-  const student={id:studentRaw.id,name:studentRaw.name,shift:studentRaw.shift,group:studentRaw.group_name,number:studentRaw.list_number};
+  const student={id:studentRaw.id,name:studentRaw.name,shift:studentRaw.shift,group:studentRaw.group_name,number:studentRaw.list_number,guardian:studentRaw.tutor_name||'',phone:studentRaw.tutor_phone||'',birthdate:studentRaw.birth_date||''};
   const attendance=(raw.attendance||[]).map(a=>({...a,studentId:a.student_id,date:a.attendance_date}));
   const activities=[],activityRecords=[];
   for(const x of raw.activities||[]){

@@ -1,4 +1,4 @@
-const CACHE='app-padres-v8-11-0';
+const CACHE='app-padres-v8-11-1';
 const FILES=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{

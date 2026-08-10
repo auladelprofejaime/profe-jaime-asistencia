@@ -163,6 +163,15 @@ async function enterPortal(){
    return false;
  }
 }
+async function load(){
+ bundle=await portalGetBundle(currentToken);
+ if(!bundle?.ok)return;
+ $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
+ renderAll();
+ await updateContact();
+ updateFamilyPushStatus();
+ if(Notification.permission==='granted')syncFamilyPushSubscription().catch(()=>{});
+}
 async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}
 function portalDate(v){
  if(!v)return 'Sin fecha';
@@ -228,7 +237,7 @@ function renderAll(){
 async function openReport(rid){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
 async function isAvailable(){let a=bundle.availability||{},now=new Date(),date=now.toISOString().slice(0,10),hm=now.toTimeString().slice(0,5),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd;return {a,open:!a.suspended&&!vac&&!(a.technicalCouncilDates||[]).includes(date)&&(a.days||[]).includes(now.getDay())&&hm>=a.start&&hm<=a.end}}
 async function updateContact(){let {a,open}=await isAvailable();$('#contactSchedule').textContent=`Horario de atención: lunes a viernes, ${a.start||'12:00'} a ${a.end||'15:00'}.`;$('#contactTeacher').disabled=!open;$('#contactMessage').textContent=open?'El botón está disponible dentro del horario de atención.':'El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Los mensajes enviados fuera de este horario serán respondidos el siguiente día hábil.'}
-async async function openWhatsApp(){
+async function openWhatsApp(){
  const box=$('#contactMessage');
  try{
    if(!bundle?.student){
@@ -236,33 +245,21 @@ async async function openWhatsApp(){
      return;
    }
 
-   const testMode=$('#contactTestMode')?.checked || localStorage.getItem('familyContactTestMode')==='1';
-
-   if(!testMode){
-     const available=await isAvailable();
-     if(!available){
-       if(box)box.textContent='El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Fuera de este horario no se abrirá WhatsApp.';
-       return;
-     }
+   const available=await isAvailable();
+   if(!available.open){
+     await updateContact();
+     return;
    }
 
    const studentName=String(bundle.student.name||'').trim()||'el alumno';
    const group=String(bundle.student.group_name||bundle.student.group||'').trim()||'sin grupo';
    const teacherPhone='527731931419';
-
    const message=`Buen día, profesor Jaime. Soy padre, madre o tutor de ${studentName}, del grupo ${group}. Me comunico por el siguiente motivo:`;
-   const url=`https://wa.me/${teacherPhone}?text=${encodeURIComponent(message)}`;
-
-   if(box){
-     box.innerHTML=testMode
-       ? '<b>Modo prueba activo.</b><br>Se abrirá WhatsApp ignorando el horario.'
-       : '<b>Abriendo WhatsApp…</b><br>El mensaje incluye automáticamente el nombre y grupo del alumno.';
-   }
-
-   window.location.href=url;
+   window.location.href=`https://wa.me/${teacherPhone}?text=${encodeURIComponent(message)}`;
  }catch(e){
    console.error(e);
    if(box)box.textContent='No se pudo abrir WhatsApp. Inténtalo nuevamente.';
  }
-}=await isAvailable();if(!open)return updateContact();let s=bundle.student,msg=`Buenas tardes, profesor Jaime.%0A%0ASoy el padre/madre de ${encodeURIComponent(s.name||'')} del grupo ${encodeURIComponent(s.group||'')}.%0A%0AMe comunico para realizar la siguiente consulta:%0A`;window.open(`https://wa.me/?text=${msg}`,'_blank')}
+}
+
 init();

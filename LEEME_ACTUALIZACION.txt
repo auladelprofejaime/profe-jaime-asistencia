@@ -19,3 +19,4 @@ Después espera 1–3 minutos, cierra por completo la app y vuelve a abrirla. Si
 
 IMPORTANTE
 Abre la app con internet al menos una vez después de actualizar, para que se descargue y guarde el generador de PDF.
+    Forzar despliegue privacidad etapa 1 - intento 2

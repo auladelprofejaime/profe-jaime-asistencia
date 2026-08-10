@@ -185,14 +185,17 @@ const CHAT_SCHOOL_WEEK_ANCHOR='2026-08-31';
 function currentChatWeekStartISO(now=new Date()){
   const anchor=new Date(CHAT_SCHOOL_WEEK_ANCHOR+'T00:00:00');
   const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
-  if(today<anchor)return CHAT_SCHOOL_WEEK_ANCHOR;
+  // Antes del inicio del ciclo permitimos ver los mensajes de prueba.
+  if(today<anchor)return null;
   const days=Math.floor((today-anchor)/(24*60*60*1000));
   const start=new Date(anchor);
   start.setDate(anchor.getDate()+Math.floor(days/7)*7);
   return `${start.getFullYear()}-${String(start.getMonth()+1).padStart(2,'0')}-${String(start.getDate()).padStart(2,'0')}`;
 }
 function chatMessageIsCurrentWeek(m){
-  const cutoff=new Date(currentChatWeekStartISO()+'T00:00:00').getTime();
+  const weekStart=currentChatWeekStartISO();
+  if(!weekStart)return true;
+  const cutoff=new Date(weekStart+'T00:00:00').getTime();
   const value=m?.replied_at||m?.sent_at||m?.created_at||m?.repliedAt||m?.created||0;
   const ts=new Date(value).getTime();
   return Number.isFinite(ts)&&ts>=cutoff;

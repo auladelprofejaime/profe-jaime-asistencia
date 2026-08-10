@@ -12,20 +12,19 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8991',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8110',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
 
 function recordMap(){return new Map((bundle?.activityRecords||[]).map(r=>[r.key,r]))}
-let scanner=null;
 let selectedChatTopic='';
 let newChatDraftOpen=false;
 let chatCloseTimer=null;
 const CHAT_REPLY_WINDOW_MS=5*60*1000;
 async function init(){
  try{await ensureStudentServiceWorker()}catch(e){console.warn('SW',e)}
- $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;$('#scanIdBtn').onclick=startScanner;$('#stopScanBtn').onclick=stopScanner;
+ $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;
  $('#studentNotifBtn').onclick=openStudentNotifications;
  $('#refreshStudentChat').onclick=refreshStudentPortal;
  $('#sendStudentMessage').onclick=sendMessage;
@@ -81,13 +80,6 @@ async function enterPortal(){
  return true;
 }
 async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}
-async function startScanner(){
- if(typeof Html5Qrcode==='undefined'){return $('#loginError').textContent='No fue posible cargar el lector. Puedes escribir el ID manualmente.'}
- $('#scanIdBtn').classList.add('hidden');$('#stopScanBtn').classList.remove('hidden');scanner=new Html5Qrcode('barcodeReader');
- const formats=[Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.ITF];
- try{await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:120},formatsToSupport:formats},decoded=>{$('#loginId').value=decoded;stopScanner()},()=>{})}catch(e){$('#loginError').textContent='No se pudo abrir la cámara. Revisa el permiso de cámara.';stopScanner()}
-}
-async function stopScanner(){if(scanner){try{await scanner.stop();await scanner.clear()}catch(e){}scanner=null}$('#scanIdBtn')?.classList.remove('hidden');$('#stopScanBtn')?.classList.add('hidden')}
 function showFaq(q){
  const answers={'¿Cuándo se entrega?':'Revisa la tarjeta de la actividad: ahí aparece la fecha registrada por el profesor.','¿Qué debo hacer?':'Abre la actividad y revisa la descripción o el material asociado. Si no es suficiente, puedes escribir al profesor.','¿Cómo se califica?':'Consulta Calificaciones. La metodología y los criterios dependen del periodo configurado por el profesor.','¿Dónde encuentro el material?':'En la sección Materiales encontrarás los enlaces publicados para tu grupo.'};
  $('#faqAnswer').textContent=answers[q]||''}
@@ -118,7 +110,7 @@ async function syncStudentPushSubscription(){
 }
 function studentNotifKey(){return `miEspanolNotificationsV78:${currentId||'none'}`}
 function studentSnapshotKey(){return `miEspanolSnapshotV78:${currentId||'none'}`}
-function readStudentNotifs(){try{return JSON.parse(localStorage.getItem(studentNotifKey())||'[]')}catch{return []}}
+function readStudentNotifs(){try{const c=Date.now()-7*24*60*60*1000;return JSON.parse(localStorage.getItem(studentNotifKey())||'[]').filter(n=>new Date(n.created||0).getTime()>=c)}catch{return []}}
 function saveStudentNotifs(list){localStorage.setItem(studentNotifKey(),JSON.stringify(list.slice(0,120)));renderStudentNotifBadge()}
 function renderStudentNotifBadge(){let c=readStudentNotifs().filter(x=>!x.read).length,el=$('#studentNotifCount');if(!el)return;el.textContent=c;el.classList.toggle('hidden',!c)}
 async function studentSystemNotification(title,body,target='home'){
@@ -188,8 +180,29 @@ function processStudentChanges(b){
  for(const m of b.messages||[])if(m.teacher_reply && (old.replies||{})[String(m.id)]!==(m.replied_at||m.teacher_reply))addStudentNotification({id:'reply-'+m.id+'-'+(m.replied_at||m.teacher_reply),title:'El profesor respondió',body:String(m.teacher_reply).slice(0,120),target:'chat'});
  localStorage.setItem(key,JSON.stringify(now));
 }
+
+const CHAT_SCHOOL_WEEK_ANCHOR='2026-08-31';
+function currentChatWeekStartISO(now=new Date()){
+  const anchor=new Date(CHAT_SCHOOL_WEEK_ANCHOR+'T00:00:00');
+  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
+  if(today<anchor)return CHAT_SCHOOL_WEEK_ANCHOR;
+  const days=Math.floor((today-anchor)/(24*60*60*1000));
+  const start=new Date(anchor);
+  start.setDate(anchor.getDate()+Math.floor(days/7)*7);
+  return `${start.getFullYear()}-${String(start.getMonth()+1).padStart(2,'0')}-${String(start.getDate()).padStart(2,'0')}`;
+}
+function chatMessageIsCurrentWeek(m){
+  const cutoff=new Date(currentChatWeekStartISO()+'T00:00:00').getTime();
+  const value=m?.replied_at||m?.sent_at||m?.created_at||m?.repliedAt||m?.created||0;
+  const ts=new Date(value).getTime();
+  return Number.isFinite(ts)&&ts>=cutoff;
+}
+
 function sortedChatMessages(){
- return (bundle?.messages||[]).slice().sort((a,b)=>String(a.sent_at||a.created_at||'').localeCompare(String(b.sent_at||b.created_at||'')));
+ return (bundle?.messages||[])
+   .filter(chatMessageIsCurrentWeek)
+   .slice()
+   .sort((a,b)=>String(a.sent_at||a.created_at||'').localeCompare(String(b.sent_at||b.created_at||'')));
 }
 function latestChatMessage(){
  const msgs=sortedChatMessages();

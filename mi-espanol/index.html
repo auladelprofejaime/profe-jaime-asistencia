@@ -1,4 +1,4 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f1220"><title>App estudiante</title><link rel="manifest" href="manifest.webmanifest?v=821"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" sizes="512x512" href="icon-app-estudiante-v821.png?v=821"><script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#0f1220"><title>App estudiante</title><link rel="manifest" href="manifest.webmanifest?v=821"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" sizes="512x512" href="icon-app-estudiante-v821.png?v=821">
 <style id="guided-chat-v88">
 #chat *{box-sizing:border-box;min-width:0}
 .chat-topic-grid{
@@ -491,7 +491,7 @@
 </style>
 </head>
 <body>
-<div id="birthdayGreeting" class="birthday-greeting hidden" aria-modal="true" role="dialog">
+<section id="privacy" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Privacidad y seguridad</h2><div class="card"><p>Mi Español utiliza únicamente la información escolar necesaria para identificar tu cuenta y mostrar tu seguimiento académico.</p><p>El acceso se realiza con ID de 5 dígitos y PIN. La información consultada corresponde a la sesión iniciada.</p><p><b>La app no solicita acceso a contactos, ubicación, micrófono, fotografías, videos, mensajes personales, contraseñas, WhatsApp ni información bancaria.</b></p><p>Las notificaciones utilizan datos técnicos de Web Push necesarios para entregar avisos.</p><p>Los mensajes del chat escolar se conservan durante un máximo de 7 días desde la última actividad.</p><p>Esta es una herramienta independiente de apoyo docente y no una aplicación oficial de la SEP o AEFCM.</p></div></section><div id="birthdayGreeting" class="birthday-greeting hidden" aria-modal="true" role="dialog">
   <div class="birthday-confetti" aria-hidden="true">
     <span>🎉</span><span>✨</span><span>🎈</span><span>🎊</span><span>⭐</span>
   </div>
@@ -504,7 +504,7 @@
     <button id="closeBirthdayGreeting" class="action primary" type="button">¡Gracias! 🎉</button>
   </div>
 </div>
-<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><div class="login-actions"><button id="scanIdBtn" class="action">📷 Escanear código de barras</button><button id="stopScanBtn" class="action hidden">Detener cámara</button></div><div id="barcodeReader" class="scanner-box"></div><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.9.9.1.1</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
+<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.11.0</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
 <main>
 <section id="home" class="view active"><div class="hero"><div><small>BIENVENIDO</small><h2 id="hello">Hola.</h2><p>Tu materia de Español, en un solo lugar.</p></div><img src="logo-app-estudiante-v821.png"></div><div class="portal-menu">
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
@@ -515,6 +515,7 @@
 <button data-view="reports" class="portal-menu-btn"><span>📄</span><b>Reportes</b></button>
 <button data-view="chat" class="portal-menu-btn"><span>💬</span><b>Chat</b></button>
 <button data-view="notices" class="portal-menu-btn"><span>📢</span><b>Avisos</b></button>
+<button data-view="privacy" class="portal-menu-btn"><span>🔒</span><b>Privacidad y seguridad</b></button>
 </div>
 <div class="grid" id="summaryCards"></div><h3 class="section-title">Avisos recientes</h3><div id="homeNotices" class="cards"></div></section>
 <section id="activities" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Próximas entregas</h2><div id="activityCards" class="cards"></div></section>
@@ -602,9 +603,9 @@
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./service-worker.js?v=8991',{scope:'./'})
+    navigator.serviceWorker.register('./service-worker.js?v=8110',{scope:'./'})
       .catch(err=>console.warn('SW Mi Español',err));
   });
 }
 </script>
-<script type="module" src="app.js?v=8991"></script></body></html>
+<script type="module" src="app.js?v=8110"></script></body></html>

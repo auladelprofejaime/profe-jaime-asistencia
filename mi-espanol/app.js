@@ -303,8 +303,8 @@ function startStudentPolling(){
  studentPollTimer=setInterval(()=>refreshStudentPortal().catch(()=>{}),20000);
 }
 
-async function refreshStudentBirthdate(){
- if(!currentToken)return '';
+async function refreshStudentBirthday(){
+ if(!currentToken)return null;
  try{
    const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_birth_date`,{
      method:'POST',
@@ -315,43 +315,42 @@ async function refreshStudentBirthdate(){
      },
      body:JSON.stringify({p_token:currentToken})
    });
-   if(!r.ok)return '';
+   if(!r.ok)return null;
    const data=await r.json();
-   const birth=data?.birth_date||data?.birthdate||'';
-   if(birth&&bundle?.student)bundle.student.birthdate=birth;
-   return birth;
+   if(bundle?.student){
+     if(data?.birth_day!=null)bundle.student.birth_day=Number(data.birth_day)||null;
+     if(data?.birth_month!=null)bundle.student.birth_month=Number(data.birth_month)||null;
+     // Compatibilidad temporal mientras Supabase todavía tenga el RPC antiguo.
+     const legacy=data?.birth_date||data?.birthdate||'';
+     if(legacy)bundle.student.birthdate=legacy;
+   }
+   return data;
  }catch(e){
-   console.warn('birthdate refresh',e);
-   return '';
+   console.warn('birthday refresh',e);
+   return null;
  }
 }
 
-function normalizedStudentBirthdate(){
+function studentBirthdayParts(){
+ const d=Number(bundle?.student?.birth_day||0);
+ const m=Number(bundle?.student?.birth_month||0);
+ if(d>=1&&d<=31&&m>=1&&m<=12)return {day:d,month:m};
+
+ // Compatibilidad temporal con birth_date hasta completar Etapa 2.
  const raw=bundle?.student?.birthdate ?? bundle?.student?.birth_date ?? '';
- if(!raw)return '';
-
- if(raw instanceof Date && !isNaN(raw)){
-   return `${raw.getFullYear()}-${String(raw.getMonth()+1).padStart(2,'0')}-${String(raw.getDate()).padStart(2,'0')}`;
- }
-
+ if(!raw)return null;
  const s=String(raw).trim();
-
- // YYYY-MM-DD or full ISO timestamp.
- let m=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
- if(m)return `${m[1]}-${m[2]}-${m[3]}`;
-
- // DD/MM/YYYY or DD-MM-YYYY, defensive fallback.
- m=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
- if(m)return `${m[3]}-${String(Number(m[2])).padStart(2,'0')}-${String(Number(m[1])).padStart(2,'0')}`;
-
- return '';
+ let x=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
+ if(x)return {month:Number(x[2]),day:Number(x[3])};
+ x=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
+ if(x)return {day:Number(x[1]),month:Number(x[2])};
+ return null;
 }
 function isStudentBirthdayToday(){
- const bd=normalizedStudentBirthdate();
- const m=bd.match(/^\d{4}-(\d{2})-(\d{2})$/);
- if(!m)return false;
+ const bd=studentBirthdayParts();
+ if(!bd)return false;
  const now=new Date();
- return Number(m[1])===now.getMonth()+1 && Number(m[2])===now.getDate();
+ return bd.month===now.getMonth()+1 && bd.day===now.getDate();
 }
 function birthdayShownKey(){
  const now=new Date();
@@ -359,7 +358,7 @@ function birthdayShownKey(){
  return `birthdayGreetingV893:${currentId}:${date}`;
 }
 async function showBirthdayGreetingIfNeeded(){
- await refreshStudentBirthdate();
+ await refreshStudentBirthday();
  if(!isStudentBirthdayToday())return;
  const key=birthdayShownKey();
 

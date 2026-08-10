@@ -258,7 +258,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.12.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.12.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -506,8 +506,12 @@
     <div><small>Nombre</small><b>Alumno Monitor del Profe</b></div>
     <div><small>Grupo</small><b>MONITOR</b></div>
     <div><small>Turno</small><b>Matutino</b></div>
-    <div class="monitor-pin-box"><small>PIN Mi Español</small><b class="monitor-pin">24680</b></div>
-    <div class="monitor-pin-box"><small>PIN Seguimiento Familiar</small><b class="monitor-pin">13579</b></div>
+    <div class="monitor-pin-box"><small>PIN Mi Español</small><b class="monitor-pin" id="monitorStudentPin">Protegido</b></div>
+    <div class="monitor-pin-box"><small>PIN Seguimiento Familiar</small><b class="monitor-pin" id="monitorParentPin">Protegido</b></div>
+    <div class="monitor-pin-box">
+      <small>Acceso protegido</small>
+      <button type="button" class="secondary" onclick="loadMonitorAccess()">Mostrar PIN del monitor</button>
+    </div>
   </div>
 </div>
 
@@ -769,5 +773,5 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8120.js?v=8120"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8121.js?v=8121"></script>
 </body></html>

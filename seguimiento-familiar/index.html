@@ -1,37 +1,6 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff"><title>Seguimiento Familiar</title><link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"><script src="https://cdn.jsdelivr.net/npm/html5-qrcode@2.3.8/html5-qrcode.min.js"></script>
-<style id="family-profile-v89">
-.family-profile-gate{position:fixed;inset:0;z-index:99999;background:rgba(25,20,14,.72);display:flex;align-items:center;justify-content:center;padding:18px;padding-top:max(18px,env(safe-area-inset-top));padding-bottom:max(18px,env(safe-area-inset-bottom))}
-.family-profile-gate.hidden{display:none!important}
-.family-profile-card{width:min(520px,100%);max-height:92vh;overflow:auto;background:#fff;border-radius:22px;padding:22px;box-shadow:0 22px 65px rgba(0,0,0,.3)}
-.family-profile-card h2{margin:.25rem 0 .5rem}
-.family-profile-card label{display:block;margin:14px 0;font-weight:800}
-.family-profile-card input{width:100%;box-sizing:border-box;margin-top:6px}
-.family-profile-card .action{width:100%;margin-top:8px}
-.profile-icon{font-size:42px;text-align:center}
-.profile-student{font-weight:900;background:#fff6cc;border-radius:12px;padding:10px 12px;margin:12px 0}
-</style>
-
-</head>
-<body>
-<div id="familyProfileGate" class="family-profile-gate hidden">
-  <div class="family-profile-card">
-    <div class="profile-icon">👨‍👩‍👧‍👦</div>
-    <h2>Completa los datos del alumno</h2>
-    <p>Estos datos se guardarán en el expediente escolar. Solo se solicitan la primera vez si todavía faltan.</p>
-    <div class="profile-student" id="profileStudentName"></div>
-    <label>Número de WhatsApp del padre, madre o tutor
-      <input id="familyTutorPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="10 dígitos">
-    </label>
-    <label>Fecha de nacimiento del alumno
-      <input id="familyBirthDate" type="date">
-    </label>
-    <p class="muted">No se solicita correo institucional para alumnos del turno matutino.</p>
-    <button id="saveFamilyProfile" class="action">Guardar y continuar</button>
-    <div id="familyProfileError" class="login-error"></div>
-  </div>
-</div>
-<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="profe-jaime.png"><b>Seguimiento Familiar</b><span>Recuperando la sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="profe-jaime.png"><div><h2>Seguimiento Familiar</h2><div class="muted">Acceso para familias · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" placeholder="ID del alumno"></label><div class="login-actions"><button id="scanIdBtn" class="action">📷 Escanear código de barras</button><button id="stopScanBtn" class="action hidden">Detener cámara</button></div><div id="barcodeReader" class="scanner-box"></div><label>PIN del padre / tutor<input id="loginPin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">El PIN del padre es independiente al PIN del alumno.</p></div></div><div id="portalApp" class="hidden"><header><img src="profe-jaime.png"><div><h1>Seguimiento Familiar</h1><small>App padres · v8.9</small></div><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></header><main>
-<section id="home" class="view active"><div class="hero"><div><small>SEGUIMIENTO ACADÉMICO</small><h2 id="familyHello">Bienvenido</h2><p class="muted">Información clara y sencilla.</p></div><img src="profe-jaime.png"></div><div class="portal-menu">
+<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff"><title>App padres</title><link rel="manifest" href="manifest.webmanifest?v=830"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" sizes="512x512" href="icon-app-padres-v821.png?v=830"></head>
+<body><div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-padres-v821.png"><b>App padres</b><span>Recuperando la sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-padres-v821.png"><div><h2>App padres</h2><div class="muted">Acceso para familias · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" placeholder="ID del alumno"></label><label>PIN familiar<input id="loginPin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">El PIN familiar es independiente del PIN del alumno.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-padres-v821.png"><div><h1>App padres</h1><small>El Aula del Profe Jaime · v8.11.0</small></div><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></header><main>
+<section id="home" class="view active"><div class="hero"><div><small>SEGUIMIENTO ACADÉMICO</small><h2 id="familyHello">Bienvenido</h2><p class="muted">Información clara y sencilla.</p></div><img src="logo-app-padres-v821.png"></div><div class="portal-menu">
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
 <button data-view="attendance" class="portal-menu-btn"><span>📅</span><b>Asistencia</b></button>
 <button data-view="grades" class="portal-menu-btn"><span>📊</span><b>Promedio</b></button>
@@ -40,17 +9,19 @@
 <button data-view="notices" class="portal-menu-btn"><span>📢</span><b>Avisos</b></button>
 <button data-view="contact" class="portal-menu-btn"><span>💬</span><b>Contacto</b></button>
 <button data-view="notifications" class="portal-menu-btn"><span>🔔</span><b>Notificaciones</b></button>
+<button data-view="privacy" class="portal-menu-btn"><span>🔒</span><b>Privacidad y seguridad</b></button>
 </div>
 <div id="familyStats" class="big-grid"></div><div id="familyNotice" style="margin-top:14px"></div></section>
 <section id="attendance" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Asistencia</h2><div id="familyAttendance" class="cards"></div></section>
 <section id="activities" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Próximas entregas</h2><div id="familyActivities" class="cards"></div></section>
 <section id="grades" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Promedio</h2><div id="familyGrades"></div></section>
 <section id="materials" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Materiales</h2><div id="familyMaterials" class="cards"></div></section><section id="notices" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Avisos</h2><div id="familyNotices" class="cards"></div></section><section id="reports" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Reportes</h2><div id="familyReports" class="cards"></div></section>
-<section id="contact" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Contacto</h2><div class="card"><h3>Contactar al profesor</h3><p id="contactSchedule" class="muted"></p><button id="contactTeacher" class="action">Contactar al profesor</button><div id="contactMessage" class="notice" style="margin-top:12px"></div></div></section>
+<section id="contact" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Contacto</h2><div class="card"><h3>Contactar al profesor</h3><p id="contactSchedule" class="muted"></p><button id="contactTeacher" class="action">Contactar al profesor</button>
+<label class="test-mode-line"><input id="contactTestMode" type="checkbox"> Modo prueba (ignorar horario)</label><div id="contactMessage" class="notice" style="margin-top:12px"></div></div></section>
 <section id="notifications" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Notificaciones</h2><div class="card"><h3>Recibir avisos en este dispositivo</h3><p class="muted">Recibe nuevas actividades, avisos y materiales aunque Seguimiento Familiar esté cerrada.</p><button id="enableFamilyNotif" class="action">🔔 Activar notificaciones</button><div id="familyPushStatus" class="push-status muted">Comprobando estado…</div></div></section>
-</main></div>
+<section id="privacy" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Privacidad y seguridad</h2><div class="card"><p>Seguimiento Familiar utiliza únicamente los datos necesarios para identificar al estudiante y mostrar su información escolar.</p><p>El acceso se realiza mediante ID del alumno de 5 dígitos y PIN familiar. No se solicita nombre del familiar, teléfono, correo personal ni fecha completa de nacimiento.</p><p><b>Instalar esta aplicación no permite al profesor acceder a contactos, fotografías, videos, ubicación, micrófono, WhatsApp, mensajes personales, contraseñas, archivos personales ni información bancaria.</b></p><p>Las notificaciones utilizan únicamente datos técnicos de Web Push necesarios para entregar avisos.</p><p>Esta es una herramienta independiente de apoyo docente y no una aplicación oficial de la SEP o AEFCM.</p></div></section></main></div>
 <script>
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=890',{scope:'./'}).catch(console.warn));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=8110',{scope:'./'}).catch(console.warn));
 }
-</script><script type="module" src="app.js?v=890"></script></body></html>
+</script><script type="module" src="app.js?v=8110"></script></body></html>

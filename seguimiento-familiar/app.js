@@ -6,10 +6,10 @@ const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'')
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle,updateFamilyProfile,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=890';
+import {portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
 import {normalizePhone} from '../shared/data-contract.js';
 let id='',bundle=null,currentToken='';
-let scanner=null;
+
 let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
@@ -66,41 +66,67 @@ async function enableFamilyNotifications(){
 }
 
 async function init(){
- // El service worker se prepara en segundo plano. Nunca bloquea la apertura.
- ensureFamilyServiceWorker().catch(e=>console.warn('SW',e));
+ const loading=$('#sessionLoading');
+ const login=$('#loginGate');
+ let released=false;
 
- $('#loginBtn').onclick=doLogin;
- $('#logoutBtn').onclick=logout;
- $('#scanIdBtn').onclick=startScanner;
- $('#stopScanBtn').onclick=stopScanner;
- $('#contactTeacher').onclick=openWhatsApp;
- $('#enableFamilyNotif').onclick=enableFamilyNotifications;
- $('#saveFamilyProfile').onclick=saveFamilyProfile;
+ const releaseToLogin=()=>{
+   if(released)return;
+   released=true;
+   loading?.classList.add('hidden');
+   login?.classList.remove('hidden');
+ };
 
- const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');
+ // Seguro anti-bloqueo: nunca quedarse en Recuperando sesión.
+ const hardTimeout=setTimeout(releaseToLogin,4000);
 
- if(saved){
-   try{
-     const s=JSON.parse(saved);
-     id=s.studentId;
-     currentToken=s.token||'';
+ try{
+   // El service worker se prepara EN SEGUNDO PLANO.
+   // Nunca debe bloquear la entrada a la app.
+   ensureFamilyServiceWorker().catch(e=>console.warn('SW',e));
 
-     if(currentToken){
-       const restored=await Promise.race([
-         enterPortal(),
-         new Promise(resolve=>setTimeout(()=>resolve(false),5000))
-       ]);
+   $('#loginBtn').onclick=doLogin;
+   $('#logoutBtn').onclick=logout;
+   $('#contactTeacher').onclick=openWhatsApp;
+   $('#enableFamilyNotif')&&($('#enableFamilyNotif').onclick=enableFamilyNotifications);
 
-       if(restored)return;
-     }
-   }catch(e){
-     console.warn('Sesión familiar guardada inválida',e);
+   const tm=$('#contactTestMode');
+   if(tm){
+     tm.checked=localStorage.getItem('familyContactTestMode')==='1';
+     tm.onchange=()=>localStorage.setItem('familyContactTestMode',tm.checked?'1':'0');
    }
+
+   const saved=localStorage.getItem('familySession')||sessionStorage.getItem('familySession');
+
+   if(saved){
+     try{
+       const s=JSON.parse(saved);
+       id=s.studentId||'';
+       currentToken=s.token||'';
+
+       if(currentToken){
+         // La validación también tiene límite de tiempo.
+         const entered=await Promise.race([
+           enterPortal(),
+           new Promise(resolve=>setTimeout(()=>resolve(false),3500))
+         ]);
+
+         if(entered){
+           clearTimeout(hardTimeout);
+           released=true;
+           return;
+         }
+       }
+     }catch(e){
+       console.warn('Sesión familiar guardada inválida',e);
+     }
+   }
+ }catch(e){
+   console.warn('Inicio App padres',e);
  }
 
- // Si no se pudo recuperar en máximo 5 segundos, nunca se queda congelada.
- $('#sessionLoading')?.classList.add('hidden');
- $('#loginGate')?.classList.remove('hidden');
+ clearTimeout(hardTimeout);
+ releaseToLogin();
 }
 function saveSession(remember){const data=JSON.stringify({studentId:id,role:'parent',token:currentToken});(remember?localStorage:sessionStorage).setItem('familySession',data)}
 function clearSession(){localStorage.removeItem('familySession');sessionStorage.removeItem('familySession')}
@@ -118,118 +144,26 @@ async function forceChangePin(){
  $('#loginGate').innerHTML=`<div class="login-card"><div class="change-pin"><h2>Bienvenido</h2><p>Por seguridad debes crear un PIN personal para la familia.</p><label>Nuevo PIN<input id="newPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><label>Confirmar PIN<input id="confirmPersonalPin" type="password" inputmode="numeric" maxlength="8"></label><button id="savePersonalPin" class="action">Guardar nuevo PIN</button><div id="changePinError" class="login-error"></div></div></div>`;
  $('#savePersonalPin').onclick=async()=>{let a=$('#newPersonalPin').value.trim(),b=$('#confirmPersonalPin').value.trim();if(!/^\d{4,8}$/.test(a))return $('#changePinError').textContent='El PIN debe tener de 4 a 8 números.';if(a!==b)return $('#changePinError').textContent='Los PIN no coinciden.';let r=await changePortalPin(currentToken,a);if(!r?.ok)return $('#changePinError').textContent='No se pudo guardar el PIN.';saveSession(remember);await enterPortal()};
 }
-
-function familyProfileComplete(){
- return !!String(bundle?.student?.phone||'').trim() && !!String(bundle?.student?.birthdate||'').trim();
-}
-function showFamilyProfile(){
- $('#portalApp')?.classList.add('hidden');
- $('#familyProfileGate')?.classList.remove('hidden');
- $('#profileStudentName').textContent=bundle?.student?.name||'Alumno';
- $('#familyTutorPhone').value=bundle?.student?.phone||'';
- $('#familyBirthDate').value=bundle?.student?.birthdate||'';
- $('#familyProfileError').textContent='';
-}
-async function saveFamilyProfile(){
- const phone=String($('#familyTutorPhone').value||'').replace(/\D/g,'');
- const birthdate=$('#familyBirthDate').value;
- const error=$('#familyProfileError');
- error.textContent='';
-
- if(phone.length<10||phone.length>15){
-   error.textContent='Escribe un número de WhatsApp válido, mínimo 10 dígitos.';
-   return;
- }
- if(!birthdate){
-   error.textContent='Selecciona la fecha de nacimiento del alumno.';
-   return;
- }
- if(new Date(birthdate+'T12:00:00')>new Date()){
-   error.textContent='La fecha de nacimiento no puede estar en el futuro.';
-   return;
- }
-
- $('#saveFamilyProfile').disabled=true;
- try{
-   const r=await updateFamilyProfile(currentToken,phone,birthdate);
-   if(!r?.ok){
-     error.textContent='No se pudieron guardar los datos. Intenta nuevamente.';
-     return;
-   }
-   bundle.student.phone=r.tutor_phone||phone;
-   bundle.student.birthdate=r.birth_date||birthdate;
-   $('#familyProfileGate').classList.add('hidden');
-   $('#portalApp').classList.remove('hidden');
-   $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
-   renderAll();
-   await updateContact();
- }catch(e){
-   error.textContent='No se pudieron guardar los datos. Revisa tu conexión e intenta de nuevo.';
- }finally{
-   $('#saveFamilyProfile').disabled=false;
- }
-}
-
 async function enterPortal(){
- let raw=null;
-
  try{
-   raw=await Promise.race([
-     portalGetBundle(currentToken),
-     new Promise((_,reject)=>setTimeout(()=>reject(new Error('SESSION_TIMEOUT')),4500))
-   ]);
+   const raw=await portalGetBundle(currentToken);
+   if(!raw?.ok)return false;
+
+   bundle=raw;
+   id=bundle.student.id;
+
+   $('#sessionLoading')?.classList.add('hidden');
+   $('#loginGate')?.classList.add('hidden');
+   $('#portalApp')?.classList.remove('hidden');
+
+   await load();
+   return true;
  }catch(e){
    console.warn('No se pudo recuperar la sesión',e);
-   // No borramos Recordarme por una demora temporal de red/iOS.
    return false;
  }
-
- if(!raw?.ok){
-   // Aquí sí el servidor confirmó que el token ya no es válido.
-   clearSession();
-   currentToken='';
-   $('#sessionLoading')?.classList.add('hidden');
-   $('#loginGate')?.classList.remove('hidden');
-   $('#portalApp')?.classList.add('hidden');
-   return false;
- }
-
- bundle=raw;
- id=bundle.student.id;
-
- $('#sessionLoading')?.classList.add('hidden');
- $('#loginGate')?.classList.add('hidden');
-
- if(!familyProfileComplete()){
-   showFamilyProfile();
-   return true;
- }
-
- $('#familyProfileGate')?.classList.add('hidden');
- $('#portalApp')?.classList.remove('hidden');
-
- // No hacemos una segunda consulta bloqueante antes de entrar.
- $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
- renderAll();
- await updateContact();
-
- updateFamilyPushStatus();
- if(Notification.permission==='granted'){
-   syncFamilyPushSubscription().catch(()=>{});
- }
-
- return true;
 }
 async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}
-async function startScanner(){
- if(typeof Html5Qrcode==='undefined'){return $('#loginError').textContent='No fue posible cargar el lector. Puedes escribir el ID manualmente.'}
- $('#scanIdBtn').classList.add('hidden');$('#stopScanBtn').classList.remove('hidden');scanner=new Html5Qrcode('barcodeReader');
- const formats=[Html5QrcodeSupportedFormats.CODE_128,Html5QrcodeSupportedFormats.CODE_39,Html5QrcodeSupportedFormats.EAN_13,Html5QrcodeSupportedFormats.EAN_8,Html5QrcodeSupportedFormats.UPC_A,Html5QrcodeSupportedFormats.UPC_E,Html5QrcodeSupportedFormats.ITF];
- try{await scanner.start({facingMode:'environment'},{fps:10,qrbox:{width:280,height:120},formatsToSupport:formats},decoded=>{$('#loginId').value=decoded;stopScanner()},()=>{})}catch(e){$('#loginError').textContent='No se pudo abrir la cámara. Revisa el permiso de cámara.';stopScanner()}
-}
-async function stopScanner(){if(scanner){try{await scanner.stop();await scanner.clear()}catch(e){}scanner=null}$('#scanIdBtn')?.classList.remove('hidden');$('#stopScanBtn')?.classList.add('hidden')}
-function grade(){let list=(bundle?.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[id]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));return list[0]?.gradeRecords?.[id]||null}
-async function load(){bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;$('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;renderAll();await updateContact();updateFamilyPushStatus();if(Notification.permission==='granted')syncFamilyPushSubscription().catch(()=>{})}
 function portalDate(v){
  if(!v)return 'Sin fecha';
  const d=new Date(v+'T12:00:00');
@@ -292,19 +226,43 @@ function renderAll(){
  $$('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));
 }
 async function openReport(rid){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
-async function isAvailable(){let a=bundle.availability||{},now=new Date(),date=now.toISOString().slice(0,10),hm=now.toTimeString().slice(0,5),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd;if(a.contactOverrideOpen)return {a,open:true};return {a,open:!a.suspended&&!vac&&!(a.technicalCouncilDates||[]).includes(date)&&(a.days||[]).includes(now.getDay())&&hm>=a.start&&hm<=a.end}}
-async function updateContact(){let {a,open}=await isAvailable();$('#contactSchedule').textContent=a.contactOverrideOpen?'El profesor abrió temporalmente el contacto fuera del horario.':`Horario de atención: lunes a viernes, ${a.start||'12:00'} a ${a.end||'15:00'}.`;$('#contactTeacher').disabled=!open;$('#contactMessage').textContent=a.contactOverrideOpen?'Contacto temporal habilitado por el profesor.':(open?'El botón está disponible dentro del horario de atención.':'El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Los mensajes enviados fuera de este horario serán respondidos el siguiente día hábil.')}
-async function openWhatsApp(){
- try{const fresh=await portalGetBundle(currentToken);if(fresh?.ok)bundle=fresh}catch(_){}
- let {open}=await isAvailable();
- if(!open)return updateContact();
+async function isAvailable(){let a=bundle.availability||{},now=new Date(),date=now.toISOString().slice(0,10),hm=now.toTimeString().slice(0,5),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd;return {a,open:!a.suspended&&!vac&&!(a.technicalCouncilDates||[]).includes(date)&&(a.days||[]).includes(now.getDay())&&hm>=a.start&&hm<=a.end}}
+async function updateContact(){let {a,open}=await isAvailable();$('#contactSchedule').textContent=`Horario de atención: lunes a viernes, ${a.start||'12:00'} a ${a.end||'15:00'}.`;$('#contactTeacher').disabled=!open;$('#contactMessage').textContent=open?'El botón está disponible dentro del horario de atención.':'El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Los mensajes enviados fuera de este horario serán respondidos el siguiente día hábil.'}
+async async function openWhatsApp(){
+ const box=$('#contactMessage');
+ try{
+   if(!bundle?.student){
+     if(box)box.textContent='No se pudieron cargar los datos del alumno.';
+     return;
+   }
 
- let s=bundle.student;
- let studentName=String(s.name||'').trim()||'el alumno';
- let group=String(s.group_name||s.group||'').trim()||'sin grupo';
- let message=`Buen día, profesor Jaime. Soy padre, madre o tutor de ${studentName}, del grupo ${group}. Me comunico por el siguiente motivo:`;
- let url=`https://wa.me/527731931419?text=${encodeURIComponent(message)}`;
+   const testMode=$('#contactTestMode')?.checked || localStorage.getItem('familyContactTestMode')==='1';
 
- window.location.href=url;
-}
+   if(!testMode){
+     const available=await isAvailable();
+     if(!available){
+       if(box)box.textContent='El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Fuera de este horario no se abrirá WhatsApp.';
+       return;
+     }
+   }
+
+   const studentName=String(bundle.student.name||'').trim()||'el alumno';
+   const group=String(bundle.student.group_name||bundle.student.group||'').trim()||'sin grupo';
+   const teacherPhone='527731931419';
+
+   const message=`Buen día, profesor Jaime. Soy padre, madre o tutor de ${studentName}, del grupo ${group}. Me comunico por el siguiente motivo:`;
+   const url=`https://wa.me/${teacherPhone}?text=${encodeURIComponent(message)}`;
+
+   if(box){
+     box.innerHTML=testMode
+       ? '<b>Modo prueba activo.</b><br>Se abrirá WhatsApp ignorando el horario.'
+       : '<b>Abriendo WhatsApp…</b><br>El mensaje incluye automáticamente el nombre y grupo del alumno.';
+   }
+
+   window.location.href=url;
+ }catch(e){
+   console.error(e);
+   if(box)box.textContent='No se pudo abrir WhatsApp. Inténtalo nuevamente.';
+ }
+}=await isAvailable();if(!open)return updateContact();let s=bundle.student,msg=`Buenas tardes, profesor Jaime.%0A%0ASoy el padre/madre de ${encodeURIComponent(s.name||'')} del grupo ${encodeURIComponent(s.group||'')}.%0A%0AMe comunico para realizar la siguiente consulta:%0A`;window.open(`https://wa.me/?text=${msg}`,'_blank')}
 init();

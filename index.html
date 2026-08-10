@@ -258,7 +258,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.12.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.12.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -327,7 +327,7 @@
   <button data-go="methodologies" class="home-button"><span>%</span><b>Metodologías</b><small>Criterios, porcentajes y cálculo de calificaciones</small></button>
   <button data-go="titular" class="home-button"><span>3A</span><b>Seguimiento 3.º A</b><small>Captura y reporte individual</small></button>
   <button data-go="students" class="home-button"><span>☷</span><b>Alumnos</b><small>Importar, agregar y ordenar</small></button>
-  <button data-go="dossier" class="home-button"><span>👤</span><b>Expediente del alumno</b><small>Datos, contactos e historial individual</small></button>
+  <button data-go="dossier" class="home-button"><span>👤</span><b>Expediente del alumno</b><small>Datos e historial individual</small></button>
   <button data-go="reports" class="home-button"><span>PDF</span><b>Reportes</b><small>Listos para guardar o compartir</small></button>
  </div>
 </section>
@@ -762,16 +762,18 @@
 </section>
 
 <section id="privacy" class="view"><div class="card privacy-card"><h2>🔒 Privacidad y seguridad</h2>
-<p>Esta aplicación es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas o procedimientos oficiales.</p>
-<h3>Datos utilizados</h3><p>Se utilizan únicamente los datos necesarios para identificar al estudiante y realizar seguimiento escolar: ID, nombre(s) y primer apellido, grupo, cumpleaños sin año y registros académicos generados en la aplicación.</p>
-<h3>Dónde se almacenan</h3><p>Los datos se sincronizan con un servicio en línea que utiliza controles de acceso. Los portales consultan la información asociada a cada sesión mediante ID y PIN.</p>
-<h3>Contenido del dispositivo</h3><p>La aplicación no solicita acceso a contactos, ubicación, micrófono, fotografías, videos, mensajes personales, contraseñas ni información bancaria. Cuando el docente selecciona un archivo para importar, respaldar o publicar material, únicamente se utiliza el archivo elegido expresamente.</p>
-<h3>Notificaciones</h3><p>Las notificaciones utilizan identificadores técnicos de Web Push necesarios para entregar avisos al dispositivo.</p>
-<h3>Mensajería</h3><p>Las conversaciones del chat escolar se conservan únicamente durante 7 días desde su última actividad.</p>
-<p class="hint">Ningún sistema puede prometer seguridad absoluta. Por eso se aplican minimización de datos, credenciales y controles técnicos de acceso.</p></div></section>
+<p>Esta aplicación es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas, trámites o procedimientos oficiales.</p>
+<h3>Datos utilizados</h3><p>Se utilizan únicamente los datos necesarios para identificar al estudiante y realizar seguimiento escolar: ID, nombre(s) y primer apellido, turno, grupo, número de lista, cumpleaños solo con día y mes, observaciones o incidencias escolares pertinentes y registros académicos generados en la aplicación.</p>
+<h3>Correo institucional en Vespertino</h3><p>Cuando sea necesario para el seguimiento escolar de Vespertino, el docente puede registrar el correo institucional del alumno. Este dato se utiliza únicamente dentro de App Docente y no se comparte con Mi Español ni con Seguimiento Familiar.</p>
+<h3>Dónde se almacenan</h3><p>Los datos que requieren sincronización se envían a un servicio en línea con controles de acceso. Los portales consultan únicamente la información asociada a la sesión iniciada mediante ID y PIN.</p>
+<h3>Contenido del dispositivo</h3><p>La aplicación no solicita acceso a contactos, ubicación, micrófono, fotografías, videos, mensajes personales, contraseñas ni información bancaria. Cuando el docente elige un archivo para importar, restaurar, respaldar o publicar material, se utiliza únicamente el archivo seleccionado expresamente.</p>
+<h3>Notificaciones</h3><p>Las notificaciones utilizan exclusivamente los datos técnicos necesarios para registrar y entregar avisos mediante Web Push.</p>
+<h3>Mensajería</h3><p>El chat escolar conserva únicamente la conversación correspondiente a la semana escolar en curso. Al iniciar una nueva semana escolar, la conversación anterior se elimina de acuerdo con la política de retención configurada.</p>
+<h3>Finalidad</h3><p>La información se utiliza para organización, comunicación y seguimiento escolar. No se utiliza para publicidad ni para fines comerciales.</p>
+<p class="hint">Ningún sistema puede prometer seguridad absoluta. Se aplican minimización de datos, credenciales y controles técnicos de acceso para reducir riesgos.</p></div></section>
 <dialog id="dialog"><div class="dialoghead"><h2 id="dialogTitle">Detalle</h2><button id="dialogClose">×</button></div><div id="dialogBody"></div></dialog>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8121.js?v=8121"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8122.js?v=8122"></script>
 </body></html>

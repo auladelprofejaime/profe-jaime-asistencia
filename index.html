@@ -244,7 +244,7 @@
 }
 </style>
 
-</head><body>
+<style id="privacy-minimization-v8110">.privacy-card{max-width:900px;margin:0 auto}.privacy-card h3{margin-top:18px}.privacy-card p{line-height:1.55}</style></head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
     <img src="logo-app-docente-v821.png" alt="">
@@ -258,7 +258,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.10.3</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.11.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -279,6 +279,7 @@
       <button data-view="content" class="tab"><span>✦</span>Contenido</button>
       <button data-view="portal-access" class="tab"><span>🔐</span>Estado de acceso a portales</button>
       <button data-view="messages" class="tab"><span>✉</span>Mensajes</button>
+      <button data-view="privacy" class="tab"><span>🔒</span>Privacidad y seguridad</button>
     </div>
   </details>
 </nav>
@@ -473,18 +474,16 @@
 </section>
 
 <section id="students" class="view">
- <div class="card"><h2>Cargar alumnos</h2><p class="hint">Reconoce datos escolares y de contacto: ID, turno, grupo, lista, nombre, correo, tutor, teléfono, observaciones, incidencias y fecha de nacimiento.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
+ <div class="card"><h2>Cargar alumnos</h2><p class="hint">Importa únicamente los datos necesarios: ID, turno, grupo, lista, nombre(s) y primer apellido, cumpleaños (día y mes), observaciones e incidencias escolares.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
  <form id="studentForm" class="card formgrid">
 <h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden">
 <label>ID del alumno<input id="studentId" required></label>
 <label>Turno<select id="studentShift"><option>Matutino</option><option>Vespertino</option></select></label>
 <label>Grupo<input id="studentGroup" required></label>
 <label>No. de lista<input id="studentNumber" type="number" min="1" required></label>
-<label class="wide">Nombre completo<input id="studentName" required></label>
-<label class="wide">Correo institucional<input id="studentEmail" type="email" autocomplete="email" placeholder="alumno@correo.edu.mx"></label>
-<label class="wide">Nombre del padre, madre o tutor<input id="studentGuardian" placeholder="Nombre completo"></label>
-<label class="wide">Teléfono del padre, madre o tutor (WhatsApp)<input id="studentPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="Incluye lada; ejemplo: 5512345678"></label>
-<label>Fecha de nacimiento (opcional)<input id="studentBirthdate" type="date"></label>
+<label class="wide">Nombre(s) y primer apellido<input id="studentName" required placeholder="Ej. Sofía Hernández"></label>
+<label>Cumpleaños · día<select id="studentBirthDay"><option value="">Sin registrar</option></select></label>
+<label>Cumpleaños · mes<select id="studentBirthMonth"><option value="">Sin registrar</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></label>
 <label class="wide">Observaciones<textarea id="studentObservations" rows="4"></textarea></label>
 <label class="wide">Incidencias (opcional)<textarea id="studentIncidents" rows="4"></textarea></label>
 <div class="wide actions"><button class="primary">Guardar expediente</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div>
@@ -593,7 +592,7 @@
 </div>
 <div class="dossier-grid">
 <article class="card dossier-card"><h3>👤 Información del alumno</h3><dl id="dossierStudentInfo"></dl></article>
-<article class="card dossier-card"><h3>📞 Contacto</h3><dl id="dossierContactInfo"></dl><div id="dossierContactActions" class="actions contact-actions"></div></article>
+
 <article class="card dossier-card"><h3>📊 Historial</h3><div id="dossierHistory" class="history-grid"></div></article>
 <article class="card dossier-card"><h3>📝 Observaciones</h3><div class="note-block"><b>Observaciones</b><p id="dossierObservations">Sin observaciones.</p></div><div class="note-block"><b>Incidencias</b><p id="dossierIncidents">Sin incidencias registradas.</p></div></article>
 </div></div></section>
@@ -758,9 +757,17 @@
   </div>
 </section>
 
+<section id="privacy" class="view"><div class="card privacy-card"><h2>🔒 Privacidad y seguridad</h2>
+<p>Esta aplicación es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas o procedimientos oficiales.</p>
+<h3>Datos utilizados</h3><p>Se utilizan únicamente los datos necesarios para identificar al estudiante y realizar seguimiento escolar: ID, nombre(s) y primer apellido, grupo, cumpleaños sin año y registros académicos generados en la aplicación.</p>
+<h3>Dónde se almacenan</h3><p>Los datos se sincronizan con un servicio en línea que utiliza controles de acceso. Los portales consultan la información asociada a cada sesión mediante ID y PIN.</p>
+<h3>Contenido del dispositivo</h3><p>La aplicación no solicita acceso a contactos, ubicación, micrófono, fotografías, videos, mensajes personales, contraseñas ni información bancaria. Cuando el docente selecciona un archivo para importar, respaldar o publicar material, únicamente se utiliza el archivo elegido expresamente.</p>
+<h3>Notificaciones</h3><p>Las notificaciones utilizan identificadores técnicos de Web Push necesarios para entregar avisos al dispositivo.</p>
+<h3>Mensajería</h3><p>Las conversaciones del chat escolar se conservan únicamente durante 7 días desde su última actividad.</p>
+<p class="hint">Ningún sistema puede prometer seguridad absoluta. Por eso se aplican minimización de datos, credenciales y controles técnicos de acceso.</p></div></section>
 <dialog id="dialog"><div class="dialoghead"><h2 id="dialogTitle">Detalle</h2><button id="dialogClose">×</button></div><div id="dialogBody"></div></dialog>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8103.js?v=8103"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8110.js?v=8110"></script>
 </body></html>

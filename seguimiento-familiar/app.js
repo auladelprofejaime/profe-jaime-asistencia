@@ -298,7 +298,7 @@ function familyIsQuarterSummary(m){return !!(m?.isQuarterSummary||m?.periodType=
 function familyGradeModel(){
  normalizePortalMethodologies();
  const all=bundle?.methodologies||[];
- const monthly=all.filter(m=>!familyIsQuarterSummary(m)&&m.closed===true&&m.published!==false&&m.gradeRecords?.[id]?.finalDecimal!=null)
+ const monthly=all.filter(m=>!familyIsQuarterSummary(m)&&((m.closed===true&&m.published!==false)||m.provisionalPublished===true)&&m.gradeRecords?.[id]?.finalDecimal!=null)
    .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
      Number(b.quarter||0)-Number(a.quarter||0)||
      FAMILY_MONTH_ORDER.indexOf(b.month)-FAMILY_MONTH_ORDER.indexOf(a.month)||

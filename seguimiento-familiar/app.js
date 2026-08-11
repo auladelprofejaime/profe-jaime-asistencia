@@ -36,7 +36,6 @@ async function rawPortalBundle(){
      method:'POST',
      headers:{
        apikey:SUPABASE_PUBLISHABLE_KEY,
-       Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
        'Content-Type':'application/json'
      },
      body:JSON.stringify({p_token:currentToken})
@@ -82,7 +81,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8117',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8118',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }
@@ -226,6 +225,7 @@ async function enterPortal(){
 
    bundle=raw;
    id=bundle.student.id;
+   normalizePortalMethodologies();
 
    $('#sessionLoading')?.classList.add('hidden');
    $('#loginGate')?.classList.add('hidden');
@@ -244,6 +244,7 @@ async function enterPortal(){
 async function load(){
  bundle=await portalGetBundle(currentToken);
  if(!bundle?.ok)return;
+ normalizePortalMethodologies();
  const raw=await rawPortalBundle();
  if(raw?.ok)mergeFreshPortalContent(raw);
  $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
@@ -271,6 +272,33 @@ function familyActivityState(a,r){
  }
  return {label:'Pendiente',cls:'warn'};
 }
+
+function normalizePortalMethodologies(){
+ if(!bundle)return;
+ bundle.methodologies=(bundle.methodologies||[]).map(m=>{
+   if(m?.data&&typeof m.data==='object'){
+     return {
+       ...m.data,
+       id:m.id??m.data.id,
+       closed:m.closed??m.data.closed,
+       cycle:m.cycle??m.data.cycle,
+       quarter:m.quarter??m.data.quarter,
+       month:m.month??m.data.month,
+       shift:m.shift??m.data.shift,
+       group:m.group_name??m.data.group
+     };
+   }
+   return m;
+ });
+}
+function grade(){
+ normalizePortalMethodologies();
+ const closed=(bundle?.methodologies||[])
+   .filter(m=>m.closed&&m.gradeRecords?.[id]?.finalDecimal!=null)
+   .sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
+ return closed[0]?.gradeRecords?.[id]||null;
+}
+
 function renderAll(){
  let g=grade(),att=bundle.attendance,map=new Map((bundle.activityRecords||[]).map(r=>[r.key,r]));
  let pending=(bundle.activities||[]).filter(a=>{

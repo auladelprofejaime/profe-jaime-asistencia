@@ -5,8 +5,8 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'').replace(/\s+/g,'').toUpperCase();
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
 
-function openFamilyPushTarget(target){
- if(target==='reports'){setView('reports');return}
+async function openFamilyPushTarget(target){
+ if(target==='reports'){await openPortalView('reports');return}
  if(target==='activities'){setView('activities');return}
  if(target==='materials'){setView('materials');return}
  if(target==='notices'){setView('notices');return}
@@ -15,10 +15,28 @@ function openFamilyPushTarget(target){
 navigator.serviceWorker?.addEventListener('message',e=>{
  if(e.data?.type==='OPEN_PUSH_TARGET')openFamilyPushTarget(e.data.target);
 });
+document.addEventListener('visibilitychange',async()=>{
+ if(document.visibilityState==='visible'&&currentToken&&bundle){
+   try{
+     const fresh=await portalGetBundle(currentToken);
+     if(fresh?.ok){bundle=fresh;renderAll();}
+   }catch(e){console.warn('Actualización al volver a la app',e);}
+ }
+});
+
 const initialPush=new URLSearchParams(location.search).get('push');
 if(initialPush)setTimeout(()=>openFamilyPushTarget(initialPush),500);
 
-$$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+async function openPortalView(id){
+ if(id==='reports'&&currentToken){
+   try{
+     const fresh=await portalGetBundle(currentToken);
+     if(fresh?.ok){bundle=fresh;renderAll();}
+   }catch(e){console.warn('No se pudieron actualizar los reportes',e);}
+ }
+ setView(id);
+}
+$$('[data-view]').forEach(b=>b.onclick=()=>openPortalView(b.dataset.view));
 
 import {portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
 import {normalizePhone} from '../shared/data-contract.js';
@@ -28,7 +46,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8113',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8115',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }
@@ -86,6 +104,13 @@ async function init(){
 
  const releaseToLogin=()=>{
    if(released)return;
+   const portal=$('#portalApp');
+   if(portal && !portal.classList.contains('hidden')){
+     released=true;
+     loading?.classList.add('hidden');
+     login?.classList.add('hidden');
+     return;
+   }
    released=true;
    loading?.classList.add('hidden');
    login?.classList.remove('hidden');
@@ -171,6 +196,9 @@ async function enterPortal(){
    $('#portalApp')?.classList.remove('hidden');
 
    await load();
+   $('#sessionLoading')?.classList.add('hidden');
+   $('#loginGate')?.classList.add('hidden');
+   $('#portalApp')?.classList.remove('hidden');
    return true;
  }catch(e){
    console.warn('No se pudo recuperar la sesión',e);
@@ -274,7 +302,7 @@ async function openReport(rid){
      </div>${rows||'<div class="card muted">Sin actividades en este reporte.</div>'}`;
    const view=$('#reports');
    view.innerHTML=html;
-   $('#backReports').onclick=()=>{view.innerHTML='<button class="back-home" data-view="home">← Inicio</button><h2>Reportes</h2><div id="familyReports" class="cards"></div>';view.querySelector('[data-view="home"]').onclick=()=>setView('home');renderAll();setView('reports')};
+   $('#backReports').onclick=()=>{view.innerHTML='<button class="back-home" data-view="home">← Inicio</button><h2>Reportes</h2><div id="familyReports" class="cards"></div>';view.querySelector('[data-view="home"]').onclick=()=>setView('home');renderAll();openPortalView('reports')};
    return;
  }
  alert('Este reporte no tiene un formato compatible con esta versión.');

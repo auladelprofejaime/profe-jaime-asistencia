@@ -32,7 +32,7 @@ if(initialPush)setTimeout(()=>openFamilyPushTarget(initialPush),500);
 async function rawPortalBundle(){
  if(!currentToken)return null;
  try{
-   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_bundle`,{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_updates`,{
      method:'POST',
      headers:{
        apikey:SUPABASE_PUBLISHABLE_KEY,
@@ -41,9 +41,9 @@ async function rawPortalBundle(){
      },
      body:JSON.stringify({p_token:currentToken})
    });
-   if(!r.ok)return null;
+   if(!r.ok){console.warn('portal_get_updates HTTP',r.status);return null}
    return await r.json();
- }catch(e){console.warn('raw portal bundle',e);return null}
+ }catch(e){console.warn('portal updates',e);return null}
 }
 function mergeFreshPortalContent(raw){
  if(!raw?.ok||!bundle)return;
@@ -82,7 +82,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8116',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8117',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }

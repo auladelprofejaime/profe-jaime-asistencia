@@ -14,7 +14,6 @@ async function rawStudentPortalBundle(){
      method:'POST',
      headers:{
        apikey:SUPABASE_PUBLISHABLE_KEY,
-       Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
        'Content-Type':'application/json'
      },
      body:JSON.stringify({p_token:currentToken})
@@ -41,7 +40,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8126',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8127',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -356,7 +355,6 @@ async function refreshStudentBirthday(){
      method:'POST',
      headers:{
        apikey:SUPABASE_PUBLISHABLE_KEY,
-       Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
        'Content-Type':'application/json'
      },
      body:JSON.stringify({p_token:currentToken})
@@ -423,10 +421,29 @@ async function showBirthdayGreetingIfNeeded(){
 }
 
 async function load(){
- bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;await refreshStudentNotices();
+ bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;normalizeStudentMethodologies();await refreshStudentNotices();
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
  renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();renderStudentNotifBadge();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+}
+
+function normalizeStudentMethodologies(){
+ if(!bundle)return;
+ bundle.methodologies=(bundle.methodologies||[]).map(m=>{
+   if(m?.data&&typeof m.data==='object'){
+     return {
+       ...m.data,
+       id:m.id??m.data.id,
+       closed:m.closed??m.data.closed,
+       cycle:m.cycle??m.data.cycle,
+       quarter:m.quarter??m.data.quarter,
+       month:m.month??m.data.month,
+       shift:m.shift??m.data.shift,
+       group:m.group_name??m.data.group
+     };
+   }
+   return m;
+ });
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));

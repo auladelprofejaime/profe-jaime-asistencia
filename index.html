@@ -1,27 +1,780 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#ffffff"><title>App padres</title><link rel="manifest" href="manifest.webmanifest?v=830"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" sizes="512x512" href="icon-app-padres-v821.png?v=830"></head>
-<body><div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-padres-v821.png"><b>App padres</b><span>Recuperando la sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-padres-v821.png"><div><h2>App padres</h2><div class="muted">Acceso para familias · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" placeholder="ID del alumno"></label><label>PIN familiar<input id="loginPin" type="password" inputmode="numeric" maxlength="8" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">El PIN familiar es independiente del PIN del alumno.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-padres-v821.png"><div><h1>App padres</h1><small>El Aula del Profe Jaime · v8.11.5</small></div><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></header><main>
-<section id="home" class="view active"><div class="hero"><div><small>SEGUIMIENTO ACADÉMICO</small><h2 id="familyHello">Bienvenido</h2><p class="muted">Información clara y sencilla.</p></div><img src="logo-app-padres-v821.png"></div><div class="portal-menu">
-<button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
-<button data-view="attendance" class="portal-menu-btn"><span>📅</span><b>Asistencia</b></button>
-<button data-view="grades" class="portal-menu-btn"><span>📊</span><b>Promedio</b></button>
-<button data-view="materials" class="portal-menu-btn"><span>📎</span><b>Materiales</b></button>
-<button data-view="reports" class="portal-menu-btn"><span>📄</span><b>Reportes</b></button>
-<button data-view="notices" class="portal-menu-btn"><span>📢</span><b>Avisos</b></button>
-<button data-view="contact" class="portal-menu-btn"><span>💬</span><b>Contacto</b></button>
-<button data-view="notifications" class="portal-menu-btn"><span>🔔</span><b>Notificaciones</b></button>
-<button data-view="privacy" class="portal-menu-btn"><span>🔒</span><b>Privacidad y seguridad</b></button>
-</div>
-<div id="familyStats" class="big-grid"></div><div id="familyNotice" style="margin-top:14px"></div></section>
-<section id="attendance" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Asistencia</h2><div id="familyAttendance" class="cards"></div></section>
-<section id="activities" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Próximas entregas</h2><div id="familyActivities" class="cards"></div></section>
-<section id="grades" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Promedio</h2><div id="familyGrades"></div></section>
-<section id="materials" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Materiales</h2><div id="familyMaterials" class="cards"></div></section><section id="notices" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Avisos</h2><div id="familyNotices" class="cards"></div></section><section id="reports" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Reportes</h2><div id="familyReports" class="cards"></div></section>
-<section id="contact" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Contacto</h2><div class="card"><h3>Contactar al profesor</h3><p id="contactSchedule" class="muted"></p><button id="contactTeacher" class="action">Contactar al profesor</button>
-<div id="contactMessage" class="notice" style="margin-top:12px"></div></div></section>
-<section id="notifications" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Notificaciones</h2><div class="card"><h3>Recibir avisos en este dispositivo</h3><p class="muted">Recibe nuevas actividades, avisos y materiales aunque Seguimiento Familiar esté cerrada.</p><button id="enableFamilyNotif" class="action">🔔 Activar notificaciones</button><div id="familyPushStatus" class="push-status muted">Comprobando estado…</div></div></section>
-<section id="privacy" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Privacidad y seguridad</h2><div class="card"><p>Seguimiento Familiar utiliza únicamente los datos necesarios para identificar al estudiante y mostrar su información escolar.</p><p>El acceso se realiza mediante ID del alumno de 5 dígitos y PIN familiar. No se solicita nombre del familiar, teléfono, correo personal ni fecha completa de nacimiento.</p><p><b>Instalar esta aplicación no permite al profesor acceder a contactos, fotografías, videos, ubicación, micrófono, WhatsApp, mensajes personales, contraseñas, archivos personales ni información bancaria.</b></p><p>Las notificaciones utilizan exclusivamente los datos técnicos necesarios para registrar y entregar avisos mediante Web Push.</p><p>La información se utiliza para seguimiento y comunicación escolar y no para publicidad ni fines comerciales.</p><p>Esta es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas, trámites o procedimientos oficiales.</p></div></section></main></div>
-<script>
-if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=8115',{scope:'./'}).catch(console.warn));
+<!doctype html>
+<html lang="es"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#f5c400"><title>App docente</title>
+<link rel="manifest" href="manifest.webmanifest?v=821"><link rel="stylesheet" href="styles.css"><link rel="apple-touch-icon" sizes="512x512" href="icon-app-docente-v821.png?v=821">
+
+<style id="attendance-responsive-v88">
+/* v8.8: Asistencia adaptable a cualquier pantalla */
+#attendance,
+#attendance *{
+  box-sizing:border-box;
+  min-width:0;
 }
-</script><script type="module" src="app.js?v=8112"></script></body></html>
+#attendance{
+  width:100%;
+  max-width:100%;
+  overflow-x:hidden;
+}
+#attendance .card{
+  width:100%;
+  max-width:100%;
+}
+#attendance select,
+#attendance input,
+#attendance button{
+  max-width:100%;
+}
+#attendance .scan{
+  width:100%;
+}
+#attendance .stats{
+  width:100%;
+}
+@media (max-width:700px){
+  #attendance .grid4{
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:10px !important;
+  }
+  #attendance .grid4 label{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  #attendance .grid4 select,
+  #attendance .grid4 input{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  #attendance .stats{
+    display:grid !important;
+    grid-template-columns:repeat(3,minmax(0,1fr)) !important;
+    gap:8px !important;
+  }
+  #attendance .stats > div{
+    min-width:0 !important;
+    padding:10px 6px !important;
+  }
+  #attendance .stats b{
+    font-size:clamp(1.25rem,7vw,2rem) !important;
+  }
+  #attendance .stats span{
+    font-size:.78rem !important;
+    overflow-wrap:anywhere;
+  }
+  #attendance .scan{
+    display:grid !important;
+    grid-template-columns:minmax(0,1fr) auto !important;
+    gap:8px !important;
+  }
+  #attendance .scan input{
+    width:100% !important;
+    min-width:0 !important;
+  }
+  #attendance .section{
+    align-items:flex-start !important;
+    gap:10px !important;
+    flex-wrap:wrap !important;
+  }
+  #attendance .section .actions{
+    width:100% !important;
+    display:grid !important;
+    grid-template-columns:1fr 1fr !important;
+    gap:8px !important;
+  }
+  #attendance .section .actions button{
+    width:100% !important;
+    white-space:normal !important;
+    line-height:1.15 !important;
+    min-height:44px !important;
+  }
+  #attendance .row{
+    gap:8px !important;
+    align-items:flex-start !important;
+  }
+  #attendance .row > div:first-child{
+    flex:1 1 auto !important;
+    min-width:0 !important;
+    overflow-wrap:anywhere !important;
+  }
+  #attendance .rowactions{
+    flex:0 0 auto !important;
+  }
+}
+@media (max-width:430px){
+  #attendance .grid4{
+    grid-template-columns:1fr !important;
+  }
+  #attendance .scan{
+    grid-template-columns:1fr !important;
+  }
+  #attendance .scan button{
+    width:100% !important;
+  }
+  #attendance .section .actions{
+    grid-template-columns:1fr !important;
+  }
+}
+</style>
+
+
+<style id="birthdays-v89">
+.birthday-week-card{margin-top:14px}
+.birthday-week-list{display:grid;gap:9px}
+.birthday-day{display:grid;grid-template-columns:minmax(115px,150px) 1fr;gap:12px;align-items:start;padding:10px 12px;border-radius:13px;background:rgba(245,196,0,.10)}
+.birthday-day.today{background:rgba(201,35,45,.10);outline:2px solid rgba(201,35,45,.18)}
+.birthday-day-date{font-weight:900}
+.birthday-name{font-weight:800}
+.birthday-meta{display:block;font-size:.82rem;opacity:.72;margin-top:2px}
+@media(max-width:520px){.birthday-day{grid-template-columns:1fr}.birthday-day-date{margin-bottom:2px}}
+</style>
+
+
+<style id="reset-cycle-v892">
+.reset-cycle-card{margin-top:18px;border:2px solid rgba(153,24,34,.22)}
+.reset-cycle-card h2{color:#991822}
+.reset-cycle-card .danger{width:100%;min-height:48px;font-weight:900}
+.reset-cycle-dialog{max-width:560px}
+.reset-cycle-dialog .warning-box{background:#fff1f2;border:1px solid #fecdd3;border-radius:14px;padding:14px;margin:12px 0;color:#7f1d1d}
+.reset-cycle-dialog input{width:100%;box-sizing:border-box}
+.reset-cycle-dialog .dialog-actions{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:14px}
+@media(max-width:520px){.reset-cycle-dialog .dialog-actions{grid-template-columns:1fr}}
+</style>
+
+
+<style id="filters-portals-v896">
+.student-list-controls{align-items:flex-end!important;gap:14px!important}
+.student-filter-controls,.portal-filter-bar{
+  display:grid;
+  grid-template-columns:minmax(130px,180px) minmax(220px,1fr);
+  gap:12px;
+  align-items:end;
+}
+.portal-filter-bar{margin:14px 0 16px}
+.student-filter-controls label,.portal-filter-bar label{font-weight:800}
+.student-filter-controls select,.student-filter-controls input,
+.portal-filter-bar select,.portal-filter-bar input{width:100%;box-sizing:border-box;margin-top:5px}
+.access-table td:first-child b{display:block}
+.access-table td:first-child small{display:block;margin-top:3px}
+@media(max-width:650px){
+  .student-filter-controls,.portal-filter-bar{grid-template-columns:1fr;width:100%}
+  .student-list-controls{align-items:stretch!important}
+}
+</style>
+
+
+<style id="dossier-group-filter-v897">
+.dossier-selector{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;flex-wrap:wrap}
+.dossier-selector-controls{display:grid;grid-template-columns:minmax(120px,170px) minmax(250px,1fr);gap:12px;flex:1 1 470px}
+.dossier-selector-controls label{font-weight:800}
+.dossier-selector-controls select{width:100%;box-sizing:border-box;margin-top:5px}
+@media(max-width:600px){.dossier-selector-controls{grid-template-columns:1fr;width:100%;flex-basis:100%}}
+</style>
+
+
+<style id="activity-multigroup-v898">
+.activity-group-choices{display:flex;flex-wrap:wrap;gap:9px;margin-top:7px}
+.activity-group-choice{display:inline-flex!important;align-items:center;gap:7px;min-height:42px;padding:8px 12px;border:1px solid rgba(0,0,0,.18);border-radius:999px;background:#fff;font-weight:800!important;cursor:pointer}
+.activity-group-choice input{width:18px!important;height:18px!important;margin:0!important}
+.activity-group-choice.selected{background:#fff1a8;border-color:#d2a900}
+.activity-group-choice.all-groups{background:#f6f6f6}
+@media(max-width:520px){.activity-group-choices{display:grid;grid-template-columns:1fr 1fr}.activity-group-choice{border-radius:12px;justify-content:flex-start}}
+</style>
+
+<style id="student-chat-control-v899">
+.chat-control-actions{display:grid!important;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px!important;width:100%}
+.chat-control-actions button{white-space:normal!important;min-height:44px!important}
+@media(max-width:650px){.chat-control-actions{grid-template-columns:1fr!important}}
+</style>
+
+<style id="monitor-card-v8102">
+.monitor-student-card{
+  border:2px solid rgba(245,196,0,.45);
+  background:linear-gradient(180deg,rgba(245,196,0,.09),rgba(255,255,255,.98));
+}
+.monitor-badge{
+  display:inline-flex;
+  align-items:center;
+  padding:5px 10px;
+  border-radius:999px;
+  background:#1f2937;
+  color:#fff;
+  font-size:.76rem;
+  font-weight:900;
+  letter-spacing:.05em;
+  margin-bottom:8px;
+}
+.monitor-student-info{
+  display:grid;
+  grid-template-columns:120px minmax(220px,1fr) 150px 150px;
+  gap:10px;
+  margin-top:12px;
+}
+.monitor-student-info>div{
+  padding:12px 14px;
+  border:1px solid rgba(0,0,0,.10);
+  border-radius:13px;
+  background:#fff;
+}
+.monitor-student-info small{
+  display:block;
+  opacity:.65;
+  margin-bottom:3px;
+}
+.monitor-student-info b{display:block}
+@media(max-width:760px){
+  .monitor-student-info{grid-template-columns:1fr 1fr}
+}
+@media(max-width:480px){
+  .monitor-student-info{grid-template-columns:1fr}
+  .monitor-student-card .actions{width:100%;display:grid;grid-template-columns:1fr}
+}
+</style>
+
+
+<style id="monitor-pins-v8103">
+.monitor-pin-box{
+  background:#fff8d6!important;
+  border:1px solid #e0bc21!important;
+}
+.monitor-pin{
+  font-size:1.35rem;
+  letter-spacing:.08em;
+  font-variant-numeric:tabular-nums;
+}
+</style>
+
+<style id="privacy-minimization-v8110">.privacy-card{max-width:900px;margin:0 auto}.privacy-card h3{margin-top:18px}.privacy-card p{line-height:1.55}</style></head><body>
+<div id="teacherLoginGate" class="teacher-login-gate hidden">
+  <div class="teacher-login-card">
+    <img src="logo-app-docente-v821.png" alt="">
+    <h2>Conectar con Supabase</h2>
+    <p>Inicia sesión con la cuenta de profesor creada en Supabase.</p>
+    <label>Correo<input id="teacherLoginEmail" type="email" autocomplete="username"></label>
+    <label>Contraseña<input id="teacherLoginPassword" type="password" autocomplete="current-password"></label>
+    <label class="remember-line"><input id="teacherRemember" type="checkbox" checked> Recordar sesión</label>
+    <button id="teacherLoginBtn" class="primary" type="button">Iniciar sesión</button>
+    <div id="teacherLoginError" class="login-error"></div>
+  </div>
+</div>
+
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.14.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<nav class="tabs dropdown-nav">
+  <details id="mainMenu" class="main-menu">
+    <summary aria-label="Abrir menú principal">
+      <span class="menu-title">☰ Menú</span>
+      <strong id="currentSection">Inicio</strong>
+      <span class="menu-arrow">⌄</span>
+    </summary>
+    <div class="menu-panel">
+      <button data-view="home" class="tab active"><span>⌂</span>Inicio</button>
+      <button data-view="attendance" class="tab"><span>▣</span>Asistencia</button>
+      <button data-view="activities" class="tab"><span>●</span>Actividades</button>
+      <button data-view="methodologies" class="tab"><span>%</span>Metodologías</button>
+      <button data-view="titular" class="tab"><span>3A</span>Seguimiento 3.º A</button>
+      <button data-view="students" class="tab"><span>♟</span>Alumnos</button>
+      <button data-view="dossier" class="tab"><span>👤</span>Expediente del alumno</button>
+      <button data-view="reports" class="tab"><span>▤</span>Reportes</button>
+      <button data-view="availability" class="tab"><span>◷</span>Disponibilidad</button>
+      <button data-view="content" class="tab"><span>✦</span>Contenido</button>
+      <button data-view="portal-access" class="tab"><span>🔐</span>Estado de acceso a portales</button>
+      <button data-view="messages" class="tab"><span>✉</span>Mensajes</button>
+      <button data-view="privacy" class="tab"><span>🔒</span>Privacidad y seguridad</button>
+    </div>
+  </details>
+</nav>
+<main>
+<section id="home" class="view active">
+ <div class="welcome card">
+  <img src="logo-app-docente-v821.png" alt="Avatar profesional de El Aula del Profe Jaime" class="welcome-avatar">
+  <div class="welcome-copy"><span class="eyebrow">PROFE JAIME</span><h2>Control Escolar</h2><p id="welcomeDate">Tu herramienta para registrar, consultar y respaldar el trabajo escolar.</p><div class="actions">
+  <button id="homeSaveAll" class="primary">Guardar todo dentro de la app</button>
+  <button id="homeRestoreInternal" class="secondary">Restaurar último guardado</button>
+</div>
+<div class="device-backup-box">
+  <h3>Cambiar de dispositivo o proteger tus datos</h3>
+  <p>Descarga un archivo con toda la información y guárdalo en iCloud Drive, OneDrive o Google Drive.</p>
+  <div class="actions">
+    <button id="homeExportBackup" class="secondary" type="button">Exportar respaldo</button>
+    <label class="filebtn alt">Importar respaldo<input id="homeRestoreFile" type="file" accept=".json,application/json"></label>
+  </div>
+</div>
+<p id="lastInternalSave" class="save-state">Todavía no hay un guardado interno adicional.</p></div>
+ </div>
+ 
+<div class="cloud-sync-box">
+  <div>
+    <h3>☁ Supabase</h3>
+    <p id="supabaseSyncState">Comprobando conexión…</p>
+  </div>
+  <div class="actions">
+    <button id="syncSupabaseBtn" class="primary" type="button">Sincronizar ahora</button>
+    <button id="teacherLogoutBtn" class="secondary" type="button">Cerrar sesión Supabase</button>
+  </div>
+</div>
+<div class="home-summary">
+  <div class="summary-card"><b id="homeGroups">0</b><span>Grupos</span></div><div class="summary-card"><b id="homeStudents">0</b><span>Alumnos</span></div><div class="summary-card"><b id="homeActivities">0</b><span>Actividades</span></div><div class="summary-card"><b id="homeAttendance">0</b><span>Asistencias guardadas</span></div>
+ </div>
+ <div class="card birthday-week-card">
+   <div class="section">
+     <div><h2>🎂 Cumpleaños de la semana</h2><p class="hint">Alumnos que cumplen años de lunes a domingo.</p></div>
+   </div>
+   <div id="weeklyBirthdays" class="birthday-week-list"><div class="empty">Sin fechas de nacimiento registradas esta semana.</div></div>
+ </div>
+ <div class="home-menu">
+  <button data-go="attendance" class="home-button"><span>▣</span><b>Asistencia</b><small>Matutino y vespertino con escáner</small></button>
+  <button data-go="activities" class="home-button"><span>✓</span><b>Actividades</b><small>Escáner y cuadrícula semanal</small></button>
+  <button data-go="methodologies" class="home-button"><span>%</span><b>Metodologías</b><small>Criterios, porcentajes y cálculo de calificaciones</small></button>
+  <button data-go="titular" class="home-button"><span>3A</span><b>Seguimiento 3.º A</b><small>Captura y reporte individual</small></button>
+  <button data-go="students" class="home-button"><span>☷</span><b>Alumnos</b><small>Importar, agregar y ordenar</small></button>
+  <button data-go="dossier" class="home-button"><span>👤</span><b>Expediente del alumno</b><small>Datos e historial individual</small></button>
+  <button data-go="reports" class="home-button"><span>PDF</span><b>Reportes</b><small>Listos para guardar o compartir</small></button>
+ </div>
+</section>
+<section id="attendance" class="view">
+ <div class="card grid4"><label>Turno<select id="attShift"></select></label><label>Grupo<select id="attGroup"></select></label><label>Fecha<input id="attDate" type="date"></label><label>Modo<select id="attMode"><option value="presente">Presente</option><option value="retardo">Retardo</option></select></label></div>
+ <div class="stats"><div><b id="attPresent">0</b><span>Registrados</span></div><div><b id="attTotal">0</b><span>Alumnos</span></div><div><b id="attMissing">0</b><span>Faltantes</span></div></div>
+ <div id="attStatus" class="status neutral"><i>▣</i><h2>Escanea la credencial</h2><p>El lector escribe el ID y envía Enter.</p></div>
+ <div class="scan"><input id="attScan" inputmode="numeric" placeholder="ID del alumno"><button id="attRegister" class="primary">Registrar</button></div>
+ <div class="card"><div class="section"><h2>Registros del día</h2><div class="actions"><button id="attMissingBtn" class="secondary">Ver faltantes</button><button id="attFinalizeBtn" class="danger-outline">Finalizar lista y marcar faltas</button></div></div><div id="attList" class="list empty">Aún no hay registros.</div></div>
+</section>
+
+<section id="activities" class="view">
+ <div class="subtabs"><button data-acttab="scan" class="sub active">Escáner</button><button data-acttab="grid" class="sub">Cuadrícula semanal</button><button data-acttab="manage" class="sub">Crear actividad</button></div>
+ <div id="act-scan" class="actpane active">
+  <div class="card grid4"><label>Turno<select id="actShift"></select></label><label>Grupo<select id="actGroup"></select></label><label>Semana<select id="actWeek"></select></label><label>Actividad<select id="actSelect"></select></label></div>
+  <div class="stats"><div><b id="actDelivered">0</b><span>Entregaron</span></div><div><b id="actNotDelivered">0</b><span>No entregaron</span></div><div><b id="actPending">0</b><span>Pendientes</span></div></div>
+  <div id="actStatus" class="status neutral"><i>▣</i><h2>Escanea para registrar entrega</h2><p>Disponible únicamente para actividades de entrega.</p></div>
+  <div class="scan"><input id="actScan" inputmode="numeric" placeholder="ID del alumno"><button id="actRegister" class="primary">Registrar entrega</button></div>
+  <div class="actions"><button id="actClose" class="danger-outline">Finalizar y marcar faltantes ✕</button><button id="actReopen" class="secondary">Dejar pendientes</button></div>
+ </div>
+ <div id="act-grid" class="actpane">
+  <div class="card grid4"><label>Turno<select id="gridShift"></select></label><label>Grupo<select id="gridGroup"></select></label><label>Semana<select id="gridWeek"></select></label><label>Acción<button id="gridPdf" class="secondary">PDF semanal</button></label></div>
+  <p class="hint">Entrega: toca para cambiar entre pendiente, círculo verde y círculo rojo. Numérica: escribe una calificación de 0 a 10; vacío significa sin calificar.</p><div id="activityGrid" class="tablewrap"></div>
+ </div>
+ <div id="act-manage" class="actpane">
+  <form id="activityForm" class="card formgrid"><h2 id="activityFormTitle">Crear actividad</h2><input type="hidden" id="editActivityId"><label>Turno<select id="newActShift"></select></label><label class="wide">Grupos
+  <select id="newActGroup" class="hidden" aria-hidden="true"></select>
+  <div id="newActGroupChoices" class="activity-group-choices"></div>
+  <p id="newActGroupHelp" class="hint">Puedes seleccionar uno, varios o todos los grupos.</p>
+</label><label>Asignada<input id="newActDate" type="date" required></label><label>Fecha de entrega<input id="newActDueDate" type="date" required></label><label>Semana<select id="newActWeek" required></select></label><label class="wide">Nombre de la actividad<input id="newActName" placeholder="Ej. Dictado 1" required></label><label>Tipo<select id="newActType"><option>Actividad</option><option>Cuaderno</option><option>Tarea</option><option>Dictado</option><option>Proyecto</option><option>Examen</option><option>Otro</option></select></label>
+<label>Forma de evaluación<select id="newActEvaluation" required><option value="delivery">Entrega: círculo verde o rojo</option><option value="numeric">Calificación numérica de 0 a 10</option></select></label>
+<p id="evaluationHelp" class="wide hint">Las actividades de entrega pueden registrarse con el escáner. Las numéricas se capturan directamente en la cuadrícula.</p>
+<div class="wide actions"><button id="saveActivityBtn" class="primary">Guardar actividad</button><button id="cancelActivityEdit" type="button" class="secondary hidden">Cancelar edición</button></div></form>
+  <div class="card"><h2>Actividades creadas</h2><div id="activitiesList" class="list empty">No hay actividades.</div></div>
+ </div>
+</section>
+
+
+<section id="methodologies" class="view">
+  <div class="subtabs">
+    <button data-mettab="manage" class="sub active">Crear metodología</button>
+    <button data-mettab="calculate" class="sub">Calcular calificaciones</button>
+    <button data-mettab="quarter" class="sub">Resumen trimestral</button>
+  </div>
+
+  <div id="met-manage" class="metpane active">
+    <form id="methodologyForm" class="card formgrid">
+      <h2 id="methodologyFormTitle">Nueva metodología</h2>
+      <input type="hidden" id="editMethodologyId">
+      <label>Turno<select id="metShift"></select></label>
+      <label>Grupo<select id="metGroup"></select></label>
+      <label class="wide">Nombre de la metodología<input id="metName" placeholder="Ej. Evaluación de septiembre" required></label>
+      <label>Materia<input id="metSubject" value="Español" placeholder="Ej. Español" required></label>
+      <label>Ciclo escolar<input id="metCycle" placeholder="Ej. 2026-2027" required></label>
+      <label>Trimestre<select id="metQuarter"><option value="1">Primer trimestre</option><option value="2">Segundo trimestre</option><option value="3">Tercer trimestre</option></select></label>
+      <label>Mes evaluado<select id="metMonth" required>
+        <option>Agosto</option><option>Septiembre</option><option>Octubre</option><option>Noviembre</option><option>Diciembre</option>
+        <option>Enero</option><option>Febrero</option><option>Marzo</option><option>Abril</option><option>Mayo</option><option>Junio</option>
+      </select></label>
+      <div class="wide section"><h3>Criterios y porcentajes</h3><button id="addCriterionBtn" type="button" class="secondary">Agregar criterio</button></div>
+      <div id="criteriaEditor" class="wide criteria-editor"></div>
+      <div class="wide percentage-total">Total: <strong id="criteriaTotal">0%</strong> <span id="criteriaValidation"></span></div>
+      <div class="wide actions">
+        <button class="primary" type="submit">Guardar metodología</button>
+        <button id="cancelMethodologyEdit" class="secondary hidden" type="button">Cancelar edición</button>
+      </div>
+    </form>
+
+    <div class="card">
+      <h2>Metodologías creadas</h2>
+      <div id="methodologiesList" class="list empty">No hay metodologías.</div>
+    </div>
+  </div>
+
+  <div id="met-calculate" class="metpane">
+    <div class="card grid4">
+      <label>Turno<select id="calcMetShift"></select></label>
+      <label>Grupo<select id="calcMetGroup"></select></label>
+      <label>Metodología<select id="calcMethodology"></select></label>
+      <label>Acción<button id="calculateMethodologyBtn" class="primary" type="button">Calcular</button></label>
+    </div>
+
+    <div class="card">
+      <div class="section">
+        <h2>Asignar actividades a criterios</h2>
+        <button id="saveAssignmentsBtn" class="secondary" type="button">Guardar asignaciones</button>
+      </div>
+      <p class="hint">Cada actividad puede pertenecer a un criterio. Los porcentajes deben sumar exactamente 100%.</p>
+      <div id="methodologyAssignments" class="list empty">Selecciona una metodología.</div>
+    </div>
+
+    <div class="card">
+      <div class="section">
+        <h2>Resultados</h2>
+        <div class="actions">
+          <button id="methodologyPdfBtn" class="secondary" type="button">PDF general</button>
+          <button id="methodologyIndividualPdfBtn" class="primary" type="button">PDF individual por alumno</button>
+        </div>
+      </div>
+      <p class="hint">La calificación decimal conserva décimas. El redondeo solo sube cuando la décima es 6 o mayor; .5 permanece en el entero inferior. La máxima visible es 10.</p>
+      <div id="methodologyMonthActions" class="actions period-actions hidden">
+        <button id="closeMethodologyMonthBtn" class="secondary" type="button">Cerrar mes</button>
+        <button id="newMethodologyMonthBtn" class="primary" type="button">Iniciar nuevo mes</button>
+      </div>
+      <div id="methodologyResults" class="tablewrap"><div class="empty">Pulsa Calcular.</div></div>
+    </div>
+  </div>
+  <div id="met-quarter" class="metpane">
+    <div class="card grid4">
+      <label>Turno<select id="quarterShift"></select></label>
+      <label>Grupo<select id="quarterGroup"></select></label>
+      <label>Ciclo escolar<input id="quarterCycle" placeholder="Ej. 2026-2027"></label>
+      <label>Trimestre<select id="quarterNumber"><option value="1">Primer trimestre</option><option value="2">Segundo trimestre</option><option value="3">Tercer trimestre</option></select></label>
+    </div>
+    <div class="card">
+      <div class="section">
+        <div><h2>Promedio trimestral</h2><p class="hint">En matutino promedia las calificaciones finales decimales de los meses cerrados del trimestre.</p></div>
+        <div class="actions"><button id="calculateQuarterBtn" class="primary" type="button">Calcular trimestre</button><button id="quarterPdfBtn" class="secondary" type="button">Generar PDF</button></div>
+      </div>
+      <div id="quarterResults" class="tablewrap"><div class="empty">Selecciona ciclo y trimestre.</div></div>
+    </div>
+  </div>
+
+</section>
+
+<section id="titular" class="view">
+ <div class="subtabs"><button data-tittab="capture" class="sub active">Captura semanal</button><button data-tittab="individual" class="sub">Reporte individual</button></div>
+ <div id="tit-capture" class="titpane active">
+  <div class="card grid4"><label>Periodo<select id="titPeriod"><option>Periodo 1</option><option>Periodo 2</option><option>Periodo 3</option><option>Periodo 4</option></select></label><label>Mes<select id="titMonth"></select></label><label>Semana<input id="titWeek" placeholder="Ej. Semana 1"></label><label>Etiqueta<input id="titLabel" placeholder="Semana del 31 ago al 4 sep"></label></div>
+  <div class="card"><div class="section"><h2>Seguimiento académico · 3.º A</h2><button id="titSaveAll" class="primary">Guardar semana</button></div><p class="hint">Toca el estado de cada materia. Verde: al corriente; amarillo: requiere atención; rojo: atención prioritaria; blanco: sin información.</p><div id="titularGrid" class="tablewrap"></div></div>
+ </div>
+ <div id="tit-individual" class="titpane">
+  <div class="card titular-report-controls">
+  <label>Alumno<select id="titStudent"></select></label>
+  <label>Semana<select id="titSavedWeek"></select></label>
+  <label>Grupo<input value="3.º A" disabled></label>
+  <div class="titular-report-actions">
+    <button id="titPdf" class="secondary" type="button">Generar PDF</button>
+    <button id="titEmail" class="primary" type="button">Enviar por correo</button>
+  </div>
+</div>
+  <div id="titPreview" class="report-preview"></div>
+ </div>
+</section>
+
+<section id="students" class="view">
+ <div class="card"><h2>Cargar alumnos</h2><p class="hint">Importa únicamente los datos necesarios: ID, turno, grupo, lista, nombre(s) y primer apellido, cumpleaños (día y mes), observaciones e incidencias escolares.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
+ <form id="studentForm" class="card formgrid">
+<h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden">
+<label>ID del alumno<input id="studentId" required></label>
+<label>Turno<select id="studentShift"><option>Matutino</option><option>Vespertino</option></select></label>
+<label>Grupo<input id="studentGroup" required></label>
+<label>No. de lista<input id="studentNumber" type="number" min="1" required></label>
+<label class="wide">Nombre(s) y primer apellido<input id="studentName" required placeholder="Ej. Sofía Hernández"></label>
+<label>Cumpleaños · día<select id="studentBirthDay"><option value="">Sin registrar</option></select></label>
+<label>Cumpleaños · mes<select id="studentBirthMonth"><option value="">Sin registrar</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></label>
+<label class="wide">Observaciones<textarea id="studentObservations" rows="4"></textarea></label>
+<label class="wide">Incidencias (opcional)<textarea id="studentIncidents" rows="4"></textarea></label>
+<div class="wide actions"><button class="primary">Guardar expediente</button><button id="cancelEdit" type="button" class="secondary hidden">Cancelar</button></div>
+</form>
+ 
+<div class="card monitor-student-card">
+  <div class="section">
+    <div>
+      <span class="monitor-badge">MONITOR PERMANENTE</span>
+      <h2>🧪 Alumno monitor</h2>
+      <p class="hint">Esta cuenta se conserva al reiniciar el ciclo y sirve para probar Mi Español y Seguimiento Familiar.</p>
+    </div>
+    <div class="actions">
+      <button id="openMonitorDossier" class="primary" type="button">Abrir expediente</button>
+      <button id="openMonitorPortals" class="secondary" type="button">Ver accesos a portales</button>
+    </div>
+  </div>
+  <div class="monitor-student-info">
+    <div><small>ID</small><b>00001</b></div>
+    <div><small>Nombre</small><b>Alumno Monitor del Profe</b></div>
+    <div><small>Grupo</small><b>MONITOR</b></div>
+    <div><small>Turno</small><b>Matutino</b></div>
+    <div class="monitor-pin-box"><small>PIN Mi Español</small><b class="monitor-pin" id="monitorStudentPin">Protegido</b></div>
+    <div class="monitor-pin-box"><small>PIN Seguimiento Familiar</small><b class="monitor-pin" id="monitorParentPin">Protegido</b></div>
+    <div class="monitor-pin-box">
+      <small>Acceso protegido</small>
+      <button type="button" class="secondary" onclick="loadMonitorAccess()">Mostrar PIN del monitor</button>
+    </div>
+  </div>
+</div>
+
+<div class="card">
+  <div class="section student-list-controls">
+    <div>
+      <h2>Lista de alumnos activos</h2>
+      <p class="hint">Filtra por grupo para trabajar sin mostrar los 400 alumnos al mismo tiempo.</p>
+    </div>
+    <div class="student-filter-controls">
+      <label>Grupo
+        <select id="studentGroupFilter">
+          <option value="MONITOR">MONITOR</option>
+          <option value="22" selected>22</option>
+          <option value="23">23</option>
+          <option value="24">24</option>
+          <option value="25">25</option>
+          <option value="26">26</option>
+          <option value="1ºC">1ºC</option>
+          <option value="3º A">3º A</option>
+          <option value="3º B">3º B</option>
+          <option value="3º C">3º C</option>
+          <option value="__ALL__">Todos los grupos</option>
+        </select>
+      </label>
+      <label>Buscar
+        <input id="studentSearch" placeholder="Nombre o ID">
+      </label>
+    </div>
+  </div>
+  <div id="studentsList" class="list empty">No hay alumnos.</div>
+</div>
+<div class="card inactive-students-card"><div class="section"><div><h2>Alumnos inactivos</h2><p class="hint">Conservan expediente e historial. Puedes reactivarlos cuando sea necesario.</p></div></div><div id="inactiveStudentsList" class="list empty">No hay alumnos inactivos.</div></div>
+
+  <div class="card reset-cycle-card">
+    <div class="section">
+      <div>
+        <h2>⚠️ Reiniciar ciclo escolar</h2>
+        <p class="hint">Elimina los datos del ciclo terminado y deja el sistema listo para comenzar uno nuevo. El alumno monitor 00001 se conserva siempre.</p>
+      </div>
+    </div>
+    <button id="resetCycleBtn" class="danger" type="button">BORRAR DATOS Y REINICIAR CICLO</button>
+    <div id="resetCycleInlineStatus" class="hint" aria-live="polite" style="margin-top:10px;font-weight:800"></div>
+  </div>
+</section>
+
+<section id="dossier" class="view">
+<div class="card dossier-selector">
+  <div>
+    <h2>Expediente del alumno</h2>
+    <p class="hint">Primero selecciona el grupo y después el alumno.</p>
+  </div>
+  <div class="dossier-selector-controls">
+    <label>Grupo
+      <select id="dossierGroup">
+          <option value="MONITOR">MONITOR</option>
+        <option value="22" selected>22</option>
+        <option value="23">23</option>
+        <option value="24">24</option>
+        <option value="25">25</option>
+        <option value="26">26</option>
+        <option value="1ºC">1ºC</option>
+        <option value="3º A">3º A</option>
+        <option value="3º B">3º B</option>
+        <option value="3º C">3º C</option>
+        <option value="__ALL__">Todos los grupos</option>
+      </select>
+    </label>
+    <label>Alumno
+      <select id="dossierStudent"></select>
+    </label>
+  </div>
+</div>
+<div id="dossierEmpty" class="card empty">Selecciona un alumno para consultar su expediente.</div>
+<div id="dossierContent" class="hidden">
+<div class="dossier-header card"><div><span id="dossierShiftBadge" class="shift-badge"></span><h2 id="dossierName">Alumno</h2><p id="dossierSchoolLine"></p></div><div class="actions"><button id="dossierEdit" class="secondary" type="button">Editar expediente</button><button id="dossierPdf" class="secondary" type="button">Generar PDF</button><button id="dossierDeactivate" class="danger" type="button">Dar de baja alumno</button><button id="dossierReactivate" class="primary hidden" type="button">Reactivar alumno</button></div></div>
+<div id="portalAccessCard" class="card portal-access-card">
+  <div class="section">
+    <div><h3>🔐 Acceso a portales</h3><p class="hint">Solo disponible para alumnos del turno matutino. El PIN del alumno y el del padre son independientes.</p></div>
+  </div>
+  <div id="portalAccessStatus"></div>
+</div>
+<div class="dossier-grid">
+<article class="card dossier-card"><h3>👤 Información del alumno</h3><dl id="dossierStudentInfo"></dl></article>
+
+<article class="card dossier-card"><h3>📊 Historial</h3><div id="dossierHistory" class="history-grid"></div></article>
+<article class="card dossier-card"><h3>📝 Observaciones</h3><div class="note-block"><b>Observaciones</b><p id="dossierObservations">Sin observaciones.</p></div><div class="note-block"><b>Incidencias</b><p id="dossierIncidents">Sin incidencias registradas.</p></div></article>
+</div></div></section>
+
+<section id="reports" class="view">
+ <div class="card"><div class="section"><div><h2>Reportes</h2><p class="hint">Los reportes se abren en una vista preparada para imprimir o guardar como PDF desde el iPad.</p></div><button id="saveAllReports" class="primary">Guardar dentro de la app</button></div></div>
+<div class="card device-backup-box">
+  <h2>Respaldo para otro dispositivo</h2>
+  <p class="hint">Exporta un archivo con alumnos, correos, asistencias, actividades, calificaciones, metodologías, seguimiento y configuración.</p>
+  <div class="actions">
+    <button id="reportsExportBackup" class="secondary" type="button">Exportar respaldo</button>
+    <label class="filebtn alt">Importar respaldo<input id="reportsRestoreFile" type="file" accept=".json,application/json"></label>
+  </div>
+  <p class="warning-note">Guarda el archivo en iCloud Drive, OneDrive o Google Drive. Al importarlo en otro iPad, reemplazará la información que exista en esa app.</p>
+</div>
+<div class="card cycle-close-card">
+  <h2>📚 Cierre de ciclo escolar</h2>
+  <p class="hint">Conserva historiales y PDFs, deja inactivos a los alumnos y cierra sus sesiones de Mi Español y Seguimiento Familiar.</p>
+  <button id="closeSchoolCycleBtn" class="danger" type="button">Cerrar ciclo escolar…</button>
+</div>
+<div class="card danger-zone">
+  <h2>Administración de datos</h2>
+  <p class="hint">Elige qué información deseas eliminar. Esta acción no se puede deshacer, salvo que antes hayas exportado un respaldo.</p>
+  <button id="openDeleteRecords" class="danger" type="button">Borrar registros…</button>
+</div>
+ <div class="report-cards"><button id="weeklyReportShortcut" class="reportcard"><b>Reporte semanal de actividades</b><span>Cuadrícula grupal con ✓ y ✕</span></button><button id="attendanceReport" class="reportcard"><b>Reporte de asistencia</b><span>Presentes, retardos y faltantes por fecha</span></button><button id="titularReportShortcut" class="reportcard"><b>Reporte individual 3.º A</b><span>Seguimiento por materia y semana</span></button></div>
+</section>
+
+<section id="portal-access" class="view">
+  <div class="card">
+    <div class="section">
+      <div>
+        <h2>🔐 Estado de acceso a portales</h2>
+        <p class="hint">Consulta únicamente cuando lo necesites. Solo corresponde a alumnos del turno matutino.</p>
+      </div>
+      <div class="actions">
+        <button id="refreshPortalAccessReport" class="secondary" type="button">Actualizar estados</button>
+        <button id="generateGroupAccessPdf" class="primary" type="button">📄 Generar PDF de accesos del grupo</button>
+        <button id="refreshAllPortalPins" class="secondary" type="button">Actualizar todos los PIN temporales</button>
+      </div>
+    </div>
+
+    <div class="portal-filter-bar">
+      <label>Grupo
+        <select id="portalAccessGroupFilter">
+          <option value="MONITOR">MONITOR</option>
+          <option value="22" selected>22</option>
+          <option value="23">23</option>
+          <option value="24">24</option>
+          <option value="25">25</option>
+          <option value="26">26</option>
+          <option value="__ALL__">Todos los grupos</option>
+        </select>
+      </label>
+      <label>Buscar alumno
+        <input id="portalAccessSearch" placeholder="Nombre o ID">
+      </label>
+    </div>
+
+    <div id="portalAccessSummary" class="access-summary-grid"></div>
+    <div id="portalAccessTableWrap" class="table-wrap"></div>
+  </div>
+</section>
+
+</main>
+
+<section id="availability" class="view">
+  <div class="card">
+    <h2>Disponibilidad</h2>
+    <p class="hint">Esta configuración será consultada por Mi Español y Seguimiento Familiar.</p>
+    <form id="availabilityForm" class="formgrid">
+      <label>Hora de inicio<input id="availabilityStart" type="time" value="12:00"></label>
+      <label>Hora de fin<input id="availabilityEnd" type="time" value="15:00"></label>
+      <label>Vacaciones desde<input id="vacationStart" type="date"></label>
+      <label>Vacaciones hasta<input id="vacationEnd" type="date"></label>
+      <label class="wide">Días hábiles<div class="weekday-picker">
+        <label><input type="checkbox" data-weekday="1" checked> Lun</label>
+        <label><input type="checkbox" data-weekday="2" checked> Mar</label>
+        <label><input type="checkbox" data-weekday="3" checked> Mié</label>
+        <label><input type="checkbox" data-weekday="4" checked> Jue</label>
+        <label><input type="checkbox" data-weekday="5" checked> Vie</label>
+      </div></label>
+      <label class="wide">Fechas de Consejo Técnico / suspensión<input id="technicalDates" placeholder="2026-09-25, 2026-10-30"></label>
+      <label class="wide">Aviso temporal<textarea id="temporaryNotice" rows="3" placeholder="Ej. Esta semana la atención terminará a las 2:00 p.m."></textarea></label>
+      <label class="wide switchline"><input id="attentionSuspended" type="checkbox"> Suspender atención temporalmente</label>
+      <div class="wide card" style="padding:14px;margin:0">
+        <div class="section" style="align-items:center">
+          <div>
+            <b>Contacto de padres fuera de horario</b>
+            <p class="hint" id="contactOverrideStatus">Se respeta el horario normal.</p>
+          </div>
+          <button id="contactOverrideBtn" class="secondary" type="button">🔓 Abrir contacto temporalmente</button>
+        </div>
+      </div>
+      <div class="wide actions"><button class="primary">Guardar disponibilidad</button></div>
+    
+      <div class="wide card chat-control-card" style="padding:14px;margin:12px 0 0">
+        <div class="section">
+          <div>
+            <b>💬 Chat de alumnos</b>
+            <p class="hint">Horario automático: lunes a viernes hasta las 2:00 p. m. Sábados y domingos cerrado.</p>
+            <p id="studentChatTeacherStatus" class="hint"><b>Estado:</b> horario automático.</p>
+          </div>
+        </div>
+        <div class="actions chat-control-actions">
+          <button id="openStudentChatToday" class="primary" type="button">🟢 Abrir chat hoy</button>
+          <button id="closeStudentChatToday" class="danger-outline" type="button">🔴 Cerrar chat hoy</button>
+          <button id="autoStudentChat" class="secondary" type="button">↩️ Volver a automático</button>
+        </div>
+      </div>
+</form>
+  </div>
+</section>
+
+<section id="content" class="view">
+  <div class="card">
+    <h2>Contenido para los portales</h2>
+    <p class="hint">Aquí publicas información que podrán consultar alumnos y familias.</p>
+  </div>
+  <div class="portal-content-grid">
+    <form id="noticeForm" class="card">
+      <h3>Aviso</h3><label>Grupo (vacío = todos)<input id="noticeGroup"></label>
+      <label>Título<input id="noticeTitle" required></label>
+      <label>Mensaje<textarea id="noticeText" rows="4" required></textarea></label>
+      <button class="primary">Publicar aviso</button>
+      <div id="noticeList" class="mini-list"></div>
+    </form>
+    <form id="materialForm" class="card">
+      <h3>Material</h3>
+      <label>Grupo (vacío = todos)<input id="materialGroup"></label>
+      <label>Título<input id="materialTitle" required></label>
+      <label>Tipo<select id="materialType">
+        <option>PDF</option>
+        <option>Video</option>
+        <option>Archivo</option>
+        <option>Imagen</option>
+        <option>Material complementario</option>
+      </select></label>
+      <label>Origen<select id="materialSource">
+        <option value="file">Subir archivo desde el iPad</option>
+        <option value="url">Usar enlace</option>
+      </select></label>
+      <label id="materialFileWrap">Archivo<input id="materialFile" type="file" accept=".pdf,.doc,.docx,.ppt,.pptx,.xls,.xlsx,.jpg,.jpeg,.png,.webp,.txt,.zip,application/pdf,image/*"></label>
+      <label id="materialUrlWrap" class="hidden">Enlace<input id="materialUrl" type="url" placeholder="https://..."></label>
+      <p id="materialHelp" class="hint">El archivo quedará guardado localmente hasta conectar Supabase Storage.</p>
+      <button class="primary">Publicar material</button>
+      <div id="materialList" class="mini-list"></div>
+    </form>
+    <form id="topicForm" class="card">
+      <h3>Tema trabajado</h3><label>Grupo (vacío = todos)<input id="topicGroup"></label>
+      <label>Tema<input id="topicTitle" required></label>
+      <label>Conceptos / notas<textarea id="topicNotes" rows="4" placeholder="Conceptos vistos que después podrán alimentar trivias con IA."></textarea></label>
+      <button class="primary">Publicar tema</button>
+      <div id="topicList" class="mini-list"></div>
+    </form>
+  </div>
+</section>
+
+<section id="messages" class="view">
+  <div class="card">
+    <div class="section"><div><h2>Mensajes del alumnado</h2><p class="hint">Mensajería escolar interna sincronizada con Mi Español. Las respuestas aparecen en el chat del alumno.</p></div><button id="refreshMessages" class="secondary">Actualizar</button></div>
+    <div id="teacherMessages" class="message-inbox"><div class="empty">No hay mensajes.</div></div>
+  </div>
+</section>
+
+<section id="privacy" class="view"><div class="card privacy-card"><h2>🔒 Privacidad y seguridad</h2>
+<p>Esta aplicación es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas, trámites o procedimientos oficiales.</p>
+<h3>Datos utilizados</h3><p>Se utilizan únicamente los datos necesarios para identificar al estudiante y realizar seguimiento escolar: ID, nombre(s) y primer apellido, turno, grupo, número de lista, cumpleaños solo con día y mes, observaciones o incidencias escolares pertinentes y registros académicos generados en la aplicación.</p>
+<h3>Correo institucional en Vespertino</h3><p>Cuando sea necesario para el seguimiento escolar de Vespertino, el docente puede registrar el correo institucional del alumno. Este dato se utiliza únicamente dentro de App Docente y no se comparte con Mi Español ni con Seguimiento Familiar.</p>
+<h3>Dónde se almacenan</h3><p>Los datos que requieren sincronización se envían a un servicio en línea con controles de acceso. Los portales consultan únicamente la información asociada a la sesión iniciada mediante ID y PIN.</p>
+<h3>Contenido del dispositivo</h3><p>La aplicación no solicita acceso a contactos, ubicación, micrófono, fotografías, videos, mensajes personales, contraseñas ni información bancaria. Cuando el docente elige un archivo para importar, restaurar, respaldar o publicar material, se utiliza únicamente el archivo seleccionado expresamente.</p>
+<h3>Notificaciones</h3><p>Las notificaciones utilizan exclusivamente los datos técnicos necesarios para registrar y entregar avisos mediante Web Push.</p>
+<h3>Mensajería</h3><p>El chat escolar conserva únicamente la conversación correspondiente a la semana escolar en curso. Al iniciar una nueva semana escolar, la conversación anterior se elimina de acuerdo con la política de retención configurada.</p>
+<h3>Finalidad</h3><p>La información se utiliza para organización, comunicación y seguimiento escolar. No se utiliza para publicidad ni para fines comerciales.</p>
+<p class="hint">Ningún sistema puede prometer seguridad absoluta. Se aplican minimización de datos, credenciales y controles técnicos de acceso para reducir riesgos.</p></div></section>
+<dialog id="dialog"><div class="dialoghead"><h2 id="dialogTitle">Detalle</h2><button id="dialogClose">×</button></div><div id="dialogBody"></div></dialog>
+<script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8140.js?v=8140"></script>
+</body></html>

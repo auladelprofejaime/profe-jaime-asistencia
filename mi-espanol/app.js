@@ -42,7 +42,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8142',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8160',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -549,7 +549,7 @@ function isQuarterSummary(m){return !!(m?.isQuarterSummary||m?.periodType==='qua
 function studentGradeModel(){
  normalizeStudentMethodologies();
  const all=bundle?.methodologies||[];
- const monthly=all.filter(m=>!isQuarterSummary(m)&&m.closed===true&&m.published!==false&&m.gradeRecords?.[currentId]?.finalDecimal!=null)
+ const monthly=all.filter(m=>!isQuarterSummary(m)&&((m.closed===true&&m.published!==false)||m.provisionalPublished===true)&&m.gradeRecords?.[currentId]?.finalDecimal!=null)
    .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
      Number(b.quarter||0)-Number(a.quarter||0)||
      PORTAL_MONTH_ORDER.indexOf(b.month)-PORTAL_MONTH_ORDER.indexOf(a.month)||

@@ -3,7 +3,7 @@ const FILES=[
   './',
   './index.html',
   './styles.css',
-  './app.js?v=8142',
+  './app.js?v=8160',
   './manifest.webmanifest',
   './profe-jaime.png',
   './icon-app-estudiante-v821.png',

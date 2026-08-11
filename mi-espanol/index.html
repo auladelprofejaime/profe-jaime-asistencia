@@ -504,7 +504,7 @@
     <button id="closeBirthdayGreeting" class="action primary" type="button">¡Gracias! 🎉</button>
   </div>
 </div>
-<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.12.2</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
+<div id="sessionLoading" class="session-loading"><div class="session-loading-card"><img src="logo-app-estudiante-v821.png"><b>App estudiante</b><span>Recuperando tu sesión…</span></div></div><div id="loginGate" class="login-shell hidden"><div class="login-card"><div class="login-logo"><img src="logo-app-estudiante-v821.png"><div><h2>App estudiante</h2><div class="muted">Acceso para alumnos · Matutino</div></div></div><label>ID del alumno<input id="loginId" inputmode="numeric" autocomplete="username" placeholder="Escribe tu ID"></label><label>PIN<input id="loginPin" type="password" inputmode="numeric" maxlength="8" autocomplete="current-password" placeholder="PIN"></label><label class="remember"><input id="rememberSession" type="checkbox"> Recordar mi sesión</label><button id="loginBtn" class="action primary">Entrar</button><div id="loginError" class="login-error"></div><p class="pin-help">En tu primer acceso usa el PIN temporal proporcionado por el profesor.</p></div></div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.12.3</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
 <main>
 <section id="home" class="view active"><div class="hero"><div><small>BIENVENIDO</small><h2 id="hello">Hola.</h2><p>Tu materia de Español, en un solo lugar.</p></div><img src="logo-app-estudiante-v821.png"></div><div class="portal-menu">
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
@@ -512,7 +512,7 @@
 <button data-view="grades" class="portal-menu-btn"><span>📊</span><b>Calificaciones</b></button>
 <button data-view="materials" class="portal-menu-btn"><span>📎</span><b>Materiales</b></button>
 <button data-view="study" class="portal-menu-btn"><span>🎯</span><b>Estudiar</b></button>
-<button data-view="reports" class="portal-menu-btn"><span>📄</span><b>Reportes</b></button>
+
 <button data-view="chat" class="portal-menu-btn"><span>💬</span><b>Chat</b></button>
 <button data-view="notices" class="portal-menu-btn"><span>📢</span><b>Avisos</b></button>
 <button data-view="privacy" class="portal-menu-btn"><span>🔒</span><b>Privacidad y seguridad</b></button>
@@ -537,7 +537,7 @@
 <section id="grades" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Calificaciones</h2><div id="gradeContent"></div></section>
 <section id="materials" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Materiales</h2><div id="materialCards" class="cards"></div></section>
 <section id="study" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Estudiar jugando</h2><p class="muted">Solo aparecen temas publicados por el profesor.</p><div id="studyTopics" class="cards"></div></section>
-<section id="reports" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Reportes</h2><div id="studentReports" class="cards"></div></section>
+
 <section id="chat" class="view">
 <button class="back-home" data-view="home">← Inicio</button>
 <h2>Chat del alumno</h2>
@@ -603,9 +603,9 @@
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./service-worker.js?v=8122',{scope:'./'})
+    navigator.serviceWorker.register('./service-worker.js?v=8123',{scope:'./'})
       .catch(err=>console.warn('SW Mi Español',err));
   });
 }
 </script>
-<script type="module" src="app.js?v=8122"></script></body></html>
+<script type="module" src="app.js?v=8123"></script></body></html>

@@ -4,7 +4,36 @@ const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'').replace(/\s+/g,'').toUpperCase();
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
-$$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
+$$('[data-view]').forEach(b=>b.onclick=()=>openStudentView(b.dataset.view));
+
+
+async function rawStudentPortalBundle(){
+ if(!currentToken)return null;
+ try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_bundle`,{
+     method:'POST',
+     headers:{
+       apikey:SUPABASE_PUBLISHABLE_KEY,
+       Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+       'Content-Type':'application/json'
+     },
+     body:JSON.stringify({p_token:currentToken})
+   });
+   if(!r.ok)return null;
+   return await r.json();
+ }catch(e){console.warn('raw student bundle',e);return null}
+}
+async function refreshStudentNotices(){
+ const raw=await rawStudentPortalBundle();
+ if(raw?.ok&&Array.isArray(raw.notices)&&bundle){
+   bundle.notices=raw.notices.map(n=>({...n,text:n.text??n.body??'',body:n.body??n.text??''}));
+   renderSummary();renderNotices();
+ }
+}
+async function openStudentView(id){
+ if((id==='home'||id==='notices')&&currentToken)await refreshStudentNotices();
+ setView(id);
+}
 
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=899';
 let currentId='',bundle=null,currentToken='';
@@ -299,7 +328,7 @@ function renderChatHistory(){
 async function refreshStudentPortal(){
  let fresh=await portalGetBundle(currentToken);if(!fresh?.ok)return;
  processStudentChanges(fresh);bundle=fresh;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentChatAvailability();showBirthdayGreetingIfNeeded().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();showBirthdayGreetingIfNeeded().catch(()=>{});
 }
 function startStudentPolling(){
  if(studentPollTimer)clearInterval(studentPollTimer);
@@ -380,10 +409,10 @@ async function showBirthdayGreetingIfNeeded(){
 }
 
 async function load(){
- bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;
+ bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;await refreshStudentNotices();
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderReports();renderChatHistory();renderStudentChatAvailability();renderStudentNotifBadge();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();renderStudentNotifBadge();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
@@ -393,8 +422,8 @@ function pointsAvailable(){
  let earned=0,used=0;(bundle.methodologies||[]).forEach(m=>{let r=m.gradeRecords?.[currentId];if(r){earned+=Number(r.pointsGenerated||0);used+=Number(r.pointsUsed||0)}});return Math.max(0,earned-used)
 }
 function renderSummary(){let g=currentGrade(),present=bundle.attendance.filter(a=>(a.status||'Presente')!=='Falta').length;
- $('#summaryCards').innerHTML=[['Asistencia',present],['Actividades',bundle.activities.length],['Calificación actual',g?.finalDecimal?.toFixed(2)||'—'],['Puntos disponibles',pointsAvailable().toFixed(2)],['Reportes',bundle.reports.length],['Materiales',bundle.materials.length],['Avisos',bundle.notices.length]].map(x=>`<div class="tile"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('')}
-function renderNotices(){$('#homeNotices').innerHTML=bundle.notices.length?bundle.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div>`).join(''):'<div class="card muted">Sin avisos nuevos.</div>'}
+ $('#summaryCards').innerHTML=[['Asistencia',present],['Actividades',bundle.activities.length],['Calificación actual',g?.finalDecimal?.toFixed(2)||'—'],['Puntos disponibles',pointsAvailable().toFixed(2)],['Materiales',bundle.materials.length],['Avisos',bundle.notices.length]].map(x=>`<div class="tile"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('')}
+function renderNotices(){$('#homeNotices').innerHTML=bundle.notices.length?bundle.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><p>${esc(n.text??n.body??'')}</p></div>`).join(''):'<div class="card muted">Sin avisos nuevos.</div>'}
 function portalDate(v){
  if(!v)return 'Sin fecha';
  const d=new Date(v+'T12:00:00');
@@ -535,13 +564,6 @@ function openStudyMode(topicId,mode){
 function renderStudy(){
  $('#studyTopics').innerHTML=bundle.studyTopics.length?bundle.studyTopics.map(t=>`<div class="card"><b>${esc(t.title)}</b><p class="muted">${esc(t.notes||'Tema trabajado')}</p><div class="question-actions"><button class="action" data-study="${esc(t.id)}" data-mode="quiz">Trivia rápida</button><button class="action" data-study="${esc(t.id)}" data-mode="exam">Examen</button><button class="action" data-study="${esc(t.id)}" data-mode="daily">Pregunta del día</button><button class="action" data-study="${esc(t.id)}" data-mode="review">Repaso</button></div><small class="muted">Las preguntas se crean automáticamente a partir del contenido publicado por el profesor.</small></div>`).join(''):'<div class="card muted">Todavía no hay temas publicados.</div>';
  $$('[data-study]').forEach(b=>b.onclick=()=>openStudyMode(b.dataset.study,b.dataset.mode));
-}
-function renderReports(){$('#studentReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="card action" data-report-id="${r.id}"><b>${esc(r.title)}</b><p class="muted">${new Date(r.created).toLocaleString('es-MX')}</p></button>`).join(''):'<div class="card muted">Sin reportes archivados.</div>';$$('[data-report-id]').forEach(b=>b.onclick=()=>openReport(b.dataset.reportId))}
-async function openReport(id){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
-
-function studentChatTodayKey(){
- const d=new Date();
- return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
 }
 function studentChatAvailability(){
  const a=bundle?.availability||{};

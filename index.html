@@ -115,6 +115,21 @@
     grid-template-columns:1fr !important;
   }
 }
+
+/* === Módulo Puntos v8.15.0 === */
+.points-balance{font-size:1.75rem;font-weight:900}
+.points-open{color:#15803d;font-weight:800}
+.points-scheduled{color:#9a6700;font-weight:800}
+.points-closed{color:#991b1b;font-weight:800}
+.points-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.points-status-list .row{align-items:flex-start}
+.points-status-pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.78rem;font-weight:800;background:#f3f4f6}
+.points-status-pill.used,.points-status-pill.mixed{background:#dcfce7;color:#166534}
+.points-status-pill.donated{background:#dbeafe;color:#1d4ed8}
+.points-status-pill.keep{background:#fef3c7;color:#92400e}
+.points-status-pill.pending{background:#f3f4f6;color:#4b5563}
+@media(max-width:760px){.points-grid{grid-template-columns:1fr}}
+
 </style>
 
 
@@ -258,7 +273,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.14.4</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.15.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -271,6 +286,7 @@
       <button data-view="attendance" class="tab"><span>▣</span>Asistencia</button>
       <button data-view="activities" class="tab"><span>●</span>Actividades</button>
       <button data-view="methodologies" class="tab"><span>%</span>Metodologías</button>
+      <button data-view="points" class="tab"><span>★</span>Puntos</button>
       <button data-view="titular" class="tab"><span>3A</span>Seguimiento 3.º A</button>
       <button data-view="students" class="tab"><span>♟</span>Alumnos</button>
       <button data-view="dossier" class="tab"><span>👤</span>Expediente del alumno</button>
@@ -325,6 +341,7 @@
   <button data-go="attendance" class="home-button"><span>▣</span><b>Asistencia</b><small>Matutino y vespertino con escáner</small></button>
   <button data-go="activities" class="home-button"><span>✓</span><b>Actividades</b><small>Escáner y cuadrícula semanal</small></button>
   <button data-go="methodologies" class="home-button"><span>%</span><b>Metodologías</b><small>Criterios, porcentajes y cálculo de calificaciones</small></button>
+  <button data-go="points" class="home-button"><span>★</span><b>Puntos</b><small>Otorgar, programar periodos, saldos y decisiones</small></button>
   <button data-go="titular" class="home-button"><span>3A</span><b>Seguimiento 3.º A</b><small>Captura y reporte individual</small></button>
   <button data-go="students" class="home-button"><span>☷</span><b>Alumnos</b><small>Importar, agregar y ordenar</small></button>
   <button data-go="dossier" class="home-button"><span>👤</span><b>Expediente del alumno</b><small>Datos e historial individual</small></button>
@@ -451,6 +468,90 @@
     </div>
   </div>
 
+</section>
+
+
+<section id="points" class="view">
+  <div class="subtabs">
+    <button data-pointtab="award" class="sub active">Otorgar puntos</button>
+    <button data-pointtab="period" class="sub">Periodo por grupo</button>
+    <button data-pointtab="manage" class="sub">Gestionar alumno</button>
+  </div>
+
+  <div id="point-award" class="pointpane active">
+    <div class="card grid4">
+      <label>Grupo<select id="pointAwardGroup"></select></label>
+      <label>Cantidad<input id="pointAwardAmount" type="number" min="0.1" step="0.1" value="1" inputmode="decimal"></label>
+      <label class="wide">Motivo<input id="pointAwardReason" placeholder="Ej. Ganador de competencia de ortografía"></label>
+    </div>
+    <div id="pointAwardStatus" class="status neutral"><i>★</i><h2>Escanea la credencial</h2><p>Los puntos se sumarán al saldo del alumno durante todo el ciclo escolar.</p></div>
+    <div class="scan"><input id="pointAwardScan" inputmode="numeric" placeholder="ID del alumno"><button id="pointAwardRegister" class="primary" type="button">Otorgar puntos</button></div>
+    <div class="card">
+      <div class="section"><div><h2>Saldos del grupo</h2><p class="hint">El saldo no caduca al terminar el mes.</p></div><button id="pointRefreshBalances" class="secondary" type="button">Actualizar</button></div>
+      <div id="pointBalancesList" class="list empty">Selecciona un grupo.</div>
+    </div>
+  </div>
+
+  <div id="point-period" class="pointpane">
+    <div class="card">
+      <h2>Publicar calificación provisional</h2>
+      <p class="hint">Calcular en Metodologías sigue siendo privado. Aquí decides cuándo la calificación mensual provisional ya puede aparecer en Alumno y Padres.</p>
+      <label>Metodología mensual<select id="pointMethodology"></select></label>
+      <div class="actions">
+        <button id="pointPublishProvisional" class="primary" type="button">Publicar provisional</button>
+      </div>
+      <p id="pointProvisionalState" class="hint"></p>
+    </div>
+
+    <form id="pointPeriodForm" class="card formgrid">
+      <h2 class="wide">Programar periodo de decisiones</h2>
+      <p class="wide hint">Cada grupo puede tener un día y horario distinto. El periodo se abrirá y cerrará con la fecha/hora programada.</p>
+      <label>Abre<input id="pointPeriodOpen" type="datetime-local" required></label>
+      <label>Cierra<input id="pointPeriodClose" type="datetime-local" required></label>
+      <div class="wide actions"><button class="primary" type="submit">Guardar programación</button></div>
+    </form>
+
+    <div class="card">
+      <div class="section"><div><h2>Periodos programados</h2><p class="hint">Programado = aún no inicia · Abierto = alumnos pueden decidir · Cerrado = ya no admite movimientos.</p></div><button id="pointRefreshPeriods" class="secondary" type="button">Actualizar</button></div>
+      <div id="pointPeriodsList" class="list empty">No hay periodos.</div>
+    </div>
+  </div>
+
+  <div id="point-manage" class="pointpane">
+    <div class="card grid4">
+      <label>Periodo<select id="pointManagePeriod"></select></label>
+      <label>Alumno<select id="pointManageStudent"></select></label>
+      <label>Saldo actual<div id="pointManageBalance" class="points-balance">0.00</div></label>
+      <label>Estado<div id="pointManageChoice" class="points-status-pill pending">Pendiente</div></label>
+    </div>
+
+    <div class="points-grid">
+      <div class="card">
+        <h2>Aplicar a su calificación</h2>
+        <p class="hint">Úsalo si el alumno no tiene celular o te pide hacer el proceso desde tu app.</p>
+        <label>Puntos a aplicar<input id="pointManageUseAmount" type="number" min="0" step="0.1" value="0" inputmode="decimal"></label>
+        <button id="pointManageUseBtn" class="primary" type="button">Aplicar puntos</button>
+      </div>
+
+      <div class="card">
+        <h2>Donar a un compañero</h2>
+        <p class="hint">Solo permite donar dentro del mismo grupo. Se captura el ID de 5 dígitos del destinatario.</p>
+        <label>ID del compañero<input id="pointManageRecipient" inputmode="numeric" maxlength="5" placeholder="00000"></label>
+        <label>Puntos a donar<input id="pointManageDonateAmount" type="number" min="0.1" step="0.1" value="1" inputmode="decimal"></label>
+        <button id="pointManageDonateBtn" class="primary" type="button">Registrar donación</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="section"><div><h2>Decisiones del grupo</h2><p class="hint">Pendiente no significa que pierda puntos: si no hace nada, conserva su saldo.</p></div><button id="pointManageRefresh" class="secondary" type="button">Actualizar</button></div>
+      <div id="pointDecisionList" class="list empty">Selecciona un periodo.</div>
+    </div>
+
+    <div class="card">
+      <h2>Historial del alumno</h2>
+      <div id="pointHistoryList" class="list empty">Selecciona un alumno.</div>
+    </div>
+  </div>
 </section>
 
 <section id="titular" class="view">
@@ -776,5 +877,5 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8144.js?v=8144"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8150.js?v=8150"></script>
 </body></html>

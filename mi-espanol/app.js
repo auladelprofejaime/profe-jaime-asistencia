@@ -40,7 +40,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8127',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8129',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -445,16 +445,37 @@ function normalizeStudentMethodologies(){
    return m;
  });
 }
+const PORTAL_MONTH_ORDER=['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'];
+function portalMethodTimestamp(m){return String(m.updated||m.closedAt||m.created||'')}
+function isQuarterSummary(m){return !!(m?.isQuarterSummary||m?.periodType==='quarter'||m?.data?.isQuarterSummary)}
+function studentGradeModel(){
+ normalizeStudentMethodologies();
+ const all=bundle?.methodologies||[];
+ const monthly=all.filter(m=>!isQuarterSummary(m)&&m.gradeRecords?.[currentId]?.finalDecimal!=null)
+   .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
+     Number(b.quarter||0)-Number(a.quarter||0)||
+     PORTAL_MONTH_ORDER.indexOf(b.month)-PORTAL_MONTH_ORDER.indexOf(a.month)||
+     portalMethodTimestamp(b).localeCompare(portalMethodTimestamp(a)));
+ const quarters=all.filter(m=>isQuarterSummary(m)&&m.gradeRecords?.[currentId]?.finalDecimal!=null)
+   .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
+     Number(b.quarter||0)-Number(a.quarter||0)||
+     portalMethodTimestamp(b).localeCompare(portalMethodTimestamp(a)));
+ return {monthly,quarters,current:monthly.slice().sort((a,b)=>portalMethodTimestamp(b).localeCompare(portalMethodTimestamp(a)))[0]||null};
+}
 function currentGrade(){
- const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
- return closed[0]?.gradeRecords?.[currentId]||null;
+ const m=studentGradeModel().current;
+ return m?.gradeRecords?.[currentId]||null;
 }
 function pointsAvailable(){
  let earned=0,used=0;(bundle.methodologies||[]).forEach(m=>{let r=m.gradeRecords?.[currentId];if(r){earned+=Number(r.pointsGenerated||0);used+=Number(r.pointsUsed||0)}});return Math.max(0,earned-used)
 }
 function renderSummary(){let g=currentGrade(),present=bundle.attendance.filter(a=>(a.status||'Presente')!=='Falta').length;
  $('#summaryCards').innerHTML=[['Asistencia',present],['Actividades',bundle.activities.length],['Calificación actual',g?.finalDecimal?.toFixed(2)||'—'],['Puntos disponibles',pointsAvailable().toFixed(2)],['Materiales',bundle.materials.length],['Avisos',bundle.notices.length]].map(x=>`<div class="tile"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('')}
-function renderNotices(){$('#homeNotices').innerHTML=bundle.notices.length?bundle.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><p>${esc(n.text??n.body??'')}</p></div>`).join(''):'<div class="card muted">Sin avisos nuevos.</div>'}
+function renderNotices(){
+ const html=bundle.notices.length?bundle.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><p>${esc(n.text??n.body??'')}</p></div>`).join(''):'<div class="card muted">Sin avisos nuevos.</div>';
+ $('#homeNotices').innerHTML=html;
+ $('#studentNotices').innerHTML=html;
+}
 function portalDate(v){
  if(!v)return 'Sin fecha';
  const d=new Date(v+'T12:00:00');
@@ -526,7 +547,35 @@ function renderAttendance(){
  }).join('');
 }
 
-function renderGrades(){let g=currentGrade(),pct=g?Math.min(100,(Number(g.finalDecimal||0)/10)*100):0;$('#gradeContent').innerHTML=`<div class="card"><h3>Calificación actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><div class="progress"><i style="width:${pct}%"></i></div><p>Redondeada: <b>${g?.rounded??'—'}</b></p><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>`}
+function renderGrades(){
+ const model=studentGradeModel();
+ const monthCards=model.monthly.map(m=>{
+   const g=m.gradeRecords?.[currentId];
+   return `<div class="card">
+     <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
+       <div><h3 style="margin:0">${esc(m.month||'Mes')}</h3><p class="muted" style="margin:4px 0 0">Trimestre ${esc(m.quarter||'—')} · ${esc(m.cycle||'')}</p></div>
+       <span class="pill ${m.closed?'green':'yellow'}">${m.closed?'Definitiva':'En curso'}</span>
+     </div>
+     <h1 style="margin-bottom:4px">${Number(g.finalDecimal).toFixed(2)}</h1>
+     <p>Redondeada: <b>${g.rounded??'—'}</b></p>
+   </div>`;
+ }).join('');
+ const quarterCards=model.quarters.map(m=>{
+   const g=m.gradeRecords?.[currentId];
+   return `<div class="card">
+     <h3 style="margin-top:0">Trimestre ${esc(m.quarter||'—')}</h3>
+     <p class="muted">${esc(m.cycle||'')}</p>
+     <h1 style="margin-bottom:4px">${Number(g.finalDecimal).toFixed(2)}</h1>
+     <p>Calificación trimestral redondeada: <b>${g.rounded??'—'}</b></p>
+   </div>`;
+ }).join('');
+ $('#gradeContent').innerHTML=`
+   <h3>Calificaciones mensuales</h3>
+   ${monthCards||'<div class="card muted">Todavía no hay una calificación mensual calculada.</div>'}
+   <h3 style="margin-top:22px">Calificación trimestral</h3>
+   ${quarterCards||'<div class="card muted">Aparecerá cuando el profesor calcule el cierre del trimestre.</div>'}
+   <div class="card"><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>`;
+}
 function renderMaterials(){
  $('#materialCards').innerHTML=bundle.materials.length?bundle.materials.map(m=>`<button class="card action" data-material="${esc(m.id)}"><b>${esc(m.title)}</b><p class="muted">${esc(m.type)} · ${m.source==='file'?'Archivo':'Enlace'}</p>${m.fileName?`<small class="muted">${esc(m.fileName)}</small>`:''}</button>`).join(''):'<div class="card muted">Sin materiales publicados.</div>';
  $$('[data-material]').forEach(b=>b.onclick=()=>openMaterial(b.dataset.material));

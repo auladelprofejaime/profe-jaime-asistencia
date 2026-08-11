@@ -10,6 +10,7 @@ async function openFamilyPushTarget(target){
  if(target==='activities'){setView('activities');return}
  if(target==='materials'){setView('materials');return}
  if(target==='notices'){setView('notices');return}
+ if(target==='grades'){setView('grades');return}
  setView('home');
 }
 navigator.serviceWorker?.addEventListener('message',e=>{
@@ -81,7 +82,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8120',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8121',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }
@@ -297,12 +298,12 @@ function familyIsQuarterSummary(m){return !!(m?.isQuarterSummary||m?.periodType=
 function familyGradeModel(){
  normalizePortalMethodologies();
  const all=bundle?.methodologies||[];
- const monthly=all.filter(m=>!familyIsQuarterSummary(m)&&m.gradeRecords?.[id]?.finalDecimal!=null)
+ const monthly=all.filter(m=>!familyIsQuarterSummary(m)&&m.closed===true&&m.published!==false&&m.gradeRecords?.[id]?.finalDecimal!=null)
    .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
      Number(b.quarter||0)-Number(a.quarter||0)||
      FAMILY_MONTH_ORDER.indexOf(b.month)-FAMILY_MONTH_ORDER.indexOf(a.month)||
      familyMethodTimestamp(b).localeCompare(familyMethodTimestamp(a)));
- const quarters=all.filter(m=>familyIsQuarterSummary(m)&&m.gradeRecords?.[id]?.finalDecimal!=null)
+ const quarters=all.filter(m=>familyIsQuarterSummary(m)&&m.closed===true&&m.published===true&&m.gradeRecords?.[id]?.finalDecimal!=null)
    .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
      Number(b.quarter||0)-Number(a.quarter||0)||
      familyMethodTimestamp(b).localeCompare(familyMethodTimestamp(a)));
@@ -360,7 +361,7 @@ function renderAll(){
      return `<div class="card">
        <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
          <div><h3 style="margin:0">${esc(m.month||'Mes')}</h3><p class="muted" style="margin:4px 0 0">Trimestre ${esc(m.quarter||'—')} · ${esc(m.cycle||'')}</p></div>
-         <span class="status ${m.closed?'ok':'warn'}">${m.closed?'Definitiva':'En curso'}</span>
+         <span class="status ok">Publicada</span>
        </div>
        <h1 style="margin-bottom:4px">${Number(x.finalDecimal).toFixed(2)}</h1>
        <p>Redondeada: <b>${x.rounded??'—'}</b></p>

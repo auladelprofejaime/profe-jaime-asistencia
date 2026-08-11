@@ -19,7 +19,8 @@ document.addEventListener('visibilitychange',async()=>{
  if(document.visibilityState==='visible'&&currentToken&&bundle){
    try{
      const fresh=await portalGetBundle(currentToken);
-     if(fresh?.ok){bundle=fresh;renderAll();}
+     if(fresh?.ok)bundle=fresh;
+     await refreshPortalContentNow();
    }catch(e){console.warn('Actualización al volver a la app',e);}
  }
 });
@@ -27,18 +28,53 @@ document.addEventListener('visibilitychange',async()=>{
 const initialPush=new URLSearchParams(location.search).get('push');
 if(initialPush)setTimeout(()=>openFamilyPushTarget(initialPush),500);
 
+
+async function rawPortalBundle(){
+ if(!currentToken)return null;
+ try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_bundle`,{
+     method:'POST',
+     headers:{
+       apikey:SUPABASE_PUBLISHABLE_KEY,
+       Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
+       'Content-Type':'application/json'
+     },
+     body:JSON.stringify({p_token:currentToken})
+   });
+   if(!r.ok)return null;
+   return await r.json();
+ }catch(e){console.warn('raw portal bundle',e);return null}
+}
+function mergeFreshPortalContent(raw){
+ if(!raw?.ok||!bundle)return;
+ if(Array.isArray(raw.notices)){
+   bundle.notices=raw.notices.map(n=>({...n,text:n.text??n.body??'',body:n.body??n.text??''}));
+ }
+ if(Array.isArray(raw.reports)) bundle.reports=raw.reports;
+}
+async function refreshPortalContentNow(){
+ const raw=await rawPortalBundle();
+ if(raw?.ok){
+   mergeFreshPortalContent(raw);
+   renderAll();
+   return true;
+ }
+ return false;
+}
+
 async function openPortalView(id){
- if(id==='reports'&&currentToken){
+ if((id==='reports'||id==='notices'||id==='home')&&currentToken){
    try{
      const fresh=await portalGetBundle(currentToken);
-     if(fresh?.ok){bundle=fresh;renderAll();}
-   }catch(e){console.warn('No se pudieron actualizar los reportes',e);}
+     if(fresh?.ok)bundle=fresh;
+     await refreshPortalContentNow();
+   }catch(e){console.warn('No se pudo actualizar el contenido del portal',e);}
  }
  setView(id);
 }
 $$('[data-view]').forEach(b=>b.onclick=()=>openPortalView(b.dataset.view));
 
-import {portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
 import {normalizePhone} from '../shared/data-contract.js';
 let id='',bundle=null,currentToken='';
 
@@ -46,7 +82,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8115',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8116',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }
@@ -208,6 +244,8 @@ async function enterPortal(){
 async function load(){
  bundle=await portalGetBundle(currentToken);
  if(!bundle?.ok)return;
+ const raw=await rawPortalBundle();
+ if(raw?.ok)mergeFreshPortalContent(raw);
  $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
  renderAll();
  await updateContact();
@@ -247,9 +285,9 @@ function renderAll(){
    ['Avisos',bundle.notices.length]
  ].map(x=>`<div class="stat-card"><b>${x[1]}</b><span>${x[0]}</span></div>`).join('');
 
- $('#familyNotice').innerHTML=bundle.notices.slice(0,2).map(n=>`<div class="notice"><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div>`).join('')||'<div class="notice muted">Sin avisos recientes.</div>';
+ $('#familyNotice').innerHTML=bundle.notices.slice(0,2).map(n=>`<div class="notice"><b>${esc(n.title)}</b><p>${esc(n.text??n.body??'')}</p></div>`).join('')||'<div class="notice muted">Sin avisos recientes.</div>';
 
- $('#familyNotices').innerHTML=bundle.notices.length?bundle.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><p>${esc(n.text)}</p></div>`).join(''):'<div class="card muted">Sin avisos.</div>';
+ $('#familyNotices').innerHTML=bundle.notices.length?bundle.notices.map(n=>`<div class="card"><b>${esc(n.title)}</b><p>${esc(n.text??n.body??'')}</p></div>`).join(''):'<div class="card muted">Sin avisos.</div>';
 
  $('#familyMaterials').innerHTML=bundle.materials.length?bundle.materials.map(m=>`<div class="card"><b>${esc(m.title)}</b><p class="muted">${esc(m.type||'Material')}</p>${m.publicUrl||m.url?`<button class="action material-open" data-url="${esc(m.publicUrl||m.url)}">Abrir material</button>`:''}</div>`).join(''):'<div class="card muted">Sin materiales.</div>';
  $$('.material-open').forEach(b=>b.onclick=()=>window.open(b.dataset.url,'_blank'));

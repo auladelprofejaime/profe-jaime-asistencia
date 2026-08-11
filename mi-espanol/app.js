@@ -31,6 +31,7 @@ async function refreshStudentNotices(){
 }
 async function openStudentView(id){
  if((id==='home'||id==='notices')&&currentToken)await refreshStudentNotices();
+ if(id==='points'&&currentToken) await refreshStudentPoints();
  setView(id);
 }
 
@@ -41,7 +42,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8130',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8141',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -449,7 +450,7 @@ async function refreshStudentPoints(){
    studentPointsData=data?.ok?data:null;
  }catch(e){
    console.warn('points bundle',e);
-   studentPointsData=null;
+   studentPointsData={ok:false,_error:String(e?.message||e||'Error de consulta')};
  }
  renderStudentPoints();
  renderSummary();
@@ -470,7 +471,7 @@ function pointTransactionLabel(t){
 function renderStudentPoints(){
  const box=$('#pointsContent');if(!box)return;
  const data=studentPointsData;
- if(!data){box.innerHTML='<div class="card muted">No se pudo consultar tus puntos en este momento. Pulsa Actualizar e inténtalo nuevamente.</div>';return}
+ if(!data||data.ok===false){box.innerHTML=`<div class="card muted"><b>No se pudieron consultar tus puntos.</b><p>Vuelve a abrir esta sección. Si continúa, informa al profesor.</p>${data?`<small>${esc(data._error||'')}</small>`:''}</div>`;return}
  const bal=Math.max(0,Number(data.balance||0));
  const p=data.period;
  const tx=(data.transactions||[]).slice(0,20);
@@ -801,5 +802,6 @@ async function sendMessage(){
  $('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';
  await refreshStudentPortal();
 }
-window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){const t=e.data.target||'home';$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id===t));if(t==='chat')refreshStudentPortal().catch(()=>{})}});
+window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){const t=e.data.target||'home';$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id===t));if(t==='chat')refreshStudentPortal().catch(()=>{});if(t==='points')refreshStudentPoints().catch(()=>{})}});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden&&currentToken)refreshStudentPoints().catch(()=>{});});
 init();

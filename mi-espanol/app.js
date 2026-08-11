@@ -41,7 +41,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8124',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8125',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -98,29 +98,27 @@ async function enterPortal(){
  if(!raw?.ok){
    clearSession();currentToken='';
    $('#sessionLoading')?.classList.add('hidden');
-   $('#loginGate')?.classList.remove('hidden');
    $('#portalApp')?.classList.add('hidden');
+   $('#loginGate')?.classList.remove('hidden');
    return false;
  }
- bundle=raw;currentId=bundle.student.id;
 
- // Mantener la app oculta hasta terminar TODA la carga de la sesión.
+ // La sesión YA fue validada por Supabase. A partir de aquí,
+ // ningún error secundario de carga debe devolver al login.
+ bundle=raw;currentId=bundle.student.id;
  $('#loginGate')?.classList.add('hidden');
- $('#portalApp')?.classList.add('hidden');
- $('#sessionLoading')?.classList.remove('hidden');
+ $('#sessionLoading')?.classList.add('hidden');
+ $('#portalApp')?.classList.remove('hidden');
 
  try{
    await load();
  }catch(e){
-   console.warn('No se pudo completar la carga de la sesión',e);
-   $('#sessionLoading')?.classList.add('hidden');
-   $('#loginGate')?.classList.remove('hidden');
-   $('#portalApp')?.classList.add('hidden');
-   return false;
+   console.warn('Una sección no terminó de cargar, pero la sesión sigue activa',e);
+   // Mantener la app abierta. El usuario puede actualizar/reintentar.
  }
 
- $('#sessionLoading')?.classList.add('hidden');
  $('#loginGate')?.classList.add('hidden');
+ $('#sessionLoading')?.classList.add('hidden');
  $('#portalApp')?.classList.remove('hidden');
  return true;
 }

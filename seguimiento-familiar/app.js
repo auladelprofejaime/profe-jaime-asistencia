@@ -4,6 +4,20 @@ const $=s=>document.querySelector(s);
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 const same=(a,b)=>String(a||'').replace(/\s+/g,'').toUpperCase()===String(b||'').replace(/\s+/g,'').toUpperCase();
 function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===id));$$('[data-view]').forEach(b=>b.classList.toggle('active',b.dataset.view===id));window.scrollTo({top:0,behavior:'smooth'})}
+
+function openFamilyPushTarget(target){
+ if(target==='reports'){setView('reports');return}
+ if(target==='activities'){setView('activities');return}
+ if(target==='materials'){setView('materials');return}
+ if(target==='notices'){setView('notices');return}
+ setView('home');
+}
+navigator.serviceWorker?.addEventListener('message',e=>{
+ if(e.data?.type==='OPEN_PUSH_TARGET')openFamilyPushTarget(e.data.target);
+});
+const initialPush=new URLSearchParams(location.search).get('push');
+if(initialPush)setTimeout(()=>openFamilyPushTarget(initialPush),500);
+
 $$('[data-view]').forEach(b=>b.onclick=()=>setView(b.dataset.view));
 
 import {portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
@@ -231,10 +245,40 @@ function renderAll(){
  }).join(''):'<div class="card muted">No hay próximas entregas publicadas.</div>';
 
  $('#familyGrades').innerHTML=`<div class="card"><h3>Promedio actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><p>Calificación redondeada: <b>${g?.rounded??'—'}</b></p></div>`;
- $('#familyReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="big-button" data-r="${r.id}"><b>PDF</b><span>${esc(r.title)}</span></button>`).join(''):'<div class="card muted">Sin reportes disponibles.</div>';
+ $('#familyReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="big-button" data-r="${r.id}"><b>📄</b><span>${esc(r.title)}${r.report_date?`<small>${esc(portalDate(r.report_date))}</small>`:''}</span></button>`).join(''):'<div class="card muted">Sin reportes disponibles.</div>';
  $$('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));
 }
-async function openReport(rid){alert('El reporte está registrado, pero la apertura segura de PDF se habilitará en la siguiente actualización.')}
+async function openReport(rid){
+ const r=(bundle?.reports||[]).find(x=>String(x.id)===String(rid));
+ if(!r)return alert('No se encontró el reporte.');
+ const d=r.data||{};
+ if(r.report_type==='weekly_deliveries'||d.activities){
+   const acts=Array.isArray(d.activities)?d.activities:[];
+   const rows=acts.map(a=>{
+     const cls=a.code==='yes'?'ok':a.code==='no'?'bad':a.code==='numeric'?'ok':'warn';
+     return `<div class="card delivery-card">
+       <div class="delivery-title">${esc(a.name||'Actividad')}</div>
+       <div class="delivery-line"><b>Tipo:</b> ${esc(a.type||'Actividad')}</div>
+       <div class="delivery-line"><b>Asignada:</b> ${esc(portalDate(a.assigned)||'—')}</div>
+       <div class="delivery-line"><b>Entrega:</b> ${esc(portalDate(a.due)||'—')}</div>
+       <div class="delivery-line"><b>Estado:</b> <span class="status ${cls}">${esc(a.status||'Pendiente')}</span></div>
+     </div>`;
+   }).join('');
+   const html=`<button class="back-home" id="backReports">← Reportes</button>
+     <h2>${esc(r.title||'Reporte semanal de entregas')}</h2>
+     <div class="card">
+       <p><b>Alumno:</b> ${esc(d.student_name||bundle?.student?.name||'')}</p>
+       <p><b>Grupo:</b> ${esc(d.group_name||bundle?.student?.group_name||'')}</p>
+       <p><b>Semana:</b> ${esc(d.week||'')}</p>
+       <p><b>Entregadas / registradas:</b> ${esc(d.delivered??0)} de ${esc(d.total??acts.length)}</p>
+     </div>${rows||'<div class="card muted">Sin actividades en este reporte.</div>'}`;
+   const view=$('#reports');
+   view.innerHTML=html;
+   $('#backReports').onclick=()=>{view.innerHTML='<button class="back-home" data-view="home">← Inicio</button><h2>Reportes</h2><div id="familyReports" class="cards"></div>';view.querySelector('[data-view="home"]').onclick=()=>setView('home');renderAll();setView('reports')};
+   return;
+ }
+ alert('Este reporte no tiene un formato compatible con esta versión.');
+}
 async function isAvailable(){let a=bundle.availability||{},now=new Date(),date=now.toISOString().slice(0,10),hm=now.toTimeString().slice(0,5),vac=a.vacationStart&&a.vacationEnd&&date>=a.vacationStart&&date<=a.vacationEnd;return {a,open:!a.suspended&&!vac&&!(a.technicalCouncilDates||[]).includes(date)&&(a.days||[]).includes(now.getDay())&&hm>=a.start&&hm<=a.end}}
 async function updateContact(){let {a,open}=await isAvailable();$('#contactSchedule').textContent=`Horario de atención: lunes a viernes, ${a.start||'12:00'} a ${a.end||'15:00'}.`;$('#contactTeacher').disabled=!open;$('#contactMessage').textContent=open?'El botón está disponible dentro del horario de atención.':'El horario de atención es de lunes a viernes de 12:00 p.m. a 3:00 p.m. Los mensajes enviados fuera de este horario serán respondidos el siguiente día hábil.'}
 async function openWhatsApp(){

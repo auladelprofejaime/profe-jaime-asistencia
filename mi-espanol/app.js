@@ -40,7 +40,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8129',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8130',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -451,12 +451,12 @@ function isQuarterSummary(m){return !!(m?.isQuarterSummary||m?.periodType==='qua
 function studentGradeModel(){
  normalizeStudentMethodologies();
  const all=bundle?.methodologies||[];
- const monthly=all.filter(m=>!isQuarterSummary(m)&&m.gradeRecords?.[currentId]?.finalDecimal!=null)
+ const monthly=all.filter(m=>!isQuarterSummary(m)&&m.closed===true&&m.published!==false&&m.gradeRecords?.[currentId]?.finalDecimal!=null)
    .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
      Number(b.quarter||0)-Number(a.quarter||0)||
      PORTAL_MONTH_ORDER.indexOf(b.month)-PORTAL_MONTH_ORDER.indexOf(a.month)||
      portalMethodTimestamp(b).localeCompare(portalMethodTimestamp(a)));
- const quarters=all.filter(m=>isQuarterSummary(m)&&m.gradeRecords?.[currentId]?.finalDecimal!=null)
+ const quarters=all.filter(m=>isQuarterSummary(m)&&m.closed===true&&m.published===true&&m.gradeRecords?.[currentId]?.finalDecimal!=null)
    .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
      Number(b.quarter||0)-Number(a.quarter||0)||
      portalMethodTimestamp(b).localeCompare(portalMethodTimestamp(a)));
@@ -554,7 +554,7 @@ function renderGrades(){
    return `<div class="card">
      <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
        <div><h3 style="margin:0">${esc(m.month||'Mes')}</h3><p class="muted" style="margin:4px 0 0">Trimestre ${esc(m.quarter||'—')} · ${esc(m.cycle||'')}</p></div>
-       <span class="pill ${m.closed?'green':'yellow'}">${m.closed?'Definitiva':'En curso'}</span>
+       <span class="pill green">Publicada</span>
      </div>
      <h1 style="margin-bottom:4px">${Number(g.finalDecimal).toFixed(2)}</h1>
      <p>Redondeada: <b>${g.rounded??'—'}</b></p>

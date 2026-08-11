@@ -28,3 +28,4 @@ IMPORTANTE
 - Los PDF y Excel usan librerías que se descargan la primera vez. Abre la app con internet al menos una vez.
 Forzar despliegue
     Forzar despliegue v8991
+<!-- FORCE DEPLOY 2026-08-11 -->

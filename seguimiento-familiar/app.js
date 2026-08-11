@@ -81,7 +81,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8118',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8120',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }
@@ -291,12 +291,27 @@ function normalizePortalMethodologies(){
    return m;
  });
 }
-function grade(){
+const FAMILY_MONTH_ORDER=['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'];
+function familyMethodTimestamp(m){return String(m.updated||m.closedAt||m.created||'')}
+function familyIsQuarterSummary(m){return !!(m?.isQuarterSummary||m?.periodType==='quarter'||m?.data?.isQuarterSummary)}
+function familyGradeModel(){
  normalizePortalMethodologies();
- const closed=(bundle?.methodologies||[])
-   .filter(m=>m.closed&&m.gradeRecords?.[id]?.finalDecimal!=null)
-   .sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
- return closed[0]?.gradeRecords?.[id]||null;
+ const all=bundle?.methodologies||[];
+ const monthly=all.filter(m=>!familyIsQuarterSummary(m)&&m.gradeRecords?.[id]?.finalDecimal!=null)
+   .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
+     Number(b.quarter||0)-Number(a.quarter||0)||
+     FAMILY_MONTH_ORDER.indexOf(b.month)-FAMILY_MONTH_ORDER.indexOf(a.month)||
+     familyMethodTimestamp(b).localeCompare(familyMethodTimestamp(a)));
+ const quarters=all.filter(m=>familyIsQuarterSummary(m)&&m.gradeRecords?.[id]?.finalDecimal!=null)
+   .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
+     Number(b.quarter||0)-Number(a.quarter||0)||
+     familyMethodTimestamp(b).localeCompare(familyMethodTimestamp(a)));
+ const current=monthly.slice().sort((a,b)=>familyMethodTimestamp(b).localeCompare(familyMethodTimestamp(a)))[0]||null;
+ return {monthly,quarters,current};
+}
+function grade(){
+ const m=familyGradeModel().current;
+ return m?.gradeRecords?.[id]||null;
 }
 
 function renderAll(){
@@ -338,7 +353,34 @@ function renderAll(){
    </div>`;
  }).join(''):'<div class="card muted">No hay próximas entregas publicadas.</div>';
 
- $('#familyGrades').innerHTML=`<div class="card"><h3>Promedio actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><p>Calificación redondeada: <b>${g?.rounded??'—'}</b></p></div>`;
+ {
+   const gm=familyGradeModel();
+   const months=gm.monthly.map(m=>{
+     const x=m.gradeRecords?.[id];
+     return `<div class="card">
+       <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
+         <div><h3 style="margin:0">${esc(m.month||'Mes')}</h3><p class="muted" style="margin:4px 0 0">Trimestre ${esc(m.quarter||'—')} · ${esc(m.cycle||'')}</p></div>
+         <span class="status ${m.closed?'ok':'warn'}">${m.closed?'Definitiva':'En curso'}</span>
+       </div>
+       <h1 style="margin-bottom:4px">${Number(x.finalDecimal).toFixed(2)}</h1>
+       <p>Redondeada: <b>${x.rounded??'—'}</b></p>
+     </div>`;
+   }).join('');
+   const quarters=gm.quarters.map(m=>{
+     const x=m.gradeRecords?.[id];
+     return `<div class="card">
+       <h3 style="margin-top:0">Trimestre ${esc(m.quarter||'—')}</h3>
+       <p class="muted">${esc(m.cycle||'')}</p>
+       <h1 style="margin-bottom:4px">${Number(x.finalDecimal).toFixed(2)}</h1>
+       <p>Calificación trimestral redondeada: <b>${x.rounded??'—'}</b></p>
+     </div>`;
+   }).join('');
+   $('#familyGrades').innerHTML=`
+     <h3>Calificaciones mensuales</h3>
+     ${months||'<div class="card muted">Todavía no hay una calificación mensual calculada.</div>'}
+     <h3 style="margin-top:22px">Calificación trimestral</h3>
+     ${quarters||'<div class="card muted">Aparecerá cuando el profesor calcule el cierre del trimestre.</div>'}`;
+ }
  $('#familyReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="big-button" data-r="${r.id}"><b>📄</b><span>${esc(r.title)}${r.report_date?`<small>${esc(portalDate(r.report_date))}</small>`:''}</span></button>`).join(''):'<div class="card muted">Sin reportes disponibles.</div>';
  $$('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));
 }

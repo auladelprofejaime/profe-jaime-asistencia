@@ -10,7 +10,7 @@ $$('[data-view]').forEach(b=>b.onclick=()=>openStudentView(b.dataset.view));
 async function rawStudentPortalBundle(){
  if(!currentToken)return null;
  try{
-   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_bundle`,{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_updates`,{
      method:'POST',
      headers:{
        apikey:SUPABASE_PUBLISHABLE_KEY,
@@ -19,9 +19,9 @@ async function rawStudentPortalBundle(){
      },
      body:JSON.stringify({p_token:currentToken})
    });
-   if(!r.ok)return null;
+   if(!r.ok){console.warn('portal_get_updates HTTP',r.status);return null}
    return await r.json();
- }catch(e){console.warn('raw student bundle',e);return null}
+ }catch(e){console.warn('student updates',e);return null}
 }
 async function refreshStudentNotices(){
  const raw=await rawStudentPortalBundle();
@@ -41,7 +41,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8125',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8126',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }

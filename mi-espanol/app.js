@@ -36,6 +36,7 @@ async function openStudentView(id){
 
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=899';
 let currentId='',bundle=null,currentToken='';
+let studentPointsData=null;
 let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
@@ -341,7 +342,7 @@ function renderChatHistory(){
 async function refreshStudentPortal(){
  let fresh=await portalGetBundle(currentToken);if(!fresh?.ok)return;
  processStudentChanges(fresh);bundle=fresh;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();showBirthdayGreetingIfNeeded().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();showBirthdayGreetingIfNeeded().catch(()=>{});await refreshStudentPoints();
 }
 function startStudentPolling(){
  if(studentPollTimer)clearInterval(studentPollTimer);
@@ -424,7 +425,103 @@ async function load(){
  bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;normalizeStudentMethodologies();await refreshStudentNotices();
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();renderStudentNotifBadge();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();renderStudentNotifBadge();await refreshStudentPoints();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+}
+
+
+async function studentPointsRpc(name,payload={}){
+ if(!currentToken)throw new Error('Sesión no disponible.');
+ const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{
+   method:'POST',
+   headers:{apikey:SUPABASE_PUBLISHABLE_KEY,'Content-Type':'application/json'},
+   body:JSON.stringify({p_token:currentToken,...payload})
+ });
+ let data=null;try{data=await r.json()}catch(_){data=null}
+ if(!r.ok){
+   const msg=data?.message||data?.error||data?.hint||'No se pudo completar la operación.';
+   throw new Error(msg);
+ }
+ return data;
+}
+async function refreshStudentPoints(){
+ try{
+   const data=await studentPointsRpc('portal_points_bundle');
+   studentPointsData=data?.ok?data:null;
+ }catch(e){
+   console.warn('points bundle',e);
+   studentPointsData=null;
+ }
+ renderStudentPoints();
+ renderSummary();
+ renderGrades();
+}
+function pointsDateTime(v){
+ if(!v)return '—';
+ const d=new Date(v);if(Number.isNaN(d.getTime()))return String(v);
+ return d.toLocaleString('es-MX',{day:'numeric',month:'long',hour:'numeric',minute:'2-digit'});
+}
+function pointsChoiceLabel(v){
+ return ({keep:'Conservar puntos',used:'Aplicados a calificación',donated:'Donación realizada',mixed:'Aplicados y donados'})[v]||'Sin decisión todavía';
+}
+function pointTransactionLabel(t){
+ const labels={award:'Puntos ganados',grade_use:'Aplicados a calificación',grade_refund:'Puntos devueltos',donation_out:'Donación enviada',donation_in:'Donación recibida',admin_adjustment:'Ajuste'};
+ return labels[t?.type]||t?.reason||'Movimiento';
+}
+function renderStudentPoints(){
+ const box=$('#pointsContent');if(!box)return;
+ const data=studentPointsData;
+ if(!data){box.innerHTML='<div class="card muted">No se pudo consultar tus puntos en este momento. Pulsa Actualizar e inténtalo nuevamente.</div>';return}
+ const bal=Math.max(0,Number(data.balance||0));
+ const p=data.period;
+ const tx=(data.transactions||[]).slice(0,20);
+ let periodHtml='';
+ if(!p){
+   periodHtml=`<div class="card points-balance-card"><span>Saldo disponible</span><b>${bal.toFixed(2)}</b><p>Tus puntos se conservan durante el ciclo escolar.</p></div><div class="card"><h3>Periodo de asignación</h3><p class="muted">No hay un periodo programado o abierto para tu grupo en este momento.</p></div>`;
+ }else if(p.state==='scheduled'){
+   periodHtml=`<div class="card points-balance-card"><span>Saldo disponible</span><b>${bal.toFixed(2)}</b><p>Tus puntos se conservan durante el ciclo escolar.</p></div><div class="card"><span class="pill yellow">Programado</span><h3>${esc(p.month||'Periodo de puntos')}</h3><p>Abre: <b>${esc(pointsDateTime(p.opens_at))}</b></p><p>Cierra: <b>${esc(pointsDateTime(p.closes_at))}</b></p><p class="muted">Las opciones se habilitarán automáticamente cuando comience el periodo.</p></div>`;
+ }else if(p.state==='open'){
+   const used=Math.max(0,Number(p.points_used||0));
+   const max=Math.max(0,Number(p.max_applicable||0));
+   const maxAllowed=Math.max(0,Math.min(max,bal+used));
+   periodHtml=`<div class="card points-balance-card"><span>Saldo disponible</span><b>${bal.toFixed(2)}</b><p>Tus puntos no utilizados permanecen disponibles.</p></div>
+   <div class="card points-period-card"><span class="pill green">Periodo abierto</span><h3>${esc(p.month||'Asignación de puntos')}</h3><p>Cierra: <b>${esc(pointsDateTime(p.closes_at))}</b></p><p>Decisión actual: <b>${esc(pointsChoiceLabel(data.choice))}</b></p>${p.provisional_grade!=null?`<p>Calificación provisional: <b>${Number(p.provisional_grade).toFixed(2)}</b></p>`:''}
+   <div class="points-action-box"><h4>Aplicar a mi calificación</h4><p class="muted">Puedes usar hasta ${maxAllowed.toFixed(2)} puntos. Si ya aplicaste puntos, puedes cambiar la cantidad mientras el periodo siga abierto.</p><label>Cantidad total a aplicar<input id="pointsGradeAmount" type="number" min="0" max="${maxAllowed}" step="0.01" inputmode="decimal" value="${used.toFixed(2)}"></label><button id="applyGradePointsBtn" class="action primary" type="button">Guardar aplicación</button></div>
+   <div class="points-action-box"><h4>Donar a un compañero</h4><p class="muted">Solo puedes donar a un alumno de tu mismo grupo. Escribe su ID de 5 dígitos; no se muestran nombres ni listas de compañeros.</p><label>ID del compañero<input id="pointsRecipientId" type="text" inputmode="numeric" maxlength="5" placeholder="00000"></label><label>Puntos a donar<input id="pointsDonateAmount" type="number" min="0.01" max="${bal}" step="0.01" inputmode="decimal" placeholder="0.00"></label><button id="donatePointsBtn" class="action" type="button">Donar puntos</button></div>
+   <button id="keepPointsBtn" class="action" type="button">Conservar mis puntos sin aplicar</button><div id="pointsActionStatus" class="chat-status"></div></div>`;
+ }
+ const history=tx.length?tx.map(t=>`<div class="points-history-row"><div><b>${esc(pointTransactionLabel(t))}</b><small>${esc(pointsDateTime(t.created_at))}</small></div><strong class="${Number(t.amount)>=0?'points-plus':'points-minus'}">${Number(t.amount)>=0?'+':''}${Number(t.amount).toFixed(2)}</strong></div>`).join(''):'<div class="muted">Todavía no hay movimientos de puntos.</div>';
+ box.innerHTML=periodHtml+`<div class="card"><h3>Movimientos recientes</h3><div class="points-history">${history}</div></div>`;
+ $('#applyGradePointsBtn')?.addEventListener('click',applyStudentGradePoints);
+ $('#donatePointsBtn')?.addEventListener('click',donateStudentPoints);
+ $('#keepPointsBtn')?.addEventListener('click',keepStudentPoints);
+}
+async function applyStudentGradePoints(){
+ const p=studentPointsData?.period;if(!p||p.state!=='open')return;
+ const input=$('#pointsGradeAmount'),status=$('#pointsActionStatus');
+ const amount=Number(input?.value);
+ if(!Number.isFinite(amount)||amount<0){status.textContent='Escribe una cantidad válida.';return}
+ const max=Math.max(0,Math.min(Number(p.max_applicable||0),Number(studentPointsData.balance||0)+Number(p.points_used||0)));
+ if(amount>max+0.0001){status.textContent=`Puedes aplicar como máximo ${max.toFixed(2)} puntos.`;return}
+ if(!confirm(`¿Quieres aplicar ${amount.toFixed(2)} puntos a tu calificación de ${p.month||'este mes'}?`))return;
+ try{status.textContent='Guardando…';await studentPointsRpc('portal_set_grade_points',{p_period_id:p.id,p_amount:amount});await refreshStudentPortal();await refreshStudentPoints();status.textContent='';alert('Tu decisión quedó guardada.');}catch(e){status.textContent=e.message||'No se pudo guardar.'}
+}
+async function keepStudentPoints(){
+ const p=studentPointsData?.period;if(!p||p.state!=='open')return;
+ const status=$('#pointsActionStatus');
+ if(Number(p.points_used||0)>0){
+   if(!confirm('Esto quitará los puntos que habías aplicado a tu calificación y los devolverá a tu saldo. ¿Continuar?'))return;
+ }
+ try{status.textContent='Guardando…';await studentPointsRpc('portal_set_grade_points',{p_period_id:p.id,p_amount:0});await refreshStudentPortal();await refreshStudentPoints();alert('Tus puntos quedarán disponibles para otro momento.');}catch(e){status.textContent=e.message||'No se pudo guardar.'}
+}
+async function donateStudentPoints(){
+ const p=studentPointsData?.period;if(!p||p.state!=='open')return;
+ const id=String($('#pointsRecipientId')?.value||'').trim(),amount=Number($('#pointsDonateAmount')?.value),status=$('#pointsActionStatus');
+ if(!/^\d{5}$/.test(id)){status.textContent='Escribe el ID de 5 dígitos de tu compañero.';return}
+ if(id===String(currentId)){status.textContent='No puedes donarte puntos a ti mismo.';return}
+ if(!Number.isFinite(amount)||amount<=0){status.textContent='Escribe cuántos puntos quieres donar.';return}
+ if(amount>Number(studentPointsData.balance||0)+0.0001){status.textContent='No tienes suficientes puntos disponibles.';return}
+ if(!confirm(`Vas a donar ${amount.toFixed(2)} puntos al ID ${id}. Esta donación no puede deshacerse desde Mi Español. ¿Confirmas?`))return;
+ try{status.textContent='Registrando donación…';await studentPointsRpc('portal_donate_points',{p_period_id:p.id,p_recipient_id:id,p_amount:amount});await refreshStudentPoints();alert(`Donación registrada al ID ${id}.`);}catch(e){status.textContent=e.message||'No se pudo realizar la donación.'}
 }
 
 function normalizeStudentMethodologies(){
@@ -467,6 +564,7 @@ function currentGrade(){
  return m?.gradeRecords?.[currentId]||null;
 }
 function pointsAvailable(){
+ if(studentPointsData?.ok)return Math.max(0,Number(studentPointsData.balance||0));
  let earned=0,used=0;(bundle.methodologies||[]).forEach(m=>{let r=m.gradeRecords?.[currentId];if(r){earned+=Number(r.pointsGenerated||0);used+=Number(r.pointsUsed||0)}});return Math.max(0,earned-used)
 }
 function renderSummary(){let g=currentGrade(),present=bundle.attendance.filter(a=>(a.status||'Presente')!=='Falta').length;

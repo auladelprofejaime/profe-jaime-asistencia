@@ -41,7 +41,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8121',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8124',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -70,6 +70,7 @@ async function init(){
    clearSession();
  }
  $('#sessionLoading')?.classList.add('hidden');
+ $('#portalApp')?.classList.add('hidden');
  $('#loginGate')?.classList.remove('hidden');
 }
 function saveSession(remember){const data=JSON.stringify({studentId:currentId,role:'student',token:currentToken});(remember?localStorage:sessionStorage).setItem('miEspanolSession',data)}
@@ -102,10 +103,25 @@ async function enterPortal(){
    return false;
  }
  bundle=raw;currentId=bundle.student.id;
+
+ // Mantener la app oculta hasta terminar TODA la carga de la sesión.
+ $('#loginGate')?.classList.add('hidden');
+ $('#portalApp')?.classList.add('hidden');
+ $('#sessionLoading')?.classList.remove('hidden');
+
+ try{
+   await load();
+ }catch(e){
+   console.warn('No se pudo completar la carga de la sesión',e);
+   $('#sessionLoading')?.classList.add('hidden');
+   $('#loginGate')?.classList.remove('hidden');
+   $('#portalApp')?.classList.add('hidden');
+   return false;
+ }
+
  $('#sessionLoading')?.classList.add('hidden');
  $('#loginGate')?.classList.add('hidden');
  $('#portalApp')?.classList.remove('hidden');
- await load();
  return true;
 }
 async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}

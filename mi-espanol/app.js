@@ -42,7 +42,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8141',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8142',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -743,6 +743,13 @@ function openStudyMode(topicId,mode){
 function renderStudy(){
  $('#studyTopics').innerHTML=bundle.studyTopics.length?bundle.studyTopics.map(t=>`<div class="card"><b>${esc(t.title)}</b><p class="muted">${esc(t.notes||'Tema trabajado')}</p><div class="question-actions"><button class="action" data-study="${esc(t.id)}" data-mode="quiz">Trivia rápida</button><button class="action" data-study="${esc(t.id)}" data-mode="exam">Examen</button><button class="action" data-study="${esc(t.id)}" data-mode="daily">Pregunta del día</button><button class="action" data-study="${esc(t.id)}" data-mode="review">Repaso</button></div><small class="muted">Las preguntas se crean automáticamente a partir del contenido publicado por el profesor.</small></div>`).join(''):'<div class="card muted">Todavía no hay temas publicados.</div>';
  $$('[data-study]').forEach(b=>b.onclick=()=>openStudyMode(b.dataset.study,b.dataset.mode));
+}
+function studentChatTodayKey(){
+ const now=new Date();
+ const y=now.getFullYear();
+ const m=String(now.getMonth()+1).padStart(2,'0');
+ const d=String(now.getDate()).padStart(2,'0');
+ return `${y}-${m}-${d}`;
 }
 function studentChatAvailability(){
  const a=bundle?.availability||{};

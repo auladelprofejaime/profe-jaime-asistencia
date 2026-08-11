@@ -1,9 +1,9 @@
-const CACHE='app-estudiante-v8-14-1';
+const CACHE='app-estudiante-v8-14-2';
 const FILES=[
   './',
   './index.html',
   './styles.css',
-  './app.js?v=8141',
+  './app.js?v=8142',
   './manifest.webmanifest',
   './profe-jaime.png',
   './icon-app-estudiante-v821.png',

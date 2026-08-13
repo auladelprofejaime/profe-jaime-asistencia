@@ -1,1 +1,102 @@
-<!-- App Diagnóstico -->
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+  <meta name="theme-color" content="#f7c600">
+  <title>El Aula del Profe Jaime · Diagnóstico Inicial</title>
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <img src="icon-192.png" alt="Diagnóstico inicial">
+    <div>
+      <strong>El Aula del Profe Jaime</strong>
+      <span>Diagnóstico Inicial</span>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <section id="loginCard" class="card">
+      <h1>Acceso docente</h1>
+      <p class="muted">Esta aplicación es de uso exclusivo del docente.</p>
+      <label>Correo
+        <input id="email" type="email" autocomplete="username" placeholder="Correo de acceso">
+      </label>
+      <label>Contraseña
+        <input id="password" type="password" autocomplete="current-password" placeholder="Contraseña">
+      </label>
+      <button id="loginBtn">Entrar</button>
+      <div id="loginStatus" class="status"></div>
+    </section>
+
+    <section id="appShell" class="hidden">
+      <div class="hero card">
+        <div>
+          <p class="eyebrow">CICLO ESCOLAR</p>
+          <h1>Diagnóstico Inicial</h1>
+          <p id="teacherStatus" class="muted">Conectando…</p>
+        </div>
+        <button id="logoutBtn" class="secondary">Cerrar sesión</button>
+      </div>
+
+      <section class="card">
+        <div class="sectionHead">
+          <div>
+            <h2>Periodo diagnóstico</h2>
+            <p class="muted">Crea o abre el periodo de trabajo.</p>
+          </div>
+          <button id="refreshBtn" class="secondary">Actualizar</button>
+        </div>
+
+        <div id="periodCreator" class="creator">
+          <input id="periodName" value="Diagnóstico Inicial 2026-2027" placeholder="Nombre">
+          <input id="periodCycle" value="2026-2027" placeholder="Ciclo">
+          <button id="createPeriodBtn">Crear periodo</button>
+        </div>
+
+        <div id="periodList" class="list empty">Sin periodos cargados.</div>
+      </section>
+
+      <section id="groupsCard" class="card hidden">
+        <h2>Grupos</h2>
+        <p class="muted">Solo alumnos Matutino activos.</p>
+        <div id="groupList" class="grid"></div>
+      </section>
+
+      <section id="studentsCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <h2 id="studentsTitle">Alumnos</h2>
+            <p class="muted">Progreso del diagnóstico.</p>
+          </div>
+          <button id="backGroupsBtn" class="secondary">← Grupos</button>
+        </div>
+        <div id="studentList" class="list"></div>
+      </section>
+
+      <section id="studentCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p id="studentMeta" class="eyebrow"></p>
+            <h2 id="studentName">Alumno</h2>
+          </div>
+          <button id="backStudentsBtn" class="secondary">← Alumnos</button>
+        </div>
+        <div class="testGrid">
+          <div class="testTile"><b>SAGES-2</b><span id="sagesState">Pendiente</span></div>
+          <div class="testTile"><b>CompLEC</b><span id="complecState">Pendiente</span></div>
+          <div class="testTile"><b>PROESC</b><span id="proescState">Pendiente</span></div>
+          <div class="testTile"><b>CASM-85-R</b><span id="casmState">Pendiente</span></div>
+        </div>
+        <p class="notice">El cascarón ya está conectado. La captura de cada prueba se habilitará en los siguientes pasos.</p>
+      </section>
+    </section>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

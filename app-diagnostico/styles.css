@@ -1,0 +1,14 @@
+
+:root{font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;color:#2a231b;background:#fff7dc}
+*{box-sizing:border-box}body{margin:0;background:linear-gradient(#fff8df,#fffdf7);min-height:100vh}
+.topbar{display:flex;gap:12px;align-items:center;padding:14px 18px;background:#f7c600;border-bottom:3px solid #b92025;position:sticky;top:0;z-index:5}
+.topbar img{width:52px;height:52px;border-radius:14px;object-fit:cover;background:#fff}.topbar strong,.topbar span{display:block}.topbar span{font-size:14px}
+.wrap{max-width:950px;margin:0 auto;padding:18px}.card{background:#fff;border:1px solid #eadfbc;border-radius:20px;padding:20px;margin-bottom:18px;box-shadow:0 8px 24px #5e481514}
+h1,h2{margin:.2rem 0 .6rem}.muted{color:#6d655d}.eyebrow{font-size:12px;font-weight:800;letter-spacing:.08em;color:#a22225;margin:0}
+label{display:block;font-weight:700;margin:12px 0}input{width:100%;padding:13px 14px;border:1px solid #d6cba8;border-radius:12px;font-size:16px;margin-top:6px}
+button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#fff;font-weight:800;font-size:15px;cursor:pointer}.secondary{background:#f2ead0;color:#332c24}
+.hidden{display:none!important}.status{margin-top:12px;font-weight:700}.hero,.sectionHead{display:flex;align-items:center;justify-content:space-between;gap:16px}.creator{display:grid;grid-template-columns:1.5fr .8fr auto;gap:10px;margin:16px 0}
+.list{display:flex;flex-direction:column;gap:10px}.empty{padding:18px;border:1px dashed #d6cba8;border-radius:14px;color:#70685f}.row{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px;border:1px solid #eadfbc;border-radius:14px;background:#fffdf7}.row small{display:block;color:#746a60;margin-top:4px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px}.groupBtn{background:#fff8d8;color:#312a21;border:2px solid #f0c81c;padding:18px;text-align:left}.groupBtn b{display:block;font-size:22px}.groupBtn span{font-size:13px}
+.testGrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.testTile{padding:18px;border-radius:16px;background:#fff7d5;border:1px solid #ead681}.testTile b,.testTile span{display:block}.testTile span{margin-top:8px;color:#6e655c}.notice{margin-top:16px;padding:14px;border-radius:14px;background:#fff3c0}
+@media(max-width:650px){.creator{grid-template-columns:1fr}.hero,.sectionHead{align-items:flex-start}.testGrid{grid-template-columns:1fr}}

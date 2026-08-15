@@ -1,7 +1,6 @@
-APP DIAGNÓSTICO v0.2.1
-Corrección SAGES:
-- Conecta Abrir captura.
-- Abre/cierra pantalla SAGES.
-- Vista previa.
-- Guardar SAGES.
-- Recupera captura existente.
+APP DIAGNÓSTICO v0.2.3
+SAGES-2 México — corrección visual:
+- Elimina referencia al cumpleaños y a intervalos por meses.
+- Muestra edad normativa seleccionada (10–15 años).
+- Mantiene cálculo mexicano D-5/D-6/C-1.
+NOTA: La clasificación de nivel se resolverá en el siguiente ajuste del motor con la regla interpretativa validada.

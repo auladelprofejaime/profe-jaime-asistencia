@@ -87,12 +87,68 @@
           <button id="backStudentsBtn" class="secondary">← Alumnos</button>
         </div>
         <div class="testGrid">
-          <div class="testTile"><b>SAGES-2</b><span id="sagesState">Pendiente</span></div>
+          <button class="testTile activeTest" id="openSagesBtn" type="button"><b>SAGES-2</b><span id="sagesState">Pendiente</span><small>Abrir captura</small></button>
           <div class="testTile"><b>CompLEC</b><span id="complecState">Pendiente</span></div>
           <div class="testTile"><b>PROESC</b><span id="proescState">Pendiente</span></div>
           <div class="testTile"><b>CASM-85-R</b><span id="casmState">Pendiente</span></div>
         </div>
-        <p class="notice">El cascarón ya está conectado. La captura de cada prueba se habilitará en los siguientes pasos.</p>
+        <p class="notice">SAGES-2 ya tiene pantalla de captura. Las demás pruebas se habilitarán en los siguientes pasos.</p>
+      </section>
+
+      <section id="sagesCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">SAGES-2 · 4-S</p>
+            <h2 id="sagesStudentName">Captura SAGES</h2>
+            <p id="sagesStudentMeta" class="muted"></p>
+          </div>
+          <button id="backStudentFromSages" class="secondary">← Expediente</button>
+        </div>
+
+        <div class="sagesInfo">
+          <p><b>Captura únicamente los aciertos.</b> La app calcula el intervalo normativo con el cumpleaños registrado del alumno.</p>
+        </div>
+
+        <div class="sagesForm">
+          <label>Edad actual del alumno
+            <select id="sagesAge">
+              <option value="">Selecciona</option>
+              <option value="9">9 años</option>
+              <option value="10">10 años</option>
+              <option value="11">11 años</option>
+              <option value="12">12 años</option>
+              <option value="13">13 años</option>
+              <option value="14">14 años</option>
+            </select>
+          </label>
+
+          <label>Lengua y literatura / Ciencias sociales
+            <div class="scoreInput">
+              <input id="sagesLanguage" type="number" min="0" max="30" inputmode="numeric" placeholder="0–30">
+              <span>/ 30</span>
+            </div>
+          </label>
+
+          <label>Razonamiento
+            <div class="scoreInput">
+              <input id="sagesReasoning" type="number" min="0" max="35" inputmode="numeric" placeholder="0–35">
+              <span>/ 35</span>
+            </div>
+          </label>
+
+          <label>Fecha de aplicación
+            <input id="sagesDate" type="date">
+          </label>
+
+          <div class="sagesActions">
+            <button id="previewSagesBtn" class="secondary" type="button">Calcular vista previa</button>
+            <button id="saveSagesBtn" type="button">Guardar SAGES</button>
+          </div>
+        </div>
+
+        <div id="sagesStatus" class="status"></div>
+        <div id="sagesResult" class="hidden"></div>
+      </section>
       </section>
     </section>
   </main>

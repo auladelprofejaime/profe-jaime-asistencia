@@ -14,3 +14,18 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 @media(max-width:650px){.creator{grid-template-columns:1fr}.hero,.sectionHead{align-items:flex-start}.testGrid{grid-template-columns:1fr}}
 
 .rowActions{display:flex;gap:8px;align-items:center}.dangerBtn{background:#7f1d1d;color:#fff}
+
+.testTile{border:1px solid #ead681;text-align:left;color:#2a231b;font-size:15px}
+.activeTest{cursor:pointer;background:#fff0a8}
+.activeTest small{display:block;margin-top:6px;color:#9b2427;font-weight:800}
+.sagesInfo{padding:14px;border-radius:14px;background:#fff6cf;margin:14px 0}
+.sagesForm{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+.sagesForm label{margin:0}
+.sagesForm select,.sagesForm input{width:100%;padding:13px 14px;border:1px solid #d6cba8;border-radius:12px;font-size:16px;background:#fff;margin-top:6px}
+.scoreInput{display:flex;gap:8px;align-items:center}.scoreInput span{font-weight:800;color:#6d655d;white-space:nowrap}
+.sagesActions{grid-column:1/-1;display:flex;gap:10px;justify-content:flex-end}
+.resultGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.resultBox{padding:15px;border:1px solid #ead681;border-radius:15px;background:#fffdf4}
+.resultBox h3{margin:0 0 10px}.resultBox p{margin:5px 0}
+.ageBand{padding:12px;border-radius:12px;background:#f2ead0;margin-top:12px}
+@media(max-width:650px){.sagesForm,.resultGrid{grid-template-columns:1fr}.sagesActions{flex-direction:column}.sagesActions button{width:100%}}

@@ -1,9 +1,15 @@
-APP DIAGNÓSTICO v0.1.1
-Paso general 1/9 · Base técnica · Ajuste final
+APP DIAGNÓSTICO v0.2.0
+Paso general 2/9 · SAGES-2 · Subpaso 3/4
 
 Agrega:
-- Eliminar periodo diagnóstico.
-- Doble confirmación.
-- Borrado en cascada de capturas/resultados/publicaciones del periodo.
+- Pantalla de captura SAGES-2.
+- Edad actual seleccionable.
+- Lengua/LL-CS 0–30.
+- Razonamiento 0–35.
+- Fecha de aplicación.
+- Vista previa.
+- Guardado mediante RPC.
+- Reapertura/edición de captura existente.
 
-Todavía NO incluye captura/calificación de SAGES, CompLEC, PROESC o CASM.
+Fuente de reglas: Manual SAGES-2.
+El Excel se usa solo como referencia de flujo.

@@ -1,6 +1,6 @@
-APP DIAGNÓSTICO v0.2.3
-SAGES-2 México — corrección visual:
-- Elimina referencia al cumpleaños y a intervalos por meses.
-- Muestra edad normativa seleccionada (10–15 años).
-- Mantiene cálculo mexicano D-5/D-6/C-1.
-NOTA: La clasificación de nivel se resolverá en el siguiente ajuste del motor con la regla interpretativa validada.
+APP DIAGNÓSTICO v0.2.4 — SAGES UI VERIFICADA
+
+Correcciones:
+- La captura indica que el docente selecciona la edad actual.
+- La vista previa muestra la edad normativa aplicada.
+- Se mantienen los cálculos SAGES ya validados.

@@ -166,8 +166,8 @@ function showSagesResult(r){
 
   box.innerHTML=`
     <div class="ageBand">
-      <b>Intervalo calculado:</b> ${esc((age.age_band||"—").replace("_","–"))}
-      · ${esc(age.age_months_rounded??"—")} meses después del cumpleaños
+      <b>Edad normativa aplicada:</b> ${esc((age.age_band||"—").replace("_","–"))}
+      · ${esc(age.age_months_rounded??"—")} Población escolar general (México)
     </div>
     <div class="resultGrid">
       ${resultBox("Lengua / LL-CS",lang)}

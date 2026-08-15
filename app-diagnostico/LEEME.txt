@@ -1,0 +1,9 @@
+APP DIAGNÓSTICO v0.1.1
+Paso general 1/9 · Base técnica · Ajuste final
+
+Agrega:
+- Eliminar periodo diagnóstico.
+- Doble confirmación.
+- Borrado en cascada de capturas/resultados/publicaciones del periodo.
+
+Todavía NO incluye captura/calificación de SAGES, CompLEC, PROESC o CASM.

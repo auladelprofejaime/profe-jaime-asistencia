@@ -51,9 +51,13 @@ async function loadPeriods(){
   box.className="list";
   box.innerHTML=rows.map(p=>`<div class="row">
     <div><b>${esc(p.name)}</b><small>${esc(p.cycle)} · ${esc(p.shift)} · ${esc(p.status)} · ${p.student_count||0} alumnos</small></div>
-    <button data-period="${esc(p.id)}">Abrir</button>
+    <div class="rowActions">
+      <button data-period="${esc(p.id)}">Abrir</button>
+      <button class="dangerBtn" data-delete-period="${esc(p.id)}">Eliminar</button>
+    </div>
   </div>`).join("");
   box.querySelectorAll("[data-period]").forEach(b=>b.onclick=()=>openPeriod(rows.find(p=>p.id===b.dataset.period)));
+  box.querySelectorAll("[data-delete-period]").forEach(b=>b.onclick=()=>deletePeriod(rows.find(p=>p.id===b.dataset.deletePeriod)));
 }
 async function createPeriod(){
   const name=$("#periodName").value.trim(),cycle=$("#periodCycle").value.trim();
@@ -63,6 +67,33 @@ async function createPeriod(){
     await loadPeriods();
     await openPeriod(r.period);
   }catch(e){alert("No se pudo crear el periodo: "+e.message)}
+}
+
+async function deletePeriod(p){
+  if(!p)return;
+  const first=confirm(`¿Eliminar el periodo "${p.name}"?\n\nSe borrarán también todas las capturas, resultados y publicaciones asociadas a este periodo.`);
+  if(!first)return;
+
+  const typed=prompt(`Para confirmar definitivamente escribe BORRAR:`);
+  if(String(typed||"").trim().toUpperCase()!=="BORRAR"){
+    alert("No se eliminó el periodo.");
+    return;
+  }
+
+  try{
+    await rpc("teacher_diagnostic_delete_period",{p_period_id:p.id});
+    if(activePeriod?.id===p.id){
+      activePeriod=null;
+      activeGroup=null;
+      $("#groupsCard").classList.add("hidden");
+      $("#studentsCard").classList.add("hidden");
+      $("#studentCard").classList.add("hidden");
+    }
+    await loadPeriods();
+    alert("Periodo eliminado correctamente.");
+  }catch(e){
+    alert("No se pudo eliminar el periodo: "+e.message);
+  }
 }
 async function openPeriod(p){
   activePeriod=p;

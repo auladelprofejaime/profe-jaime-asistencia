@@ -2,7 +2,7 @@
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
 const SUPABASE_KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA";
 let accessToken=localStorage.getItem("diagnosticTeacherToken")||"";
-let activePeriod=null,activeGroup=null;
+let activePeriod=null,activeGroup=null,activeStudentBundle=null;
 
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -116,12 +116,167 @@ async function openGroup(group){
 }
 async function openStudent(id){
   const b=await rpc("teacher_diagnostic_student_bundle",{p_period_id:activePeriod.id,p_student_id:id});
-  $("#studentsCard").classList.add("hidden");$("#studentCard").classList.remove("hidden");
+  activeStudentBundle=b;
+  $("#studentsCard").classList.add("hidden");
+  $("#sagesCard").classList.add("hidden");
+  $("#studentCard").classList.remove("hidden");
   $("#studentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
   $("#studentName").textContent=b.student.name;
   const set=(sel,val)=>$(sel).textContent=val?"Completa":"Pendiente";
-  set("#sagesState",b.progress.sages_complete);set("#complecState",b.progress.complec_complete);set("#proescState",b.progress.proesc_complete);set("#casmState",b.progress.casm_complete);
+  set("#sagesState",b.progress.sages_complete);
+  set("#complecState",b.progress.complec_complete);
+  set("#proescState",b.progress.proesc_complete);
+  set("#casmState",b.progress.casm_complete);
 }
+
+function todayISO(){
+  const d=new Date(), off=d.getTimezoneOffset();
+  return new Date(d.getTime()-off*60000).toISOString().slice(0,10);
+}
+
+function sagesPayload(){
+  if(!activeStudentBundle)throw new Error("No hay alumno seleccionado.");
+  const age=Number($("#sagesAge").value);
+  const language=Number($("#sagesLanguage").value);
+  const reasoning=Number($("#sagesReasoning").value);
+  const date=$("#sagesDate").value||todayISO();
+
+  if(!age)throw new Error("Selecciona la edad actual del alumno.");
+  if(!Number.isInteger(language)||language<0||language>30)
+    throw new Error("Lengua/LL-CS debe estar entre 0 y 30.");
+  if(!Number.isInteger(reasoning)||reasoning<0||reasoning>35)
+    throw new Error("Razonamiento debe estar entre 0 y 35.");
+
+  return {age,language,reasoning,date};
+}
+
+function showSagesResult(r){
+  const box=$("#sagesResult");
+  const age=r.age||{};
+  const lang=r.language||{};
+  const reas=r.reasoning||{};
+
+  const resultBox=(title,x)=>`<div class="resultBox">
+    <h3>${esc(title)}</h3>
+    <p><b>PD:</b> ${esc(x.raw_score??"—")}</p>
+    <p><b>Cociente:</b> ${esc(x.quotient_display??x.quotient??"—")}</p>
+    <p><b>Percentil:</b> ${esc(x.percentile??"—")}</p>
+    <p><b>Nivel:</b> ${esc(x.level??"—")}</p>
+  </div>`;
+
+  box.innerHTML=`
+    <div class="ageBand">
+      <b>Intervalo calculado:</b> ${esc((age.age_band||"—").replace("_","–"))}
+      · ${esc(age.age_months_rounded??"—")} meses después del cumpleaños
+    </div>
+    <div class="resultGrid">
+      ${resultBox("Lengua / LL-CS",lang)}
+      ${resultBox("Razonamiento",reas)}
+    </div>`;
+
+  box.classList.remove("hidden");
+}
+
+function openSages(){
+  if(!activeStudentBundle)return;
+
+  const b=activeStudentBundle;
+  $("#studentCard").classList.add("hidden");
+  $("#sagesCard").classList.remove("hidden");
+
+  $("#sagesStudentName").textContent=b.student.name;
+  $("#sagesStudentMeta").textContent=
+    `Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
+
+  $("#sagesDate").value=todayISO();
+
+  if(b.sages){
+    if(b.sages.age_years)$("#sagesAge").value=String(b.sages.age_years);
+    if(b.sages.language_raw_score!=null)$("#sagesLanguage").value=b.sages.language_raw_score;
+    if(b.sages.reasoning_raw_score!=null)$("#sagesReasoning").value=b.sages.reasoning_raw_score;
+  }
+
+  $("#sagesStatus").textContent=
+    b.progress.sages_complete
+      ?"SAGES guardado. Puedes editarlo y volver a guardar."
+      :"";
+
+  $("#sagesResult").classList.add("hidden");
+}
+
+async function previewSages(){
+  try{
+    const p=sagesPayload();
+    $("#sagesStatus").textContent="Calculando…";
+
+    const r=await rpc("teacher_diagnostic_sages_preview",{
+      p_student_id:activeStudentBundle.student.id,
+      p_age_years:p.age,
+      p_language_raw:p.language,
+      p_reasoning_raw:p.reasoning,
+      p_application_date:p.date
+    });
+
+    if(!r.ok){
+      $("#sagesStatus").textContent=
+        "No se pudo calcular: falta un baremo exacto para esta combinación.";
+      $("#sagesResult").classList.add("hidden");
+      return;
+    }
+
+    showSagesResult(r);
+    $("#sagesStatus").textContent=
+      "Vista previa calculada. Aún no se ha guardado.";
+  }catch(e){
+    $("#sagesStatus").textContent=e.message||String(e);
+  }
+}
+
+async function saveSages(){
+  try{
+    const p=sagesPayload();
+    $("#sagesStatus").textContent="Guardando…";
+
+    const r=await rpc("teacher_diagnostic_save_sages",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id,
+      p_age_years:p.age,
+      p_language_raw:p.language,
+      p_reasoning_raw:p.reasoning,
+      p_application_date:p.date
+    });
+
+    if(!r.saved){
+      $("#sagesStatus").textContent=
+        "No se guardó: no existe un baremo exacto para esta combinación.";
+      return;
+    }
+
+    showSagesResult(r);
+    $("#sagesStatus").textContent="✓ SAGES guardado correctamente.";
+
+    const id=activeStudentBundle.student.id;
+    activeStudentBundle=await rpc("teacher_diagnostic_student_bundle",{
+      p_period_id:activePeriod.id,
+      p_student_id:id
+    });
+    $("#sagesState").textContent="Completa";
+  }catch(e){
+    $("#sagesStatus").textContent=e.message||String(e);
+  }
+}
+
+$("#openSagesBtn").onclick=openSages;
+$("#backStudentFromSages").onclick=()=>{
+  if(activeStudentBundle){
+    $("#sagesCard").classList.add("hidden");
+    $("#studentCard").classList.remove("hidden");
+  }
+};
+$("#previewSagesBtn").onclick=previewSages;
+$("#saveSagesBtn").onclick=saveSages;
+
+
 $("#loginBtn").onclick=login;
 $("#createPeriodBtn").onclick=createPeriod;
 $("#refreshBtn").onclick=loadPeriods;

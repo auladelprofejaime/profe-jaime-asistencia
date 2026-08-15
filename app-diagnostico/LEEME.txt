@@ -1,15 +1,7 @@
-APP DIAGNÓSTICO v0.2.0
-Paso general 2/9 · SAGES-2 · Subpaso 3/4
-
-Agrega:
-- Pantalla de captura SAGES-2.
-- Edad actual seleccionable.
-- Lengua/LL-CS 0–30.
-- Razonamiento 0–35.
-- Fecha de aplicación.
+APP DIAGNÓSTICO v0.2.1
+Corrección SAGES:
+- Conecta Abrir captura.
+- Abre/cierra pantalla SAGES.
 - Vista previa.
-- Guardado mediante RPC.
-- Reapertura/edición de captura existente.
-
-Fuente de reglas: Manual SAGES-2.
-El Excel se usa solo como referencia de flujo.
+- Guardar SAGES.
+- Recupera captura existente.

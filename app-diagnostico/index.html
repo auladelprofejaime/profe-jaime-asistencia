@@ -88,7 +88,7 @@
         </div>
         <div class="testGrid">
           <button class="testTile activeTest" id="openSagesBtn" type="button"><b>SAGES-2</b><span id="sagesState">Pendiente</span><small>Abrir captura</small></button>
-          <div class="testTile"><b>CompLEC</b><span id="complecState">Pendiente</span></div>
+          <button class="testTile activeTest" id="openComplecBtn" type="button"><b>CompLEC</b><span id="complecState">Pendiente</span><small>Abrir captura</small></button>
           <div class="testTile"><b>PROESC</b><span id="proescState">Pendiente</span></div>
           <div class="testTile"><b>CASM-85-R</b><span id="casmState">Pendiente</span></div>
         </div>
@@ -149,6 +149,38 @@
         <div id="sagesStatus" class="status"></div>
         <div id="sagesResult" class="hidden"></div>
       </section>
+
+      </section>
+
+      <section id="complecCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">CompLEC · Competencia lectora</p>
+            <h2 id="complecStudentName">Captura CompLEC</h2>
+            <p id="complecStudentMeta" class="muted"></p>
+          </div>
+          <button id="backStudentFromComplec" class="secondary">← Expediente</button>
+        </div>
+
+        <div class="sagesInfo">
+          <p><b>Captura las 20 respuestas.</b> La app corrige automáticamente y calcula Recuperación, Integración y Reflexión/Evaluación.</p>
+          <p id="complecGradeNote" class="muted"></p>
+        </div>
+
+        <div class="complecProgress">
+          <b id="complecProgressText">0 de 20 respondidas</b>
+          <div class="progressTrack"><div id="complecProgressBar" class="progressFill"></div></div>
+        </div>
+
+        <div id="complecItems" class="complecItems"></div>
+
+        <div class="sagesActions">
+          <button id="previewComplecBtn" class="secondary" type="button">Calcular vista previa</button>
+          <button id="saveComplecBtn" type="button">Guardar CompLEC</button>
+        </div>
+
+        <div id="complecStatus" class="status"></div>
+        <div id="complecResult" class="hidden"></div>
       </section>
     </section>
   </main>

@@ -119,6 +119,7 @@ async function openStudent(id){
   activeStudentBundle=b;
   $("#studentsCard").classList.add("hidden");
   $("#sagesCard").classList.add("hidden");
+  $("#complecCard").classList.add("hidden");
   $("#studentCard").classList.remove("hidden");
   $("#studentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
   $("#studentName").textContent=b.student.name;
@@ -279,6 +280,174 @@ $("#backStudentFromSages").onclick=()=>{
 $("#previewSagesBtn").onclick=previewSages;
 $("#saveSagesBtn").onclick=saveSages;
 
+
+
+const COMPLEC_META=[
+  {n:1,text:"Calentamiento Global",q:1,process:"Reflexión/Evaluación",type:"choice"},
+  {n:2,text:"Calentamiento Global",q:2,process:"Integración",type:"cg_open"},
+  {n:3,text:"Calentamiento Global",q:3,process:"Integración",type:"choice"},
+  {n:4,text:"Lenguaje de las Abejas",q:1,process:"Integración",type:"choice"},
+  {n:5,text:"Lenguaje de las Abejas",q:2,process:"Recuperación",type:"choice"},
+  {n:6,text:"Lenguaje de las Abejas",q:3,process:"Reflexión/Evaluación",type:"choice"},
+  {n:7,text:"Lenguaje de las Abejas",q:4,process:"Recuperación",type:"bee_open"},
+  {n:8,text:"Lenguaje de las Abejas",q:5,process:"Integración",type:"choice"},
+  {n:9,text:"Energía Nuclear",q:1,process:"Recuperación",type:"choice"},
+  {n:10,text:"Energía Nuclear",q:2,process:"Integración",type:"choice"},
+  {n:11,text:"Energía Nuclear",q:3,process:"Integración",type:"choice"},
+  {n:12,text:"Energía Nuclear",q:4,process:"Recuperación",type:"choice"},
+  {n:13,text:"Energía Nuclear",q:5,process:"Integración",type:"choice"},
+  {n:14,text:"Accidentes de Tráfico",q:1,process:"Recuperación",type:"choice"},
+  {n:15,text:"Accidentes de Tráfico",q:2,process:"Integración",type:"traffic_open"},
+  {n:16,text:"Accidentes de Tráfico",q:3,process:"Integración",type:"choice"},
+  {n:17,text:"Accidentes de Tráfico",q:4,process:"Reflexión/Evaluación",type:"choice"},
+  {n:18,text:"Sillas Adecuadas",q:1,process:"Recuperación",type:"choice"},
+  {n:19,text:"Sillas Adecuadas",q:2,process:"Integración",type:"choice"},
+  {n:20,text:"Sillas Adecuadas",q:3,process:"Integración",type:"choice"}
+];
+let complecAnswers={};
+
+function complecGradeFromGroup(group){
+  const n=Number(String(group||"").trim());
+  if(Number.isInteger(n)&&n>=11&&n<=16)return {grade:1,label:"1.º de secundaria",centile:true};
+  if(Number.isInteger(n)&&n>=21&&n<=26)return {grade:2,label:"2.º de secundaria",centile:false};
+  if(Number.isInteger(n)&&n>=31&&n<=36)return {grade:3,label:"3.º de secundaria",centile:true};
+  return {grade:null,label:"Grupo no reconocido",centile:false};
+}
+function complecOptions(meta){
+  if(meta.type==="choice")return ["A","B","C","D"];
+  if(meta.type==="cg_open")return ["30 años","3 años","Otra"];
+  if(meta.type==="bee_open")return ["Danza en círculo","Otra"];
+  if(meta.type==="traffic_open")return ["60%","Otra"];
+  return [];
+}
+function renderComplecItems(){
+  const box=$("#complecItems");
+  box.innerHTML=COMPLEC_META.map(m=>{
+    const opts=complecOptions(m);
+    return `<div class="complecItem" data-item="${m.n}">
+      <div class="complecItemHead">
+        <div><b>Reactivo ${m.n}</b><small>${esc(m.text)} · Pregunta ${m.q}</small></div>
+        <small>${esc(m.process)}</small>
+      </div>
+      <div class="answerBtns ${m.type==="choice"?"":"open"}">
+        ${opts.map(o=>`<button type="button" class="answerBtn ${complecAnswers[m.n]===o?"selected":""}" data-answer="${esc(o)}">${esc(o)}</button>`).join("")}
+      </div>
+    </div>`;
+  }).join("");
+
+  box.querySelectorAll(".complecItem").forEach(item=>{
+    item.querySelectorAll("[data-answer]").forEach(btn=>{
+      btn.onclick=()=>{
+        const n=Number(item.dataset.item);
+        const value=btn.dataset.answer;
+        complecAnswers[n]=value==="Otra" ? "__OTHER__" : value;
+        renderComplecItems();
+        updateComplecProgress();
+      };
+    });
+  });
+}
+function updateComplecProgress(){
+  const count=COMPLEC_META.filter(m=>complecAnswers[m.n]!=null).length;
+  $("#complecProgressText").textContent=`${count} de 20 respondidas`;
+  $("#complecProgressBar").style.width=`${count/20*100}%`;
+}
+function openComplec(){
+  if(!activeStudentBundle)return;
+  const b=activeStudentBundle;
+  $("#studentCard").classList.add("hidden");
+  $("#sagesCard").classList.add("hidden");
+  $("#complecCard").classList.remove("hidden");
+
+  $("#complecStudentName").textContent=b.student.name;
+  $("#complecStudentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
+
+  const gr=complecGradeFromGroup(b.student.group_name);
+  $("#complecGradeNote").textContent=gr.grade===2
+    ? "2.º de secundaria: se calcularán puntuación total y procesos. El manual no publica centil específico para 2.º."
+    : gr.grade
+      ? `${gr.label}: la app aplicará automáticamente el baremo oficial disponible en el manual.`
+      : "El código de grupo no permite determinar automáticamente el grado.";
+
+  complecAnswers={};
+  (b.complec_answers||[]).forEach(r=>{if(r.answer!=null)complecAnswers[Number(r.item_number)]=r.answer});
+  renderComplecItems(); updateComplecProgress();
+  $("#complecResult").classList.add("hidden");
+  $("#complecStatus").textContent=b.progress.complec_complete?"CompLEC guardado. Puedes editarlo y volver a guardar.":"";
+}
+function complecPayload(){
+  const missing=COMPLEC_META.filter(m=>complecAnswers[m.n]==null).map(m=>m.n);
+  if(missing.length)throw new Error(`Faltan respuestas: ${missing.join(", ")}.`);
+  const out={};
+  for(const m of COMPLEC_META){
+    const v=complecAnswers[m.n];
+    out[String(m.n)]=v==="__OTHER__" ? "Otra" : v;
+  }
+  return out;
+}
+function showComplecResult(r){
+  const p=r.process_scores||{};
+  const cent=r.centile||{};
+  const centileBlock=r.has_official_centile && cent.ok
+    ? `<p><b>Centil:</b> ${esc(cent.centile??"—")}</p>`
+    : `<p><b>Centil:</b> No se reporta para este grado.</p>`;
+  $("#complecResult").innerHTML=`
+    <div class="complecSummary">
+      <div class="resultBox wide">
+        <h3>Resultado CompLEC</h3>
+        <p><b>Grado detectado:</b> ${esc(r.grade_label||"—")}</p>
+        <p><b>Puntuación total:</b> ${esc(r.total_score??"—")} / 20</p>
+        ${centileBlock}
+        <p class="percentileNote">${esc(r.norm_note||"")}</p>
+      </div>
+      <div class="resultBox"><h3>Recuperación</h3><p><b>${esc(p["Recuperación"]??0)} / 5</b></p></div>
+      <div class="resultBox"><h3>Integración</h3><p><b>${esc(p["Integración"]??0)} / 10</b></p></div>
+      <div class="resultBox"><h3>Reflexión / Evaluación</h3><p><b>${esc(p["Reflexión/Evaluación"]??0)} / 5</b></p></div>
+    </div>`;
+  $("#complecResult").classList.remove("hidden");
+}
+async function previewComplec(){
+  try{
+    const answers=complecPayload();
+    $("#complecStatus").textContent="Calculando…";
+    const r=await rpc("teacher_diagnostic_complec_preview_auto",{
+      p_student_id:activeStudentBundle.student.id,
+      p_answers:answers
+    });
+    if(!r.ok)throw new Error(r.reason||"No se pudo calcular CompLEC.");
+    showComplecResult(r);
+    $("#complecStatus").textContent="Vista previa calculada. Aún no se ha guardado.";
+  }catch(e){$("#complecStatus").textContent=e.message||String(e)}
+}
+async function saveComplec(){
+  try{
+    const answers=complecPayload();
+    $("#complecStatus").textContent="Guardando…";
+    const r=await rpc("teacher_diagnostic_save_complec_auto",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id,
+      p_answers:answers
+    });
+    if(!r.saved)throw new Error(r.reason||"No se pudo guardar CompLEC.");
+    showComplecResult(r);
+    $("#complecStatus").textContent="✓ CompLEC guardado correctamente.";
+    activeStudentBundle=await rpc("teacher_diagnostic_student_bundle",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id
+    });
+    $("#complecState").textContent="Completa";
+  }catch(e){$("#complecStatus").textContent=e.message||String(e)}
+}
+
+$("#openComplecBtn").onclick=openComplec;
+$("#backStudentFromComplec").onclick=()=>{
+  if(activeStudentBundle){
+    $("#complecCard").classList.add("hidden");
+    $("#studentCard").classList.remove("hidden");
+  }
+};
+$("#previewComplecBtn").onclick=previewComplec;
+$("#saveComplecBtn").onclick=saveComplec;
 
 $("#loginBtn").onclick=login;
 $("#createPeriodBtn").onclick=createPeriod;

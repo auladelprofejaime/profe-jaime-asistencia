@@ -1,7 +1,11 @@
-APP DIAGNÓSTICO v0.2.5 — SAGES FINAL MANUAL
+APP DIAGNÓSTICO v0.3.0 — CompLEC captura
 
-- Edad normativa visible desde age.age_years.
-- Se elimina "Nivel" porque el Manual SAGES-2 no define esa clasificación categórica para estas subescalas.
-- Se agrega interpretación percentilar consistente con el manual:
-  el percentil indica el porcentaje de la distribución normativa con puntuación igual o inferior.
-- Mantiene baremos mexicanos D-5/D-6 y conversión C-1.
+Paso 3/9 · CompLEC · Subpaso 3/4
+
+Agrega:
+- Captura de 20 reactivos.
+- A/B/C/D con un toque.
+- Controles especiales para las 3 respuestas abiertas.
+- Detección automática de grado por grupo.
+- Vista previa total + tres procesos + centil cuando el manual lo permite.
+- Guardado y reapertura de respuestas.

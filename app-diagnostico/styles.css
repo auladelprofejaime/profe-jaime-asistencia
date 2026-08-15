@@ -29,3 +29,5 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .resultBox h3{margin:0 0 10px}.resultBox p{margin:5px 0}
 .ageBand{padding:12px;border-radius:12px;background:#f2ead0;margin-top:12px}
 @media(max-width:650px){.sagesForm,.resultGrid{grid-template-columns:1fr}.sagesActions{flex-direction:column}.sagesActions button{width:100%}}
+
+.percentileNote{margin-top:10px!important;padding-top:10px;border-top:1px solid #eadfbc;color:#5f574e;line-height:1.4}

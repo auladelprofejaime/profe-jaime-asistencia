@@ -1,6 +1,7 @@
-APP DIAGNÓSTICO v0.2.4 — SAGES UI VERIFICADA
+APP DIAGNÓSTICO v0.2.5 — SAGES FINAL MANUAL
 
-Correcciones:
-- La captura indica que el docente selecciona la edad actual.
-- La vista previa muestra la edad normativa aplicada.
-- Se mantienen los cálculos SAGES ya validados.
+- Edad normativa visible desde age.age_years.
+- Se elimina "Nivel" porque el Manual SAGES-2 no define esa clasificación categórica para estas subescalas.
+- Se agrega interpretación percentilar consistente con el manual:
+  el percentil indica el porcentaje de la distribución normativa con puntuación igual o inferior.
+- Mantiene baremos mexicanos D-5/D-6 y conversión C-1.

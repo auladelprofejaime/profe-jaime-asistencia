@@ -156,19 +156,22 @@ function showSagesResult(r){
   const lang=r.language||{};
   const reas=r.reasoning||{};
 
+  const percentileInterpretation=(p)=>{
+    if(p===null||p===undefined||p==="")return "Sin interpretación percentilar disponible.";
+    const n=Number(p);
+    if(!Number.isFinite(n))return `Percentil ${esc(p)}.`;
+    return `Percentil ${n}: aproximadamente ${n}% de la distribución normativa obtuvo una puntuación igual o inferior.`;
+  };
   const resultBox=(title,x)=>`<div class="resultBox">
     <h3>${esc(title)}</h3>
     <p><b>PD:</b> ${esc(x.raw_score??"—")}</p>
     <p><b>Cociente:</b> ${esc(x.quotient_display??x.quotient??"—")}</p>
     <p><b>Percentil:</b> ${esc(x.percentile??"—")}</p>
-    <p><b>Nivel:</b> ${esc(x.level??"—")}</p>
+    <p class="percentileNote"><b>Interpretación:</b> ${percentileInterpretation(x.percentile)}</p>
   </div>`;
 
   box.innerHTML=`
-    <div class="ageBand">
-      <b>Edad normativa aplicada:</b> ${esc((age.age_band||"—").replace("_","–"))}
-      · ${esc(age.age_months_rounded??"—")} Población escolar general (México)
-    </div>
+    <div class="ageBand"><b>Edad normativa aplicada:</b> ${esc(age.age_years??"—")} años · Población escolar general (México)</div>
     <div class="resultGrid">
       ${resultBox("Lengua / LL-CS",lang)}
       ${resultBox("Razonamiento",reas)}

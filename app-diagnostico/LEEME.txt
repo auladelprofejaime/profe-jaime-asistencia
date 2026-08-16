@@ -1,12 +1,1 @@
-APP DIAGNÓSTICO v0.7.0 — Diagnóstico del grupo
-
-Paso 7/9 · Subpaso 3/4
-
-Agrega:
-- Botón Diagnóstico del grupo dentro de la lista de alumnos.
-- Cobertura del diagnóstico.
-- Perfiles integrados y pendientes.
-- Prioridades de seguimiento.
-- Fortalezas y áreas por reforzar más frecuentes.
-- Prioridades para la planeación.
-- Estado por alumno.
+APP DIAGNÓSTICO v0.8.0 — publicación individual para Padres + push.

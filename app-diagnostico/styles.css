@@ -91,3 +91,5 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .badgeMini{display:inline-block;padding:4px 8px;border-radius:999px;background:#f2ead0;font-size:12px;font-weight:800}
 .sectionActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 @media(max-width:750px){.groupDashGrid{grid-template-columns:1fr}.groupDashBox.wide{grid-column:auto}.metricRow{grid-template-columns:repeat(2,1fr)}}
+
+.publicationBox{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:14px;border:1px solid #ead681;border-radius:14px;background:#fff7d5;margin:14px 0}.publicationBox small{display:block;margin-top:4px;color:#6d655d}@media(max-width:650px){.publicationBox{flex-direction:column;align-items:stretch}}

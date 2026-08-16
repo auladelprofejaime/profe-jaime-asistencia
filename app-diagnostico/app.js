@@ -848,6 +848,7 @@ async function openIntegrated(){
     if(!syn.ok||!syn.saved)throw new Error(syn.reason||"No se pudo generar la síntesis.");
 
     showIntegratedResult(integrated.technical_summary,syn);
+    await refreshDiagnosticPublication();
     $("#integratedStatus").textContent="✓ Perfil integrado generado y guardado.";
   }catch(e){
     $("#integratedStatus").textContent=e.message||String(e);
@@ -963,6 +964,78 @@ $("#backFromGroupDashboard").onclick=()=>{
   $("#groupDashboardCard").classList.add("hidden");
   $("#studentsCard").classList.remove("hidden");
 };
+
+
+async function diagnosticPushParent(studentId){
+  const r=await fetch(`${SUPABASE_URL}/functions/v1/send-push`,{
+    method:"POST",
+    headers:{
+      apikey:SUPABASE_KEY,
+      Authorization:`Bearer ${accessToken}`,
+      "Content-Type":"application/json"
+    },
+    body:JSON.stringify({
+      event:"diagnostic_published",
+      student_id:String(studentId),
+      title:"Diagnóstico inicial publicado",
+      message:"Ya puedes consultar el resultado del diagnóstico inicial."
+    })
+  });
+  const text=await r.text();
+  let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
+  if(!r.ok)throw new Error(data?.error||text||`HTTP ${r.status}`);
+  return data;
+}
+async function refreshDiagnosticPublication(){
+  if(!activePeriod||!activeStudentBundle)return;
+  try{
+    const st=await rpc("teacher_diagnostic_publication_status",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id
+    });
+    $("#integratedPublicationBox").classList.remove("hidden");
+    const published=!!st.published;
+    $("#integratedPublicationState").textContent=published?"Publicado para Padres":"No publicado";
+    $("#integratedPublicationMeta").textContent=published&&st.published_at
+      ? `Publicado: ${new Date(st.published_at).toLocaleString("es-MX")}`
+      : "El resultado solo se verá en Padres cuando tú lo publiques.";
+    $("#publishDiagnosticBtn").classList.toggle("hidden",published);
+    $("#unpublishDiagnosticBtn").classList.toggle("hidden",!published);
+  }catch(e){console.warn("publication status",e)}
+}
+async function publishDiagnosticResult(){
+  if(!activePeriod||!activeStudentBundle)return;
+  if(!confirm("¿Publicar este diagnóstico para la app de Padres?"))return;
+  const btn=$("#publishDiagnosticBtn");btn.disabled=true;
+  try{
+    const r=await rpc("teacher_diagnostic_publish_result",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id
+    });
+    if(!r.published)throw new Error(r.reason||"No se pudo publicar.");
+    let pushResult=null;
+    try{pushResult=await diagnosticPushParent(activeStudentBundle.student.id)}catch(e){console.warn("push diagnostic",e)}
+    await refreshDiagnosticPublication();
+    alert(pushResult?.sent>0
+      ?"Diagnóstico publicado y notificación enviada a Padres."
+      :"Diagnóstico publicado. No había una suscripción push activa para enviar la notificación.");
+  }catch(e){alert("No se pudo publicar: "+(e.message||e))}
+  finally{btn.disabled=false}
+}
+async function unpublishDiagnosticResult(){
+  if(!activePeriod||!activeStudentBundle)return;
+  if(!confirm("¿Retirar este diagnóstico de la app de Padres? No se borrarán los resultados."))return;
+  try{
+    await rpc("teacher_diagnostic_unpublish_result",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id
+    });
+    await refreshDiagnosticPublication();
+    alert("Publicación retirada. Los resultados permanecen guardados.");
+  }catch(e){alert("No se pudo retirar: "+(e.message||e))}
+}
+$("#publishDiagnosticBtn").onclick=publishDiagnosticResult;
+$("#unpublishDiagnosticBtn").onclick=unpublishDiagnosticResult;
 
 $("#loginBtn").onclick=login;
 $("#createPeriodBtn").onclick=createPeriod;

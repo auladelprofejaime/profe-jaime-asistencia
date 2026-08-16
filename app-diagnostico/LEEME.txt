@@ -1,7 +1,13 @@
-APP DIAGNÓSTICO v0.8.2 — FIX REPORTE GRUPAL
+APP DIAGNÓSTICO v0.8.3 — Reporte grupal explicado
 
-Corrige el botón Generar reporte PDF.
-Ya no intenta abrir una ventana nueva, que puede ser bloqueada en iPad/PWA.
-Ahora abre el reporte dentro de la propia app y desde ahí permite:
-- Volver
-- Imprimir / Guardar como PDF
+Mejoras:
+- Área I–V ahora muestran su nombre y qué evalúan.
+- Traduce términos técnicos: ortografía arbitraria, pseudopalabras, reflexión/evaluación, etc.
+- Cada fortaleza/necesidad incluye una explicación breve.
+- Agrega sección "Cómo interpretar este reporte".
+- Aclara que porcentajes no son calificaciones.
+- En reportes parciales aclara que los porcentajes se calculan sobre perfiles integrados.
+- Explica qué significa seguimiento prioritario.
+
+
+VERSIÓN 0.8.4: corrige nombres descriptivos de Áreas I–V en panorama y PDF grupal; añade cache-busting de app.js para evitar que Safari/GitHub Pages conserve la versión anterior.

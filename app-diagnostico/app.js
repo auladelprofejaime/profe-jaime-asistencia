@@ -870,9 +870,10 @@ function priorityGroupLabel(v){
 }
 function topItemsHtml(items){
   if(!Array.isArray(items)||!items.length)return '<p class="muted">Todavía no hay datos suficientes.</p>';
-  return `<div class="topList">${items.map(x=>`
-    <div class="topItem"><span>${esc(x.area)}</span><b>${esc(x.occurrences)} · ${esc(x.percent_of_profiles)}%</b></div>
-  `).join("")}</div>`;
+  return `<div class="topList">${items.map(x=>{
+    const info=reportFriendlyAreaInfo(x.area||"");
+    return `<div class="topItem"><span>${esc(info.title)}</span><b>${esc(x.occurrences)} · ${esc(x.percent_of_profiles)}%</b></div>`;
+  }).join("")}</div>`;
 }
 function renderGroupStudents(rows){
   if(!Array.isArray(rows)||!rows.length)return '<p class="muted">No hay alumnos en este grupo.</p>';
@@ -898,9 +899,105 @@ function reportFriendlyPriority(v){
   if(v==="ordinario")return "Seguimiento ordinario";
   return "Pendiente";
 }
+function reportFriendlyAreaInfo(raw){
+  const v=String(raw||"").trim();
+  const k=v.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+    .replace(/[^a-z0-9]+/g," ").trim();
+
+  const map={
+    "area i":{
+      title:"Hábitos para estudiar",
+      detail:"Forma en que el alumno organiza y realiza el estudio: lectura, repaso, atención a la información y estrategias para aprender."
+    },
+    "area ii":{
+      title:"Realización de tareas",
+      detail:"Hábitos relacionados con el cumplimiento de tareas, organización del trabajo, revisión y responsabilidad al realizarlas."
+    },
+    "area iii":{
+      title:"Preparación para exámenes",
+      detail:"Forma en que el alumno se organiza, repasa y distribuye el tiempo para prepararse antes de una evaluación."
+    },
+    "area iv":{
+      title:"Atención y aprovechamiento de las clases",
+      detail:"Hábitos para escuchar, atender explicaciones, identificar ideas importantes y aprovechar el trabajo realizado durante la clase."
+    },
+    "area v":{
+      title:"Condiciones que acompañan el estudio",
+      detail:"Factores que rodean el momento de estudiar, como organización del espacio, distractores, materiales y condiciones que favorecen o dificultan el trabajo."
+    },
+    "mayusculas":{
+      title:"Uso de mayúsculas",
+      detail:"Aplicación adecuada de mayúsculas al inicio de oraciones, en nombres propios y en otros casos que lo requieren."
+    },
+    "ortografia arbitraria":{
+      title:"Ortografía de palabras de uso frecuente",
+      detail:"Escritura correcta de palabras cuya ortografía se aprende principalmente mediante lectura, memoria visual y práctica."
+    },
+    "pseudopalabras":{
+      title:"Relación entre sonidos y escritura",
+      detail:"Capacidad para representar correctamente por escrito una secuencia de sonidos, incluso cuando se trata de palabras nuevas."
+    },
+    "reglas ortograficas en pseudopalabras":{
+      title:"Aplicación de reglas ortográficas",
+      detail:"Uso de reglas ortográficas al escribir palabras nuevas o poco familiares."
+    },
+    "razonamiento":{
+      title:"Razonamiento",
+      detail:"Capacidad para analizar información, encontrar relaciones entre ideas y utilizar lo aprendido para resolver situaciones nuevas."
+    },
+    "reflexion evaluacion":{
+      title:"Comprensión y reflexión sobre lo leído",
+      detail:"Capacidad para interpretar información, justificar respuestas, relacionar ideas y valorar el contenido o la forma de un texto."
+    },
+    "recuperacion de informacion":{
+      title:"Localización de información en textos",
+      detail:"Capacidad para encontrar datos, ideas y detalles que aparecen de manera explícita en una lectura."
+    },
+    "integracion de informacion":{
+      title:"Integración de información",
+      detail:"Capacidad para relacionar distintas partes de un texto y construir una comprensión global."
+    },
+    "redaccion":{
+      title:"Expresión escrita",
+      detail:"Capacidad para organizar, desarrollar y comunicar ideas por escrito de manera clara y comprensible."
+    }
+  };
+
+  if(map[k])return map[k];
+  // CASM: resolver el número romano como término completo. Evita que "Área II"
+  // coincida por error con "Área I" y garantiza nombres descriptivos en pantalla/PDF.
+  const areaMatch=k.match(/(?:^|\s)area\s+(i{1,3}|iv|v)(?:\s|$)/);
+  if(areaMatch){
+    const areaKey=`area ${areaMatch[1]}`;
+    if(map[areaKey])return map[areaKey];
+  }
+  if(k.includes("mayus"))return map["mayusculas"];
+  if(k.includes("ortograf")&&k.includes("arbitr"))return map["ortografia arbitraria"];
+  if(k.includes("pseudo")&&k.includes("regla"))return map["reglas ortograficas en pseudopalabras"];
+  if(k.includes("pseudo"))return map["pseudopalabras"];
+  if(k.includes("razon"))return map["razonamiento"];
+  if(k.includes("reflex")||k.includes("evaluac"))return map["reflexion evaluacion"];
+  if(k.includes("recuper"))return map["recuperacion de informacion"];
+  if(k.includes("integr"))return map["integracion de informacion"];
+  if(k.includes("redac")||k.includes("escrit"))return map["redaccion"];
+
+  return {
+    title:v||"Aspecto escolar",
+    detail:"Aspecto identificado a partir de los resultados integrados del diagnóstico inicial."
+  };
+}
+
 function reportTopList(items,emptyText){
   if(!Array.isArray(items)||!items.length)return `<p>${esc(emptyText)}</p>`;
-  return `<ul>${items.map(x=>`<li><b>${esc(x.area||"Aspecto escolar")}</b> - presente en ${esc(x.occurrences??0)} perfil(es) (${esc(x.percent_of_profiles??0)}%).</li>`).join("")}</ul>`;
+  return `<div class="reportConceptList">${items.map(x=>{
+    const info=reportFriendlyAreaInfo(x.area||"");
+    return `<div class="reportConcept">
+      <b>${esc(info.title)}</b>
+      <span>${esc(x.occurrences??0)} perfil(es) · ${esc(x.percent_of_profiles??0)}%</span>
+      <p>${esc(info.detail)}</p>
+    </div>`;
+  }).join("")}</div>`;
 }
 function reportStudentRows(rows){
   const valid=(Array.isArray(rows)?rows:[]).filter(r=>r.integrated_ready);
@@ -946,9 +1043,19 @@ function generateGroupDiagnosticReport(){
 
       <h2>Panorama general</h2>
       <p>${esc(o.summary_text||"")}</p>
+      ${incomplete?`<p><b>Importante:</b> los porcentajes siguientes se calculan únicamente sobre los ${esc(c.integrated_profiles??0)} perfiles ya integrados, no sobre el total del grupo.</p>`:""}
       <p><b>Seguimiento ordinario:</b> ${esc(p.ordinario??0)} (${esc(p.ordinario_percent??0)}%) ·
       <b>Seguimiento:</b> ${esc(p.seguimiento??0)} (${esc(p.seguimiento_percent??0)}%) ·
       <b>Prioritario:</b> ${esc(p.seguimiento_prioritario??0)} (${esc(p.seguimiento_prioritario_percent??0)}%)</p>
+
+      <h2>Cómo interpretar este reporte</h2>
+      <div class="printInterpretation">
+        <p><b>Los porcentajes no son calificaciones.</b> Indican qué proporción de los alumnos con perfil integrado presentó ese mismo aspecto.</p>
+        <p><b>Fortalezas más frecuentes</b> señala habilidades o hábitos que aparecen de manera favorable en varios alumnos y que pueden aprovecharse en la planeación.</p>
+        <p><b>Aspectos que conviene reforzar</b> muestra necesidades que se repiten en el grupo y que pueden convertirse en objetivos de trabajo durante las primeras semanas.</p>
+        <p><b>Prioridades para la planeación</b> reúne los aspectos que conviene atender con actividades específicas, seguimiento y práctica sistemática.</p>
+        <p><b>Seguimiento prioritario</b> no significa una calificación baja ni un diagnóstico clínico; indica que el alumno presenta varias necesidades pedagógicas que conviene observar y atender con mayor cercanía.</p>
+      </div>
 
       <h2>Fortalezas más frecuentes</h2>
       ${reportTopList(o.top_strengths,"Todavía no hay información suficiente para identificar fortalezas grupales.")}

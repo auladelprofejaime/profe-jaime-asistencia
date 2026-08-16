@@ -120,6 +120,7 @@ async function openStudent(id){
   $("#studentsCard").classList.add("hidden");
   $("#sagesCard").classList.add("hidden");
   $("#complecCard").classList.add("hidden");
+  $("#proescCard").classList.add("hidden");
   $("#studentCard").classList.remove("hidden");
   $("#studentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
   $("#studentName").textContent=b.student.name;
@@ -448,6 +449,151 @@ $("#backStudentFromComplec").onclick=()=>{
 };
 $("#previewComplecBtn").onclick=previewComplec;
 $("#saveComplecBtn").onclick=saveComplec;
+
+
+function proescGradeFromGroup(group){
+  const n=Number(String(group||"").trim());
+  if(Number.isInteger(n)&&n>=11&&n<=16)return {grade:1,label:"1.º de secundaria"};
+  if(Number.isInteger(n)&&n>=21&&n<=26)return {grade:2,label:"2.º de secundaria"};
+  if(Number.isInteger(n)&&n>=31&&n<=36)return {grade:3,label:"3.º de secundaria"};
+  return {grade:null,label:"Grupo no reconocido"};
+}
+
+function openProesc(){
+  if(!activeStudentBundle)return;
+  const b=activeStudentBundle;
+  $("#studentCard").classList.add("hidden");
+  $("#sagesCard").classList.add("hidden");
+  $("#complecCard").classList.add("hidden");
+  $("#proescCard").classList.remove("hidden");
+
+  $("#proescStudentName").textContent=b.student.name;
+  $("#proescStudentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
+
+  const gr=proescGradeFromGroup(b.student.group_name);
+  $("#proescGradeNote").textContent=gr.grade
+    ? `${gr.label}: la app aplicará automáticamente el baremo PROESC correspondiente.`
+    : "El código de grupo no permite determinar automáticamente el grado.";
+
+  const p=b.proesc||{};
+  if(p.words_score!=null)$("#proescWords").value=p.words_score;
+  if(p.pseudowords_score!=null)$("#proescPseudo").value=p.pseudowords_score;
+  if(p.orthographic_rules_score!=null)$("#proescRules").value=p.orthographic_rules_score;
+  if(p.accents_score!=null)$("#proescAccents").value=p.accents_score;
+  if(p.capitals_score!=null)$("#proescCaps").value=p.capitals_score;
+  if(p.punctuation_score!=null)$("#proescPunct").value=p.punctuation_score;
+  if(p.writing_rubric?.content!=null)$("#proescWritingContent").value=p.writing_rubric.content;
+  if(p.writing_rubric?.presentation!=null)$("#proescWritingPresentation").value=p.writing_rubric.presentation;
+
+  $("#proescResult").classList.add("hidden");
+  $("#proescStatus").textContent=b.progress.proesc_complete?"PROESC guardado. Puedes editarlo y volver a guardar.":"";
+}
+
+function proescPayload(){
+  const get=(sel,min,max,label)=>{
+    const v=Number($(sel).value);
+    if(!Number.isFinite(v)||v<min||v>max)throw new Error(`${label} debe estar entre ${min} y ${max}.`);
+    return v;
+  };
+  return {
+    words:get("#proescWords",0,25,"Dictado de palabras"),
+    pseudo:get("#proescPseudo",0,25,"Pseudopalabras total"),
+    rules:get("#proescRules",0,15,"Reglas ortográficas"),
+    accents:get("#proescAccents",0,15,"Acentos"),
+    caps:get("#proescCaps",0,10,"Mayúsculas"),
+    punct:get("#proescPunct",0,8,"Signos de puntuación"),
+    wc:get("#proescWritingContent",0,5,"Contenido de redacción"),
+    wp:get("#proescWritingPresentation",0,5,"Presentación de redacción")
+  };
+}
+
+function showProescResult(r){
+  const i=r.interpretation||{};
+  const sc=r.scores||{};
+  const box=(title,score,max,obj)=>`<div class="resultBox">
+    <h3>${esc(title)}</h3>
+    <p><b>Puntuación:</b> ${esc(score??"—")} / ${esc(max)}</p>
+    <p class="classification">${esc(obj?.label||"Sin clasificación")}</p>
+  </div>`;
+
+  $("#proescResult").innerHTML=`
+    <div class="proescResultGrid">
+      <div class="resultBox wide">
+        <h3>Resultado PROESC abreviado</h3>
+        <p><b>Grado detectado:</b> ${esc(r.grade_label||"—")}</p>
+        <p><b>Versión:</b> ${esc(r.form||"PROESC abreviado")}</p>
+      </div>
+      ${box("Palabras · Ortografía arbitraria",sc.words,25,i.words_arbitrary)}
+      ${box("Pseudopalabras · Total",sc.pseudowords_total,25,i.pseudowords_total)}
+      ${box("Pseudopalabras · Reglas",sc.pseudowords_rules,15,i.pseudowords_rules)}
+      ${box("Frases · Acentos",sc.accents,15,i.accents)}
+      ${box("Frases · Mayúsculas",sc.capitals,10,i.capitals)}
+      ${box("Frases · Signos de puntuación",sc.punctuation,8,i.punctuation)}
+      ${box("Redacción",sc.writing_total,10,i.writing)}
+      <div class="resultBox wide">
+        <p><b>Redacción:</b> Contenido ${esc(sc.writing_content??"—")}/5 · Presentación ${esc(sc.writing_presentation??"—")}/5</p>
+      </div>
+    </div>`;
+  $("#proescResult").classList.remove("hidden");
+}
+
+async function previewProesc(){
+  try{
+    const p=proescPayload();
+    $("#proescStatus").textContent="Calculando…";
+    const r=await rpc("teacher_diagnostic_proesc_preview",{
+      p_student_id:activeStudentBundle.student.id,
+      p_words_score:p.words,
+      p_pseudowords_score:p.pseudo,
+      p_orthographic_rules_score:p.rules,
+      p_accents_score:p.accents,
+      p_capitals_score:p.caps,
+      p_punctuation_score:p.punct,
+      p_writing_content:p.wc,
+      p_writing_presentation:p.wp
+    });
+    if(!r.ok)throw new Error(r.reason||"No se pudo calcular PROESC.");
+    showProescResult(r);
+    $("#proescStatus").textContent="Vista previa calculada. Aún no se ha guardado.";
+  }catch(e){$("#proescStatus").textContent=e.message||String(e)}
+}
+
+async function saveProesc(){
+  try{
+    const p=proescPayload();
+    $("#proescStatus").textContent="Guardando…";
+    const r=await rpc("teacher_diagnostic_save_proesc",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id,
+      p_words_score:p.words,
+      p_pseudowords_score:p.pseudo,
+      p_orthographic_rules_score:p.rules,
+      p_accents_score:p.accents,
+      p_capitals_score:p.caps,
+      p_punctuation_score:p.punct,
+      p_writing_content:p.wc,
+      p_writing_presentation:p.wp
+    });
+    if(!r.saved)throw new Error(r.reason||"No se pudo guardar PROESC.");
+    showProescResult(r);
+    $("#proescStatus").textContent="✓ PROESC guardado correctamente.";
+    activeStudentBundle=await rpc("teacher_diagnostic_student_bundle",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id
+    });
+    $("#proescState").textContent="Completa";
+  }catch(e){$("#proescStatus").textContent=e.message||String(e)}
+}
+
+$("#openProescBtn").onclick=openProesc;
+$("#backStudentFromProesc").onclick=()=>{
+  if(activeStudentBundle){
+    $("#proescCard").classList.add("hidden");
+    $("#studentCard").classList.remove("hidden");
+  }
+};
+$("#previewProescBtn").onclick=previewProesc;
+$("#saveProescBtn").onclick=saveProesc;
 
 $("#loginBtn").onclick=login;
 $("#createPeriodBtn").onclick=createPeriod;

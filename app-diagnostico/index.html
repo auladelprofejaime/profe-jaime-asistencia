@@ -89,7 +89,7 @@
         <div class="testGrid">
           <button class="testTile activeTest" id="openSagesBtn" type="button"><b>SAGES-2</b><span id="sagesState">Pendiente</span><small>Abrir captura</small></button>
           <button class="testTile activeTest" id="openComplecBtn" type="button"><b>CompLEC</b><span id="complecState">Pendiente</span><small>Abrir captura</small></button>
-          <div class="testTile"><b>PROESC</b><span id="proescState">Pendiente</span></div>
+          <button class="testTile activeTest" id="openProescBtn" type="button"><b>PROESC</b><span id="proescState">Pendiente</span><small>Abrir captura</small></button>
           <div class="testTile"><b>CASM-85-R</b><span id="casmState">Pendiente</span></div>
         </div>
         <p class="notice">SAGES-2 ya tiene pantalla de captura. Las demás pruebas se habilitarán en los siguientes pasos.</p>
@@ -181,6 +181,65 @@
 
         <div id="complecStatus" class="status"></div>
         <div id="complecResult" class="hidden"></div>
+
+      </section>
+
+      <section id="proescCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">PROESC · Forma abreviada</p>
+            <h2 id="proescStudentName">Captura PROESC</h2>
+            <p id="proescStudentMeta" class="muted"></p>
+          </div>
+          <button id="backStudentFromProesc" class="secondary">← Expediente</button>
+        </div>
+
+        <div class="sagesInfo">
+          <p><b>Captura únicamente las puntuaciones obtenidas.</b> La app detecta automáticamente el grado y aplica el baremo correspondiente.</p>
+          <p id="proescGradeNote" class="muted"></p>
+        </div>
+
+        <div class="proescGrid">
+          <label>Dictado de palabras · Lista A
+            <div class="scoreInput"><input id="proescWords" type="number" min="0" max="25" inputmode="numeric"><span>/ 25</span></div>
+          </label>
+
+          <label>Pseudopalabras · Total
+            <div class="scoreInput"><input id="proescPseudo" type="number" min="0" max="25" inputmode="numeric"><span>/ 25</span></div>
+          </label>
+
+          <label>Pseudopalabras · Reglas ortográficas
+            <div class="scoreInput"><input id="proescRules" type="number" min="0" max="15" inputmode="numeric"><span>/ 15</span></div>
+          </label>
+
+          <label>Dictado de frases · Acentos
+            <div class="scoreInput"><input id="proescAccents" type="number" min="0" max="15" inputmode="numeric"><span>/ 15</span></div>
+          </label>
+
+          <label>Dictado de frases · Mayúsculas
+            <div class="scoreInput"><input id="proescCaps" type="number" min="0" max="10" inputmode="numeric"><span>/ 10</span></div>
+          </label>
+
+          <label>Dictado de frases · Signos de puntuación
+            <div class="scoreInput"><input id="proescPunct" type="number" min="0" max="8" inputmode="numeric"><span>/ 8</span></div>
+          </label>
+
+          <label>Redacción · Contenido
+            <div class="scoreInput"><input id="proescWritingContent" type="number" min="0" max="5" inputmode="numeric"><span>/ 5</span></div>
+          </label>
+
+          <label>Redacción · Presentación
+            <div class="scoreInput"><input id="proescWritingPresentation" type="number" min="0" max="5" inputmode="numeric"><span>/ 5</span></div>
+          </label>
+        </div>
+
+        <div class="sagesActions">
+          <button id="previewProescBtn" class="secondary" type="button">Calcular vista previa</button>
+          <button id="saveProescBtn" type="button">Guardar PROESC</button>
+        </div>
+
+        <div id="proescStatus" class="status"></div>
+        <div id="proescResult" class="hidden"></div>
       </section>
     </section>
   </main>

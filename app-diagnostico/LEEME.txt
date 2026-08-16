@@ -1,11 +1,10 @@
-APP DIAGNÓSTICO v0.3.0 — CompLEC captura
+APP DIAGNÓSTICO v0.4.0 — PROESC abreviado
 
-Paso 3/9 · CompLEC · Subpaso 3/4
+Paso 4/9 · PROESC · Subpaso 3/4
 
 Agrega:
-- Captura de 20 reactivos.
-- A/B/C/D con un toque.
-- Controles especiales para las 3 respuestas abiertas.
-- Detección automática de grado por grupo.
-- Vista previa total + tres procesos + centil cuando el manual lo permite.
-- Guardado y reapertura de respuestas.
+- Captura de las puntuaciones de la forma abreviada oficial.
+- Detección automática de grado 1º/2º/3º.
+- Aplicación de baremos del manual por aspecto.
+- Vista previa.
+- Guardado y reapertura.

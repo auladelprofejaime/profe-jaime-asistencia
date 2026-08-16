@@ -917,60 +917,58 @@ function generateGroupDiagnosticReport(){
   }
   const c=o.coverage||{}, p=o.priorities||{};
   const incomplete=Number(c.completion_percent||0)<100;
-  const report=window.open("","_blank");
-  if(!report){alert("El navegador bloqueó la ventana del reporte.");return}
 
-  report.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8">
-  <title>Diagnóstico grupal - ${esc(activeGroup)}</title>
-  <style>
-    @page{size:letter;margin:15mm}
-    body{font-family:Arial,sans-serif;color:#222;line-height:1.4;font-size:11pt}
-    h1{font-size:20pt;margin:0 0 3px} h2{font-size:14pt;margin:20px 0 8px;border-bottom:2px solid #222;padding-bottom:4px}
-    .meta{margin-bottom:18px}.notice{border:1px solid #777;padding:10px;margin:12px 0;font-weight:700}
-    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric{border:1px solid #aaa;padding:9px;text-align:center}
-    .metric b{display:block;font-size:17pt}.summary{padding:10px;border:1px solid #aaa}
-    table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #aaa;padding:6px;text-align:left}th{background:#eee}
-    ul{padding-left:20px}.foot{font-size:9pt;margin-top:20px;border-top:1px solid #aaa;padding-top:8px}
-    .actions{margin-bottom:15px}@media print{.actions{display:none}}
-  </style></head><body>
-  <div class="actions"><button onclick="window.print()">Imprimir / Guardar como PDF</button></div>
-  <h1>Diagnóstico inicial del grupo ${esc(activeGroup)}</h1>
-  <div class="meta"><b>Periodo:</b> ${esc(activePeriod.name||"Diagnóstico inicial")}<br>
-  <b>Fecha de generación:</b> ${new Date().toLocaleDateString("es-MX")}</div>
+  let old=document.getElementById("groupPrintableReport");
+  if(old)old.remove();
 
-  ${incomplete?`<div class="notice">REPORTE PARCIAL: se ha integrado el ${esc(c.completion_percent??0)}% del grupo. Las conclusiones pueden cambiar cuando se complete el diagnóstico de los alumnos pendientes.</div>`:""}
+  const wrap=document.createElement("div");
+  wrap.id="groupPrintableReport";
+  wrap.className="printReportOverlay";
+  wrap.innerHTML=`
+    <div class="printReportToolbar">
+      <button type="button" id="closeGroupReportBtn" class="secondary">← Volver</button>
+      <button type="button" id="doPrintGroupReportBtn">Imprimir / Guardar como PDF</button>
+    </div>
+    <article class="printReportPage">
+      <h1>Diagnóstico inicial del grupo ${esc(activeGroup)}</h1>
+      <p><b>Periodo:</b> ${esc(activePeriod.name||"Diagnóstico inicial")}<br>
+      <b>Fecha de generación:</b> ${new Date().toLocaleDateString("es-MX")}</p>
 
-  <h2>Cobertura</h2>
-  <div class="metrics">
-    <div class="metric"><b>${esc(c.total_students??0)}</b>Alumnos</div>
-    <div class="metric"><b>${esc(c.integrated_profiles??0)}</b>Perfiles integrados</div>
-    <div class="metric"><b>${esc(c.pending_profiles??0)}</b>Pendientes</div>
-    <div class="metric"><b>${esc(c.completion_percent??0)}%</b>Cobertura</div>
-  </div>
+      ${incomplete?`<div class="printPartial"><b>REPORTE PARCIAL</b><br>Se ha integrado el ${esc(c.completion_percent??0)}% del grupo. Las conclusiones pueden cambiar cuando se complete el diagnóstico de los alumnos pendientes.</div>`:""}
 
-  <h2>Panorama general</h2>
-  <div class="summary">${esc(o.summary_text||"")}</div>
-  <p><b>Seguimiento ordinario:</b> ${esc(p.ordinario??0)} (${esc(p.ordinario_percent??0)}%) &nbsp; 
-  <b>Seguimiento:</b> ${esc(p.seguimiento??0)} (${esc(p.seguimiento_percent??0)}%) &nbsp;
-  <b>Prioritario:</b> ${esc(p.seguimiento_prioritario??0)} (${esc(p.seguimiento_prioritario_percent??0)}%)</p>
+      <h2>Cobertura</h2>
+      <div class="printMetrics">
+        <div><b>${esc(c.total_students??0)}</b><span>Alumnos</span></div>
+        <div><b>${esc(c.integrated_profiles??0)}</b><span>Perfiles integrados</span></div>
+        <div><b>${esc(c.pending_profiles??0)}</b><span>Pendientes</span></div>
+        <div><b>${esc(c.completion_percent??0)}%</b><span>Cobertura</span></div>
+      </div>
 
-  <h2>Fortalezas más frecuentes</h2>
-  ${reportTopList(o.top_strengths,"Todavía no hay información suficiente para identificar fortalezas grupales.")}
+      <h2>Panorama general</h2>
+      <p>${esc(o.summary_text||"")}</p>
+      <p><b>Seguimiento ordinario:</b> ${esc(p.ordinario??0)} (${esc(p.ordinario_percent??0)}%) ·
+      <b>Seguimiento:</b> ${esc(p.seguimiento??0)} (${esc(p.seguimiento_percent??0)}%) ·
+      <b>Prioritario:</b> ${esc(p.seguimiento_prioritario??0)} (${esc(p.seguimiento_prioritario_percent??0)}%)</p>
 
-  <h2>Aspectos que conviene reforzar</h2>
-  ${reportTopList(o.top_support_areas,"Todavía no hay información suficiente para identificar necesidades grupales.")}
+      <h2>Fortalezas más frecuentes</h2>
+      ${reportTopList(o.top_strengths,"Todavía no hay información suficiente para identificar fortalezas grupales.")}
 
-  <h2>Prioridades para la planeación</h2>
-  ${reportTopList(o.top_recommendations,"Todavía no hay recomendaciones grupales suficientes.")}
+      <h2>Aspectos que conviene reforzar</h2>
+      ${reportTopList(o.top_support_areas,"Todavía no hay información suficiente para identificar necesidades grupales.")}
 
-  <h2>Seguimiento por alumno</h2>
-  ${reportStudentRows(rows)}
+      <h2>Prioridades para la planeación</h2>
+      ${reportTopList(o.top_recommendations,"Todavía no hay recomendaciones grupales suficientes.")}
 
-  <div class="foot">Este reporte es una herramienta pedagógica para orientar la planeación y el seguimiento escolar. Se construye únicamente con perfiles integrados y no constituye un diagnóstico clínico o psicológico.</div>
-  </body></html>`);
-  report.document.close();
+      <h2>Seguimiento por alumno</h2>
+      ${reportStudentRows(rows)}
+
+      <p class="printFoot">Este reporte es una herramienta pedagógica para orientar la planeación y el seguimiento escolar. Se construye únicamente con perfiles integrados y no constituye un diagnóstico clínico o psicológico.</p>
+    </article>`;
+  document.body.appendChild(wrap);
+
+  document.getElementById("closeGroupReportBtn").onclick=()=>wrap.remove();
+  document.getElementById("doPrintGroupReportBtn").onclick=()=>window.print();
 }
-
 async function openGroupDashboard(){
   if(!activePeriod||!activeGroup)return;
 

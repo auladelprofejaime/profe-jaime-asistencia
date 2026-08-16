@@ -93,3 +93,23 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 @media(max-width:750px){.groupDashGrid{grid-template-columns:1fr}.groupDashBox.wide{grid-column:auto}.metricRow{grid-template-columns:repeat(2,1fr)}}
 
 .publicationBox{display:flex;justify-content:space-between;gap:14px;align-items:center;padding:14px;border:1px solid #ead681;border-radius:14px;background:#fff7d5;margin:14px 0}.publicationBox small{display:block;margin-top:4px;color:#6d655d}@media(max-width:650px){.publicationBox{flex-direction:column;align-items:stretch}}
+
+.printReportOverlay{position:fixed;inset:0;z-index:9999;background:#f4f0e7;overflow:auto;padding:16px}
+.printReportToolbar{max-width:850px;margin:0 auto 12px;display:flex;justify-content:space-between;gap:10px}
+.printReportPage{max-width:816px;margin:0 auto;background:#fff;padding:34px;box-shadow:0 3px 20px #0002;color:#222}
+.printReportPage h1{font-size:28px;margin:0 0 8px}
+.printReportPage h2{font-size:19px;margin:24px 0 8px;border-bottom:2px solid #222;padding-bottom:5px}
+.printPartial{border:2px solid #555;padding:12px;margin:16px 0}
+.printMetrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.printMetrics>div{border:1px solid #aaa;padding:10px;text-align:center}
+.printMetrics b{display:block;font-size:22px}.printMetrics span{display:block;font-size:12px}
+.printReportPage table{width:100%;border-collapse:collapse}.printReportPage th,.printReportPage td{border:1px solid #aaa;padding:7px;text-align:left}
+.printReportPage th{background:#eee}.printFoot{font-size:11px;border-top:1px solid #aaa;margin-top:24px;padding-top:8px}
+@media(max-width:650px){.printReportPage{padding:18px}.printMetrics{grid-template-columns:repeat(2,1fr)}}
+@media print{
+ body>*:not(#groupPrintableReport){display:none!important}
+ #groupPrintableReport{position:static!important;inset:auto!important;background:#fff!important;padding:0!important;overflow:visible!important}
+ .printReportToolbar{display:none!important}
+ .printReportPage{max-width:none!important;margin:0!important;padding:0!important;box-shadow:none!important}
+ @page{size:letter;margin:15mm}
+}

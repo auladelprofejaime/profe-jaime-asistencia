@@ -1,14 +1,7 @@
-APP DIAGNÓSTICO v0.8.1 - Reporte grupal docente
+APP DIAGNÓSTICO v0.8.2 — FIX REPORTE GRUPAL
 
-Paso 8/9 - Subpaso 3/4
-
-Agrega en Diagnóstico del grupo:
-- Generar reporte PDF.
-- Vista carta lista para Imprimir / Guardar como PDF.
-- Cobertura y aviso visible si el reporte es parcial.
-- Panorama general.
-- Distribución por seguimiento.
-- Fortalezas más frecuentes.
-- Aspectos por reforzar.
-- Prioridades para planeación.
-- Seguimiento por alumno.
+Corrige el botón Generar reporte PDF.
+Ya no intenta abrir una ventana nueva, que puede ser bloqueada en iPad/PWA.
+Ahora abre el reporte dentro de la propia app y desde ahí permite:
+- Volver
+- Imprimir / Guardar como PDF

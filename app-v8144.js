@@ -136,6 +136,65 @@ async function refreshAll(){
   await showLastInternalSave();
 }
 
+
+async function loadStudentAppHours(){
+  const status=$('#studentAppHoursStatus');
+  try{
+    if(!(await requireTeacherSession()))return;
+    const d=await ProfeSupabase.rpc('teacher_get_student_app_access',{});
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo consultar.');
+    $('#studentAppHoursEnabled').checked=!!d.enabled;
+    $('#studentAppBlockedStart').value=String(d.blocked_start||'07:00').slice(0,5);
+    $('#studentAppBlockedEnd').value=String(d.blocked_end||'14:30').slice(0,5);
+    const days=new Set((d.weekdays||[]).map(Number));
+    $$('.studentAppDay').forEach(x=>x.checked=days.has(Number(x.value)));
+    $('#studentAppMessageTitle').value=d.message_title||'¡Ahora no, joven!';
+    $('#studentAppMessageBody').value=d.message_body||'';
+    if(status){
+      if(d.temporary_open_until && new Date(d.temporary_open_until)>new Date()){
+        status.textContent='Apertura temporal activa hasta '+new Date(d.temporary_open_until).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})+'.';
+      }else{
+        status.textContent=d.enabled
+          ? `Bloqueo activo de ${String(d.blocked_start||'').slice(0,5)} a ${String(d.blocked_end||'').slice(0,5)} en los días seleccionados.`
+          : 'Bloqueo por horario desactivado.';
+      }
+    }
+  }catch(e){
+    if(status)status.textContent='No se pudo cargar el horario: '+(e.message||e);
+  }
+}
+async function saveStudentAppHours(e){
+  e?.preventDefault();
+  const status=$('#studentAppHoursStatus');
+  const weekdays=$$('.studentAppDay').filter(x=>x.checked).map(x=>Number(x.value));
+  if(!weekdays.length)return alert('Selecciona al menos un día.');
+  try{
+    const d=await ProfeSupabase.rpc('teacher_set_student_app_access',{
+      p_enabled:$('#studentAppHoursEnabled').checked,
+      p_blocked_start:$('#studentAppBlockedStart').value,
+      p_blocked_end:$('#studentAppBlockedEnd').value,
+      p_weekdays:weekdays,
+      p_message_title:$('#studentAppMessageTitle').value.trim()||'¡Ahora no, joven!',
+      p_message_body:$('#studentAppMessageBody').value.trim()
+    });
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
+    await loadStudentAppHours();
+    if(status){
+      status.textContent='✓ Horario guardado correctamente.';
+      status.classList.add('success');
+      setTimeout(()=>status.classList.remove('success'),2500);
+    }
+  }catch(e){alert('No se pudo guardar el horario: '+(e.message||e))}
+}
+async function openStudentAppTemporarily(minutes){
+  try{
+    const d=await ProfeSupabase.rpc('teacher_open_student_app_temporarily',{p_minutes:Number(minutes)});
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo actualizar.');
+    await loadStudentAppHours();
+    alert(Number(minutes)>0?`App Estudiantes abierta temporalmente por ${minutes} minutos.`:'Apertura temporal cancelada.');
+  }catch(e){alert('No se pudo cambiar la apertura temporal: '+(e.message||e))}
+}
+
 function setView(id){
   $$('.view').forEach(v=>v.classList.toggle('active',v.id===id));
   $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
@@ -147,7 +206,7 @@ function setView(id){
     titular:'Seguimiento 3.º A',
     students:'Alumnos',
     dossier:'Expediente del alumno',
-    reports:'Reportes',availability:'Disponibilidad',content:'Contenido',messages:'Mensajes','portal-access':'Estado de acceso a portales'
+    reports:'Reportes',availability:'Disponibilidad','student-app-hours':'Horario App Estudiantes',content:'Contenido','portal-access':'Estado de acceso a portales'
   };
   if($('#currentSection'))$('#currentSection').textContent=names[id]||'Menú';
   if($('#mainMenu'))$('#mainMenu').open=false;
@@ -159,7 +218,7 @@ function setView(id){
   if(id==='titular')renderTitularGrid();
   if(id==='students')renderStudents();
   if(id==='dossier')refreshDossierSelector();
-  if(id==='reports'){}if(id==='availability')loadAvailability();if(id==='content')refreshPortalContent();if(id==='messages'){renderTeacherMessages();let nn=readTeacherNotifs().map(n=>n.id.startsWith('msg-')?{...n,read:true}:n);saveTeacherNotifs(nn)}
+  if(id==='reports'){}if(id==='availability')loadAvailability();if(id==='student-app-hours')loadStudentAppHours();if(id==='content')refreshPortalContent();
 }
 function pane(prefix,name){$$('.'+prefix+'pane').forEach(x=>x.classList.toggle('active',x.id===prefix+'-'+name));$$('[data-'+prefix+'tab]').forEach(x=>x.classList.toggle('active',x.dataset[prefix+'tab']===name));if(prefix==='act'){if(name==='grid')renderActivityGrid();if(name==='manage')renderActivities()}if(prefix==='tit'&&name==='individual')refreshTitIndividual();if(prefix==='met'){if(name==='manage')renderMethodologies();if(name==='calculate')refreshCalculationMethodologies();if(name==='quarter')refreshQuarterSelectors()}}
 
@@ -1252,7 +1311,6 @@ async function calculateMethodology(){
     rows.push({student:st,criterionGrades,pending:[...new Set(pending)],base,final:finalDecimal,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,pointsAvailable:Math.max(0,maxUsable-safeUsed),pointsTotalBefore:maxUsable});
   }
   await put('methodologies',m);
-
   window._lastMethodologyCalculation={methodology:m,activities:acts,rows};
   renderMethodologyResults(window._lastMethodologyCalculation);
 }
@@ -1299,53 +1357,16 @@ async function returnUsedPoints(studentId){
 async function toggleCloseMethodologyMonth(){
   let id=$('#calcMethodology').value;if(!id)return alert('Selecciona una metodología.');
   let m=await req(store('methodologies').get(id));
-  const publishing=!m.closed;
-
-  if(publishing){
+  if(!m.closed){
     await calculateMethodology();
     if(!window._lastMethodologyCalculation?.rows?.length)return;
-    if(!confirm(`Al cerrar ${m.month||'el mes'} se bloquearán extras, puntos y asignaciones. La calificación se publicará en Alumno y Padres. ¿Cerrar y publicar?`))return;
-    m=await req(store('methodologies').get(id));
-    m.closed=true;
-    m.closedAt=new Date().toISOString();
-    m.published=true;
-    m.publishedAt=m.closedAt;
+    if(!confirm('Al cerrar el mes se bloquearán extras, puntos y asignaciones. ¿Cerrar?'))return;
+    m=await req(store('methodologies').get(id));m.closed=true;m.closedAt=new Date().toISOString();
   }else{
-    if(!confirm('¿Reabrir este mes para hacer correcciones? La calificación dejará de mostrarse en los portales hasta volver a cerrarlo.'))return;
-    m.closed=false;
-    m.closedAt=null;
-    m.published=false;
-    m.publishedAt=null;
+    if(!confirm('¿Reabrir este mes para hacer correcciones?'))return;
+    m.closed=false;m.closedAt=null;
   }
-
-  await put('methodologies',m);
-  await renderMethodologyAssignments();
-  await calculateMethodology();
-  await renderMethodologies();
-
-  if(publishing&&sameShift(m.shift,'Matutino')&&supabaseReady){
-    try{
-      const finalM=await req(store('methodologies').get(id));
-      finalM.closed=true;
-      finalM.published=true;
-      finalM.publishedAt=finalM.publishedAt||new Date().toISOString();
-      await ProfeSupabase.upsert('methodologies',remoteMethodology(finalM),'id');
-
-      const rows=window._lastMethodologyCalculation?.rows||[];
-      for(const r of rows){
-        if(r.finalDecimal===null)continue;
-        await sendTeacherPushEvent('grade_update',{
-          student_id:String(r.student.id),
-          title:`Calificación de ${finalM.month||'mes'} publicada`,
-          message:`Ya está publicada tu calificación de ${finalM.month||'este mes'}: ${r.finalDecimal.toFixed(2)}.`
-        });
-      }
-      alert(`Calificaciones de ${finalM.month||'este mes'} publicadas.`);
-    }catch(e){
-      console.warn('No se pudo completar la publicación mensual',e);
-      alert('El mes se cerró, pero hubo un problema al publicar o notificar. Revisa la conexión antes de continuar.');
-    }
-  }
+  await put('methodologies',m);await renderMethodologyAssignments();await calculateMethodology();await renderMethodologies();
 }
 async function startNewMonth(id=null){
   let sourceId=id||$('#calcMethodology').value;if(!sourceId)return alert('Selecciona una metodología.');
@@ -1757,89 +1778,7 @@ async function calculateQuarter(){
   });
   window._lastQuarter={shift,group,cycle,quarter,methods,rows};
   $('#quarterResults').innerHTML=`<div class="period-summary"><b>${safe(cycle)} · Trimestre ${quarter} · ${safe(shift)} · Grupo ${safe(group)}</b><br>Meses incluidos: ${methods.map(m=>safe(m.month)).join(', ')}</div><table class="matrix"><thead><tr><th>#</th><th class="name">Alumno</th>${methods.map(m=>`<th>${safe(m.month)}</th>`).join('')}<th>Promedio decimal</th><th>Redondeada</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.student.number}</td><td class="name">${safe(r.student.name||r.student.id)}</td>${r.monthly.map(x=>`<td>${typeof x.value==='number'?x.value.toFixed(2):'Pendiente'}</td>`).join('')}<td>${r.average===null?'Pendiente':r.average.toFixed(2)}</td><td class="grade-rounded">${r.rounded===null?'—':r.rounded}</td></tr>`).join('')}</tbody></table>`;
-
 }
-async function closeQuarter(){
-  await calculateQuarter();
-  const q=window._lastQuarter;
-  if(!q)return;
-
-  if(q.rows.some(r=>r.average===null)){
-    return alert('Hay alumnos con calificación trimestral pendiente. Completa y cierra todos los meses antes de cerrar el trimestre.');
-  }
-
-  const publishKey=`quarterPublished:${q.cycle}:${q.shift}:${q.group}:${q.quarter}`;
-  if(localStorage.getItem(publishKey)==='1'){
-    return alert('Este trimestre ya fue cerrado y publicado.');
-  }
-
-  if(!confirm(`¿Cerrar el trimestre ${q.quarter}? Al hacerlo se publicará la calificación trimestral en Alumno y Padres.`))return;
-
-  if(!sameShift(q.shift,'Matutino')){
-    localStorage.setItem(publishKey,'1');
-    alert('Trimestre cerrado. Los portales Alumno/Padres solo corresponden al turno matutino.');
-    return;
-  }
-  if(!supabaseReady)return alert('Inicia sesión en Supabase antes de cerrar y publicar el trimestre.');
-
-  try{
-    const key=`quarterSummaryId:${q.cycle}:${q.shift}:${q.group}:${q.quarter}`;
-    let summaryId=localStorage.getItem(key);
-    if(!summaryId){summaryId=crypto.randomUUID();localStorage.setItem(key,summaryId)}
-
-    const gradeRecords={};
-    q.rows.forEach(r=>{
-      gradeRecords[String(r.student.id)]={
-        finalDecimal:Number(r.average),
-        rounded:r.rounded,
-        monthly:r.monthly
-      };
-    });
-
-    const now=new Date().toISOString();
-    const summary={
-      id:summaryId,
-      shift:q.shift,
-      group:q.group,
-      cycle:q.cycle,
-      quarter:q.quarter,
-      month:`Trimestre ${q.quarter}`,
-      name:`Promedio trimestral ${q.quarter}`,
-      subject:'Español',
-      criteria:[],
-      assignments:{},
-      gradeRecords,
-      closed:true,
-      closedAt:now,
-      published:true,
-      publishedAt:now,
-      created:now,
-      updated:now,
-      periodType:'quarter',
-      isQuarterSummary:true,
-      monthsIncluded:q.methods.map(m=>m.month)
-    };
-
-    await ProfeSupabase.upsert('methodologies',remoteMethodology(summary),'id');
-
-    for(const r of q.rows){
-      await sendTeacherPushEvent('grade_update',{
-        student_id:String(r.student.id),
-        title:'Calificación trimestral publicada',
-        message:`Ya está publicada tu calificación del trimestre ${q.quarter}: ${r.average.toFixed(2)}.`
-      });
-    }
-
-    localStorage.setItem(publishKey,'1');
-    $('#closeQuarterBtn').textContent='Trimestre publicado';
-    $('#closeQuarterBtn').disabled=true;
-    alert(`Trimestre ${q.quarter} cerrado y publicado.`);
-  }catch(e){
-    console.warn('No se pudo cerrar/publicar el trimestre',e);
-    alert('No se pudo publicar el trimestre. Puedes intentarlo de nuevo.');
-  }
-}
-
 async function printQuarter(){
   let q=window._lastQuarter;if(!q){await calculateQuarter();q=window._lastQuarter}if(!q)return;
   if(!pdfReady())return alert('No se cargó el generador de PDF.');
@@ -2584,7 +2523,7 @@ function bind(){
  $('#portalAccessGroupFilter')&&($('#portalAccessGroupFilter').onchange=renderPortalAccessReport);
  $('#portalAccessSearch')&&($('#portalAccessSearch').oninput=renderPortalAccessReport);
  setTimeout(()=>{decorateStudentAccessStatuses()},300);$$('.tab').forEach(b=>b.onclick=()=>setView(b.dataset.view));document.addEventListener('click',e=>{const menu=$('#mainMenu');if(menu?.open&&!menu.contains(e.target))menu.open=false});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#mainMenu'))$('#mainMenu').open=false});$$('[data-go]').forEach(b=>b.onclick=()=>setView(b.dataset.go));$$('[data-acttab]').forEach(b=>b.onclick=()=>pane('act',b.dataset.acttab));$$('[data-tittab]').forEach(b=>b.onclick=()=>pane('tit',b.dataset.tittab));$$('[data-mettab]').forEach(b=>b.onclick=()=>pane('met',b.dataset.mettab));for(let p of ['att','act','grid','newAct','met','calcMet'])$('#'+p+'Shift').onchange=()=>fillGroups(p);$('#attGroup').onchange=refreshAttendance;$('#attDate').onchange=refreshAttendance;$('#attRegister').onclick=registerAttendance;$('#attScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerAttendance()}};$('#attMissingBtn').onclick=showMissing;$('#attFinalizeBtn').onclick=finalizeAttendance;populateNewActivityWeeks();
-$('#activityForm').onsubmit=createActivity;$('#newActDate').onchange=syncActivityWeekFromDate;$('#cancelActivityEdit').onclick=resetActivityForm;$('#actGroup').onchange=refreshActivitySelectors;$('#actWeek').onchange=refreshActivitySelectors;$('#actSelect').onchange=refreshActivityStats;$('#actRegister').onclick=registerActivity;$('#actScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerActivity()}};$('#actClose').onclick=()=>closeActivity(true);$('#actReopen').onclick=()=>closeActivity(false);$('#gridGroup').onchange=refreshGridWeeks;$('#gridWeek').onchange=renderActivityGrid;$('#gridPdf').onclick=showWeeklyReportOptions;$('#addCriterionBtn').onclick=()=>addCriterion();$('#methodologyForm').onsubmit=saveMethodology;$('#cancelMethodologyEdit').onclick=resetMethodologyForm;$('#calcMetGroup').onchange=refreshCalculationMethodologies;$('#calcMethodology').onchange=renderMethodologyAssignments;$('#saveAssignmentsBtn').onclick=saveAssignments;$('#calculateMethodologyBtn').onclick=calculateMethodology;$('#methodologyPdfBtn').onclick=printMethodology;$('#methodologyIndividualPdfBtn').onclick=printMethodologyIndividuals;$('#closeMethodologyMonthBtn').onclick=toggleCloseMethodologyMonth;$('#newMethodologyMonthBtn').onclick=()=>startNewMonth();$('#quarterShift').onchange=refreshQuarterSelectors;$('#quarterGroup').onchange=()=>{};$('#calculateQuarterBtn').onclick=calculateQuarter;$('#closeQuarterBtn').onclick=closeQuarter;$('#quarterPdfBtn').onclick=printQuarter;$('#studentForm').onsubmit=saveStudent;$('#studentSearch').oninput=renderStudents;$('#studentGroupFilter')&&($('#studentGroupFilter').onchange=renderStudents);$('#dossierGroup')&&($('#dossierGroup').onchange=()=>refreshDossierSelector());$('#dossierStudent').onchange=e=>renderDossier(e.target.value);
+$('#activityForm').onsubmit=createActivity;$('#newActDate').onchange=syncActivityWeekFromDate;$('#cancelActivityEdit').onclick=resetActivityForm;$('#actGroup').onchange=refreshActivitySelectors;$('#actWeek').onchange=refreshActivitySelectors;$('#actSelect').onchange=refreshActivityStats;$('#actRegister').onclick=registerActivity;$('#actScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerActivity()}};$('#actClose').onclick=()=>closeActivity(true);$('#actReopen').onclick=()=>closeActivity(false);$('#gridGroup').onchange=refreshGridWeeks;$('#gridWeek').onchange=renderActivityGrid;$('#gridPdf').onclick=showWeeklyReportOptions;$('#addCriterionBtn').onclick=()=>addCriterion();$('#methodologyForm').onsubmit=saveMethodology;$('#cancelMethodologyEdit').onclick=resetMethodologyForm;$('#calcMetGroup').onchange=refreshCalculationMethodologies;$('#calcMethodology').onchange=renderMethodologyAssignments;$('#saveAssignmentsBtn').onclick=saveAssignments;$('#calculateMethodologyBtn').onclick=calculateMethodology;$('#methodologyPdfBtn').onclick=printMethodology;$('#methodologyIndividualPdfBtn').onclick=printMethodologyIndividuals;$('#closeMethodologyMonthBtn').onclick=toggleCloseMethodologyMonth;$('#newMethodologyMonthBtn').onclick=()=>startNewMonth();$('#quarterShift').onchange=refreshQuarterSelectors;$('#quarterGroup').onchange=()=>{};$('#calculateQuarterBtn').onclick=calculateQuarter;$('#quarterPdfBtn').onclick=printQuarter;$('#studentForm').onsubmit=saveStudent;$('#studentSearch').oninput=renderStudents;$('#studentGroupFilter')&&($('#studentGroupFilter').onchange=renderStudents);$('#dossierGroup')&&($('#dossierGroup').onchange=()=>refreshDossierSelector());$('#dossierStudent').onchange=e=>renderDossier(e.target.value);
  $('#openMonitorDossier').onclick=async()=>{
    setView('dossier');
    if($('#dossierGroup'))$('#dossierGroup').value='MONITOR';
@@ -2602,10 +2541,14 @@ $('#reportsExportBackup').onclick=exportBackup;
 $('#openDeleteRecords').onclick=openDeleteRecordsDialog;
 $('#materialSource').onchange=updateMaterialSourceUI;updateMaterialSourceUI();
 $('#availabilityForm').onsubmit=saveAvailability;
+ $('#studentAppHoursForm').onsubmit=saveStudentAppHours;
+ $('#refreshStudentAppHours').onclick=loadStudentAppHours;
+ $$('.studentTempOpen').forEach(b=>b.onclick=()=>openStudentAppTemporarily(Number(b.dataset.minutes)));
+ $('#cancelStudentTempOpen').onclick=()=>openStudentAppTemporarily(0);
  $('#contactOverrideBtn').onclick=toggleContactOverride;
  $('#openStudentChatToday').onclick=()=>setStudentChatTeacherState('open');
  $('#closeStudentChatToday').onclick=()=>setStudentChatTeacherState('closed');
- $('#autoStudentChat').onclick=()=>setStudentChatTeacherState('auto');$('#noticeForm').onsubmit=e=>savePortalEntity('notice',e);$('#materialForm').onsubmit=e=>savePortalEntity('material',e);$('#topicForm').onsubmit=e=>savePortalEntity('topic',e);$('#refreshMessages').onclick=renderTeacherMessages;
+ $('#autoStudentChat').onclick=()=>setStudentChatTeacherState('auto');$('#noticeForm').onsubmit=e=>savePortalEntity('notice',e);$('#materialForm').onsubmit=e=>savePortalEntity('material',e);$('#topicForm').onsubmit=e=>savePortalEntity('topic',e);
 const bindRestoreInput=id=>{$('#'+id).onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''}};
 bindRestoreInput('restoreFile');
 bindRestoreInput('homeRestoreFile');

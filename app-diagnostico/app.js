@@ -99,7 +99,7 @@ async function openPeriod(p){
   activePeriod=p;
   await rpc("teacher_diagnostic_sync_students",{p_period_id:p.id});
   const groups=await rpc("teacher_diagnostic_groups",{p_period_id:p.id});
-  $("#groupsCard").classList.remove("hidden");$("#studentsCard").classList.add("hidden");$("#studentCard").classList.add("hidden");
+  $("#groupsCard").classList.remove("hidden");$("#studentsCard").classList.add("hidden");$("#studentCard").classList.add("hidden");$("#groupDashboardCard").classList.add("hidden");
   $("#groupList").innerHTML=groups.map(g=>`<button class="groupBtn" data-group="${esc(g.group_name)}"><b>${esc(g.group_name||"Sin grupo")}</b><span>${g.student_count} alumnos · ${g.complete_count} completos</span></button>`).join("");
   $("#groupList").querySelectorAll("[data-group]").forEach(b=>b.onclick=()=>openGroup(b.dataset.group));
 }
@@ -858,6 +858,110 @@ $("#openIntegratedBtn").onclick=openIntegrated;
 $("#backStudentFromIntegrated").onclick=()=>{
   $("#integratedCard").classList.add("hidden");
   $("#studentCard").classList.remove("hidden");
+};
+
+
+function priorityGroupLabel(v){
+  if(v==="seguimiento_prioritario")return "Prioritario";
+  if(v==="seguimiento")return "Seguimiento";
+  if(v==="ordinario")return "Ordinario";
+  return "Pendiente";
+}
+function topItemsHtml(items){
+  if(!Array.isArray(items)||!items.length)return '<p class="muted">Todavía no hay datos suficientes.</p>';
+  return `<div class="topList">${items.map(x=>`
+    <div class="topItem"><span>${esc(x.area)}</span><b>${esc(x.occurrences)} · ${esc(x.percent_of_profiles)}%</b></div>
+  `).join("")}</div>`;
+}
+function renderGroupStudents(rows){
+  if(!Array.isArray(rows)||!rows.length)return '<p class="muted">No hay alumnos en este grupo.</p>';
+  return `<div style="overflow:auto"><table class="studentStatusTable">
+    <thead><tr><th>Lista</th><th>Alumno</th><th>Pruebas</th><th>Perfil</th><th>Seguimiento</th></tr></thead>
+    <tbody>${rows.map(r=>`
+      <tr>
+        <td>${esc(r.list_number??"—")}</td>
+        <td>${esc(r.student_name)}</td>
+        <td>${r.all_tests_complete?"✓ Completo":"Pendiente"}</td>
+        <td>${r.integrated_ready?"✓ Generado":"Pendiente"}</td>
+        <td><span class="badgeMini">${esc(priorityGroupLabel(r.priority_level))}</span></td>
+      </tr>`).join("")}</tbody>
+  </table></div>`;
+}
+async function openGroupDashboard(){
+  if(!activePeriod||!activeGroup)return;
+
+  $("#studentsCard").classList.add("hidden");
+  $("#groupDashboardCard").classList.remove("hidden");
+  $("#groupDashboardContent").classList.add("hidden");
+  $("#groupDashboardTitle").textContent=`Grupo ${activeGroup}`;
+  $("#groupDashboardMeta").textContent=activePeriod.name||"Periodo diagnóstico";
+  $("#groupDashboardStatus").textContent="Calculando panorama grupal…";
+
+  try{
+    const [o,students]=await Promise.all([
+      rpc("teacher_diagnostic_group_overview",{
+        p_period_id:activePeriod.id,
+        p_group_name:String(activeGroup)
+      }),
+      rpc("teacher_diagnostic_group_students",{
+        p_period_id:activePeriod.id,
+        p_group_name:String(activeGroup)
+      })
+    ]);
+    if(!o.ok)throw new Error("No se pudo generar el panorama grupal.");
+
+    const c=o.coverage||{}, p=o.priorities||{};
+    $("#groupDashboardContent").innerHTML=`
+      <div class="groupDashGrid">
+        <div class="groupDashBox wide">
+          <h3>Cobertura del diagnóstico</h3>
+          <div class="metricRow">
+            <div class="metric"><b>${esc(c.total_students??0)}</b>Alumnos</div>
+            <div class="metric"><b>${esc(c.integrated_profiles??0)}</b>Perfiles integrados</div>
+            <div class="metric"><b>${esc(c.pending_profiles??0)}</b>Pendientes</div>
+            <div class="metric"><b>${esc(c.completion_percent??0)}%</b>Cobertura</div>
+          </div>
+          <p><b>${esc(o.coverage_label||"")}</b></p>
+        </div>
+
+        <div class="groupDashBox wide">
+          <h3>Prioridad de seguimiento</h3>
+          <div class="metricRow">
+            <div class="metric"><b>${esc(p.ordinario??0)}</b>Ordinario<br><small>${esc(p.ordinario_percent??0)}%</small></div>
+            <div class="metric"><b>${esc(p.seguimiento??0)}</b>Seguimiento<br><small>${esc(p.seguimiento_percent??0)}%</small></div>
+            <div class="metric"><b>${esc(p.seguimiento_prioritario??0)}</b>Prioritario<br><small>${esc(p.seguimiento_prioritario_percent??0)}%</small></div>
+          </div>
+          <p>${esc(o.summary_text||"")}</p>
+        </div>
+
+        <div class="groupDashBox">
+          <h3>Fortalezas más frecuentes</h3>
+          ${topItemsHtml(o.top_strengths)}
+        </div>
+        <div class="groupDashBox">
+          <h3>Áreas por reforzar más frecuentes</h3>
+          ${topItemsHtml(o.top_support_areas)}
+        </div>
+        <div class="groupDashBox wide">
+          <h3>Prioridades para la planeación</h3>
+          ${topItemsHtml(o.top_recommendations)}
+        </div>
+        <div class="groupDashBox wide">
+          <h3>Estado por alumno</h3>
+          ${renderGroupStudents(students)}
+        </div>
+      </div>
+      <div class="disclaimerBox">${esc(o.disclaimer||"")}</div>`;
+    $("#groupDashboardContent").classList.remove("hidden");
+    $("#groupDashboardStatus").textContent="✓ Panorama grupal actualizado.";
+  }catch(e){
+    $("#groupDashboardStatus").textContent=e.message||String(e);
+  }
+}
+$("#openGroupDashboardBtn").onclick=openGroupDashboard;
+$("#backFromGroupDashboard").onclick=()=>{
+  $("#groupDashboardCard").classList.add("hidden");
+  $("#studentsCard").classList.remove("hidden");
 };
 
 $("#loginBtn").onclick=login;

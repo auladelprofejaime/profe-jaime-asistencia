@@ -1,11 +1,12 @@
-APP DIAGNÓSTICO v0.6.0 — Resultado integrado
+APP DIAGNÓSTICO v0.7.0 — Diagnóstico del grupo
 
-Paso 6/9 · Perfil diagnóstico integrado · Subpaso 3/4
+Paso 7/9 · Subpaso 3/4
 
 Agrega:
-- Botón Ver resultado integrado.
-- Comprueba que las cuatro pruebas estén completas.
-- Genera resumen técnico consolidado.
-- Genera y guarda síntesis pedagógica determinista.
-- Muestra fortalezas, áreas por reforzar, recomendaciones y prioridad.
-- Incluye aviso de que no es diagnóstico clínico/psicológico.
+- Botón Diagnóstico del grupo dentro de la lista de alumnos.
+- Cobertura del diagnóstico.
+- Perfiles integrados y pendientes.
+- Prioridades de seguimiento.
+- Fortalezas y áreas por reforzar más frecuentes.
+- Prioridades para la planeación.
+- Estado por alumno.

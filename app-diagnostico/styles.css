@@ -77,3 +77,17 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .testMini{padding:12px;border:1px solid #eadfbc;border-radius:12px;background:#fff}
 .disclaimerBox{margin-top:14px;padding:12px;border-radius:12px;background:#f2ead0;color:#5f574e}
 @media(max-width:650px){.integratedGrid,.testMiniGrid{grid-template-columns:1fr}.integratedBox.wide{grid-column:auto}.integratedLaunch button{width:100%}}
+
+.groupDashGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.groupDashBox{padding:16px;border:1px solid #eadfbc;border-radius:16px;background:#fffdf7}
+.groupDashBox.wide{grid-column:1/-1}
+.metricRow{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.metric{padding:14px;border-radius:14px;background:#fff7d5;border:1px solid #ead681}
+.metric b{display:block;font-size:24px;margin-bottom:4px}
+.topList{display:flex;flex-direction:column;gap:8px}
+.topItem{display:flex;justify-content:space-between;gap:12px;padding:10px;border-radius:10px;background:#fff}
+.studentStatusTable{width:100%;border-collapse:collapse}
+.studentStatusTable th,.studentStatusTable td{padding:9px;border-bottom:1px solid #eadfbc;text-align:left}
+.badgeMini{display:inline-block;padding:4px 8px;border-radius:999px;background:#f2ead0;font-size:12px;font-weight:800}
+.sectionActions{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+@media(max-width:750px){.groupDashGrid{grid-template-columns:1fr}.groupDashBox.wide{grid-column:auto}.metricRow{grid-template-columns:repeat(2,1fr)}}

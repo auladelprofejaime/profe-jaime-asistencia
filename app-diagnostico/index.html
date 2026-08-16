@@ -67,13 +67,29 @@
         <div id="groupList" class="grid"></div>
       </section>
 
+      <section id="groupDashboardCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">Diagnóstico del grupo</p>
+            <h2 id="groupDashboardTitle">Panorama grupal</h2>
+            <p id="groupDashboardMeta" class="muted"></p>
+          </div>
+          <button id="backFromGroupDashboard" class="secondary">← Grupos</button>
+        </div>
+        <div id="groupDashboardStatus" class="status"></div>
+        <div id="groupDashboardContent" class="hidden"></div>
+      </section>
+
       <section id="studentsCard" class="card hidden">
         <div class="sectionHead">
           <div>
             <h2 id="studentsTitle">Alumnos</h2>
             <p class="muted">Progreso del diagnóstico.</p>
           </div>
-          <button id="backGroupsBtn" class="secondary">← Grupos</button>
+          <div class="sectionActions">
+            <button id="openGroupDashboardBtn" type="button">Diagnóstico del grupo</button>
+            <button id="backGroupsBtn" class="secondary">← Grupos</button>
+          </div>
         </div>
         <div id="studentList" class="list"></div>
       </section>

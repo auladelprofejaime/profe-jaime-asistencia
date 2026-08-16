@@ -1,8 +1,8 @@
-APP PADRES v8.12.4 — Diagnóstico familiar sin nombres de pruebas
+APP PADRES v8.12.5 — Fortalezas completas
 
-Correcciones:
-- versión visible actualizada a v8.12.4;
-- fortalezas sin nombres de instrumentos;
-- no muestra SAGES, CompLEC, PROESC ni CASM en tarjetas familiares;
-- títulos traducidos a habilidades comprensibles;
-- mantiene cálculos, publicación, sesión y push intactos.
+- Recupera todas las fortalezas reales del perfil integrado.
+- Traduce las fortalezas a lenguaje familiar.
+- No muestra nombres de pruebas.
+- Las cinco áreas de hábitos se condensan en una sola tarjeta: Hábitos de estudio.
+- Evita la tarjeta genérica cuando sí existen fortalezas.
+- Mantiene publicación, push, sesión y cálculos intactos.

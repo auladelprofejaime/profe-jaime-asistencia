@@ -235,6 +235,83 @@ function familyRecommendationExplanation(area,raw){
  const cleaned=diagFriendlyText(raw||"");
  return cleaned && !/^dificultad/i.test(cleaned) ? cleaned : "Acompañen este aspecto con práctica breve y constante. El profesor también lo considerará al planear actividades de refuerzo durante el trabajo escolar.";
 }
+
+function familyStrengthExplanation(area,rawArea,rawText){
+ const k=(String(area||"")+" "+String(rawArea||"")).toLowerCase()
+   .normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+ if(k.includes("lengua")||k.includes("verbal"))
+   return "Mostró recursos favorables para comprender y utilizar información verbal, relacionar ideas y desenvolverse en actividades que requieren el uso del lenguaje.";
+ if(k.includes("recuper")||k.includes("localiz")||k.includes("comprension"))
+   return "Mostró mayor facilidad para localizar información importante dentro de los textos e identificar datos e ideas que aparecen de manera directa.";
+ if(k.includes("redac")||k.includes("expresion escrita")||k.includes("escritura"))
+   return "Mostró recursos favorables para organizar y desarrollar ideas por escrito de manera comprensible.";
+ if(k.includes("razon"))
+   return "Mostró recursos favorables para analizar información, encontrar relaciones entre ideas y utilizar lo aprendido para resolver actividades.";
+ if(k.includes("acent"))
+   return "Mostró un manejo favorable del uso de acentos en las actividades realizadas.";
+ if(k.includes("mayus"))
+   return "Mostró un manejo favorable del uso de mayúsculas en las actividades realizadas.";
+ if(k.includes("puntu"))
+   return "Mostró un manejo favorable de los signos de puntuación para organizar sus escritos.";
+ if(k.includes("ortograf"))
+   return "Mostró recursos favorables en la escritura correcta de palabras y en la aplicación de conocimientos ortográficos.";
+ if(k.includes("habito")||k.includes("estudio"))
+   return "Muestra hábitos y actitudes favorables para organizarse y responder a las actividades escolares.";
+
+ const cleaned=diagFriendlyText(rawText||"");
+ return cleaned || "Mostró un desempeño favorable en este aspecto durante las actividades del diagnóstico.";
+}
+
+function familyStrengthTitle(x){
+ const raw=String(x?.area||x?.title||x?.name||"");
+ const source=String(x?.source||"").toLowerCase();
+ const k=raw.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+ if(k.includes("lengua")||source.includes("sages")&&k.includes("lengua")) return "Habilidades de lenguaje";
+ if(k.includes("recuper")||k.includes("localiz")) return "Comprensión de lectura";
+ if(k.includes("redac")||k.includes("escrit")) return "Expresión escrita";
+ if(k.includes("razon")) return "Razonamiento";
+ if(k.includes("acent")) return "Uso de acentos";
+ if(k.includes("mayus")) return "Uso de mayúsculas";
+ if(k.includes("puntu")) return "Uso de signos de puntuación";
+ if(k.includes("ortograf")) return "Ortografía";
+ return diagFriendlyArea(raw||source);
+}
+
+function familyStrengthCards(items,tests){
+ const cards=[];
+ const seen=new Set();
+
+ // Hábitos de estudio se sintetizan en una sola fortaleza, no en Área I–V.
+ const casm=diagCasmSummary(tests,items);
+ if(casm){
+   cards.push(casm);
+   seen.add("Hábitos de estudio");
+ }
+
+ (Array.isArray(items)?items:[]).forEach(x=>{
+   const rawArea=String(x.area||x.title||x.name||"");
+   const src=String(x.source||"").toLowerCase();
+   const norm=rawArea.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"");
+
+   // Las cinco áreas de hábitos ya quedaron resumidas arriba.
+   if(src.includes("casm") || /^area\s*(i|ii|iii|iv|v|[1-5])$/i.test(norm)) return;
+
+   const title=familyStrengthTitle(x);
+   if(!title || title==="Aspecto escolar" || seen.has(title)) return;
+
+   const text=familyStrengthExplanation(title,rawArea,x.text||x.description||x.interpretation||"");
+   cards.push(`<div class="card"><b>${esc(title)}</b><p>${esc(text)}</p></div>`);
+   seen.add(title);
+ });
+
+ if(!cards.length){
+   return '<div class="card"><p>Se identificaron recursos favorables para el trabajo escolar. El profesor utilizará esta información para orientar el acompañamiento durante el ciclo.</p></div>';
+ }
+ return cards.join("");
+}
+
 function familySupportCards(items){
  if(!Array.isArray(items)||!items.length)return '<div class="card"><b>Sin aspectos prioritarios señalados</b><p>Con la información disponible, no se identificó un aspecto específico que requiera atención prioritaria. Se recomienda mantener el acompañamiento escolar habitual.</p></div>';
  return items.map(x=>{
@@ -262,18 +339,7 @@ async function renderPublishedDiagnostic(){
  }
  const r=d.result||{}, summary=r.summary||{}, tests=r.tests||{};
  const follow=diagFamilyPriority(summary.priority_level);
- const casmSummary=diagCasmSummary(tests,summary.strengths);
- const strengths=(Array.isArray(summary.strengths)?summary.strengths:[]).filter(x=>{
-   const a=String(x.area||"").toLowerCase();
-   const src=String(x.source||"").toLowerCase();
-   return !(
-     a.match(/^á?rea\s*(i|ii|iii|iv|v|[1-5])$/i) ||
-     src.includes("casm") ||
-     src.includes("sages") ||
-     src.includes("complec") ||
-     src.includes("proesc")
-   );
- });
+
 
  box.innerHTML=`
    <div class="card">
@@ -286,8 +352,7 @@ async function renderPublishedDiagnostic(){
    </div>
 
    <h3 class="section-title">Fortalezas observadas</h3>
-   ${casmSummary}
-   ${diagFamilyItems(strengths,"Se identificaron recursos favorables para el trabajo escolar. El profesor utilizará esta información para orientar el acompañamiento durante el ciclo.")}
+   ${familyStrengthCards(summary.strengths,tests)}
 
    <h3 class="section-title">Aspectos que conviene reforzar</h3>
    ${familySupportCards(summary.support_areas)}
@@ -312,7 +377,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8124',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8125',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }

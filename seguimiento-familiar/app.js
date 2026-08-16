@@ -10,7 +10,6 @@ async function openFamilyPushTarget(target){
  if(target==='activities'){setView('activities');return}
  if(target==='materials'){setView('materials');return}
  if(target==='notices'){setView('notices');return}
- if(target==='grades'){setView('grades');return}
  setView('home');
 }
 navigator.serviceWorker?.addEventListener('message',e=>{
@@ -33,17 +32,18 @@ if(initialPush)setTimeout(()=>openFamilyPushTarget(initialPush),500);
 async function rawPortalBundle(){
  if(!currentToken)return null;
  try{
-   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_updates`,{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_bundle`,{
      method:'POST',
      headers:{
        apikey:SUPABASE_PUBLISHABLE_KEY,
+       Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
        'Content-Type':'application/json'
      },
      body:JSON.stringify({p_token:currentToken})
    });
-   if(!r.ok){console.warn('portal_get_updates HTTP',r.status);return null}
+   if(!r.ok)return null;
    return await r.json();
- }catch(e){console.warn('portal updates',e);return null}
+ }catch(e){console.warn('raw portal bundle',e);return null}
 }
 function mergeFreshPortalContent(raw){
  if(!raw?.ok||!bundle)return;
@@ -63,6 +63,7 @@ async function refreshPortalContentNow(){
 }
 
 async function openPortalView(id){
+ if(id==='diagnostic'&&currentToken)await renderPublishedDiagnostic();
  if((id==='reports'||id==='notices'||id==='home')&&currentToken){
    try{
      const fresh=await portalGetBundle(currentToken);
@@ -74,6 +75,39 @@ async function openPortalView(id){
 }
 $$('[data-view]').forEach(b=>b.onclick=()=>openPortalView(b.dataset.view));
 
+
+async function getPublishedDiagnostic(){
+ if(!currentToken)return null;
+ try{
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_diagnostic_result`,{
+   method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},
+   body:JSON.stringify({p_token:currentToken})
+  });
+  if(!r.ok)throw new Error('No se pudo consultar el diagnóstico.');
+  return await r.json();
+ }catch(e){console.warn('diagnostic result',e);return null}
+}
+function diagItems(items){
+ if(!Array.isArray(items)||!items.length)return '<div class="card muted">Sin elementos registrados.</div>';
+ return items.map(x=>{const title=x.title||x.area||x.name||'Área',text=x.text||x.description||x.interpretation||'';
+  return `<div class="card"><b>${esc(title)}</b>${text?`<p>${esc(text)}</p>`:''}</div>`}).join('');
+}
+async function renderPublishedDiagnostic(){
+ const box=$('#diagnosticResult');if(!box)return;
+ box.innerHTML='<div class="card muted">Consultando resultado…</div>';
+ const d=await getPublishedDiagnostic();
+ if(!d){box.innerHTML='<div class="card"><b>No se pudo consultar el resultado.</b><p class="muted">Revisa tu conexión e intenta nuevamente.</p></div>';return}
+ if(!d.ok||!d.published){box.innerHTML='<div class="card"><b>Diagnóstico aún no publicado</b><p class="muted">Cuando el profesor publique el resultado del diagnóstico inicial, aparecerá en esta sección.</p></div>';return}
+ const r=d.result||{},s=r.summary||{},tests=r.tests||{},sages=tests.sages||{},complec=tests.complec||{};
+ const priority={seguimiento_prioritario:'Seguimiento prioritario',seguimiento:'Seguimiento',ordinario:'Seguimiento ordinario'}[s.priority_level]||'Resultado disponible';
+ box.innerHTML=`<div class="card"><small class="muted">${esc(d.period_name||'Diagnóstico inicial')}</small><h3>Resultado publicado</h3><p><b>Orientación de seguimiento:</b> ${esc(priority)}</p><p class="muted">Publicado: ${d.published_at?new Date(d.published_at).toLocaleDateString('es-MX'):''}</p></div>
+ <h3 class="section-title">Fortalezas</h3>${diagItems(s.strengths)}
+ <h3 class="section-title">Áreas por reforzar</h3>${diagItems(s.support_areas)}
+ <h3 class="section-title">Recomendaciones</h3>${diagItems(s.recommendations)}
+ <div class="card"><h3>Resumen de pruebas</h3><p><b>SAGES-2:</b> Lengua P${esc(sages.language?.percentile??'—')} · Razonamiento P${esc(sages.reasoning?.percentile??'—')}</p><p><b>CompLEC:</b> ${esc(complec.total_score??'—')} / ${esc(complec.max_score??20)}</p><p><b>PROESC abreviado:</b> escritura y ortografía integradas en las áreas anteriores.</p><p><b>CASM-85-R:</b> hábitos y actitudes de estudio integrados en fortalezas y recomendaciones.</p></div>
+ <div class="card muted">${esc(s.disclaimer||'Resultado de diagnóstico educativo inicial para orientar el acompañamiento escolar. No constituye un diagnóstico clínico ni psicológico.')}</div>`;
+}
+
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
 import {normalizePhone} from '../shared/data-contract.js';
 let id='',bundle=null,currentToken='';
@@ -82,7 +116,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8121',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8120',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }
@@ -226,7 +260,6 @@ async function enterPortal(){
 
    bundle=raw;
    id=bundle.student.id;
-   normalizePortalMethodologies();
 
    $('#sessionLoading')?.classList.add('hidden');
    $('#loginGate')?.classList.add('hidden');
@@ -245,7 +278,6 @@ async function enterPortal(){
 async function load(){
  bundle=await portalGetBundle(currentToken);
  if(!bundle?.ok)return;
- normalizePortalMethodologies();
  const raw=await rawPortalBundle();
  if(raw?.ok)mergeFreshPortalContent(raw);
  $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
@@ -273,48 +305,6 @@ function familyActivityState(a,r){
  }
  return {label:'Pendiente',cls:'warn'};
 }
-
-function normalizePortalMethodologies(){
- if(!bundle)return;
- bundle.methodologies=(bundle.methodologies||[]).map(m=>{
-   if(m?.data&&typeof m.data==='object'){
-     return {
-       ...m.data,
-       id:m.id??m.data.id,
-       closed:m.closed??m.data.closed,
-       cycle:m.cycle??m.data.cycle,
-       quarter:m.quarter??m.data.quarter,
-       month:m.month??m.data.month,
-       shift:m.shift??m.data.shift,
-       group:m.group_name??m.data.group
-     };
-   }
-   return m;
- });
-}
-const FAMILY_MONTH_ORDER=['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'];
-function familyMethodTimestamp(m){return String(m.updated||m.closedAt||m.created||'')}
-function familyIsQuarterSummary(m){return !!(m?.isQuarterSummary||m?.periodType==='quarter'||m?.data?.isQuarterSummary)}
-function familyGradeModel(){
- normalizePortalMethodologies();
- const all=bundle?.methodologies||[];
- const monthly=all.filter(m=>!familyIsQuarterSummary(m)&&((m.closed===true&&m.published!==false)||m.provisionalPublished===true)&&m.gradeRecords?.[id]?.finalDecimal!=null)
-   .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
-     Number(b.quarter||0)-Number(a.quarter||0)||
-     FAMILY_MONTH_ORDER.indexOf(b.month)-FAMILY_MONTH_ORDER.indexOf(a.month)||
-     familyMethodTimestamp(b).localeCompare(familyMethodTimestamp(a)));
- const quarters=all.filter(m=>familyIsQuarterSummary(m)&&m.closed===true&&m.published===true&&m.gradeRecords?.[id]?.finalDecimal!=null)
-   .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||
-     Number(b.quarter||0)-Number(a.quarter||0)||
-     familyMethodTimestamp(b).localeCompare(familyMethodTimestamp(a)));
- const current=monthly.slice().sort((a,b)=>familyMethodTimestamp(b).localeCompare(familyMethodTimestamp(a)))[0]||null;
- return {monthly,quarters,current};
-}
-function grade(){
- const m=familyGradeModel().current;
- return m?.gradeRecords?.[id]||null;
-}
-
 function renderAll(){
  let g=grade(),att=bundle.attendance,map=new Map((bundle.activityRecords||[]).map(r=>[r.key,r]));
  let pending=(bundle.activities||[]).filter(a=>{
@@ -354,34 +344,7 @@ function renderAll(){
    </div>`;
  }).join(''):'<div class="card muted">No hay próximas entregas publicadas.</div>';
 
- {
-   const gm=familyGradeModel();
-   const months=gm.monthly.map(m=>{
-     const x=m.gradeRecords?.[id];
-     return `<div class="card">
-       <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
-         <div><h3 style="margin:0">${esc(m.month||'Mes')}</h3><p class="muted" style="margin:4px 0 0">Trimestre ${esc(m.quarter||'—')} · ${esc(m.cycle||'')}</p></div>
-         <span class="status ok">Publicada</span>
-       </div>
-       <h1 style="margin-bottom:4px">${Number(x.finalDecimal).toFixed(2)}</h1>
-       <p>Redondeada: <b>${x.rounded??'—'}</b></p>
-     </div>`;
-   }).join('');
-   const quarters=gm.quarters.map(m=>{
-     const x=m.gradeRecords?.[id];
-     return `<div class="card">
-       <h3 style="margin-top:0">Trimestre ${esc(m.quarter||'—')}</h3>
-       <p class="muted">${esc(m.cycle||'')}</p>
-       <h1 style="margin-bottom:4px">${Number(x.finalDecimal).toFixed(2)}</h1>
-       <p>Calificación trimestral redondeada: <b>${x.rounded??'—'}</b></p>
-     </div>`;
-   }).join('');
-   $('#familyGrades').innerHTML=`
-     <h3>Calificaciones mensuales</h3>
-     ${months||'<div class="card muted">Todavía no hay una calificación mensual calculada.</div>'}
-     <h3 style="margin-top:22px">Calificación trimestral</h3>
-     ${quarters||'<div class="card muted">Aparecerá cuando el profesor calcule el cierre del trimestre.</div>'}`;
- }
+ $('#familyGrades').innerHTML=`<div class="card"><h3>Promedio actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><p>Calificación redondeada: <b>${g?.rounded??'—'}</b></p></div>`;
  $('#familyReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="big-button" data-r="${r.id}"><b>📄</b><span>${esc(r.title)}${r.report_date?`<small>${esc(portalDate(r.report_date))}</small>`:''}</span></button>`).join(''):'<div class="card muted">Sin reportes disponibles.</div>';
  $$('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));
 }

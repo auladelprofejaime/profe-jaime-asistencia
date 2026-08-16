@@ -888,6 +888,89 @@ function renderGroupStudents(rows){
       </tr>`).join("")}</tbody>
   </table></div>`;
 }
+
+let latestGroupOverview=null;
+let latestGroupStudents=[];
+
+function reportFriendlyPriority(v){
+  if(v==="seguimiento_prioritario")return "Seguimiento prioritario";
+  if(v==="seguimiento")return "Seguimiento";
+  if(v==="ordinario")return "Seguimiento ordinario";
+  return "Pendiente";
+}
+function reportTopList(items,emptyText){
+  if(!Array.isArray(items)||!items.length)return `<p>${esc(emptyText)}</p>`;
+  return `<ul>${items.map(x=>`<li><b>${esc(x.area||"Aspecto escolar")}</b> - presente en ${esc(x.occurrences??0)} perfil(es) (${esc(x.percent_of_profiles??0)}%).</li>`).join("")}</ul>`;
+}
+function reportStudentRows(rows){
+  const valid=(Array.isArray(rows)?rows:[]).filter(r=>r.integrated_ready);
+  if(!valid.length)return '<p>No hay perfiles integrados para clasificar.</p>';
+  return `<table><thead><tr><th>No.</th><th>Alumno</th><th>Seguimiento</th></tr></thead><tbody>${
+    valid.map(r=>`<tr><td>${esc(r.list_number??"—")}</td><td>${esc(r.student_name)}</td><td>${esc(reportFriendlyPriority(r.priority_level))}</td></tr>`).join("")
+  }</tbody></table>`;
+}
+function generateGroupDiagnosticReport(){
+  const o=latestGroupOverview, rows=latestGroupStudents;
+  if(!o||!activePeriod||!activeGroup){
+    alert("Primero abre el panorama del grupo.");
+    return;
+  }
+  const c=o.coverage||{}, p=o.priorities||{};
+  const incomplete=Number(c.completion_percent||0)<100;
+  const report=window.open("","_blank");
+  if(!report){alert("El navegador bloqueó la ventana del reporte.");return}
+
+  report.document.write(`<!doctype html><html lang="es"><head><meta charset="utf-8">
+  <title>Diagnóstico grupal - ${esc(activeGroup)}</title>
+  <style>
+    @page{size:letter;margin:15mm}
+    body{font-family:Arial,sans-serif;color:#222;line-height:1.4;font-size:11pt}
+    h1{font-size:20pt;margin:0 0 3px} h2{font-size:14pt;margin:20px 0 8px;border-bottom:2px solid #222;padding-bottom:4px}
+    .meta{margin-bottom:18px}.notice{border:1px solid #777;padding:10px;margin:12px 0;font-weight:700}
+    .metrics{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}.metric{border:1px solid #aaa;padding:9px;text-align:center}
+    .metric b{display:block;font-size:17pt}.summary{padding:10px;border:1px solid #aaa}
+    table{width:100%;border-collapse:collapse;margin-top:8px}th,td{border:1px solid #aaa;padding:6px;text-align:left}th{background:#eee}
+    ul{padding-left:20px}.foot{font-size:9pt;margin-top:20px;border-top:1px solid #aaa;padding-top:8px}
+    .actions{margin-bottom:15px}@media print{.actions{display:none}}
+  </style></head><body>
+  <div class="actions"><button onclick="window.print()">Imprimir / Guardar como PDF</button></div>
+  <h1>Diagnóstico inicial del grupo ${esc(activeGroup)}</h1>
+  <div class="meta"><b>Periodo:</b> ${esc(activePeriod.name||"Diagnóstico inicial")}<br>
+  <b>Fecha de generación:</b> ${new Date().toLocaleDateString("es-MX")}</div>
+
+  ${incomplete?`<div class="notice">REPORTE PARCIAL: se ha integrado el ${esc(c.completion_percent??0)}% del grupo. Las conclusiones pueden cambiar cuando se complete el diagnóstico de los alumnos pendientes.</div>`:""}
+
+  <h2>Cobertura</h2>
+  <div class="metrics">
+    <div class="metric"><b>${esc(c.total_students??0)}</b>Alumnos</div>
+    <div class="metric"><b>${esc(c.integrated_profiles??0)}</b>Perfiles integrados</div>
+    <div class="metric"><b>${esc(c.pending_profiles??0)}</b>Pendientes</div>
+    <div class="metric"><b>${esc(c.completion_percent??0)}%</b>Cobertura</div>
+  </div>
+
+  <h2>Panorama general</h2>
+  <div class="summary">${esc(o.summary_text||"")}</div>
+  <p><b>Seguimiento ordinario:</b> ${esc(p.ordinario??0)} (${esc(p.ordinario_percent??0)}%) &nbsp; 
+  <b>Seguimiento:</b> ${esc(p.seguimiento??0)} (${esc(p.seguimiento_percent??0)}%) &nbsp;
+  <b>Prioritario:</b> ${esc(p.seguimiento_prioritario??0)} (${esc(p.seguimiento_prioritario_percent??0)}%)</p>
+
+  <h2>Fortalezas más frecuentes</h2>
+  ${reportTopList(o.top_strengths,"Todavía no hay información suficiente para identificar fortalezas grupales.")}
+
+  <h2>Aspectos que conviene reforzar</h2>
+  ${reportTopList(o.top_support_areas,"Todavía no hay información suficiente para identificar necesidades grupales.")}
+
+  <h2>Prioridades para la planeación</h2>
+  ${reportTopList(o.top_recommendations,"Todavía no hay recomendaciones grupales suficientes.")}
+
+  <h2>Seguimiento por alumno</h2>
+  ${reportStudentRows(rows)}
+
+  <div class="foot">Este reporte es una herramienta pedagógica para orientar la planeación y el seguimiento escolar. Se construye únicamente con perfiles integrados y no constituye un diagnóstico clínico o psicológico.</div>
+  </body></html>`);
+  report.document.close();
+}
+
 async function openGroupDashboard(){
   if(!activePeriod||!activeGroup)return;
 
@@ -910,6 +993,8 @@ async function openGroupDashboard(){
       })
     ]);
     if(!o.ok)throw new Error("No se pudo generar el panorama grupal.");
+    latestGroupOverview=o;
+    latestGroupStudents=students||[];
 
     const c=o.coverage||{}, p=o.priorities||{};
     $("#groupDashboardContent").innerHTML=`
@@ -959,6 +1044,7 @@ async function openGroupDashboard(){
     $("#groupDashboardStatus").textContent=e.message||String(e);
   }
 }
+$("#printGroupDiagnosticBtn").onclick=generateGroupDiagnosticReport;
 $("#openGroupDashboardBtn").onclick=openGroupDashboard;
 $("#backFromGroupDashboard").onclick=()=>{
   $("#groupDashboardCard").classList.add("hidden");

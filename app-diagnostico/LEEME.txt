@@ -1,1 +1,14 @@
-APP DIAGNÓSTICO v0.8.0 — publicación individual para Padres + push.
+APP DIAGNÓSTICO v0.8.1 - Reporte grupal docente
+
+Paso 8/9 - Subpaso 3/4
+
+Agrega en Diagnóstico del grupo:
+- Generar reporte PDF.
+- Vista carta lista para Imprimir / Guardar como PDF.
+- Cobertura y aviso visible si el reporte es parcial.
+- Panorama general.
+- Distribución por seguimiento.
+- Fortalezas más frecuentes.
+- Aspectos por reforzar.
+- Prioridades para planeación.
+- Seguimiento por alumno.

@@ -1289,11 +1289,38 @@ $("#backFromGroupDashboard").onclick=()=>{
 
 
 
-function familyPrintList(items,emptyText){
+function familyPublishedText(original,section){
+  const x=integratedFriendlyItem(original);
+  const info=reportFriendlyAreaInfo(x.displayArea||x.area||"");
+  const src=String(x.source||"").toUpperCase();
+  const raw=String(x.displayText||"").trim();
+
+  if(section==="strength"){
+    if(src.includes("SAGES") && /aptitud sobresaliente/i.test(raw)){
+      const m=raw.match(/percentil\s+(\d+(?:\.\d+)?)/i);
+      return `Se identifica una aptitud sobresaliente en ${info.title}${m?` (percentil ${m[1]})`:""}.`;
+    }
+    if(src.includes("CASM")) return `${info.detail} En este diagnóstico se observa como una fortaleza.`;
+    if(src.includes("PROESC") && /sin dificultad/i.test(raw)) return `${info.detail} En este diagnóstico se observa un desempeño favorable.`;
+    if(src.includes("COMPLEC")) return `${info.detail} Este proceso se ubica entre sus fortalezas de comprensión lectora.`;
+    return raw || info.detail;
+  }
+
+  if(section==="support"){
+    return `Conviene reforzar ${info.detail.charAt(0).toLowerCase()+info.detail.slice(1)}`;
+  }
+
+  if(section==="recommendation"){
+    return raw || info.detail;
+  }
+  return raw || info.detail;
+}
+function familyPrintList(items,emptyText,section){
   if(!Array.isArray(items)||!items.length)return `<p class="familyEmpty">${esc(emptyText)}</p>`;
   return `<div class="familyConceptList">${items.map(original=>{
     const x=integratedFriendlyItem(original);
-    return `<section class="familyConcept"><h3>${esc(x.displayArea||x.source||"")}</h3><p>${esc(x.displayText||"")}</p></section>`;
+    const info=reportFriendlyAreaInfo(x.displayArea||x.area||"");
+    return `<section class="familyConcept"><h3>${esc(info.title)}</h3><p>${esc(familyPublishedText(original,section))}</p></section>`;
   }).join("")}</div>`;
 }
 function generateIndividualDiagnosticReport(){
@@ -1322,52 +1349,51 @@ function generateIndividualDiagnosticReport(){
   if(old)old.remove();
   const wrap=document.createElement("div");
   wrap.id="individualPrintableReport";
-  wrap.className="printReportOverlay familyReportOverlay";
+  wrap.className="printReportOverlay familyReportOverlay parentMirrorReport";
   wrap.innerHTML=`
     <div class="printReportToolbar">
       <button type="button" id="closeIndividualReportBtn" class="secondary">← Volver</button>
       <button type="button" id="doPrintIndividualReportBtn">Imprimir / Guardar como PDF</button>
     </div>
-    <article class="printReportPage familyReportPage">
-      <header class="familyReportHeader">
-        <div class="familyReportBrand">El Aula del Profe Jaime</div>
-        <h1>Resultado del diagnóstico inicial</h1>
-        <p class="familyReportSubtitle">Información para la familia</p>
+    <article class="printReportPage familyReportPage parentMirrorPage">
+      <header class="parentMirrorHeader">
+        <img src="icon-192.png" alt="El Aula del Profe Jaime">
+        <div><div class="parentMirrorBrand">El Aula del Profe Jaime</div><h1>Diagnóstico inicial de Español</h1><p>Resultado individual para la familia</p></div>
       </header>
 
-      <section class="familyStudentBox">
-        <p><b>Alumno(a):</b> ${esc(st.name)}</p>
-        <p><b>Grupo:</b> ${esc(st.group_name)} · <b>Fecha:</b> ${new Date().toLocaleDateString("es-MX")}</p>
+      <section class="parentMirrorStudent">
+        <div><span>Alumno(a)</span><b>${esc(st.name)}</b></div>
+        <div><span>Grupo</span><b>${esc(st.group_name)}</b></div>
       </section>
 
-      <section class="familyIntro">
-        <p>Este diagnóstico permite reconocer fortalezas y aspectos que conviene reforzar al inicio del ciclo escolar. Los resultados se utilizan para orientar el acompañamiento y la planeación de actividades de Español.</p>
+      <section class="parentMirrorIntro">
+        <b>¿Para qué sirve este resultado?</b>
+        <p>Este diagnóstico muestra el punto de partida del alumno al inicio del ciclo escolar. Permite reconocer lo que ya realiza favorablemente y los aspectos que conviene acompañar durante las clases de Español.</p>
       </section>
 
-      <section class="familySection familyStrengths">
-        <h2>Fortalezas observadas</h2>
-        ${familyPrintList(strengths,"En este momento no se identificaron fortalezas específicas para destacar.")}
+      <section class="parentMirrorSection strengths">
+        <div class="parentMirrorSectionTitle"><span>✓</span><div><h2>Fortalezas</h2><p>Aspectos que se observan favorablemente.</p></div></div>
+        ${familyPrintList(strengths,"En este momento no se identificaron fortalezas específicas para destacar.","strength")}
       </section>
 
-      <section class="familySection familySupport">
-        <h2>Aspectos que conviene reforzar</h2>
-        ${familyPrintList(syn.support_areas,"En este momento no se identificaron aspectos específicos que requieran refuerzo.")}
+      <section class="parentMirrorSection support">
+        <div class="parentMirrorSectionTitle"><span>↗</span><div><h2>Aspectos por reforzar</h2><p>Habilidades que conviene seguir trabajando.</p></div></div>
+        ${familyPrintList(syn.support_areas,"En este momento no se identificaron aspectos específicos que requieran refuerzo.","support")}
       </section>
 
-      <section class="familySection familyRecommendations">
-        <h2>Recomendaciones para acompañar su aprendizaje</h2>
-        ${familyPrintList(syn.recommendations,"No se generaron recomendaciones específicas.")}
+      <section class="parentMirrorSection recommendations">
+        <div class="parentMirrorSectionTitle"><span>★</span><div><h2>Recomendaciones</h2><p>Sugerencias para acompañar su aprendizaje.</p></div></div>
+        ${familyPrintList(syn.recommendations,"No se generaron recomendaciones específicas.","recommendation")}
       </section>
 
-      <section class="familyClosing">
-        <h2>¿Qué significa este resultado?</h2>
-        <p>Los resultados muestran el punto de partida del alumno y ayudan a decidir qué habilidades conviene aprovechar o fortalecer durante el ciclo escolar. No representan una calificación.</p>
-        <p>${esc(syn.disclaimer||"Síntesis pedagógica para orientar el acompañamiento escolar. No constituye un diagnóstico clínico ni psicológico.")}</p>
+      <section class="parentMirrorNotice">
+        <b>Importante</b>
+        <p>Este resultado es informativo y pedagógico. No representa una calificación y no constituye un diagnóstico clínico ni psicológico.</p>
       </section>
 
-      <footer class="familyReportFooter">
-        <b>Profr. Jaime Armando Pérez Vázquez</b><br>
-        Asignatura de Español
+      <footer class="parentMirrorFooter">
+        <div><b>Profr. Jaime Armando Pérez Vázquez</b><br><span>Español · Ciclo escolar 2026–2027</span></div>
+        <div class="parentMirrorDate">Generado el ${new Date().toLocaleDateString("es-MX")}</div>
       </footer>
     </article>`;
   document.body.appendChild(wrap);

@@ -88,25 +88,155 @@ async function getPublishedDiagnostic(){
   return await r.json();
  }catch(e){console.warn('diagnostic result',e);return null}
 }
-function diagItems(items){
- if(!Array.isArray(items)||!items.length)return '<div class="card muted">Sin elementos registrados.</div>';
- return items.map(x=>{const title=x.title||x.area||x.name||'Área',text=x.text||x.description||x.interpretation||'';
-  return `<div class="card"><b>${esc(title)}</b>${text?`<p>${esc(text)}</p>`:''}</div>`}).join('');
+function diagFriendlyArea(raw){
+ const v=String(raw||"").trim();
+ const key=v.toLowerCase()
+   .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
+   .replace(/[^a-z0-9]+/g," ").trim();
+
+ const exact={
+   "area i":"Hábitos para estudiar",
+   "area 1":"Hábitos para estudiar",
+   "area ii":"Realización de tareas",
+   "area 2":"Realización de tareas",
+   "area iii":"Preparación para exámenes",
+   "area 3":"Preparación para exámenes",
+   "area iv":"Atención durante las clases",
+   "area 4":"Atención durante las clases",
+   "area v":"Organización y acompañamiento del estudio",
+   "area 5":"Organización y acompañamiento del estudio",
+   "reflexion evaluacion":"Comprensión y reflexión sobre lo que lee",
+   "reflexion y evaluacion":"Comprensión y reflexión sobre lo que lee",
+   "pseudopalabras":"Relación entre sonidos y escritura",
+   "ortografia arbitraria":"Ortografía de palabras de uso frecuente",
+   "ortografia reglada":"Aplicación de reglas ortográficas",
+   "acentuacion":"Uso de acentos",
+   "mayusculas":"Uso de mayúsculas",
+   "signos de puntuacion":"Uso de signos de puntuación",
+   "planificacion":"Organización de ideas al escribir",
+   "redaccion":"Expresión escrita",
+   "escritura":"Expresión escrita",
+   "comprension lectora":"Comprensión de lectura",
+   "comprension":"Comprensión de lectura",
+   "lengua":"Habilidades de lenguaje",
+   "razonamiento":"Razonamiento"
+ };
+ if(exact[key])return exact[key];
+
+ if(key.includes("reflex"))return "Comprensión y reflexión sobre lo que lee";
+ if(key.includes("pseudo"))return "Relación entre sonidos y escritura";
+ if(key.includes("ortograf"))return "Ortografía";
+ if(key.includes("acent"))return "Uso de acentos";
+ if(key.includes("puntu"))return "Uso de signos de puntuación";
+ if(key.includes("redac")||key.includes("escrit"))return "Expresión escrita";
+ if(key.includes("comprens"))return "Comprensión de lectura";
+ if(key.includes("razon"))return "Razonamiento";
+ if(key.includes("lengua")||key.includes("verbal"))return "Habilidades de lenguaje";
+ return v||"Aspecto escolar";
 }
+function diagFriendlyText(raw){
+ let t=String(raw||"").trim();
+ if(!t)return "";
+ t=t
+   .replace(/\bÁrea\s*I\b/gi,"hábitos para estudiar")
+   .replace(/\bÁrea\s*II\b/gi,"realización de tareas")
+   .replace(/\bÁrea\s*III\b/gi,"preparación para exámenes")
+   .replace(/\bÁrea\s*IV\b/gi,"atención durante las clases")
+   .replace(/\bÁrea\s*V\b/gi,"organización y acompañamiento del estudio")
+   .replace(/\bpseudopalabras\b/gi,"relación entre sonidos y escritura")
+   .replace(/\bortografía arbitraria\b/gi,"ortografía de palabras de uso frecuente")
+   .replace(/\breflexión\/evaluación\b/gi,"comprensión y reflexión sobre lo que lee")
+   .replace(/\bpercentil(?:es)?\b/gi,"resultado")
+   .replace(/\bcociente(?:s)?\b/gi,"resultado");
+ return t;
+}
+function diagFamilyItems(items,emptyText){
+ if(!Array.isArray(items)||!items.length)return `<div class="card muted">${esc(emptyText)}</div>`;
+ return items.map(x=>{
+   const title=diagFriendlyArea(x.area||x.title||x.name||x.source);
+   const text=diagFriendlyText(x.text||x.description||x.interpretation||"");
+   return `<div class="card"><b>${esc(title)}</b>${text?`<p>${esc(text)}</p>`:""}</div>`;
+ }).join("");
+}
+function diagFamilyPriority(v){
+ if(v==="seguimiento_prioritario")return {
+   title:"Requiere mayor acompañamiento",
+   text:"Se identificaron algunos aspectos escolares que conviene atender con mayor prioridad durante las próximas semanas."
+ };
+ if(v==="seguimiento")return {
+   title:"Conviene dar seguimiento",
+   text:"Se identificaron algunos aspectos que pueden fortalecerse con acompañamiento y práctica."
+ };
+ return {
+   title:"Seguimiento habitual",
+   text:"Los resultados pueden acompañarse mediante el trabajo escolar cotidiano y las recomendaciones señaladas."
+ };
+}
+function diagCasmSummary(tests, strengths){
+ const casm=tests?.casm||{};
+ const classes=casm.classifications||{};
+ const vals=Object.values(classes).map(v=>String(v||"").toLowerCase());
+ const hasPositive=vals.some(v=>v.includes("positivo")||v.includes("adecuado")||v.includes("alto"));
+ const hasCasmStrength=Array.isArray(strengths)&&strengths.some(x=>{
+   const a=String(x.area||x.source||"").toLowerCase();
+   return a.includes("área")||a.includes("area")||a.includes("casm")||a.includes("estudio");
+ });
+ if(hasPositive||hasCasmStrength){
+   return `<div class="card"><b>Hábitos de estudio</b><p>En conjunto, muestra hábitos y actitudes favorables para el trabajo escolar. Conviene mantener estas prácticas y utilizarlas para apoyar las áreas que necesita reforzar.</p></div>`;
+ }
+ return "";
+}
+
 async function renderPublishedDiagnostic(){
  const box=$('#diagnosticResult');if(!box)return;
  box.innerHTML='<div class="card muted">Consultando resultado…</div>';
  const d=await getPublishedDiagnostic();
- if(!d){box.innerHTML='<div class="card"><b>No se pudo consultar el resultado.</b><p class="muted">Revisa tu conexión e intenta nuevamente.</p></div>';return}
- if(!d.ok||!d.published){box.innerHTML='<div class="card"><b>Diagnóstico aún no publicado</b><p class="muted">Cuando el profesor publique el resultado del diagnóstico inicial, aparecerá en esta sección.</p></div>';return}
- const r=d.result||{},s=r.summary||{},tests=r.tests||{},sages=tests.sages||{},complec=tests.complec||{};
- const priority={seguimiento_prioritario:'Seguimiento prioritario',seguimiento:'Seguimiento',ordinario:'Seguimiento ordinario'}[s.priority_level]||'Resultado disponible';
- box.innerHTML=`<div class="card"><small class="muted">${esc(d.period_name||'Diagnóstico inicial')}</small><h3>Resultado publicado</h3><p><b>Orientación de seguimiento:</b> ${esc(priority)}</p><p class="muted">Publicado: ${d.published_at?new Date(d.published_at).toLocaleDateString('es-MX'):''}</p></div>
- <h3 class="section-title">Fortalezas</h3>${diagItems(s.strengths)}
- <h3 class="section-title">Áreas por reforzar</h3>${diagItems(s.support_areas)}
- <h3 class="section-title">Recomendaciones</h3>${diagItems(s.recommendations)}
- <div class="card"><h3>Resumen de pruebas</h3><p><b>SAGES-2:</b> Lengua P${esc(sages.language?.percentile??'—')} · Razonamiento P${esc(sages.reasoning?.percentile??'—')}</p><p><b>CompLEC:</b> ${esc(complec.total_score??'—')} / ${esc(complec.max_score??20)}</p><p><b>PROESC abreviado:</b> escritura y ortografía integradas en las áreas anteriores.</p><p><b>CASM-85-R:</b> hábitos y actitudes de estudio integrados en fortalezas y recomendaciones.</p></div>
- <div class="card muted">${esc(s.disclaimer||'Resultado de diagnóstico educativo inicial para orientar el acompañamiento escolar. No constituye un diagnóstico clínico ni psicológico.')}</div>`;
+ if(!d){
+   box.innerHTML='<div class="card"><b>No se pudo consultar el resultado.</b><p class="muted">Revisa tu conexión e intenta nuevamente.</p></div>';
+   return;
+ }
+ if(!d.ok||!d.published){
+   box.innerHTML='<div class="card"><b>Diagnóstico aún no publicado</b><p class="muted">Cuando el profesor publique el resultado del diagnóstico inicial, aparecerá en esta sección.</p></div>';
+   return;
+ }
+
+ const r=d.result||{}, summary=r.summary||{}, tests=r.tests||{};
+ const follow=diagFamilyPriority(summary.priority_level);
+ const casmSummary=diagCasmSummary(tests,summary.strengths);
+
+ // CASM puede producir varias fortalezas técnicas (Área I–V).
+ // Para familias se condensan en "Hábitos de estudio".
+ const strengths=(Array.isArray(summary.strengths)?summary.strengths:[]).filter(x=>{
+   const a=String(x.area||x.source||"").toLowerCase();
+   return !(a.match(/^á?rea\s*(i|ii|iii|iv|v|[1-5])$/i)||a.includes("casm"));
+ });
+
+ box.innerHTML=`
+   <div class="card">
+     <small class="muted">${esc(d.period_name||"Diagnóstico inicial")}</small>
+     <h3>¿Cómo le fue?</h3>
+     <p><b>${esc(follow.title)}</b></p>
+     <p>${esc(follow.text)}</p>
+     ${d.published_at?`<p class="muted">Resultado publicado el ${new Date(d.published_at).toLocaleDateString("es-MX")}.</p>`:""}
+   </div>
+
+   <h3 class="section-title">Lo que está haciendo bien</h3>
+   ${casmSummary}
+   ${diagFamilyItems(strengths,"En este diagnóstico no se señalaron otras fortalezas específicas. Esto no significa que el alumno no las tenga.")}
+
+   <h3 class="section-title">Lo que necesita reforzar</h3>
+   ${diagFamilyItems(summary.support_areas,"No se señalaron aspectos específicos que requieran refuerzo en este momento.")}
+
+   <h3 class="section-title">¿Cómo podemos apoyarlo?</h3>
+   ${diagFamilyItems(summary.recommendations,"Mantener hábitos de estudio, lectura frecuente y seguimiento de las actividades escolares.")}
+
+   <div class="card">
+     <h3>¿Qué se evaluó?</h3>
+     <p>El diagnóstico revisó habilidades relacionadas con <b>lenguaje y razonamiento</b>, <b>comprensión de lectura</b>, <b>escritura y ortografía</b>, así como <b>hábitos y actitudes de estudio</b>.</p>
+     <p class="muted">Las puntuaciones técnicas se conservan para uso del profesor; aquí se presenta una explicación sencilla para facilitar el acompañamiento familiar.</p>
+   </div>
+
+   <div class="card muted">${esc(summary.disclaimer||"Este es un diagnóstico educativo inicial para orientar el acompañamiento escolar. No constituye un diagnóstico clínico ni psicológico.")}</div>`;
 }
 
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,registerPortalPush,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=810';
@@ -117,7 +247,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8120',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8122',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }

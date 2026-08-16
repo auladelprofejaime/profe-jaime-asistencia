@@ -895,7 +895,12 @@ function renderIntegratedTechnical(t){
       </div>
     </div>`;
 }
+let latestIntegratedTechnical=null;
+let latestIntegratedSynthesis=null;
+
 function showIntegratedResult(technical,syn){
+  latestIntegratedTechnical=technical;
+  latestIntegratedSynthesis=syn;
   const sg=technical?.sages||{};
   const strengths=Array.isArray(syn?.strengths)?syn.strengths.map(x=>({...x})):[];
   const ensureOutstanding=(sub,label)=>{
@@ -1283,6 +1288,79 @@ $("#backFromGroupDashboard").onclick=()=>{
 };
 
 
+
+function individualPrintList(items,emptyText){
+  if(!Array.isArray(items)||!items.length)return `<p>${esc(emptyText)}</p>`;
+  return `<div class="reportConceptList">${items.map(original=>{
+    const x=integratedFriendlyItem(original);
+    return `<div class="reportConcept"><b>${esc(x.displayArea||x.source||"")}</b><p>${esc(x.displayText||"")}</p>${x.source?`<small>${esc(x.source)}</small>`:""}</div>`;
+  }).join("")}</div>`;
+}
+function generateIndividualDiagnosticReport(){
+  if(!activePeriod||!activeStudentBundle||!latestIntegratedTechnical||!latestIntegratedSynthesis){
+    alert("Primero abre el resultado integrado del alumno.");
+    return;
+  }
+  const st=activeStudentBundle.student;
+  const t=latestIntegratedTechnical;
+  const syn=latestIntegratedSynthesis;
+  const sg=t?.sages||{}, co=t?.complec||{}, pr=t?.proesc||{}, ca=t?.casm||{};
+  const strengths=Array.isArray(syn?.strengths)?syn.strengths.map(x=>({...x})):[];
+  const ensureOutstanding=(sub,label)=>{
+    const pct=Number(sub?.percentile);
+    if(!Number.isFinite(pct)||pct<90)return;
+    const idx=strengths.findIndex(x=>String(x?.source||"").toUpperCase().includes("SAGES") && String(x?.area||"").toLowerCase().includes(label.toLowerCase().split(" ")[0]));
+    const phrase=`Percentil ${pct}. Aptitud sobresaliente en ${label}.`;
+    if(idx>=0){ if(!/aptitud sobresaliente/i.test(String(strengths[idx].text||""))) strengths[idx].text=`${strengths[idx].text||""} ${phrase}`.trim(); }
+    else strengths.unshift({area:label,text:phrase,source:"SAGES-2"});
+  };
+  ensureOutstanding(sg?.language,"Lengua y literatura / Ciencias sociales");
+  ensureOutstanding(sg?.reasoning,"Razonamiento");
+
+  let old=document.getElementById("individualPrintableReport");
+  if(old)old.remove();
+  const wrap=document.createElement("div");
+  wrap.id="individualPrintableReport";
+  wrap.className="printReportOverlay";
+  wrap.innerHTML=`
+    <div class="printReportToolbar">
+      <button type="button" id="closeIndividualReportBtn" class="secondary">← Volver</button>
+      <button type="button" id="doPrintIndividualReportBtn">Imprimir / Guardar como PDF</button>
+    </div>
+    <article class="printReportPage individualReportPage">
+      <h1>Resultado del diagnóstico inicial</h1>
+      <p><b>Alumno:</b> ${esc(st.name)}<br>
+      <b>Grupo:</b> ${esc(st.group_name)} · <b>Lista:</b> ${esc(st.list_number??"—")} · <b>ID:</b> ${esc(st.id)}<br>
+      <b>Periodo:</b> ${esc(activePeriod.name||"Diagnóstico inicial")} · <b>Fecha de generación:</b> ${new Date().toLocaleDateString("es-MX")}</p>
+
+      <h2>Resumen de resultados</h2>
+      <table>
+        <tr><th>Instrumento</th><th>Resultado</th></tr>
+        <tr><td>SAGES-2</td><td>${sagesIntegratedLabel(sg?.language,"Lengua")} · ${sagesIntegratedLabel(sg?.reasoning,"Razonamiento")}</td></tr>
+        <tr><td>CompLEC</td><td>Total: ${esc(co?.total_score??"—")} / 20</td></tr>
+        <tr><td>PROESC abreviado</td><td>Palabras: ${esc(pr?.scores?.words??"—")}/25 · Redacción: ${esc(pr?.scores?.writing_total??"—")}/10</td></tr>
+        <tr><td>CASM-85-R</td><td>Total: ${esc(ca?.scores?.TOTAL??"—")} / 53</td></tr>
+      </table>
+
+      <h2>Prioridad de seguimiento</h2>
+      <p><b>${esc(integratedPriorityLabel(syn.priority_level))}</b></p>
+
+      <h2>Fortalezas</h2>
+      ${individualPrintList(strengths,"No se identificaron fortalezas destacadas con las reglas actuales.")}
+
+      <h2>Áreas por reforzar</h2>
+      ${individualPrintList(syn.support_areas,"No se identificaron áreas específicas de refuerzo con las reglas actuales.")}
+
+      <h2>Recomendaciones</h2>
+      ${individualPrintList(syn.recommendations,"No se generaron recomendaciones específicas.")}
+
+      <p class="printFoot">${esc(syn.disclaimer||"Síntesis pedagógica para orientar el acompañamiento escolar. No constituye un diagnóstico clínico ni psicológico.")}</p>
+    </article>`;
+  document.body.appendChild(wrap);
+  document.getElementById("closeIndividualReportBtn").onclick=()=>wrap.remove();
+  document.getElementById("doPrintIndividualReportBtn").onclick=()=>window.print();
+}
+
 async function diagnosticPushParent(studentId){
   const r=await fetch(`${SUPABASE_URL}/functions/v1/send-push`,{
     method:"POST",
@@ -1353,6 +1431,7 @@ async function unpublishDiagnosticResult(){
 }
 $("#publishDiagnosticBtn").onclick=publishDiagnosticResult;
 $("#unpublishDiagnosticBtn").onclick=unpublishDiagnosticResult;
+$("#printIndividualDiagnosticBtn").onclick=generateIndividualDiagnosticReport;
 
 $("#loginBtn").onclick=login;
 $("#createPeriodBtn").onclick=createPeriod;

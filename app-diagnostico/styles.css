@@ -107,8 +107,8 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .printReportPage th{background:#eee}.printFoot{font-size:11px;border-top:1px solid #aaa;margin-top:24px;padding-top:8px}
 @media(max-width:650px){.printReportPage{padding:18px}.printMetrics{grid-template-columns:repeat(2,1fr)}}
 @media print{
- body>*:not(#groupPrintableReport){display:none!important}
- #groupPrintableReport{position:static!important;inset:auto!important;background:#fff!important;padding:0!important;overflow:visible!important}
+ body>*:not(#groupPrintableReport):not(#individualPrintableReport){display:none!important}
+ #groupPrintableReport,#individualPrintableReport{position:static!important;inset:auto!important;background:#fff!important;padding:0!important;overflow:visible!important}
  .printReportToolbar{display:none!important}
  .printReportPage{max-width:none!important;margin:0!important;padding:0!important;box-shadow:none!important}
  @page{size:letter;margin:15mm}
@@ -122,3 +122,5 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .printInterpretation{border:1px solid #aaa;padding:10px;break-inside:avoid}
 .printInterpretation p{margin:0 0 7px}
 .printInterpretation p:last-child{margin-bottom:0}
+
+.individualReportPage .reportConcept{margin-bottom:7px}.individualReportPage small{font-size:9pt;color:#555}.individualReportPage h2{break-after:avoid}.individualReportPage .reportConcept{break-inside:avoid}

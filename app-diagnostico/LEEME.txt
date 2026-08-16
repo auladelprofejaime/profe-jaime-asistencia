@@ -1,23 +1,8 @@
-APP DIAGNÓSTICO v0.8.3 — Reporte grupal explicado
+El Aula del Profe Jaime · Diagnóstico Inicial
+Versión 0.9.0
 
-Mejoras:
-- Área I–V ahora muestran su nombre y qué evalúan.
-- Traduce términos técnicos: ortografía arbitraria, pseudopalabras, reflexión/evaluación, etc.
-- Cada fortaleza/necesidad incluye una explicación breve.
-- Agrega sección "Cómo interpretar este reporte".
-- Aclara que porcentajes no son calificaciones.
-- En reportes parciales aclara que los porcentajes se calculan sobre perfiles integrados.
-- Explica qué significa seguimiento prioritario.
-
-
-VERSIÓN 0.8.4: corrige nombres descriptivos de Áreas I–V en panorama y PDF grupal; añade cache-busting de app.js para evitar que Safari/GitHub Pages conserve la versión anterior.
-
-
-VERSIÓN 0.8.6 — SAGES: 0 y puntajes por encima del máximo baremado dejan de mostrarse como error en vista previa. Los extremos se interpretan sin inventar cociente/percentil exacto; si el límite superior demuestra P≥90 se marca Aptitud sobresaliente. La rutina de guardado de Supabase todavía debe actualizarse para persistir estos extremos si actualmente devuelve saved=false.
-
-
-v0.8.7 SAGES: la conversión local usa la tabla completa BAREMOS_SAGES. Si una puntuación cruda o un cociente cae en un hueco, utiliza el valor normativo más próximo; en empate usa el inferior. Percentil >=90 = Aptitud sobresaliente. 0 y máximos son valores válidos.
-
-
-v0.8.9 Resultado integrado: SAGES muestra explícitamente Aptitud sobresaliente cuando P>=90; CASM-85-R sustituye Área I–V por nombres descriptivos en fortalezas, áreas por reforzar y recomendaciones. No modifica cálculos ni baremos.
-v0.8.9 Corrige residuo romano CASM en Área IV (evita mostrar ":V:") en el resultado integrado.
+Novedad:
+- Botón Generar PDF en el resultado integrado individual.
+- Genera una vista imprimible con el mismo contenido pedagógico del resultado publicado para Padres: resumen, seguimiento, fortalezas, áreas por reforzar, recomendaciones y aviso pedagógico.
+- El PDF se obtiene mediante Imprimir / Guardar como PDF del dispositivo.
+- No modifica cálculos, baremos ni rutinas de Supabase.

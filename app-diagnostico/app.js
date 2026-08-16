@@ -154,24 +154,68 @@ function sagesPayload(){
   return {age,language,reasoning,date};
 }
 
+const SAGES_BOUNDS={
+  language:{
+    10:{minRaw:2,minQ:70,maxRaw:20,maxQ:160},11:{minRaw:1,minQ:55,maxRaw:18,maxQ:140},
+    12:{minRaw:4,minQ:60,maxRaw:21,maxQ:145},13:{minRaw:5,minQ:70,maxRaw:25,maxQ:145},
+    14:{minRaw:3,minQ:55,maxRaw:24,maxQ:134},15:{minRaw:7,minQ:60,maxRaw:23,maxQ:140}
+  },
+  reasoning:{
+    10:{minRaw:1,minQ:70,maxRaw:24,maxQ:139},11:{minRaw:1,minQ:73,maxRaw:26,maxQ:140},
+    12:{minRaw:3,minQ:64,maxRaw:30,maxQ:145},13:{minRaw:4,minQ:61,maxRaw:27,maxQ:130},
+    14:{minRaw:2,minQ:49,maxRaw:30,maxQ:133},15:{minRaw:8,minQ:67,maxRaw:30,maxQ:133}
+  }
+};
+
+function sagesBoundaryResult(age,raw,type){
+  const b=SAGES_BOUNDS[type]?.[Number(age)];
+  if(!b)return null;
+  if(raw<b.minRaw){
+    return {raw_score:raw,quotient_display:`< ${b.minQ}`,percentile_display:'Por debajo del rango baremado',boundary:'low',
+      level:'Rendimiento por debajo del límite inferior del baremo disponible',outstanding:false};
+  }
+  if(raw>b.maxRaw){
+    const outstanding=b.maxQ>=120;
+    return {raw_score:raw,quotient_display:`> ${b.maxQ}`,percentile_display:outstanding?'≥ 90':'Por encima del rango baremado',boundary:'high',
+      level:outstanding?'Aptitud sobresaliente':'Rendimiento por encima del límite superior del baremo disponible',outstanding};
+  }
+  return null;
+}
+
+function sagesFallbackPreview(payload){
+  const lang=sagesBoundaryResult(payload.age,payload.language,'language');
+  const reas=sagesBoundaryResult(payload.age,payload.reasoning,'reasoning');
+  if(!lang&&!reas)return null;
+  return {ok:true,boundary_fallback:true,age:{age_years:payload.age},
+    language:lang||{raw_score:payload.language,needs_exact:true},
+    reasoning:reas||{raw_score:payload.reasoning,needs_exact:true}};
+}
+
 function showSagesResult(r){
   const box=$("#sagesResult");
   const age=r.age||{};
   const lang=r.language||{};
   const reas=r.reasoning||{};
 
-  const percentileInterpretation=(p)=>{
+  const percentileInterpretation=(x)=>{
+    if(x.boundary==='high')return x.outstanding
+      ? 'El puntaje directo supera el límite superior disponible para su edad. Se reconoce como aptitud sobresaliente sin inventar un cociente o percentil exacto.'
+      : 'El puntaje directo supera el límite superior disponible para su edad.';
+    if(x.boundary==='low')return 'El puntaje directo se encuentra por debajo del límite inferior disponible para su edad. Es un resultado válido; no se inventa una conversión exacta.';
+    const p=x.percentile;
     if(p===null||p===undefined||p==="")return "Sin interpretación percentilar disponible.";
     const n=Number(p);
     if(!Number.isFinite(n))return `Percentil ${esc(p)}.`;
-    return `Percentil ${n}: aproximadamente ${n}% de la distribución normativa obtuvo una puntuación igual o inferior.`;
+    const extra=n>=90?' <b>Aptitud sobresaliente.</b>':'';
+    return `Percentil ${n}: aproximadamente ${n}% de la distribución normativa obtuvo una puntuación igual o inferior.${extra}`;
   };
   const resultBox=(title,x)=>`<div class="resultBox">
     <h3>${esc(title)}</h3>
     <p><b>PD:</b> ${esc(x.raw_score??"—")}</p>
     <p><b>Cociente:</b> ${esc(x.quotient_display??x.quotient??"—")}</p>
-    <p><b>Percentil:</b> ${esc(x.percentile??"—")}</p>
-    <p class="percentileNote"><b>Interpretación:</b> ${percentileInterpretation(x.percentile)}</p>
+    <p><b>Percentil:</b> ${esc(x.percentile_display??x.percentile??"—")}</p>
+    ${x.level?`<p><b>Resultado:</b> ${esc(x.level)}</p>`:''}
+    <p class="percentileNote"><b>Interpretación:</b> ${percentileInterpretation(x)}</p>
   </div>`;
 
   box.innerHTML=`
@@ -225,8 +269,13 @@ async function previewSages(){
     });
 
     if(!r.ok){
-      $("#sagesStatus").textContent=
-        "No se pudo calcular: falta un baremo exacto para esta combinación.";
+      const fallback=sagesFallbackPreview(p);
+      if(fallback){
+        showSagesResult(fallback);
+        $("#sagesStatus").textContent="Puntaje válido fuera del rango de conversión exacta. Se muestra la clasificación de límite sin inventar valores.";
+        return;
+      }
+      $("#sagesStatus").textContent="Puntaje válido, pero no hay conversión exacta publicada para esta combinación intermedia. No se interpolará.";
       $("#sagesResult").classList.add("hidden");
       return;
     }
@@ -254,8 +303,13 @@ async function saveSages(){
     });
 
     if(!r.saved){
-      $("#sagesStatus").textContent=
-        "No se guardó: no existe un baremo exacto para esta combinación.";
+      const fallback=sagesFallbackPreview(p);
+      if(fallback){
+        showSagesResult(fallback);
+        $("#sagesStatus").textContent="El resultado es válido y puede interpretarse, pero la rutina de guardado aún debe aceptar los extremos fuera del rango exacto. No se alteró el puntaje.";
+        return;
+      }
+      $("#sagesStatus").textContent="No se guardó porque falta una conversión exacta para una puntuación intermedia; no se interpolará.";
       return;
     }
 

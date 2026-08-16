@@ -11,3 +11,6 @@ Mejoras:
 
 
 VERSIÓN 0.8.4: corrige nombres descriptivos de Áreas I–V en panorama y PDF grupal; añade cache-busting de app.js para evitar que Safari/GitHub Pages conserve la versión anterior.
+
+
+VERSIÓN 0.8.6 — SAGES: 0 y puntajes por encima del máximo baremado dejan de mostrarse como error en vista previa. Los extremos se interpretan sin inventar cociente/percentil exacto; si el límite superior demuestra P≥90 se marca Aptitud sobresaliente. La rutina de guardado de Supabase todavía debe actualizarse para persistir estos extremos si actualmente devuelve saved=false.

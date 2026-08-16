@@ -154,41 +154,81 @@ function sagesPayload(){
   return {age,language,reasoning,date};
 }
 
-const SAGES_BOUNDS={
-  language:{
-    10:{minRaw:2,minQ:70,maxRaw:20,maxQ:160},11:{minRaw:1,minQ:55,maxRaw:18,maxQ:140},
-    12:{minRaw:4,minQ:60,maxRaw:21,maxQ:145},13:{minRaw:5,minQ:70,maxRaw:25,maxQ:145},
-    14:{minRaw:3,minQ:55,maxRaw:24,maxQ:134},15:{minRaw:7,minQ:60,maxRaw:23,maxQ:140}
-  },
-  reasoning:{
-    10:{minRaw:1,minQ:70,maxRaw:24,maxQ:139},11:{minRaw:1,minQ:73,maxRaw:26,maxQ:140},
-    12:{minRaw:3,minQ:64,maxRaw:30,maxQ:145},13:{minRaw:4,minQ:61,maxRaw:27,maxQ:130},
-    14:{minRaw:2,minQ:49,maxRaw:30,maxQ:133},15:{minRaw:8,minQ:67,maxRaw:30,maxQ:133}
-  }
-};
+const SAGES_RAW_TO_Q={"language":{"10":[[2,70],[3,75],[4,80],[5,85],[6,90],[7,95],[8,100],[9,105],[10,110],[11,115],[12,120],[13,125],[14,130],[15,135],[16,140],[17,145],[18,150],[19,155],[20,160]],"11":[[1,55],[2,60],[3,65],[4,70],[5,75],[6,80],[7,85],[8,90],[9,95],[10,100],[11,105],[12,110],[13,115],[14,120],[15,125],[16,130],[17,135],[18,140]],"12":[[4,60],[5,65],[6,70],[7,75],[8,80],[9,85],[10,90],[11,95],[12,100],[13,105],[14,110],[15,115],[16,120],[17,125],[18,130],[19,135],[20,140],[21,145]],"13":[[5,70],[6,74],[7,78],[8,81],[9,85],[10,89],[11,93],[12,96],[13,100],[14,104],[15,108],[16,111],[17,115],[18,119],[19,123],[20,126],[21,130],[22,134],[25,145]],"14":[[3,55],[5,63],[7,70],[8,74],[9,78],[10,81],[11,85],[12,89],[13,93],[14,96],[15,100],[16,104],[17,108],[18,111],[19,115],[20,119],[21,123],[22,126],[24,134]],"15":[[7,60],[8,65],[10,75],[11,80],[12,85],[13,90],[14,95],[15,100],[16,105],[17,110],[18,115],[19,120],[20,125],[22,135],[23,140]]},"reasoning":{"10":[[1,70],[2,73],[3,76],[4,79],[5,82],[6,85],[7,88],[8,91],[9,94],[10,97],[11,100],[12,103],[13,106],[14,109],[15,112],[16,115],[17,118],[18,121],[19,124],[20,127],[21,130],[22,133],[23,136],[24,139]],"11":[[1,73],[2,75],[4,80],[5,83],[6,85],[7,88],[8,90],[9,93],[10,95],[12,100],[13,103],[14,105],[15,108],[16,110],[17,113],[18,115],[19,118],[20,120],[21,123],[23,128],[24,130],[25,133],[26,140]],"12":[[3,64],[4,67],[5,70],[6,73],[7,76],[8,79],[9,82],[10,85],[11,88],[12,91],[13,94],[14,97],[15,100],[16,103],[17,106],[18,109],[19,112],[20,115],[21,118],[22,121],[23,124],[24,127],[25,130],[27,136],[30,145]],"13":[[4,61],[5,64],[6,67],[7,70],[8,73],[9,76],[10,79],[11,82],[12,85],[13,88],[14,91],[15,94],[16,97],[17,100],[18,103],[19,106],[20,109],[21,112],[22,115],[23,118],[24,121],[25,124],[26,127],[27,130]],"14":[[2,49],[4,53],[5,58],[8,67],[9,70],[12,79],[13,82],[14,85],[15,88],[16,91],[17,94],[18,97],[19,100],[20,103],[21,106],[22,109],[23,112],[24,115],[25,118],[26,121],[27,124],[28,127],[29,130],[30,133]],"15":[[8,67],[10,73],[12,79],[14,85],[15,88],[16,91],[17,94],[18,97],[19,100],[20,103],[21,106],[22,109],[23,112],[24,115],[25,118],[26,121],[27,124],[30,133]]}};
+const SAGES_Q_TO_P={"140":99,"139":99,"138":99,"137":99,"136":99,"135":99,"134":99,"133":99,"132":98,"131":98,"130":98,"129":97,"128":97,"127":96,"126":96,"125":95,"124":95,"123":94,"122":93,"121":92,"120":91,"119":89,"118":89,"117":87,"116":85,"115":84,"114":82,"113":80,"112":79,"111":77,"110":74,"109":73,"108":70,"107":67,"106":66,"105":64,"104":61,"103":58,"102":55,"101":52,"100":50,"99":48,"98":45,"97":42,"96":39,"95":36,"94":35,"93":32,"92":29,"91":27,"90":25,"89":23,"88":21,"87":19,"86":17,"85":16,"84":14,"83":13,"82":12,"81":10,"80":9,"79":8,"78":7,"77":6,"76":6,"75":5,"74":4,"73":4,"72":3,"71":3,"70":2,"69":2,"68":2,"67":1,"66":1,"65":1};
 
-function sagesBoundaryResult(age,raw,type){
-  const b=SAGES_BOUNDS[type]?.[Number(age)];
-  if(!b)return null;
-  if(raw<b.minRaw){
-    return {raw_score:raw,quotient_display:`< ${b.minQ}`,percentile_display:'Por debajo del rango baremado',boundary:'low',
-      level:'Rendimiento por debajo del límite inferior del baremo disponible',outstanding:false};
+function nearestPairByFirst(pairs,value){
+  if(!pairs||!pairs.length)return null;
+  let best=pairs[0],bestDist=Math.abs(Number(value)-best[0]);
+  for(const pair of pairs){
+    const d=Math.abs(Number(value)-pair[0]);
+    // Si hay empate, usa el puntaje inferior para no inflar el resultado.
+    if(d<bestDist||(d===bestDist&&pair[0]<best[0])){best=pair;bestDist=d}
   }
-  if(raw>b.maxRaw){
-    const outstanding=b.maxQ>=120;
-    return {raw_score:raw,quotient_display:`> ${b.maxQ}`,percentile_display:outstanding?'≥ 90':'Por encima del rango baremado',boundary:'high',
-      level:outstanding?'Aptitud sobresaliente':'Rendimiento por encima del límite superior del baremo disponible',outstanding};
-  }
-  return null;
+  return {pair:best,distance:bestDist,exact:bestDist===0};
 }
 
-function sagesFallbackPreview(payload){
-  const lang=sagesBoundaryResult(payload.age,payload.language,'language');
-  const reas=sagesBoundaryResult(payload.age,payload.reasoning,'reasoning');
-  if(!lang&&!reas)return null;
-  return {ok:true,boundary_fallback:true,age:{age_years:payload.age},
-    language:lang||{raw_score:payload.language,needs_exact:true},
-    reasoning:reas||{raw_score:payload.reasoning,needs_exact:true}};
+function nearestPercentileForQuotient(q){
+  const qn=Number(q);
+  if(Number.isFinite(qn)&&Object.prototype.hasOwnProperty.call(SAGES_Q_TO_P,qn))
+    return {percentile:SAGES_Q_TO_P[qn],source_quotient:qn,exact:true};
+  const keys=Object.keys(SAGES_Q_TO_P).map(Number);
+  if(!keys.length||!Number.isFinite(qn))return null;
+  let best=keys[0],dist=Math.abs(qn-best);
+  for(const k of keys){
+    const d=Math.abs(qn-k);
+    if(d<dist||(d===dist&&k<best)){best=k;dist=d}
+  }
+  return {percentile:SAGES_Q_TO_P[best],source_quotient:best,exact:false};
+}
+
+function sagesLocalSubscale(age,raw,type){
+  const pairs=SAGES_RAW_TO_Q[type]?.[Number(age)];
+  const nearest=nearestPairByFirst(pairs,Number(raw));
+  if(!nearest)return null;
+  const [sourceRaw,q]=nearest.pair;
+  const pc=nearestPercentileForQuotient(q);
+  if(!pc)return null;
+  const p=pc.percentile;
+  const approximated=!nearest.exact||!pc.exact;
+  let norm_note='';
+  if(!nearest.exact){
+    norm_note=`La tabla no publica conversión exacta para PD ${raw}; se usa la puntuación normativa más próxima (PD ${sourceRaw}).`;
+  }
+  if(!pc.exact){
+    norm_note+=(norm_note?' ':'')+`El cociente ${q} no tiene percentil exacto en la tabla; se usa el percentil del cociente más próximo (${pc.source_quotient}).`;
+  }
+  return {
+    raw_score:Number(raw), quotient:q, percentile:p,
+    level:p>=90?'Aptitud sobresaliente':'', outstanding:p>=90,
+    approximated, source_raw_score:sourceRaw, source_percentile_quotient:pc.source_quotient, norm_note
+  };
+}
+
+function sagesLocalPreview(payload){
+  const language=sagesLocalSubscale(payload.age,payload.language,'language');
+  const reasoning=sagesLocalSubscale(payload.age,payload.reasoning,'reasoning');
+  if(!language||!reasoning)return null;
+  return {ok:true,local_conversion:true,age:{age_years:payload.age},language,reasoning};
+}
+
+function normalizeSagesResult(r,payload){
+  // La tabla local es la misma tabla de referencia del proyecto. Completa huecos
+  // con el valor normativo más próximo, como se acordó para las celdas vacías.
+  const local=sagesLocalPreview(payload);
+  if(!local)return r;
+  if(!r||!r.ok)return local;
+  const merge=(server,loc)=>{
+    const x={...(loc||{}),...(server||{})};
+    if(x.quotient==null||x.quotient==='')x.quotient=loc.quotient;
+    if(x.percentile==null||x.percentile==='')x.percentile=loc.percentile;
+    if(!x.level&&loc.level)x.level=loc.level;
+    if(!x.norm_note&&loc.norm_note)x.norm_note=loc.norm_note;
+    if(loc.approximated)x.approximated=true;
+    if(loc.outstanding)x.outstanding=true;
+    return x;
+  };
+  return {...r,ok:true,age:r.age||local.age,language:merge(r.language,local.language),reasoning:merge(r.reasoning,local.reasoning)};
 }
 
 function showSagesResult(r){
@@ -198,10 +238,6 @@ function showSagesResult(r){
   const reas=r.reasoning||{};
 
   const percentileInterpretation=(x)=>{
-    if(x.boundary==='high')return x.outstanding
-      ? 'El puntaje directo supera el límite superior disponible para su edad. Se reconoce como aptitud sobresaliente sin inventar un cociente o percentil exacto.'
-      : 'El puntaje directo supera el límite superior disponible para su edad.';
-    if(x.boundary==='low')return 'El puntaje directo se encuentra por debajo del límite inferior disponible para su edad. Es un resultado válido; no se inventa una conversión exacta.';
     const p=x.percentile;
     if(p===null||p===undefined||p==="")return "Sin interpretación percentilar disponible.";
     const n=Number(p);
@@ -216,6 +252,7 @@ function showSagesResult(r){
     <p><b>Percentil:</b> ${esc(x.percentile_display??x.percentile??"—")}</p>
     ${x.level?`<p><b>Resultado:</b> ${esc(x.level)}</p>`:''}
     <p class="percentileNote"><b>Interpretación:</b> ${percentileInterpretation(x)}</p>
+    ${x.norm_note?`<p class="percentileNote"><b>Nota de conversión:</b> ${esc(x.norm_note)}</p>`:''}
   </div>`;
 
   box.innerHTML=`
@@ -260,7 +297,7 @@ async function previewSages(){
     const p=sagesPayload();
     $("#sagesStatus").textContent="Calculando…";
 
-    const r=await rpc("teacher_diagnostic_sages_preview",{
+    const server=await rpc("teacher_diagnostic_sages_preview",{
       p_student_id:activeStudentBundle.student.id,
       p_age_years:p.age,
       p_language_raw:p.language,
@@ -268,21 +305,17 @@ async function previewSages(){
       p_application_date:p.date
     });
 
-    if(!r.ok){
-      const fallback=sagesFallbackPreview(p);
-      if(fallback){
-        showSagesResult(fallback);
-        $("#sagesStatus").textContent="Puntaje válido fuera del rango de conversión exacta. Se muestra la clasificación de límite sin inventar valores.";
-        return;
-      }
-      $("#sagesStatus").textContent="Puntaje válido, pero no hay conversión exacta publicada para esta combinación intermedia. No se interpolará.";
+    const r=normalizeSagesResult(server,p);
+    if(!r||!r.ok){
+      $("#sagesStatus").textContent="No fue posible convertir SAGES con la tabla cargada.";
       $("#sagesResult").classList.add("hidden");
       return;
     }
-
     showSagesResult(r);
-    $("#sagesStatus").textContent=
-      "Vista previa calculada. Aún no se ha guardado.";
+    const approx=r.language?.approximated||r.reasoning?.approximated;
+    $("#sagesStatus").textContent=approx
+      ?"Vista previa calculada. En los huecos de la tabla se aplicó el valor normativo más próximo."
+      :"Vista previa calculada. Aún no se ha guardado.";
   }catch(e){
     $("#sagesStatus").textContent=e.message||String(e);
   }
@@ -303,17 +336,13 @@ async function saveSages(){
     });
 
     if(!r.saved){
-      const fallback=sagesFallbackPreview(p);
-      if(fallback){
-        showSagesResult(fallback);
-        $("#sagesStatus").textContent="El resultado es válido y puede interpretarse, pero la rutina de guardado aún debe aceptar los extremos fuera del rango exacto. No se alteró el puntaje.";
-        return;
-      }
-      $("#sagesStatus").textContent="No se guardó porque falta una conversión exacta para una puntuación intermedia; no se interpolará.";
+      const local=sagesLocalPreview(p);
+      if(local)showSagesResult(local);
+      $("#sagesStatus").textContent="El cálculo es válido, pero la rutina de Supabase no aceptó esta conversión aproximada. Avísame si aparece este mensaje para corregir también la rutina de guardado.";
       return;
     }
 
-    showSagesResult(r);
+    showSagesResult(normalizeSagesResult(r,p));
     $("#sagesStatus").textContent="✓ SAGES guardado correctamente.";
 
     const id=activeStudentBundle.student.id;

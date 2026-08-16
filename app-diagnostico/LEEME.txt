@@ -14,3 +14,6 @@ VERSIÓN 0.8.4: corrige nombres descriptivos de Áreas I–V en panorama y PDF g
 
 
 VERSIÓN 0.8.6 — SAGES: 0 y puntajes por encima del máximo baremado dejan de mostrarse como error en vista previa. Los extremos se interpretan sin inventar cociente/percentil exacto; si el límite superior demuestra P≥90 se marca Aptitud sobresaliente. La rutina de guardado de Supabase todavía debe actualizarse para persistir estos extremos si actualmente devuelve saved=false.
+
+
+v0.8.7 SAGES: la conversión local usa la tabla completa BAREMOS_SAGES. Si una puntuación cruda o un cociente cae en un hueco, utiliza el valor normativo más próximo; en empate usa el inferior. Percentil >=90 = Aptitud sobresaliente. 0 y máximos son valores válidos.

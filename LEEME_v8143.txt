@@ -1,0 +1,5 @@
+APP DOCENTE v8.14.3
+Corrección de inicio:
+- Elimina referencias JS residuales a controles de Mensajes retirados en v8.14.2.
+- Corrige el error “null is not an object ... #refreshMessages”.
+- Conserva Horario App Estudiantes y las funciones de v8.14.2.

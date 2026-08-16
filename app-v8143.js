@@ -136,6 +136,61 @@ async function refreshAll(){
   await showLastInternalSave();
 }
 
+
+async function loadStudentAppHours(){
+  const status=$('#studentAppHoursStatus');
+  try{
+    if(!(await requireTeacherSession()))return;
+    const d=await ProfeSupabase.rpc('teacher_get_student_app_access',{});
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo consultar.');
+    $('#studentAppHoursEnabled').checked=!!d.enabled;
+    $('#studentAppBlockedStart').value=String(d.blocked_start||'07:00').slice(0,5);
+    $('#studentAppBlockedEnd').value=String(d.blocked_end||'14:30').slice(0,5);
+    const days=new Set((d.weekdays||[]).map(Number));
+    $$('.studentAppDay').forEach(x=>x.checked=days.has(Number(x.value)));
+    $('#studentAppMessageTitle').value=d.message_title||'¡Ahora no, joven!';
+    $('#studentAppMessageBody').value=d.message_body||'';
+    if(status){
+      if(d.temporary_open_until && new Date(d.temporary_open_until)>new Date()){
+        status.textContent='Apertura temporal activa hasta '+new Date(d.temporary_open_until).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})+'.';
+      }else{
+        status.textContent=d.enabled
+          ? `Bloqueo activo de ${String(d.blocked_start||'').slice(0,5)} a ${String(d.blocked_end||'').slice(0,5)} en los días seleccionados.`
+          : 'Bloqueo por horario desactivado.';
+      }
+    }
+  }catch(e){
+    if(status)status.textContent='No se pudo cargar el horario: '+(e.message||e);
+  }
+}
+async function saveStudentAppHours(e){
+  e?.preventDefault();
+  const status=$('#studentAppHoursStatus');
+  const weekdays=$$('.studentAppDay').filter(x=>x.checked).map(x=>Number(x.value));
+  if(!weekdays.length)return alert('Selecciona al menos un día.');
+  try{
+    const d=await ProfeSupabase.rpc('teacher_set_student_app_access',{
+      p_enabled:$('#studentAppHoursEnabled').checked,
+      p_blocked_start:$('#studentAppBlockedStart').value,
+      p_blocked_end:$('#studentAppBlockedEnd').value,
+      p_weekdays:weekdays,
+      p_message_title:$('#studentAppMessageTitle').value.trim()||'¡Ahora no, joven!',
+      p_message_body:$('#studentAppMessageBody').value.trim()
+    });
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
+    if(status)status.textContent='✓ Horario guardado. La App Estudiantes usará este horario sin necesidad de volver a publicarla.';
+    await loadStudentAppHours();
+  }catch(e){alert('No se pudo guardar el horario: '+(e.message||e))}
+}
+async function openStudentAppTemporarily(minutes){
+  try{
+    const d=await ProfeSupabase.rpc('teacher_open_student_app_temporarily',{p_minutes:Number(minutes)});
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo actualizar.');
+    await loadStudentAppHours();
+    alert(Number(minutes)>0?`App Estudiantes abierta temporalmente por ${minutes} minutos.`:'Apertura temporal cancelada.');
+  }catch(e){alert('No se pudo cambiar la apertura temporal: '+(e.message||e))}
+}
+
 function setView(id){
   $$('.view').forEach(v=>v.classList.toggle('active',v.id===id));
   $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
@@ -147,7 +202,7 @@ function setView(id){
     titular:'Seguimiento 3.º A',
     students:'Alumnos',
     dossier:'Expediente del alumno',
-    reports:'Reportes',availability:'Disponibilidad',content:'Contenido',messages:'Mensajes','portal-access':'Estado de acceso a portales'
+    reports:'Reportes',availability:'Disponibilidad','student-app-hours':'Horario App Estudiantes',content:'Contenido','portal-access':'Estado de acceso a portales'
   };
   if($('#currentSection'))$('#currentSection').textContent=names[id]||'Menú';
   if($('#mainMenu'))$('#mainMenu').open=false;
@@ -159,7 +214,7 @@ function setView(id){
   if(id==='titular')renderTitularGrid();
   if(id==='students')renderStudents();
   if(id==='dossier')refreshDossierSelector();
-  if(id==='reports'){}if(id==='availability')loadAvailability();if(id==='content')refreshPortalContent();if(id==='messages'){renderTeacherMessages();let nn=readTeacherNotifs().map(n=>n.id.startsWith('msg-')?{...n,read:true}:n);saveTeacherNotifs(nn)}
+  if(id==='reports'){}if(id==='availability')loadAvailability();if(id==='student-app-hours')loadStudentAppHours();if(id==='content')refreshPortalContent();
 }
 function pane(prefix,name){$$('.'+prefix+'pane').forEach(x=>x.classList.toggle('active',x.id===prefix+'-'+name));$$('[data-'+prefix+'tab]').forEach(x=>x.classList.toggle('active',x.dataset[prefix+'tab']===name));if(prefix==='act'){if(name==='grid')renderActivityGrid();if(name==='manage')renderActivities()}if(prefix==='tit'&&name==='individual')refreshTitIndividual();if(prefix==='met'){if(name==='manage')renderMethodologies();if(name==='calculate')refreshCalculationMethodologies();if(name==='quarter')refreshQuarterSelectors()}}
 
@@ -1220,7 +1275,7 @@ async function pointsLedgerFor(m,studentId,excludeCurrent=true){
   }
   return {earned,used,available:Math.max(0,earned-used),history};
 }
-async function calculateMethodology(notifyPortals=false){
+async function calculateMethodology(){
   let id=$('#calcMethodology').value;if(!id)return alert('Selecciona una metodología.');
   let m=await req(store('methodologies').get(id)),total=m.criteria.reduce((s,c)=>s+Number(c.percent),0);
   if(Math.abs(total-100)>0.001)return alert('Los criterios de esta metodología no suman 100%. Edítala antes de calcular.');
@@ -1252,25 +1307,6 @@ async function calculateMethodology(notifyPortals=false){
     rows.push({student:st,criterionGrades,pending:[...new Set(pending)],base,final:finalDecimal,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,pointsAvailable:Math.max(0,maxUsable-safeUsed),pointsTotalBefore:maxUsable});
   }
   await put('methodologies',m);
-
-  // Si el usuario pulsó explícitamente “Calcular”, confirmar primero la
-  // metodología en Supabase y después avisar a los portales.
-  if(notifyPortals&&sameShift(m.shift,'Matutino')&&supabaseReady){
-    try{
-      await ProfeSupabase.upsert('methodologies',remoteMethodology(m),'id');
-      for(const r of rows){
-        if(r.finalDecimal===null)continue;
-        await sendTeacherPushEvent('grade_update',{
-          student_id:String(r.student.id),
-          title:'Calificación actualizada',
-          message:`Tu promedio actual de ${m.subject||'Español'} es ${r.finalDecimal.toFixed(2)}.`
-        });
-      }
-    }catch(e){
-      console.warn('No se pudo notificar la calificación',e);
-    }
-  }
-
   window._lastMethodologyCalculation={methodology:m,activities:acts,rows};
   renderMethodologyResults(window._lastMethodologyCalculation);
 }
@@ -1738,46 +1774,6 @@ async function calculateQuarter(){
   });
   window._lastQuarter={shift,group,cycle,quarter,methods,rows};
   $('#quarterResults').innerHTML=`<div class="period-summary"><b>${safe(cycle)} · Trimestre ${quarter} · ${safe(shift)} · Grupo ${safe(group)}</b><br>Meses incluidos: ${methods.map(m=>safe(m.month)).join(', ')}</div><table class="matrix"><thead><tr><th>#</th><th class="name">Alumno</th>${methods.map(m=>`<th>${safe(m.month)}</th>`).join('')}<th>Promedio decimal</th><th>Redondeada</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.student.number}</td><td class="name">${safe(r.student.name||r.student.id)}</td>${r.monthly.map(x=>`<td>${typeof x.value==='number'?x.value.toFixed(2):'Pendiente'}</td>`).join('')}<td>${r.average===null?'Pendiente':r.average.toFixed(2)}</td><td class="grade-rounded">${r.rounded===null?'—':r.rounded}</td></tr>`).join('')}</tbody></table>`;
-
-  // Publicar el resultado trimestral SOLO cuando el profesor pulsa Calcular trimestre.
-  // Se guarda como una metodología especial para que Alumno y Padres puedan
-  // distinguirla de las calificaciones mensuales.
-  if(sameShift(shift,'Matutino')&&supabaseReady){
-    try{
-      const key=`quarterSummaryId:${cycle}:${shift}:${group}:${quarter}`;
-      let summaryId=localStorage.getItem(key);
-      if(!summaryId){summaryId=crypto.randomUUID();localStorage.setItem(key,summaryId)}
-      const gradeRecords={};
-      rows.forEach(r=>{
-        if(r.average!==null){
-          gradeRecords[String(r.student.id)]={
-            finalDecimal:Number(r.average),
-            rounded:r.rounded,
-            monthly:r.monthly
-          };
-        }
-      });
-      const summary={
-        id:summaryId,
-        shift,group,cycle,quarter,
-        month:`Trimestre ${quarter}`,
-        name:`Promedio trimestral ${quarter}`,
-        subject:'Español',
-        criteria:[],assignments:{},
-        gradeRecords,
-        closed:true,
-        closedAt:new Date().toISOString(),
-        created:new Date().toISOString(),
-        updated:new Date().toISOString(),
-        periodType:'quarter',
-        isQuarterSummary:true,
-        monthsIncluded:methods.map(m=>m.month)
-      };
-      await ProfeSupabase.upsert('methodologies',remoteMethodology(summary),'id');
-    }catch(e){
-      console.warn('No se pudo publicar el promedio trimestral en los portales',e);
-    }
-  }
 }
 async function printQuarter(){
   let q=window._lastQuarter;if(!q){await calculateQuarter();q=window._lastQuarter}if(!q)return;
@@ -2523,7 +2519,7 @@ function bind(){
  $('#portalAccessGroupFilter')&&($('#portalAccessGroupFilter').onchange=renderPortalAccessReport);
  $('#portalAccessSearch')&&($('#portalAccessSearch').oninput=renderPortalAccessReport);
  setTimeout(()=>{decorateStudentAccessStatuses()},300);$$('.tab').forEach(b=>b.onclick=()=>setView(b.dataset.view));document.addEventListener('click',e=>{const menu=$('#mainMenu');if(menu?.open&&!menu.contains(e.target))menu.open=false});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#mainMenu'))$('#mainMenu').open=false});$$('[data-go]').forEach(b=>b.onclick=()=>setView(b.dataset.go));$$('[data-acttab]').forEach(b=>b.onclick=()=>pane('act',b.dataset.acttab));$$('[data-tittab]').forEach(b=>b.onclick=()=>pane('tit',b.dataset.tittab));$$('[data-mettab]').forEach(b=>b.onclick=()=>pane('met',b.dataset.mettab));for(let p of ['att','act','grid','newAct','met','calcMet'])$('#'+p+'Shift').onchange=()=>fillGroups(p);$('#attGroup').onchange=refreshAttendance;$('#attDate').onchange=refreshAttendance;$('#attRegister').onclick=registerAttendance;$('#attScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerAttendance()}};$('#attMissingBtn').onclick=showMissing;$('#attFinalizeBtn').onclick=finalizeAttendance;populateNewActivityWeeks();
-$('#activityForm').onsubmit=createActivity;$('#newActDate').onchange=syncActivityWeekFromDate;$('#cancelActivityEdit').onclick=resetActivityForm;$('#actGroup').onchange=refreshActivitySelectors;$('#actWeek').onchange=refreshActivitySelectors;$('#actSelect').onchange=refreshActivityStats;$('#actRegister').onclick=registerActivity;$('#actScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerActivity()}};$('#actClose').onclick=()=>closeActivity(true);$('#actReopen').onclick=()=>closeActivity(false);$('#gridGroup').onchange=refreshGridWeeks;$('#gridWeek').onchange=renderActivityGrid;$('#gridPdf').onclick=showWeeklyReportOptions;$('#addCriterionBtn').onclick=()=>addCriterion();$('#methodologyForm').onsubmit=saveMethodology;$('#cancelMethodologyEdit').onclick=resetMethodologyForm;$('#calcMetGroup').onchange=refreshCalculationMethodologies;$('#calcMethodology').onchange=renderMethodologyAssignments;$('#saveAssignmentsBtn').onclick=saveAssignments;$('#calculateMethodologyBtn').onclick=()=>calculateMethodology(true);$('#methodologyPdfBtn').onclick=printMethodology;$('#methodologyIndividualPdfBtn').onclick=printMethodologyIndividuals;$('#closeMethodologyMonthBtn').onclick=toggleCloseMethodologyMonth;$('#newMethodologyMonthBtn').onclick=()=>startNewMonth();$('#quarterShift').onchange=refreshQuarterSelectors;$('#quarterGroup').onchange=()=>{};$('#calculateQuarterBtn').onclick=calculateQuarter;$('#quarterPdfBtn').onclick=printQuarter;$('#studentForm').onsubmit=saveStudent;$('#studentSearch').oninput=renderStudents;$('#studentGroupFilter')&&($('#studentGroupFilter').onchange=renderStudents);$('#dossierGroup')&&($('#dossierGroup').onchange=()=>refreshDossierSelector());$('#dossierStudent').onchange=e=>renderDossier(e.target.value);
+$('#activityForm').onsubmit=createActivity;$('#newActDate').onchange=syncActivityWeekFromDate;$('#cancelActivityEdit').onclick=resetActivityForm;$('#actGroup').onchange=refreshActivitySelectors;$('#actWeek').onchange=refreshActivitySelectors;$('#actSelect').onchange=refreshActivityStats;$('#actRegister').onclick=registerActivity;$('#actScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerActivity()}};$('#actClose').onclick=()=>closeActivity(true);$('#actReopen').onclick=()=>closeActivity(false);$('#gridGroup').onchange=refreshGridWeeks;$('#gridWeek').onchange=renderActivityGrid;$('#gridPdf').onclick=showWeeklyReportOptions;$('#addCriterionBtn').onclick=()=>addCriterion();$('#methodologyForm').onsubmit=saveMethodology;$('#cancelMethodologyEdit').onclick=resetMethodologyForm;$('#calcMetGroup').onchange=refreshCalculationMethodologies;$('#calcMethodology').onchange=renderMethodologyAssignments;$('#saveAssignmentsBtn').onclick=saveAssignments;$('#calculateMethodologyBtn').onclick=calculateMethodology;$('#methodologyPdfBtn').onclick=printMethodology;$('#methodologyIndividualPdfBtn').onclick=printMethodologyIndividuals;$('#closeMethodologyMonthBtn').onclick=toggleCloseMethodologyMonth;$('#newMethodologyMonthBtn').onclick=()=>startNewMonth();$('#quarterShift').onchange=refreshQuarterSelectors;$('#quarterGroup').onchange=()=>{};$('#calculateQuarterBtn').onclick=calculateQuarter;$('#quarterPdfBtn').onclick=printQuarter;$('#studentForm').onsubmit=saveStudent;$('#studentSearch').oninput=renderStudents;$('#studentGroupFilter')&&($('#studentGroupFilter').onchange=renderStudents);$('#dossierGroup')&&($('#dossierGroup').onchange=()=>refreshDossierSelector());$('#dossierStudent').onchange=e=>renderDossier(e.target.value);
  $('#openMonitorDossier').onclick=async()=>{
    setView('dossier');
    if($('#dossierGroup'))$('#dossierGroup').value='MONITOR';
@@ -2541,10 +2537,14 @@ $('#reportsExportBackup').onclick=exportBackup;
 $('#openDeleteRecords').onclick=openDeleteRecordsDialog;
 $('#materialSource').onchange=updateMaterialSourceUI;updateMaterialSourceUI();
 $('#availabilityForm').onsubmit=saveAvailability;
+ $('#studentAppHoursForm').onsubmit=saveStudentAppHours;
+ $('#refreshStudentAppHours').onclick=loadStudentAppHours;
+ $$('.studentTempOpen').forEach(b=>b.onclick=()=>openStudentAppTemporarily(Number(b.dataset.minutes)));
+ $('#cancelStudentTempOpen').onclick=()=>openStudentAppTemporarily(0);
  $('#contactOverrideBtn').onclick=toggleContactOverride;
  $('#openStudentChatToday').onclick=()=>setStudentChatTeacherState('open');
  $('#closeStudentChatToday').onclick=()=>setStudentChatTeacherState('closed');
- $('#autoStudentChat').onclick=()=>setStudentChatTeacherState('auto');$('#noticeForm').onsubmit=e=>savePortalEntity('notice',e);$('#materialForm').onsubmit=e=>savePortalEntity('material',e);$('#topicForm').onsubmit=e=>savePortalEntity('topic',e);$('#refreshMessages').onclick=renderTeacherMessages;
+ $('#autoStudentChat').onclick=()=>setStudentChatTeacherState('auto');$('#noticeForm').onsubmit=e=>savePortalEntity('notice',e);$('#materialForm').onsubmit=e=>savePortalEntity('material',e);$('#topicForm').onsubmit=e=>savePortalEntity('topic',e);
 const bindRestoreInput=id=>{$('#'+id).onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''}};
 bindRestoreInput('restoreFile');
 bindRestoreInput('homeRestoreFile');

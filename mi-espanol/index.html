@@ -491,7 +491,6 @@
 </style>
 </head>
 <body>
-<section id="diagnostic" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Diagnóstico inicial</h2><div id="diagnosticResult" class="cards"><div class="card muted">Consultando resultado…</div></div></section>
 <section id="privacy" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Privacidad y seguridad</h2><div class="card"><p>Mi Español utiliza únicamente la información escolar necesaria para identificar tu cuenta y mostrar tu seguimiento académico.</p><p>El acceso se realiza con ID de 5 dígitos y PIN. La información consultada corresponde a la sesión iniciada y al alumno asociado con ese acceso.</p><p><b>La app no solicita acceso a contactos, ubicación, micrófono, fotografías, videos, mensajes personales, contraseñas, WhatsApp, archivos personales ni información bancaria.</b></p><p>Las notificaciones utilizan exclusivamente los datos técnicos necesarios para registrar y entregar avisos mediante Web Push.</p><p>El chat escolar conserva únicamente la conversación de la semana escolar en curso. Al iniciar una nueva semana escolar, la conversación anterior se elimina de acuerdo con la política de retención configurada.</p><p>La información se utiliza para seguimiento y comunicación escolar y no para publicidad ni fines comerciales.</p><p>Esta es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas, trámites o procedimientos oficiales.</p></div></section><div id="birthdayGreeting" class="birthday-greeting hidden" aria-modal="true" role="dialog">
   <div class="birthday-confetti" aria-hidden="true">
     <span>🎉</span><span>✨</span><span>🎈</span><span>🎊</span><span>⭐</span>
@@ -511,7 +510,6 @@
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
 <button data-view="attendance" class="portal-menu-btn"><span>📅</span><b>Asistencia</b></button>
 <button data-view="grades" class="portal-menu-btn"><span>📊</span><b>Calificaciones</b></button>
-<button data-view="diagnostic" class="portal-menu-btn"><span>📝</span><b>Diagnóstico inicial</b></button>
 <button data-view="materials" class="portal-menu-btn"><span>📎</span><b>Materiales</b></button>
 <button data-view="study" class="portal-menu-btn"><span>🎯</span><b>Estudiar</b></button>
 
@@ -605,7 +603,7 @@
 <script>
 if('serviceWorker' in navigator){
   window.addEventListener('load',()=>{
-    navigator.serviceWorker.register('./service-worker.js?v=8130',{scope:'./'})
+    navigator.serviceWorker.register('./service-worker.js?v=8131',{scope:'./'})
       .catch(err=>console.warn('SW Mi Español',err));
   });
 }

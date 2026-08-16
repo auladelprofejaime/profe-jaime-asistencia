@@ -32,42 +32,9 @@ async function refreshStudentNotices(){
 }
 async function openStudentView(id){
  if((id==='home'||id==='notices')&&currentToken)await refreshStudentNotices();
- if(id==='diagnostic'&&currentToken)await renderPublishedDiagnostic();
  setView(id);
 }
 
-
-async function getPublishedDiagnostic(){
- if(!currentToken)return null;
- try{
-  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_diagnostic_result`,{
-   method:'POST',headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},
-   body:JSON.stringify({p_token:currentToken})
-  });
-  if(!r.ok)throw new Error('No se pudo consultar el diagnóstico.');
-  return await r.json();
- }catch(e){console.warn('diagnostic result',e);return null}
-}
-function diagItems(items){
- if(!Array.isArray(items)||!items.length)return '<div class="card muted">Sin elementos registrados.</div>';
- return items.map(x=>{const title=x.title||x.area||x.name||'Área',text=x.text||x.description||x.interpretation||'';
-  return `<div class="card"><b>${esc(title)}</b>${text?`<p>${esc(text)}</p>`:''}</div>`}).join('');
-}
-async function renderPublishedDiagnostic(){
- const box=$('#diagnosticResult');if(!box)return;
- box.innerHTML='<div class="card muted">Consultando resultado…</div>';
- const d=await getPublishedDiagnostic();
- if(!d){box.innerHTML='<div class="card"><b>No se pudo consultar el resultado.</b><p class="muted">Revisa tu conexión e intenta nuevamente.</p></div>';return}
- if(!d.ok||!d.published){box.innerHTML='<div class="card"><b>Diagnóstico aún no publicado</b><p class="muted">Cuando el profesor publique el resultado del diagnóstico inicial, aparecerá en esta sección.</p></div>';return}
- const r=d.result||{},s=r.summary||{},tests=r.tests||{},sages=tests.sages||{},complec=tests.complec||{};
- const priority={seguimiento_prioritario:'Seguimiento prioritario',seguimiento:'Seguimiento',ordinario:'Seguimiento ordinario'}[s.priority_level]||'Resultado disponible';
- box.innerHTML=`<div class="card"><small class="muted">${esc(d.period_name||'Diagnóstico inicial')}</small><h3>Resultado publicado</h3><p><b>Orientación de seguimiento:</b> ${esc(priority)}</p><p class="muted">Publicado: ${d.published_at?new Date(d.published_at).toLocaleDateString('es-MX'):''}</p></div>
- <h3 class="section-title">Fortalezas</h3>${diagItems(s.strengths)}
- <h3 class="section-title">Áreas por reforzar</h3>${diagItems(s.support_areas)}
- <h3 class="section-title">Recomendaciones</h3>${diagItems(s.recommendations)}
- <div class="card"><h3>Resumen de pruebas</h3><p><b>SAGES-2:</b> Lengua P${esc(sages.language?.percentile??'—')} · Razonamiento P${esc(sages.reasoning?.percentile??'—')}</p><p><b>CompLEC:</b> ${esc(complec.total_score??'—')} / ${esc(complec.max_score??20)}</p><p><b>PROESC abreviado:</b> escritura y ortografía integradas en las áreas anteriores.</p><p><b>CASM-85-R:</b> hábitos y actitudes de estudio integrados en fortalezas y recomendaciones.</p></div>
- <div class="card muted">${esc(s.disclaimer||'Resultado de diagnóstico educativo inicial para orientar el acompañamiento escolar. No constituye un diagnóstico clínico ni psicológico.')}</div>`;
-}
 
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=899';
 let currentId='',bundle=null,currentToken='';
@@ -75,7 +42,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8130',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8131',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }

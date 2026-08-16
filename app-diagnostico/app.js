@@ -1289,11 +1289,11 @@ $("#backFromGroupDashboard").onclick=()=>{
 
 
 
-function individualPrintList(items,emptyText){
-  if(!Array.isArray(items)||!items.length)return `<p>${esc(emptyText)}</p>`;
-  return `<div class="reportConceptList">${items.map(original=>{
+function familyPrintList(items,emptyText){
+  if(!Array.isArray(items)||!items.length)return `<p class="familyEmpty">${esc(emptyText)}</p>`;
+  return `<div class="familyConceptList">${items.map(original=>{
     const x=integratedFriendlyItem(original);
-    return `<div class="reportConcept"><b>${esc(x.displayArea||x.source||"")}</b><p>${esc(x.displayText||"")}</p>${x.source?`<small>${esc(x.source)}</small>`:""}</div>`;
+    return `<section class="familyConcept"><h3>${esc(x.displayArea||x.source||"")}</h3><p>${esc(x.displayText||"")}</p></section>`;
   }).join("")}</div>`;
 }
 function generateIndividualDiagnosticReport(){
@@ -1304,15 +1304,16 @@ function generateIndividualDiagnosticReport(){
   const st=activeStudentBundle.student;
   const t=latestIntegratedTechnical;
   const syn=latestIntegratedSynthesis;
-  const sg=t?.sages||{}, co=t?.complec||{}, pr=t?.proesc||{}, ca=t?.casm||{};
+  const sg=t?.sages||{};
   const strengths=Array.isArray(syn?.strengths)?syn.strengths.map(x=>({...x})):[];
   const ensureOutstanding=(sub,label)=>{
     const pct=Number(sub?.percentile);
     if(!Number.isFinite(pct)||pct<90)return;
     const idx=strengths.findIndex(x=>String(x?.source||"").toUpperCase().includes("SAGES") && String(x?.area||"").toLowerCase().includes(label.toLowerCase().split(" ")[0]));
-    const phrase=`Percentil ${pct}. Aptitud sobresaliente en ${label}.`;
-    if(idx>=0){ if(!/aptitud sobresaliente/i.test(String(strengths[idx].text||""))) strengths[idx].text=`${strengths[idx].text||""} ${phrase}`.trim(); }
-    else strengths.unshift({area:label,text:phrase,source:"SAGES-2"});
+    const phrase=`Se identifica aptitud sobresaliente en ${label} (percentil ${pct}).`;
+    if(idx>=0){
+      if(!/aptitud sobresaliente/i.test(String(strengths[idx].text||""))) strengths[idx].text=`${strengths[idx].text||""} ${phrase}`.trim();
+    }else strengths.unshift({area:label,text:phrase,source:"SAGES-2"});
   };
   ensureOutstanding(sg?.language,"Lengua y literatura / Ciencias sociales");
   ensureOutstanding(sg?.reasoning,"Razonamiento");
@@ -1321,40 +1322,53 @@ function generateIndividualDiagnosticReport(){
   if(old)old.remove();
   const wrap=document.createElement("div");
   wrap.id="individualPrintableReport";
-  wrap.className="printReportOverlay";
+  wrap.className="printReportOverlay familyReportOverlay";
   wrap.innerHTML=`
     <div class="printReportToolbar">
       <button type="button" id="closeIndividualReportBtn" class="secondary">← Volver</button>
       <button type="button" id="doPrintIndividualReportBtn">Imprimir / Guardar como PDF</button>
     </div>
-    <article class="printReportPage individualReportPage">
-      <h1>Resultado del diagnóstico inicial</h1>
-      <p><b>Alumno:</b> ${esc(st.name)}<br>
-      <b>Grupo:</b> ${esc(st.group_name)} · <b>Lista:</b> ${esc(st.list_number??"—")} · <b>ID:</b> ${esc(st.id)}<br>
-      <b>Periodo:</b> ${esc(activePeriod.name||"Diagnóstico inicial")} · <b>Fecha de generación:</b> ${new Date().toLocaleDateString("es-MX")}</p>
+    <article class="printReportPage familyReportPage">
+      <header class="familyReportHeader">
+        <div class="familyReportBrand">El Aula del Profe Jaime</div>
+        <h1>Resultado del diagnóstico inicial</h1>
+        <p class="familyReportSubtitle">Información para la familia</p>
+      </header>
 
-      <h2>Resumen de resultados</h2>
-      <table>
-        <tr><th>Instrumento</th><th>Resultado</th></tr>
-        <tr><td>SAGES-2</td><td>${sagesIntegratedLabel(sg?.language,"Lengua")} · ${sagesIntegratedLabel(sg?.reasoning,"Razonamiento")}</td></tr>
-        <tr><td>CompLEC</td><td>Total: ${esc(co?.total_score??"—")} / 20</td></tr>
-        <tr><td>PROESC abreviado</td><td>Palabras: ${esc(pr?.scores?.words??"—")}/25 · Redacción: ${esc(pr?.scores?.writing_total??"—")}/10</td></tr>
-        <tr><td>CASM-85-R</td><td>Total: ${esc(ca?.scores?.TOTAL??"—")} / 53</td></tr>
-      </table>
+      <section class="familyStudentBox">
+        <p><b>Alumno(a):</b> ${esc(st.name)}</p>
+        <p><b>Grupo:</b> ${esc(st.group_name)} · <b>Fecha:</b> ${new Date().toLocaleDateString("es-MX")}</p>
+      </section>
 
-      <h2>Prioridad de seguimiento</h2>
-      <p><b>${esc(integratedPriorityLabel(syn.priority_level))}</b></p>
+      <section class="familyIntro">
+        <p>Este diagnóstico permite reconocer fortalezas y aspectos que conviene reforzar al inicio del ciclo escolar. Los resultados se utilizan para orientar el acompañamiento y la planeación de actividades de Español.</p>
+      </section>
 
-      <h2>Fortalezas</h2>
-      ${individualPrintList(strengths,"No se identificaron fortalezas destacadas con las reglas actuales.")}
+      <section class="familySection familyStrengths">
+        <h2>Fortalezas observadas</h2>
+        ${familyPrintList(strengths,"En este momento no se identificaron fortalezas específicas para destacar.")}
+      </section>
 
-      <h2>Áreas por reforzar</h2>
-      ${individualPrintList(syn.support_areas,"No se identificaron áreas específicas de refuerzo con las reglas actuales.")}
+      <section class="familySection familySupport">
+        <h2>Aspectos que conviene reforzar</h2>
+        ${familyPrintList(syn.support_areas,"En este momento no se identificaron aspectos específicos que requieran refuerzo.")}
+      </section>
 
-      <h2>Recomendaciones</h2>
-      ${individualPrintList(syn.recommendations,"No se generaron recomendaciones específicas.")}
+      <section class="familySection familyRecommendations">
+        <h2>Recomendaciones para acompañar su aprendizaje</h2>
+        ${familyPrintList(syn.recommendations,"No se generaron recomendaciones específicas.")}
+      </section>
 
-      <p class="printFoot">${esc(syn.disclaimer||"Síntesis pedagógica para orientar el acompañamiento escolar. No constituye un diagnóstico clínico ni psicológico.")}</p>
+      <section class="familyClosing">
+        <h2>¿Qué significa este resultado?</h2>
+        <p>Los resultados muestran el punto de partida del alumno y ayudan a decidir qué habilidades conviene aprovechar o fortalecer durante el ciclo escolar. No representan una calificación.</p>
+        <p>${esc(syn.disclaimer||"Síntesis pedagógica para orientar el acompañamiento escolar. No constituye un diagnóstico clínico ni psicológico.")}</p>
+      </section>
+
+      <footer class="familyReportFooter">
+        <b>Profr. Jaime Armando Pérez Vázquez</b><br>
+        Asignatura de Español
+      </footer>
     </article>`;
   document.body.appendChild(wrap);
   document.getElementById("closeIndividualReportBtn").onclick=()=>wrap.remove();

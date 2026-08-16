@@ -124,3 +124,31 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .printInterpretation p:last-child{margin-bottom:0}
 
 .individualReportPage .reportConcept{margin-bottom:7px}.individualReportPage small{font-size:9pt;color:#555}.individualReportPage h2{break-after:avoid}.individualReportPage .reportConcept{break-inside:avoid}
+
+/* v0.9.1 · PDF individual para familias */
+.familyReportPage{max-width:190mm;margin:0 auto;background:#fff;color:#28231c;padding:14mm 15mm 16mm;box-sizing:border-box;font-family:Arial,Helvetica,sans-serif}
+.familyReportHeader{border-bottom:4px solid #b51f24;padding-bottom:8mm;margin-bottom:7mm}
+.familyReportBrand{font-size:12px;font-weight:800;letter-spacing:.08em;text-transform:uppercase;color:#b51f24;margin-bottom:3mm}
+.familyReportHeader h1{font-size:27px;line-height:1.05;margin:0;color:#241f19}
+.familyReportSubtitle{font-size:16px;font-weight:700;margin:2mm 0 0;color:#6b5f51}
+.familyStudentBox{background:#fff7d4;border:1px solid #e7c95a;border-radius:12px;padding:5mm 6mm;margin-bottom:6mm}
+.familyStudentBox p{margin:1mm 0;font-size:14px}
+.familyIntro{font-size:13.5px;line-height:1.5;background:#f7f3e9;border-left:5px solid #f1c400;padding:5mm 6mm;margin-bottom:7mm}
+.familySection{margin:0 0 8mm;break-inside:auto}
+.familySection>h2,.familyClosing>h2{font-size:20px;margin:0 0 4mm;padding-bottom:2mm;border-bottom:2px solid #e1d7c5;color:#2c261f}
+.familyConceptList{display:grid;grid-template-columns:1fr;gap:3.5mm}
+.familyConcept{border:1px solid #ead79a;border-radius:10px;padding:4mm 5mm;background:#fffaf0;break-inside:avoid}
+.familyConcept h3{font-size:15px;margin:0 0 1.5mm;color:#322a20}
+.familyConcept p{font-size:13px;line-height:1.45;margin:0;color:#40372d}
+.familyEmpty{font-size:13px;color:#6a6259}
+.familyClosing{margin-top:8mm;background:#f5efe1;border-radius:10px;padding:5mm 6mm;break-inside:avoid}
+.familyClosing h2{font-size:17px;border:0;margin-bottom:2mm}
+.familyClosing p{font-size:12.5px;line-height:1.45;margin:2mm 0}
+.familyReportFooter{text-align:center;margin-top:10mm;padding-top:5mm;border-top:1px solid #d9cdbb;font-size:12px;color:#5d5348}
+@media print{
+  .familyReportPage{max-width:none;width:auto;margin:0;padding:10mm 12mm 12mm}
+  .familyReportOverlay{position:static!important;background:#fff!important;overflow:visible!important}
+  .familyReportPage .familyConcept{break-inside:avoid;page-break-inside:avoid}
+  .familyReportPage .familySection>h2{break-after:avoid;page-break-after:avoid}
+  .familyReportHeader,.familyStudentBox,.familyIntro,.familyClosing,.familyReportFooter{break-inside:avoid;page-break-inside:avoid}
+}

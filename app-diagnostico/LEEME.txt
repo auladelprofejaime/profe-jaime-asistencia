@@ -1,5 +1,5 @@
 El Aula del Profe Jaime · Diagnóstico Inicial
-Versión 0.9.0
+Versión 0.9.1
 
 Novedad:
 - Botón Generar PDF en el resultado integrado individual.

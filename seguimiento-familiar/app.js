@@ -94,6 +94,12 @@ function diagFriendlyArea(raw){
    .normalize("NFD").replace(/[\u0300-\u036f]/g,"")
    .replace(/[^a-z0-9]+/g," ").trim();
 
+ // Nunca mostrar nombres de instrumentos en el reporte familiar.
+ if(key.includes("sages")) return "Habilidades de lenguaje y razonamiento";
+ if(key.includes("complec")) return "Comprensión de lectura";
+ if(key.includes("proesc")) return "Escritura y ortografía";
+ if(key.includes("casm")) return "Hábitos de estudio";
+
  const exact={
    "area i":"Hábitos para estudiar",
    "area 1":"Hábitos para estudiar",
@@ -119,6 +125,7 @@ function diagFriendlyArea(raw){
    "comprension lectora":"Comprensión de lectura",
    "comprension":"Comprensión de lectura",
    "lengua":"Habilidades de lenguaje",
+   "lengua y literatura ciencias sociales":"Habilidades de lenguaje",
    "razonamiento":"Razonamiento"
  };
  if(exact[key])return exact[key];
@@ -132,12 +139,17 @@ function diagFriendlyArea(raw){
  if(key.includes("comprens"))return "Comprensión de lectura";
  if(key.includes("razon"))return "Razonamiento";
  if(key.includes("lengua")||key.includes("verbal"))return "Habilidades de lenguaje";
- return v||"Aspecto escolar";
+ if(key.includes("habito")||key.includes("estudio"))return "Hábitos de estudio";
+ return "Aspecto escolar";
 }
 function diagFriendlyText(raw){
  let t=String(raw||"").trim();
  if(!t)return "";
  t=t
+   .replace(/\bSAGES(?:-2)?\b/gi,"")
+   .replace(/\bCompLEC\b/gi,"")
+   .replace(/\bPROESC(?:\s+abreviado)?\b/gi,"")
+   .replace(/\bCASM(?:-85-R)?\b/gi,"")
    .replace(/\bÁrea\s*I\b/gi,"hábitos para estudiar")
    .replace(/\bÁrea\s*II\b/gi,"realización de tareas")
    .replace(/\bÁrea\s*III\b/gi,"preparación para exámenes")
@@ -153,9 +165,13 @@ function diagFriendlyText(raw){
 function diagFamilyItems(items,emptyText){
  if(!Array.isArray(items)||!items.length)return `<div class="card muted">${esc(emptyText)}</div>`;
  return items.map(x=>{
-   const title=diagFriendlyArea(x.area||x.title||x.name||x.source);
-   const text=diagFriendlyText(x.text||x.description||x.interpretation||"");
-   return `<div class="card"><b>${esc(title)}</b>${text?`<p>${esc(text)}</p>`:""}</div>`;
+   const rawArea=x.area||x.title||x.name||"";
+   const area=diagFriendlyArea(rawArea);
+   let text=diagFriendlyText(x.text||x.description||x.interpretation||"");
+   if(!text){
+     text=familyAreaExplanation(area+" "+rawArea);
+   }
+   return `<div class="card"><b>${esc(area)}</b><p>${esc(text)}</p></div>`;
  }).join("");
 }
 function diagFamilyPriority(v){
@@ -248,8 +264,15 @@ async function renderPublishedDiagnostic(){
  const follow=diagFamilyPriority(summary.priority_level);
  const casmSummary=diagCasmSummary(tests,summary.strengths);
  const strengths=(Array.isArray(summary.strengths)?summary.strengths:[]).filter(x=>{
-   const a=String(x.area||x.source||"").toLowerCase();
-   return !(a.match(/^á?rea\s*(i|ii|iii|iv|v|[1-5])$/i)||a.includes("casm"));
+   const a=String(x.area||"").toLowerCase();
+   const src=String(x.source||"").toLowerCase();
+   return !(
+     a.match(/^á?rea\s*(i|ii|iii|iv|v|[1-5])$/i) ||
+     src.includes("casm") ||
+     src.includes("sages") ||
+     src.includes("complec") ||
+     src.includes("proesc")
+   );
  });
 
  box.innerHTML=`
@@ -264,7 +287,7 @@ async function renderPublishedDiagnostic(){
 
    <h3 class="section-title">Fortalezas observadas</h3>
    ${casmSummary}
-   ${diagFamilyItems(strengths,"El diagnóstico se utilizará principalmente para orientar el trabajo que necesita reforzarse.")}
+   ${diagFamilyItems(strengths,"Se identificaron recursos favorables para el trabajo escolar. El profesor utilizará esta información para orientar el acompañamiento durante el ciclo.")}
 
    <h3 class="section-title">Aspectos que conviene reforzar</h3>
    ${familySupportCards(summary.support_areas)}
@@ -289,7 +312,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8123',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8124',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }

@@ -1,10 +1,10 @@
-APP DIAGNÓSTICO v0.4.0 — PROESC abreviado
+APP DIAGNÓSTICO v0.5.0 — CASM-85-R captura
 
-Paso 4/9 · PROESC · Subpaso 3/4
+Paso 5/9 · CASM-85-R · Subpaso 3/4
 
 Agrega:
-- Captura de las puntuaciones de la forma abreviada oficial.
-- Detección automática de grado 1º/2º/3º.
-- Aplicación de baremos del manual por aspecto.
-- Vista previa.
+- Captura Siempre/Nunca de 53 reactivos.
+- Progreso 0–53.
+- Separación visual por cinco áreas.
+- Vista previa de áreas + total.
 - Guardado y reapertura.

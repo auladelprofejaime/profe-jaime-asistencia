@@ -52,3 +52,14 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .proescResultGrid .resultBox.wide{grid-column:1/-1}
 .classification{font-weight:800;margin-top:8px}
 @media(max-width:650px){.proescGrid,.proescResultGrid{grid-template-columns:1fr}.proescResultGrid .resultBox.wide{grid-column:auto}}
+
+.casmItems{display:flex;flex-direction:column;gap:10px;margin:16px 0 20px}
+.casmItem{border:1px solid #eadfbc;border-radius:14px;padding:12px;background:#fffdf7}
+.casmItemHead{display:flex;justify-content:space-between;gap:10px;align-items:center;margin-bottom:8px}
+.casmBtns{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.casmBtn{background:#f2ead0;color:#332c24;border:2px solid transparent}
+.casmBtn.selected{background:#b92025;color:#fff;border-color:#8d161b}
+.casmAreaDivider{margin:18px 0 4px;font-weight:900;color:#9b2427}
+.casmResultGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.casmResultGrid .resultBox.wide{grid-column:1/-1}
+@media(max-width:650px){.casmResultGrid{grid-template-columns:1fr}.casmResultGrid .resultBox.wide{grid-column:auto}}

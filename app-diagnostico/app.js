@@ -121,6 +121,7 @@ async function openStudent(id){
   $("#sagesCard").classList.add("hidden");
   $("#complecCard").classList.add("hidden");
   $("#proescCard").classList.add("hidden");
+  $("#casmCard").classList.add("hidden");
   $("#studentCard").classList.remove("hidden");
   $("#studentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
   $("#studentName").textContent=b.student.name;
@@ -594,6 +595,158 @@ $("#backStudentFromProesc").onclick=()=>{
 };
 $("#previewProescBtn").onclick=previewProesc;
 $("#saveProescBtn").onclick=saveProesc;
+
+
+const CASM_AREAS=[
+  {code:"I",name:"¿Cómo estudia usted?",start:1,end:12},
+  {code:"II",name:"¿Cómo hace sus tareas?",start:13,end:22},
+  {code:"III",name:"¿Cómo prepara sus exámenes?",start:23,end:33},
+  {code:"IV",name:"¿Cómo escucha las clases?",start:34,end:45},
+  {code:"V",name:"¿Qué acompaña sus momentos de estudio?",start:46,end:53}
+];
+let casmAnswers={};
+
+function casmAreaForItem(n){
+  return CASM_AREAS.find(a=>n>=a.start&&n<=a.end);
+}
+function renderCasmItems(){
+  const box=$("#casmItems");
+  let html="";
+  for(let n=1;n<=53;n++){
+    const area=casmAreaForItem(n);
+    if(n===area.start){
+      html+=`<div class="casmAreaDivider">Área ${area.code} · ${esc(area.name)}</div>`;
+    }
+    html+=`<div class="casmItem" data-item="${n}">
+      <div class="casmItemHead">
+        <b>Reactivo ${n}</b>
+        <small>Área ${area.code}</small>
+      </div>
+      <div class="casmBtns">
+        <button type="button" class="casmBtn ${casmAnswers[n]==="SIEMPRE"?"selected":""}" data-answer="SIEMPRE">Siempre</button>
+        <button type="button" class="casmBtn ${casmAnswers[n]==="NUNCA"?"selected":""}" data-answer="NUNCA">Nunca</button>
+      </div>
+    </div>`;
+  }
+  box.innerHTML=html;
+
+  box.querySelectorAll(".casmItem").forEach(item=>{
+    item.querySelectorAll("[data-answer]").forEach(btn=>{
+      btn.onclick=()=>{
+        const n=Number(item.dataset.item);
+        casmAnswers[n]=btn.dataset.answer;
+        renderCasmItems();
+        updateCasmProgress();
+      };
+    });
+  });
+}
+function updateCasmProgress(){
+  const count=Object.keys(casmAnswers).length;
+  $("#casmProgressText").textContent=`${count} de 53 respondidas`;
+  $("#casmProgressBar").style.width=`${count/53*100}%`;
+}
+function openCasm(){
+  if(!activeStudentBundle)return;
+  const b=activeStudentBundle;
+  $("#studentCard").classList.add("hidden");
+  $("#sagesCard").classList.add("hidden");
+  $("#complecCard").classList.add("hidden");
+  $("#proescCard").classList.add("hidden");
+  $("#casmCard").classList.remove("hidden");
+
+  $("#casmStudentName").textContent=b.student.name;
+  $("#casmStudentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
+
+  casmAnswers={};
+  (b.casm_answers||[]).forEach(r=>{if(r.answer)casmAnswers[Number(r.item_number)]=r.answer});
+  renderCasmItems();
+  updateCasmProgress();
+  $("#casmResult").classList.add("hidden");
+  $("#casmStatus").textContent=b.progress.casm_complete?"CASM-85-R guardado. Puedes editarlo y volver a guardar.":"";
+}
+function casmPayload(){
+  const missing=[];
+  const out={};
+  for(let n=1;n<=53;n++){
+    if(!casmAnswers[n])missing.push(n);
+    else out[String(n)]=casmAnswers[n];
+  }
+  if(missing.length)throw new Error(`Faltan respuestas: ${missing.join(", ")}.`);
+  return out;
+}
+function casmClassText(obj){
+  if(!obj)return "—";
+  if(obj.ambiguous)return `${obj.label}: ${obj.note||""}`;
+  return obj.label||"—";
+}
+function showCasmResult(r){
+  const sc=r.scores||{};
+  const cl=r.classifications||{};
+  const areaBox=(code,title,max)=>`<div class="resultBox">
+    <h3>Área ${code} · ${esc(title)}</h3>
+    <p><b>Puntuación:</b> ${esc(sc[code]??"—")} / ${max}</p>
+    <p class="classification">${esc(casmClassText(cl[code]))}</p>
+  </div>`;
+
+  $("#casmResult").innerHTML=`
+    <div class="casmResultGrid">
+      <div class="resultBox wide">
+        <h3>Resultado CASM-85-R</h3>
+        <p><b>Puntuación total:</b> ${esc(sc.TOTAL??"—")} / 53</p>
+        <p><b>Categoría:</b> ${esc(casmClassText(cl.TOTAL))}</p>
+        ${cl.TOTAL?.percentile_band?`<p><b>Rango percentilar:</b> ${esc(cl.TOTAL.percentile_band)}</p>`:""}
+      </div>
+      ${areaBox("I","Cómo estudia",12)}
+      ${areaBox("II","Cómo hace sus tareas",10)}
+      ${areaBox("III","Cómo prepara sus exámenes",11)}
+      ${areaBox("IV","Cómo escucha las clases",12)}
+      ${areaBox("V","Qué acompaña sus momentos de estudio",8)}
+    </div>`;
+  $("#casmResult").classList.remove("hidden");
+}
+async function previewCasm(){
+  try{
+    const answers=casmPayload();
+    $("#casmStatus").textContent="Calculando…";
+    const r=await rpc("teacher_diagnostic_casm_preview",{
+      p_student_id:activeStudentBundle.student.id,
+      p_answers:answers
+    });
+    if(!r.ok)throw new Error(r.reason||"No se pudo calcular CASM-85-R.");
+    showCasmResult(r);
+    $("#casmStatus").textContent="Vista previa calculada. Aún no se ha guardado.";
+  }catch(e){$("#casmStatus").textContent=e.message||String(e)}
+}
+async function saveCasm(){
+  try{
+    const answers=casmPayload();
+    $("#casmStatus").textContent="Guardando…";
+    const r=await rpc("teacher_diagnostic_save_casm",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id,
+      p_answers:answers
+    });
+    if(!r.saved)throw new Error(r.reason||"No se pudo guardar CASM-85-R.");
+    showCasmResult(r);
+    $("#casmStatus").textContent="✓ CASM-85-R guardado correctamente.";
+    activeStudentBundle=await rpc("teacher_diagnostic_student_bundle",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id
+    });
+    $("#casmState").textContent="Completa";
+  }catch(e){$("#casmStatus").textContent=e.message||String(e)}
+}
+
+$("#openCasmBtn").onclick=openCasm;
+$("#backStudentFromCasm").onclick=()=>{
+  if(activeStudentBundle){
+    $("#casmCard").classList.add("hidden");
+    $("#studentCard").classList.remove("hidden");
+  }
+};
+$("#previewCasmBtn").onclick=previewCasm;
+$("#saveCasmBtn").onclick=saveCasm;
 
 $("#loginBtn").onclick=login;
 $("#createPeriodBtn").onclick=createPeriod;

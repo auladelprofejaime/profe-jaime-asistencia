@@ -90,7 +90,7 @@
           <button class="testTile activeTest" id="openSagesBtn" type="button"><b>SAGES-2</b><span id="sagesState">Pendiente</span><small>Abrir captura</small></button>
           <button class="testTile activeTest" id="openComplecBtn" type="button"><b>CompLEC</b><span id="complecState">Pendiente</span><small>Abrir captura</small></button>
           <button class="testTile activeTest" id="openProescBtn" type="button"><b>PROESC</b><span id="proescState">Pendiente</span><small>Abrir captura</small></button>
-          <div class="testTile"><b>CASM-85-R</b><span id="casmState">Pendiente</span></div>
+          <button class="testTile activeTest" id="openCasmBtn" type="button"><b>CASM-85-R</b><span id="casmState">Pendiente</span><small>Abrir captura</small></button>
         </div>
         <p class="notice">SAGES-2 ya tiene pantalla de captura. Las demás pruebas se habilitarán en los siguientes pasos.</p>
       </section>
@@ -240,6 +240,37 @@
 
         <div id="proescStatus" class="status"></div>
         <div id="proescResult" class="hidden"></div>
+
+      </section>
+
+      <section id="casmCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">CASM-85-R · Hábitos de estudio</p>
+            <h2 id="casmStudentName">Captura CASM-85-R</h2>
+            <p id="casmStudentMeta" class="muted"></p>
+          </div>
+          <button id="backStudentFromCasm" class="secondary">← Expediente</button>
+        </div>
+
+        <div class="sagesInfo">
+          <p><b>Marca una respuesta en cada reactivo.</b> La app corrige automáticamente las cinco áreas y el resultado total.</p>
+        </div>
+
+        <div class="complecProgress">
+          <b id="casmProgressText">0 de 53 respondidas</b>
+          <div class="progressTrack"><div id="casmProgressBar" class="progressFill"></div></div>
+        </div>
+
+        <div id="casmItems" class="casmItems"></div>
+
+        <div class="sagesActions">
+          <button id="previewCasmBtn" class="secondary" type="button">Calcular vista previa</button>
+          <button id="saveCasmBtn" type="button">Guardar CASM-85-R</button>
+        </div>
+
+        <div id="casmStatus" class="status"></div>
+        <div id="casmResult" class="hidden"></div>
       </section>
     </section>
   </main>

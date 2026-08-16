@@ -7,6 +7,7 @@ function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===i
 
 async function openFamilyPushTarget(target){
  if(target==='reports'){await openPortalView('reports');return}
+ if(target==='diagnostic'){await openPortalView('diagnostic');return}
  if(target==='activities'){setView('activities');return}
  if(target==='materials'){setView('materials');return}
  if(target==='notices'){setView('notices');return}

@@ -1,14 +1,9 @@
-APP PADRES v8.12.2 — Diagnóstico en lenguaje familiar
+APP PADRES v8.12.3 — Reporte diagnóstico explicado para familias
 
-Solo cambia la presentación del Diagnóstico inicial para Padres.
-No modifica cálculos, resultados, publicación, sesiones ni push.
-
-Presentación:
-- ¿Cómo le fue?
-- Lo que está haciendo bien
-- Lo que necesita reforzar
-- ¿Cómo podemos apoyarlo?
-- ¿Qué se evaluó?
-
-Se ocultan del reporte familiar puntuaciones crudas, percentiles, cocientes,
-nombres de pruebas y etiquetas técnicas Área I–V.
+Cambios únicamente en la presentación del diagnóstico:
+- elimina nombres de pruebas y puntuaciones técnicas;
+- evita etiquetas ambiguas como "Dificultad";
+- explica qué significa cada aspecto que conviene reforzar;
+- ofrece acciones concretas para casa;
+- aclara que no es una calificación;
+- mantiene intactos resultados, cálculos, sesiones, publicación y push.

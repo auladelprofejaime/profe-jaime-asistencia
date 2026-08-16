@@ -19,4 +19,5 @@ VERSIÓN 0.8.6 — SAGES: 0 y puntajes por encima del máximo baremado dejan de 
 v0.8.7 SAGES: la conversión local usa la tabla completa BAREMOS_SAGES. Si una puntuación cruda o un cociente cae en un hueco, utiliza el valor normativo más próximo; en empate usa el inferior. Percentil >=90 = Aptitud sobresaliente. 0 y máximos son valores válidos.
 
 
-v0.8.8 Resultado integrado: SAGES muestra explícitamente Aptitud sobresaliente cuando P>=90; CASM-85-R sustituye Área I–V por nombres descriptivos en fortalezas, áreas por reforzar y recomendaciones. No modifica cálculos ni baremos.
+v0.8.9 Resultado integrado: SAGES muestra explícitamente Aptitud sobresaliente cuando P>=90; CASM-85-R sustituye Área I–V por nombres descriptivos en fortalezas, áreas por reforzar y recomendaciones. No modifica cálculos ni baremos.
+v0.8.9 Corrige residuo romano CASM en Área IV (evita mostrar ":V:") en el resultado integrado.

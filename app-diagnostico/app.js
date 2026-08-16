@@ -848,7 +848,7 @@ function integratedFriendlyItem(x){
   // CASM-85-R: nunca mostrar claves Área I–V en el resultado individual.
   if(source.toUpperCase().includes("CASM") || /^\s*á?rea\s+(i{1,3}|iv|v)\s*$/i.test(rawArea)){
     title=info.title;
-    const areaRoman=(rawArea.match(/(?:área|area)\s+(i{1,3}|iv|v)/i)||[])[1];
+    const areaRoman=(rawArea.match(/(?:área|area)\s+(iv|v|iii|ii|i)(?:\s|$|:)/i)||[])[1];
     if(areaRoman){
       const re=new RegExp(`CASM-85-R\\s+(?:Á|A)rea\\s+${areaRoman}\\s*:?`,"ig");
       text=text.replace(re,`${info.title}:`);

@@ -115,21 +115,6 @@
     grid-template-columns:1fr !important;
   }
 }
-
-/* === Módulo Puntos v8.16.3 === */
-.points-balance{font-size:1.75rem;font-weight:900}
-.points-open{color:#15803d;font-weight:800}
-.points-scheduled{color:#9a6700;font-weight:800}
-.points-closed{color:#991b1b;font-weight:800}
-.points-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
-.points-status-list .row{align-items:flex-start}
-.points-status-pill{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.78rem;font-weight:800;background:#f3f4f6}
-.points-status-pill.used,.points-status-pill.mixed{background:#dcfce7;color:#166534}
-.points-status-pill.donated{background:#dbeafe;color:#1d4ed8}
-.points-status-pill.keep{background:#fef3c7;color:#92400e}
-.points-status-pill.pending{background:#f3f4f6;color:#4b5563}
-@media(max-width:760px){.points-grid{grid-template-columns:1fr}}
-
 </style>
 
 
@@ -273,7 +258,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.16.3</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.14.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -286,15 +271,14 @@
       <button data-view="attendance" class="tab"><span>▣</span>Asistencia</button>
       <button data-view="activities" class="tab"><span>●</span>Actividades</button>
       <button data-view="methodologies" class="tab"><span>%</span>Metodologías</button>
-      <button data-view="points" class="tab"><span>★</span>Puntos</button>
       <button data-view="titular" class="tab"><span>3A</span>Seguimiento 3.º A</button>
       <button data-view="students" class="tab"><span>♟</span>Alumnos</button>
       <button data-view="dossier" class="tab"><span>👤</span>Expediente del alumno</button>
       <button data-view="reports" class="tab"><span>▤</span>Reportes</button>
       <button data-view="availability" class="tab"><span>◷</span>Disponibilidad</button>
+      <button data-view="student-app-hours" class="tab"><span>⏰</span>Horario App Estudiantes</button>
       <button data-view="content" class="tab"><span>✦</span>Contenido</button>
       <button data-view="portal-access" class="tab"><span>🔐</span>Estado de acceso a portales</button>
-      <button data-view="messages" class="tab"><span>✉</span>Mensajes</button>
       <button data-view="privacy" class="tab"><span>🔒</span>Privacidad y seguridad</button>
     </div>
   </details>
@@ -341,7 +325,6 @@
   <button data-go="attendance" class="home-button"><span>▣</span><b>Asistencia</b><small>Matutino y vespertino con escáner</small></button>
   <button data-go="activities" class="home-button"><span>✓</span><b>Actividades</b><small>Escáner y cuadrícula semanal</small></button>
   <button data-go="methodologies" class="home-button"><span>%</span><b>Metodologías</b><small>Criterios, porcentajes y cálculo de calificaciones</small></button>
-  <button data-go="points" class="home-button"><span>★</span><b>Puntos</b><small>Otorgar, programar periodos, saldos y decisiones</small></button>
   <button data-go="titular" class="home-button"><span>3A</span><b>Seguimiento 3.º A</b><small>Captura y reporte individual</small></button>
   <button data-go="students" class="home-button"><span>☷</span><b>Alumnos</b><small>Importar, agregar y ordenar</small></button>
   <button data-go="dossier" class="home-button"><span>👤</span><b>Expediente del alumno</b><small>Datos e historial individual</small></button>
@@ -461,97 +444,13 @@
     </div>
     <div class="card">
       <div class="section">
-        <div><h2>Promedio trimestral</h2><p class="hint">Calcular trimestre solo muestra el resultado en App Docente. Cerrar trimestre lo publica en Alumno y Padres.</p></div>
-        <div class="actions"><button id="calculateQuarterBtn" class="primary" type="button">Calcular trimestre</button><button id="closeQuarterBtn" class="secondary" type="button">Cerrar trimestre</button><button id="quarterPdfBtn" class="secondary" type="button">Generar PDF</button></div>
+        <div><h2>Promedio trimestral</h2><p class="hint">En matutino promedia las calificaciones finales decimales de los meses cerrados del trimestre.</p></div>
+        <div class="actions"><button id="calculateQuarterBtn" class="primary" type="button">Calcular trimestre</button><button id="quarterPdfBtn" class="secondary" type="button">Generar PDF</button></div>
       </div>
       <div id="quarterResults" class="tablewrap"><div class="empty">Selecciona ciclo y trimestre.</div></div>
     </div>
   </div>
 
-</section>
-
-
-<section id="points" class="view">
-  <div class="subtabs">
-    <button data-pointtab="award" class="sub active">Otorgar puntos</button>
-    <button data-pointtab="period" class="sub">Periodo por grupo</button>
-    <button data-pointtab="manage" class="sub">Gestionar alumno</button>
-  </div>
-
-  <div id="point-award" class="pointpane active">
-    <div class="card grid4">
-      <label>Grupo<select id="pointAwardGroup"></select></label>
-      <label>Cantidad<input id="pointAwardAmount" type="number" min="0.1" step="0.1" value="1" inputmode="decimal"></label>
-      <label class="wide">Motivo<input id="pointAwardReason" placeholder="Ej. Ganador de competencia de ortografía"></label>
-    </div>
-    <div id="pointAwardStatus" class="status neutral"><i>★</i><h2>Escanea la credencial</h2><p>Los puntos se sumarán al saldo del alumno durante todo el ciclo escolar.</p></div>
-    <div class="scan"><input id="pointAwardScan" inputmode="numeric" placeholder="ID del alumno"><button id="pointAwardRegister" class="primary" type="button">Otorgar puntos</button></div>
-    <div class="card">
-      <div class="section"><div><h2>Saldos del grupo</h2><p class="hint">El saldo no caduca al terminar el mes.</p></div><button id="pointRefreshBalances" class="secondary" type="button">Actualizar</button></div>
-      <div id="pointBalancesList" class="list empty">Selecciona un grupo.</div>
-    </div>
-  </div>
-
-  <div id="point-period" class="pointpane">
-    <div class="card">
-      <h2>Publicar calificación provisional</h2>
-      <p class="hint">Calcular en Metodologías sigue siendo privado. Aquí decides cuándo la calificación mensual provisional ya puede aparecer en Alumno y Padres.</p>
-      <label>Metodología mensual<select id="pointMethodology"></select></label>
-      <div class="actions">
-        <button id="pointPublishProvisional" class="primary" type="button">Publicar provisional</button>
-      </div>
-      <p id="pointProvisionalState" class="hint"></p>
-    </div>
-
-    <form id="pointPeriodForm" class="card formgrid">
-      <h2 class="wide">Programar periodo de decisiones</h2>
-      <p class="wide hint">Cada grupo puede tener un día y horario distinto. El periodo se abrirá y cerrará con la fecha/hora programada.</p>
-      <label>Abre<input id="pointPeriodOpen" type="datetime-local" required></label>
-      <label>Cierra<input id="pointPeriodClose" type="datetime-local" required></label>
-      <div class="wide actions"><button class="primary" type="submit">Guardar programación</button></div>
-    </form>
-
-    <div class="card">
-      <div class="section"><div><h2>Periodos programados</h2><p class="hint">Programado = aún no inicia · Abierto = alumnos pueden decidir · Cerrado = ya no admite movimientos.</p></div><button id="pointRefreshPeriods" class="secondary" type="button">Actualizar</button></div>
-      <div id="pointPeriodsList" class="list empty">No hay periodos.</div>
-    </div>
-  </div>
-
-  <div id="point-manage" class="pointpane">
-    <div class="card grid4">
-      <label>Periodo<select id="pointManagePeriod"></select></label>
-      <label>Alumno<select id="pointManageStudent"></select></label>
-      <label>Saldo actual<div id="pointManageBalance" class="points-balance">0.00</div></label>
-      <label>Estado<div id="pointManageChoice" class="points-status-pill pending">Pendiente</div></label>
-    </div>
-
-    <div class="points-grid">
-      <div class="card">
-        <h2>Aplicar a su calificación</h2>
-        <p class="hint">Úsalo si el alumno no tiene celular o te pide hacer el proceso desde tu app.</p>
-        <label>Puntos a aplicar<input id="pointManageUseAmount" type="number" min="0" step="0.1" value="0" inputmode="decimal"></label>
-        <button id="pointManageUseBtn" class="primary" type="button">Aplicar puntos</button>
-      </div>
-
-      <div class="card">
-        <h2>Donar a un compañero</h2>
-        <p class="hint">Solo permite donar dentro del mismo grupo. Se captura el ID de 5 dígitos del destinatario.</p>
-        <label>ID del compañero<input id="pointManageRecipient" inputmode="numeric" maxlength="5" placeholder="00000"></label>
-        <label>Puntos a donar<input id="pointManageDonateAmount" type="number" min="0.1" step="0.1" value="1" inputmode="decimal"></label>
-        <button id="pointManageDonateBtn" class="primary" type="button">Registrar donación</button>
-      </div>
-    </div>
-
-    <div class="card">
-      <div class="section"><div><h2>Decisiones del grupo</h2><p class="hint">Pendiente no significa que pierda puntos: si no hace nada, conserva su saldo.</p></div><button id="pointManageRefresh" class="secondary" type="button">Actualizar</button></div>
-      <div id="pointDecisionList" class="list empty">Selecciona un periodo.</div>
-    </div>
-
-    <div class="card">
-      <h2>Historial del alumno</h2>
-      <div id="pointHistoryList" class="list empty">Selecciona un alumno.</div>
-    </div>
-  </div>
 </section>
 
 <section id="titular" class="view">
@@ -812,6 +711,59 @@
   </div>
 </section>
 
+<section id="student-app-hours" class="view">
+  <div class="card">
+    <div class="section">
+      <div>
+        <h2>Horario App Estudiantes</h2>
+        <p class="hint">Controla cuándo los alumnos pueden utilizar El Aula del Profe Jaime – App Estudiantes. Este horario no bloquea tu App Docente ni la App Padres.</p>
+      </div>
+      <button id="refreshStudentAppHours" type="button" class="secondary">Actualizar</button>
+    </div>
+
+    <form id="studentAppHoursForm" class="formgrid">
+      <label class="full"><input id="studentAppHoursEnabled" type="checkbox" checked> <b>Activar bloqueo por horario escolar</b></label>
+      <label>Bloquear desde<input id="studentAppBlockedStart" type="time" value="07:00" required></label>
+      <label>Permitir acceso desde<input id="studentAppBlockedEnd" type="time" value="14:30" required></label>
+
+      <fieldset class="full">
+        <legend>Días con bloqueo</legend>
+        <div class="actions">
+          <label><input class="studentAppDay" type="checkbox" value="1" checked> Lun</label>
+          <label><input class="studentAppDay" type="checkbox" value="2" checked> Mar</label>
+          <label><input class="studentAppDay" type="checkbox" value="3" checked> Mié</label>
+          <label><input class="studentAppDay" type="checkbox" value="4" checked> Jue</label>
+          <label><input class="studentAppDay" type="checkbox" value="5" checked> Vie</label>
+          <label><input class="studentAppDay" type="checkbox" value="6"> Sáb</label>
+          <label><input class="studentAppDay" type="checkbox" value="0"> Dom</label>
+        </div>
+      </fieldset>
+
+      <label class="full">Título que verá el alumno
+        <input id="studentAppMessageTitle" value="¡Ahora no, joven!">
+      </label>
+      <label class="full">Mensaje
+        <textarea id="studentAppMessageBody" rows="5">Esta aplicación está diseñada para consultarse fuera del horario de clases. Durante la jornada escolar, tu atención debe estar en tus clases, actividades y profesores, no en el celular.</textarea>
+      </label>
+      <div class="full actions">
+        <button type="submit" class="primary">Guardar horario</button>
+      </div>
+    </form>
+
+    <div class="card" style="margin-top:16px">
+      <h3>Apertura temporal</h3>
+      <p class="hint">Si excepcionalmente necesitas que los alumnos entren durante el horario bloqueado, puedes abrir la app temporalmente para todos.</p>
+      <div class="actions">
+        <button type="button" class="secondary studentTempOpen" data-minutes="15">Abrir 15 min</button>
+        <button type="button" class="secondary studentTempOpen" data-minutes="30">Abrir 30 min</button>
+        <button type="button" class="secondary studentTempOpen" data-minutes="60">Abrir 1 hora</button>
+        <button type="button" class="secondary" id="cancelStudentTempOpen">Cancelar apertura temporal</button>
+      </div>
+      <p id="studentAppHoursStatus" class="message"></p>
+    </div>
+  </div>
+</section>
+
 <section id="content" class="view">
   <div class="card">
     <h2>Contenido para los portales</h2>
@@ -856,13 +808,6 @@
   </div>
 </section>
 
-<section id="messages" class="view">
-  <div class="card">
-    <div class="section"><div><h2>Mensajes del alumnado</h2><p class="hint">Mensajería escolar interna sincronizada con Mi Español. Las respuestas aparecen en el chat del alumno.</p></div><button id="refreshMessages" class="secondary">Actualizar</button></div>
-    <div id="teacherMessages" class="message-inbox"><div class="empty">No hay mensajes.</div></div>
-  </div>
-</section>
-
 <section id="privacy" class="view"><div class="card privacy-card"><h2>🔒 Privacidad y seguridad</h2>
 <p>Esta aplicación es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas, trámites o procedimientos oficiales.</p>
 <h3>Datos utilizados</h3><p>Se utilizan únicamente los datos necesarios para identificar al estudiante y realizar seguimiento escolar: ID, nombre(s) y primer apellido, turno, grupo, número de lista, cumpleaños solo con día y mes, observaciones o incidencias escolares pertinentes y registros académicos generados en la aplicación.</p>
@@ -870,12 +815,12 @@
 <h3>Dónde se almacenan</h3><p>Los datos que requieren sincronización se envían a un servicio en línea con controles de acceso. Los portales consultan únicamente la información asociada a la sesión iniciada mediante ID y PIN.</p>
 <h3>Contenido del dispositivo</h3><p>La aplicación no solicita acceso a contactos, ubicación, micrófono, fotografías, videos, mensajes personales, contraseñas ni información bancaria. Cuando el docente elige un archivo para importar, restaurar, respaldar o publicar material, se utiliza únicamente el archivo seleccionado expresamente.</p>
 <h3>Notificaciones</h3><p>Las notificaciones utilizan exclusivamente los datos técnicos necesarios para registrar y entregar avisos mediante Web Push.</p>
-<h3>Mensajería</h3><p>El chat escolar conserva únicamente la conversación correspondiente a la semana escolar en curso. Al iniciar una nueva semana escolar, la conversación anterior se elimina de acuerdo con la política de retención configurada.</p>
+<h3>Comunicación con el profesor</h3><p>La App Estudiantes no dispone de mensajería privada con el profesor. La comunicación digital con el docente se realiza mediante el canal disponible en la App Padres / Seguimiento Familiar.</p>
 <h3>Finalidad</h3><p>La información se utiliza para organización, comunicación y seguimiento escolar. No se utiliza para publicidad ni para fines comerciales.</p>
 <p class="hint">Ningún sistema puede prometer seguridad absoluta. Se aplican minimización de datos, credenciales y controles técnicos de acceso para reducir riesgos.</p></div></section>
 <dialog id="dialog"><div class="dialoghead"><h2 id="dialogTitle">Detalle</h2><button id="dialogClose">×</button></div><div id="dialogBody"></div></dialog>
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8163.js?v=8163"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8142.js?v=8141"></script>
 </body></html>

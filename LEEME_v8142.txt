@@ -1,0 +1,8 @@
+APP DOCENTE v8.14.2
+- Agrega Horario App Estudiantes.
+- Activa/desactiva bloqueo.
+- Configura inicio, fin y días.
+- Edita título y mensaje.
+- Apertura temporal 15/30/60 min y cancelación.
+- Retira la sección Mensajes del alumnado de la interfaz docente.
+- No modifica App Padres, portal_get_bundle ni diagnóstico.

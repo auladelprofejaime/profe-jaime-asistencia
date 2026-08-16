@@ -1,0 +1,8 @@
+APP ESTUDIANTES v8.12.4
+- Respeta el horario configurado desde App Docente mediante portal_get_student_app_access.
+- Bloquea toda la app durante horario escolar y muestra hora de reapertura.
+- Revisa horario al iniciar, al volver a primer plano y cada minuto.
+- Respeta aperturas temporales configuradas por el profesor.
+- Retira Chat/Mensajes de la interfaz del alumno.
+- El backend también mantiene deshabilitado portal_send_message para estudiantes.
+- Actualiza Privacidad y seguridad para indicar que la comunicación digital se realiza mediante App Padres.

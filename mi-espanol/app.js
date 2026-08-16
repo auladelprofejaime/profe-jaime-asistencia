@@ -31,10 +31,57 @@ async function refreshStudentNotices(){
  }
 }
 async function openStudentView(id){
+ if(id==='chat')id='home';
  if((id==='home'||id==='notices')&&currentToken)await refreshStudentNotices();
+ if(await enforceStudentSchedule())return;
  setView(id);
 }
 
+
+
+let studentScheduleTimer=null;
+async function getStudentScheduleAccess(){
+ if(!currentToken)return {ok:false,blocked:false};
+ try{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_student_app_access`,{
+     method:'POST',
+     headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},
+     body:JSON.stringify({p_token:currentToken}),
+     cache:'no-store'
+   });
+   if(!r.ok)return {ok:false,blocked:false};
+   return await r.json();
+ }catch(e){console.warn('student schedule',e);return {ok:false,blocked:false}}
+}
+function formatStudentOpenTime(v){
+ const x=String(v||'').slice(0,5); if(!/^\d{2}:\d{2}$/.test(x))return '--:--';
+ const [hh,mm]=x.split(':').map(Number); const d=new Date(2000,0,1,hh,mm);
+ return d.toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'});
+}
+function showStudentScheduleBlock(data){
+ const box=$('#studentScheduleBlock'); if(!box)return;
+ $('#studentScheduleTitle').textContent=data.message_title||'¡Ahora no, joven!';
+ $('#studentScheduleMessage').textContent=data.message_body||'Esta aplicación está diseñada para consultarse fuera del horario de clases. Durante la jornada escolar, tu atención debe estar en tus clases, actividades y profesores, no en el celular.';
+ $('#studentScheduleOpenTime').textContent=formatStudentOpenTime(data.next_open||data.blocked_end);
+ box.classList.remove('hidden');
+ document.documentElement.style.overflow='hidden'; document.body.style.overflow='hidden';
+}
+function hideStudentScheduleBlock(){
+ $('#studentScheduleBlock')?.classList.add('hidden');
+ document.documentElement.style.overflow=''; document.body.style.overflow='';
+}
+async function enforceStudentSchedule(){
+ if(!currentToken){hideStudentScheduleBlock();return false}
+ const data=await getStudentScheduleAccess();
+ if(data?.ok && data.blocked){showStudentScheduleBlock(data);return true}
+ hideStudentScheduleBlock();return false;
+}
+function startStudentScheduleWatch(){
+ if(studentScheduleTimer)clearInterval(studentScheduleTimer);
+ studentScheduleTimer=setInterval(()=>enforceStudentSchedule().catch(()=>{}),60000);
+}
+window.addEventListener('focus',()=>enforceStudentSchedule().catch(()=>{}));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)enforceStudentSchedule().catch(()=>{})});
 
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=899';
 let currentId='',bundle=null,currentToken='';
@@ -56,9 +103,6 @@ async function init(){
  try{await ensureStudentServiceWorker()}catch(e){console.warn('SW',e)}
  $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;
  $('#studentNotifBtn').onclick=openStudentNotifications;
- $('#refreshStudentChat').onclick=refreshStudentPortal;
- $('#sendStudentMessage').onclick=sendMessage;
- $('#chatTopicSelect').onchange=e=>selectChatTopic(e.target.value);
 
  const saved=localStorage.getItem('miEspanolSession')||sessionStorage.getItem('miEspanolSession');
  if(saved){
@@ -106,6 +150,8 @@ async function enterPortal(){
  $('#sessionLoading')?.classList.add('hidden');
  $('#loginGate')?.classList.add('hidden');
  $('#portalApp')?.classList.remove('hidden');
+ await enforceStudentSchedule();
+ startStudentScheduleWatch();
  await load();
  return true;
 }
@@ -329,7 +375,7 @@ function renderChatHistory(){
 async function refreshStudentPortal(){
  let fresh=await portalGetBundle(currentToken);if(!fresh?.ok)return;
  processStudentChanges(fresh);bundle=fresh;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();showBirthdayGreetingIfNeeded().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();enforceStudentSchedule().catch(()=>{});showBirthdayGreetingIfNeeded().catch(()=>{});
 }
 function startStudentPolling(){
  if(studentPollTimer)clearInterval(studentPollTimer);
@@ -413,7 +459,7 @@ async function load(){
  bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;await refreshStudentNotices();
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderChatHistory();renderStudentChatAvailability();renderStudentNotifBadge();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderStudentNotifBadge();await enforceStudentSchedule();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
@@ -624,5 +670,5 @@ async function sendMessage(){
  $('#chatStatus').textContent=closed?'Tu mensaje fue recibido. Será respondido el siguiente día hábil dentro del horario de atención.':'Tu mensaje fue recibido dentro del horario de atención.';
  await refreshStudentPortal();
 }
-window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){const t=e.data.target||'home';$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id===t));if(t==='chat')refreshStudentPortal().catch(()=>{})}});
+window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){const t=(e.data.target==='chat'?'home':(e.data.target||'home'));$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id===t));if(t==='chat')refreshStudentPortal().catch(()=>{})}});
 init();

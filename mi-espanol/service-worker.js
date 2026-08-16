@@ -1,9 +1,9 @@
-const CACHE='app-estudiante-v8-12-3';
+const CACHE='app-estudiante-v8-12-4';
 const FILES=[
   './',
   './index.html',
   './styles.css',
-  './app.js?v=8123',
+  './app.js?v=8124',
   './manifest.webmanifest',
   './profe-jaime.png',
   './icon-app-estudiante-v821.png',
@@ -43,7 +43,7 @@ self.addEventListener('fetch',event=>{
         return response;
       }catch(e){
         return (await caches.match('./index.html')) || new Response(
-          '<!doctype html><html><body><h2>Mi Español</h2><p>No fue posible cargar la aplicación. Revisa tu conexión e intenta nuevamente.</p></body></html>',
+          '<!doctype html><html><body><h2>App Estudiantes</h2><p>No fue posible cargar la aplicación. Revisa tu conexión e intenta nuevamente.</p></body></html>',
           {headers:{'Content-Type':'text/html; charset=utf-8'}}
         );
       }

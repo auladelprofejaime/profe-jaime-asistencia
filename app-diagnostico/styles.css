@@ -63,3 +63,17 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .casmResultGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
 .casmResultGrid .resultBox.wide{grid-column:1/-1}
 @media(max-width:650px){.casmResultGrid{grid-template-columns:1fr}.casmResultGrid .resultBox.wide{grid-column:auto}}
+
+.integratedLaunch{margin-top:14px;display:flex;justify-content:flex-end}
+.integratedLaunch button{min-width:220px}
+.integratedGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px;margin-top:16px}
+.integratedBox{padding:16px;border:1px solid #eadfbc;border-radius:16px;background:#fffdf7}
+.integratedBox.wide{grid-column:1/-1}
+.integratedBox h3{margin:0 0 10px}
+.integratedList{display:flex;flex-direction:column;gap:10px}
+.integratedItem{padding:12px;border-radius:12px;background:#fff7d5;border:1px solid #ead681}
+.priorityBadge{display:inline-block;padding:7px 10px;border-radius:999px;background:#f2ead0;font-weight:900}
+.testMiniGrid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.testMini{padding:12px;border:1px solid #eadfbc;border-radius:12px;background:#fff}
+.disclaimerBox{margin-top:14px;padding:12px;border-radius:12px;background:#f2ead0;color:#5f574e}
+@media(max-width:650px){.integratedGrid,.testMiniGrid{grid-template-columns:1fr}.integratedBox.wide{grid-column:auto}.integratedLaunch button{width:100%}}

@@ -1,10 +1,11 @@
-APP DIAGNÓSTICO v0.5.0 — CASM-85-R captura
+APP DIAGNÓSTICO v0.6.0 — Resultado integrado
 
-Paso 5/9 · CASM-85-R · Subpaso 3/4
+Paso 6/9 · Perfil diagnóstico integrado · Subpaso 3/4
 
 Agrega:
-- Captura Siempre/Nunca de 53 reactivos.
-- Progreso 0–53.
-- Separación visual por cinco áreas.
-- Vista previa de áreas + total.
-- Guardado y reapertura.
+- Botón Ver resultado integrado.
+- Comprueba que las cuatro pruebas estén completas.
+- Genera resumen técnico consolidado.
+- Genera y guarda síntesis pedagógica determinista.
+- Muestra fortalezas, áreas por reforzar, recomendaciones y prioridad.
+- Incluye aviso de que no es diagnóstico clínico/psicológico.

@@ -122,6 +122,7 @@ async function openStudent(id){
   $("#complecCard").classList.add("hidden");
   $("#proescCard").classList.add("hidden");
   $("#casmCard").classList.add("hidden");
+  $("#integratedCard").classList.add("hidden");
   $("#studentCard").classList.remove("hidden");
   $("#studentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
   $("#studentName").textContent=b.student.name;
@@ -747,6 +748,117 @@ $("#backStudentFromCasm").onclick=()=>{
 };
 $("#previewCasmBtn").onclick=previewCasm;
 $("#saveCasmBtn").onclick=saveCasm;
+
+
+function integratedPriorityLabel(v){
+  if(v==="seguimiento_prioritario")return "Seguimiento prioritario";
+  if(v==="seguimiento")return "Seguimiento";
+  return "Seguimiento ordinario";
+}
+function renderIntegratedList(items,emptyText){
+  if(!Array.isArray(items)||!items.length)return `<p class="muted">${esc(emptyText)}</p>`;
+  return `<div class="integratedList">${items.map(x=>`
+    <div class="integratedItem">
+      <b>${esc(x.area||x.source||"")}</b>
+      <div>${esc(x.text||"")}</div>
+      ${x.source?`<small>${esc(x.source)}</small>`:""}
+    </div>`).join("")}</div>`;
+}
+function renderIntegratedTechnical(t){
+  const sg=t?.sages||{};
+  const co=t?.complec||{};
+  const pr=t?.proesc||{};
+  const ca=t?.casm||{};
+  return `
+    <div class="testMiniGrid">
+      <div class="testMini"><b>SAGES-2</b><br>
+        Lengua: P${esc(sg?.language?.percentile??"—")} · Razonamiento: P${esc(sg?.reasoning?.percentile??"—")}
+      </div>
+      <div class="testMini"><b>CompLEC</b><br>
+        Total: ${esc(co?.total_score??"—")} / 20
+      </div>
+      <div class="testMini"><b>PROESC abreviado</b><br>
+        Palabras: ${esc(pr?.scores?.words??"—")}/25 · Redacción: ${esc(pr?.scores?.writing_total??"—")}/10
+      </div>
+      <div class="testMini"><b>CASM-85-R</b><br>
+        Total: ${esc(ca?.scores?.TOTAL??"—")} / 53
+      </div>
+    </div>`;
+}
+function showIntegratedResult(technical,syn){
+  $("#integratedContent").innerHTML=`
+    <div class="integratedGrid">
+      <div class="integratedBox wide">
+        <h3>Resumen técnico</h3>
+        ${renderIntegratedTechnical(technical)}
+      </div>
+      <div class="integratedBox wide">
+        <h3>Prioridad de seguimiento</h3>
+        <span class="priorityBadge">${esc(integratedPriorityLabel(syn.priority_level))}</span>
+      </div>
+      <div class="integratedBox">
+        <h3>Fortalezas</h3>
+        ${renderIntegratedList(syn.strengths,"No se identificaron fortalezas destacadas con las reglas actuales.")}
+      </div>
+      <div class="integratedBox">
+        <h3>Áreas por reforzar</h3>
+        ${renderIntegratedList(syn.support_areas,"No se identificaron áreas específicas de refuerzo con las reglas actuales.")}
+      </div>
+      <div class="integratedBox wide">
+        <h3>Recomendaciones</h3>
+        ${renderIntegratedList(syn.recommendations,"No se generaron recomendaciones específicas.")}
+      </div>
+    </div>
+    <div class="disclaimerBox">${esc(syn.disclaimer||"Síntesis pedagógica para orientar el acompañamiento escolar.")}</div>`;
+  $("#integratedContent").classList.remove("hidden");
+}
+async function openIntegrated(){
+  if(!activeStudentBundle)return;
+  const b=activeStudentBundle;
+
+  $("#studentCard").classList.add("hidden");
+  $("#sagesCard").classList.add("hidden");
+  $("#complecCard").classList.add("hidden");
+  $("#proescCard").classList.add("hidden");
+  $("#casmCard").classList.add("hidden");
+  $("#integratedCard").classList.remove("hidden");
+
+  $("#integratedStudentName").textContent=b.student.name;
+  $("#integratedStudentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
+  $("#integratedContent").classList.add("hidden");
+  $("#integratedStatus").textContent="Generando perfil integrado…";
+
+  try{
+    const integrated=await rpc("teacher_diagnostic_integrated_preview",{
+      p_period_id:activePeriod.id,
+      p_student_id:b.student.id
+    });
+
+    if(!integrated.complete){
+      const missing=Array.isArray(integrated.missing_tests)?integrated.missing_tests.join(", "):"pruebas pendientes";
+      $("#integratedStatus").textContent=`No se puede generar todavía. Faltan: ${missing}.`;
+      return;
+    }
+
+    const syn=await rpc("teacher_diagnostic_generate_synthesis",{
+      p_period_id:activePeriod.id,
+      p_student_id:b.student.id
+    });
+
+    if(!syn.ok||!syn.saved)throw new Error(syn.reason||"No se pudo generar la síntesis.");
+
+    showIntegratedResult(integrated.technical_summary,syn);
+    $("#integratedStatus").textContent="✓ Perfil integrado generado y guardado.";
+  }catch(e){
+    $("#integratedStatus").textContent=e.message||String(e);
+  }
+}
+
+$("#openIntegratedBtn").onclick=openIntegrated;
+$("#backStudentFromIntegrated").onclick=()=>{
+  $("#integratedCard").classList.add("hidden");
+  $("#studentCard").classList.remove("hidden");
+};
 
 $("#loginBtn").onclick=login;
 $("#createPeriodBtn").onclick=createPeriod;

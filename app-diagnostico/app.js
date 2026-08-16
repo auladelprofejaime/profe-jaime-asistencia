@@ -838,14 +838,41 @@ function integratedPriorityLabel(v){
   if(v==="seguimiento")return "Seguimiento";
   return "Seguimiento ordinario";
 }
+function integratedFriendlyItem(x){
+  const source=String(x?.source||"");
+  const rawArea=String(x?.area||"");
+  const info=reportFriendlyAreaInfo(rawArea);
+  let title=rawArea||source;
+  let text=String(x?.text||"");
+
+  // CASM-85-R: nunca mostrar claves Área I–V en el resultado individual.
+  if(source.toUpperCase().includes("CASM") || /^\s*á?rea\s+(i{1,3}|iv|v)\s*$/i.test(rawArea)){
+    title=info.title;
+    const areaRoman=(rawArea.match(/(?:área|area)\s+(i{1,3}|iv|v)/i)||[])[1];
+    if(areaRoman){
+      const re=new RegExp(`CASM-85-R\\s+(?:Á|A)rea\\s+${areaRoman}\\s*:?`,"ig");
+      text=text.replace(re,`${info.title}:`);
+    }
+  }
+
+  return {...x,displayArea:title,displayText:text};
+}
 function renderIntegratedList(items,emptyText){
   if(!Array.isArray(items)||!items.length)return `<p class="muted">${esc(emptyText)}</p>`;
-  return `<div class="integratedList">${items.map(x=>`
+  return `<div class="integratedList">${items.map(original=>{
+    const x=integratedFriendlyItem(original);
+    return `
     <div class="integratedItem">
-      <b>${esc(x.area||x.source||"")}</b>
-      <div>${esc(x.text||"")}</div>
+      <b>${esc(x.displayArea||x.source||"")}</b>
+      <div>${esc(x.displayText||"")}</div>
       ${x.source?`<small>${esc(x.source)}</small>`:""}
-    </div>`).join("")}</div>`;
+    </div>`;
+  }).join("")}</div>`;
+}
+function sagesIntegratedLabel(x,label){
+  const p=Number(x?.percentile);
+  const suffix=Number.isFinite(p)&&p>=90?' · Aptitud sobresaliente':'';
+  return `${label}: P${esc(x?.percentile??"—")}${suffix}`;
 }
 function renderIntegratedTechnical(t){
   const sg=t?.sages||{};
@@ -855,7 +882,7 @@ function renderIntegratedTechnical(t){
   return `
     <div class="testMiniGrid">
       <div class="testMini"><b>SAGES-2</b><br>
-        Lengua: P${esc(sg?.language?.percentile??"—")} · Razonamiento: P${esc(sg?.reasoning?.percentile??"—")}
+        ${sagesIntegratedLabel(sg?.language,"Lengua")} · ${sagesIntegratedLabel(sg?.reasoning,"Razonamiento")}
       </div>
       <div class="testMini"><b>CompLEC</b><br>
         Total: ${esc(co?.total_score??"—")} / 20
@@ -869,6 +896,22 @@ function renderIntegratedTechnical(t){
     </div>`;
 }
 function showIntegratedResult(technical,syn){
+  const sg=technical?.sages||{};
+  const strengths=Array.isArray(syn?.strengths)?syn.strengths.map(x=>({...x})):[];
+  const ensureOutstanding=(sub,label)=>{
+    const p=Number(sub?.percentile);
+    if(!Number.isFinite(p)||p<90)return;
+    const idx=strengths.findIndex(x=>String(x?.source||"").toUpperCase().includes("SAGES") && String(x?.area||"").toLowerCase().includes(label.toLowerCase().split(" ")[0]));
+    const phrase=`Percentil ${p}. Aptitud sobresaliente en ${label}.`;
+    if(idx>=0){
+      if(!/aptitud sobresaliente/i.test(String(strengths[idx].text||""))) strengths[idx].text=`${strengths[idx].text||""} ${phrase}`.trim();
+    }else{
+      strengths.unshift({area:label,text:phrase,source:"SAGES-2"});
+    }
+  };
+  ensureOutstanding(sg?.language,"Lengua y literatura / Ciencias sociales");
+  ensureOutstanding(sg?.reasoning,"Razonamiento");
+
   $("#integratedContent").innerHTML=`
     <div class="integratedGrid">
       <div class="integratedBox wide">
@@ -881,7 +924,7 @@ function showIntegratedResult(technical,syn){
       </div>
       <div class="integratedBox">
         <h3>Fortalezas</h3>
-        ${renderIntegratedList(syn.strengths,"No se identificaron fortalezas destacadas con las reglas actuales.")}
+        ${renderIntegratedList(strengths,"No se identificaron fortalezas destacadas con las reglas actuales.")}
       </div>
       <div class="integratedBox">
         <h3>Áreas por reforzar</h3>

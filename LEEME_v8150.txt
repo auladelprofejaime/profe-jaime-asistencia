@@ -1,0 +1,6 @@
+APP DOCENTE v8.15.0 — MÉRITO GABINO A. PALMA
+
+Base: v8.14.4 confirmada.
+Agrega módulo administrador aislado con logo oficial, clasificación, movimientos auditables, personal autorizado/códigos, publicación semanal y configuración de periodos.
+Cierre mensual y acumulado anual quedan visibles pero reservados para completar en el Paso 4, tal como el plan de implementación.
+No reemplaza funciones existentes de App Docente.

@@ -1,0 +1,8 @@
+APP DOCENTE v8.16.0 — MÉRITO GABINO A. PALMA FINAL
+- Cierre mensual operativo.
+- Vista previa del ganador general y 7 reconocimientos.
+- Resolución manual obligatoria de empates.
+- Nota de desempate.
+- Publicación de resultado oficial.
+- Acumulado anual por ciclo escolar y filtros por grado.
+- Conserva edición de periodos, edición/archivo de docentes y todos los módulos previos.

@@ -255,6 +255,16 @@
 #meritEditPeriodDialog input,#meritEditStaffDialog input,#meritEditStaffDialog select{width:100%;box-sizing:border-box}
 </style>
 
+
+<style id="merit-final-v8160">
+#merit .merit-result-hero{padding:18px;border:2px solid currentColor;border-radius:16px;margin:12px 0;text-align:center}
+#merit .merit-result-hero .winner{font-size:2rem;font-weight:900}
+#merit .merit-tie-card{border:1px solid #ddd;border-radius:14px;padding:14px;margin:10px 0}
+#merit .merit-tie-card select,#merit .merit-tie-card textarea{width:100%;box-sizing:border-box}
+#merit .merit-category-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:10px}
+#merit .merit-category-card{border:1px solid #ddd;border-radius:14px;padding:12px}
+</style>
+
 </head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
@@ -269,7 +279,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.15.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.16.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -788,8 +798,25 @@
 <div id="merit-movements" class="merit-pane card"><div class="section"><div><h2>Movimientos</h2><p class="hint">Los registros nunca se eliminan físicamente. Una anulación conserva su trazabilidad.</p></div><button id="meritRefreshMovements" class="secondary">Actualizar</button></div><label>Periodo<select id="meritMovementPeriod"></select></label><div id="meritMovementsTable" class="tablewrap"></div></div>
 <div id="merit-staff" class="merit-pane card"><div class="section"><div><h2>Docentes autorizados</h2><p class="hint">El código de 4 dígitos se muestra únicamente al generarlo. Regenerarlo invalida activaciones anteriores.</p></div><button id="meritRefreshStaff" class="secondary">Actualizar</button></div><form id="meritStaffForm" class="formgrid"><label>Nombre<input id="meritStaffName" required></label><label>Tipo<select id="meritStaffRole"><option value="docente">Docente</option><option value="direccion">Dirección</option><option value="subdireccion">Subdirección</option><option value="prefectura">Prefectura</option><option value="otro">Otro</option></select></label><label>Asignatura / función<input id="meritStaffSubject"></label><div class="actions"><button class="primary" type="submit">Agregar personal</button></div></form><div id="meritActivationBox" class="hidden"><p class="hint">Entrega este código directamente a la persona:</p><div id="meritActivationCode" class="merit-code"></div></div><div id="meritStaffList" class="tablewrap"></div></div>
 <div id="merit-weekly" class="merit-pane card"><h2>Publicación semanal</h2><p class="hint">Crea una fotografía oficial de la clasificación. El portal nunca consulta los movimientos internos.</p><label>Periodo<select id="meritWeeklyPeriod"></select></label><label>Mensaje público opcional<textarea id="meritWeeklyMessage" rows="3" placeholder="Ej. Corte correspondiente a esta semana"></textarea></label><div class="actions"><button id="meritPreviewWeekly" class="secondary">Vista previa</button><button id="meritPublishWeekly" class="primary">Publicar avance semanal</button><button id="meritFreezePublic" class="secondary">Congelar portal</button><button id="meritProcessPublic" class="secondary">Resultados en proceso</button><button id="meritOpenPublic" class="secondary">Reabrir publicación</button></div><p id="meritWeeklyStatus" class="message"></p><div id="meritWeeklyPreview" class="tablewrap"></div></div>
-<div id="merit-monthly" class="merit-pane card"><h2>Cierre mensual</h2><p class="hint">La vista previa del ganador general y de los 7 reconocimientos se completará con el cierre transaccional en el Paso 4. No se cerrará un mes desde esta versión para evitar resultados parciales.</p><div id="meritMonthlyPreview"></div></div>
-<div id="merit-annual" class="merit-pane card"><h2>Acumulado anual</h2><p class="hint">Queda reservado para el cierre mensual y Grupo del Año. Los datos mensuales no se perderán.</p></div>
+<div id="merit-monthly" class="merit-pane card">
+  <div class="section"><div><h2>Cierre mensual</h2><p class="hint">Revisa el resultado antes de cerrar. Si existe un empate, deberás resolverlo manualmente y dejar una nota.</p></div></div>
+  <label>Periodo<select id="meritMonthlyPeriod"></select></label>
+  <div class="actions">
+    <button id="meritMonthlyPreviewBtn" class="secondary">Vista previa del cierre</button>
+    <button id="meritMonthlyCloseBtn" class="primary">Cerrar mes</button>
+    <button id="meritMonthlyPublishBtn" class="secondary">Publicar resultado oficial</button>
+  </div>
+  <p id="meritMonthlyStatus" class="message"></p>
+  <div id="meritMonthlyPreview" class="tablewrap"></div>
+  <div id="meritTieResolutions"></div>
+  <div id="meritMonthlyResult"></div>
+</div>
+<div id="merit-annual" class="merit-pane card">
+  <div class="section"><div><h2>Acumulado anual</h2><p class="hint">Suma únicamente los meses ya cerrados del ciclo escolar seleccionado.</p></div><button id="meritAnnualRefresh" class="secondary">Actualizar</button></div>
+  <label>Ciclo escolar<input id="meritAnnualCycle" value="2026-2027"></label>
+  <div class="merit-filter"><button class="secondary meritAnnualGrade active" data-grade="all">Todos</button><button class="secondary meritAnnualGrade" data-grade="1">1.º</button><button class="secondary meritAnnualGrade" data-grade="2">2.º</button><button class="secondary meritAnnualGrade" data-grade="3">3.º</button></div>
+  <div id="meritAnnualTable" class="tablewrap"></div>
+</div>
 <div id="merit-config" class="merit-pane card"><h2>Configuración</h2><form id="meritPeriodForm" class="formgrid"><label>Ciclo escolar<input id="meritSchoolYear" value="2026-2027" required></label><label>Mes<select id="meritMonthNumber"><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option></select></label><label>Nombre del periodo<input id="meritPeriodLabel" placeholder="Ej. Septiembre 2026" required></label><label>Inicio<input id="meritPeriodStart" type="date" required></label><label>Fin<input id="meritPeriodEnd" type="date" required></label><div class="actions"><button class="primary" type="submit">Guardar y abrir periodo</button></div></form><p id="meritConfigStatus" class="message"></p><p class="hint"><b>Tip:</b> después de crear un periodo, usa el botón <b>Editar</b> de la tabla para cambiar nombre, fecha de inicio o fecha de cierre.</p><div id="meritPeriodsList" class="tablewrap"></div></div>
 </section>
 
@@ -851,7 +878,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8152.js?v=8141"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8160.js?v=8141"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

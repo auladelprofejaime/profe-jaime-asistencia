@@ -5,9 +5,17 @@ async function rpc(name,args={}){const r=await fetch(`${SUPABASE_URL}/rest/v1/rp
 function render(){
  const ranking=$('#ranking'),state=$('#stateBox');ranking.innerHTML='';state.classList.add('hidden');
  $('#periodName').textContent=data?.period||'Sin periodo publicado';
- $('#updated').textContent=data?.published_at?`Última actualización: ${new Date(data.published_at).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})}`:'';
+ const published=data?.published_at||data?.official_result?.published_at;
+ $('#updated').textContent=published?`Última actualización: ${new Date(published).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})}`:'';
  if(!data?.ok){state.classList.remove('hidden');state.innerHTML='<div class="empty">No se pudo consultar el avance.</div>';return}
  if(data.state==='frozen'||data.state==='results_in_process'){state.classList.remove('hidden');state.innerHTML='<div class="empty"><h2>Resultados en proceso</h2><p>La clasificación se encuentra en revisión. El resultado oficial se publicará cuando la administración lo determine.</p></div>';return}
+ if(data.state==='official'&&data.official_result){
+   const o=data.official_result;
+   const labels={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
+   state.classList.remove('hidden');
+   state.innerHTML=`<div class="empty"><div style="font-size:.85rem;font-weight:800">RESULTADO OFICIAL</div><h2>🏆 Grupo ${escapeHtml(o.overall_winner||'—')}</h2><p><b>${Number(o.overall_score||0)} puntos</b></p><h3>Reconocimientos del mes</h3><div class="officialCats">${(o.categories||[]).map(c=>`<div class="officialCat"><b>${escapeHtml(labels[c.criterion]||c.criterion)}</b><div>Grupo ${escapeHtml(c.group)}</div></div>`).join('')}</div></div>`;
+   return;
+ }
  const rows=(data.ranking||[]).filter(x=>grade==='all'||String(x.grade)===grade);
  if(!rows.length){state.classList.remove('hidden');state.innerHTML='<div class="empty"><h2>Aún no hay un corte publicado</h2><p>Vuelve a consultar cuando se publique el siguiente avance semanal.</p></div>';return}
  ranking.innerHTML=rows.map(x=>`<div class="rankrow ${Number(x.position)===1?'top1':''}"><div class="rank">${x.position}.º</div><div class="grp">Grupo ${x.group}</div><div class="score">${x.points} pts</div></div>`).join('');

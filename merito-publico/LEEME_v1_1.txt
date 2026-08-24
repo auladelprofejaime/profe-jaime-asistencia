@@ -1,0 +1,5 @@
+MÉRITO PÚBLICO v1.1
+- Conserva ranking semanal.
+- Muestra “Resultados en proceso” durante cierre.
+- Cuando el mes se publica oficialmente muestra:
+  ganador general, puntaje y reconocimientos mensuales.

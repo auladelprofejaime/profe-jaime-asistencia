@@ -1,0 +1,6 @@
+APP DOCENTE v8.15.2
+- El botón Editar de periodos aparece directamente en la tabla de Configuración.
+- Permite cambiar nombre, inicio y fin del periodo.
+- El botón Editar de docentes aparece directamente en Docentes autorizados.
+- Los docentes desactivados muestran además “Eliminar de la lista”.
+- Conserva historial y auditoría.

@@ -1,0 +1,12 @@
+APP DOCENTE v8.16.1 — FIX DE ARRANQUE
+
+Corrige:
+- Error JavaScript por declaración duplicada de meritCriterionLabels.
+- La App Docente vuelve a iniciar y conectar con Supabase normalmente.
+
+Conserva:
+- Todo lo de v8.16.0.
+- Cierre mensual.
+- Acumulado anual.
+- Administración de docentes y periodos.
+- Todos los módulos anteriores.

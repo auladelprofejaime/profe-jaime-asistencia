@@ -16,3 +16,21 @@ label{display:block;font-weight:700;margin-bottom:12px}label small{display:block
 .statusbar{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#f5e8bd;font-weight:800}
 dialog{border:0;border-radius:18px;max-width:520px;width:calc(100% - 32px);padding:0;box-shadow:0 15px 60px #0006}dialog::backdrop{background:#0007}.dialogbody{padding:20px}.actions{display:flex;gap:10px;flex-wrap:wrap}
 @media(max-width:600px){.grid6{grid-template-columns:repeat(3,1fr)}.points{grid-template-columns:repeat(3,1fr)}.criteria{grid-template-columns:1fr}header h1{font-size:18px}}
+
+/* v1.1 — selección de grupo claramente visible */
+#groupButtons button{transition:.15s ease;position:relative}
+#groupButtons button.active{
+  background:#1f6f43!important;
+  color:#fff!important;
+  border:3px solid #0e3f25!important;
+  box-shadow:0 0 0 4px #b9e8c8!important;
+  transform:scale(1.04);
+}
+#groupButtons button.active::after{
+  content:"✓";
+  position:absolute;
+  right:7px;
+  top:4px;
+  font-size:14px;
+  font-weight:900;
+}

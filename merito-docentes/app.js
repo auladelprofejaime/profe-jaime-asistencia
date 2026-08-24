@@ -23,11 +23,11 @@ $('#activateBtn').onclick=async()=>{
  try{const d=await rpc('merit_activate_device',{p_code:code});if(!d?.ok)throw new Error('Código inválido o inactivo.');token=d.installation_token;staff=d.staff;localStorage.setItem(TOKEN_KEY,token);$('#activationCode').value='';showCapture()}catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
 $('#forgetDevice').onclick=()=>{if(confirm('¿Desvincular este dispositivo? Para volver a usarlo necesitarás un código de activación vigente.')){localStorage.removeItem(TOKEN_KEY);location.reload()}};
-$$('#gradeButtons button').forEach(b=>b.onclick=()=>{grade=Number(b.dataset.grade);$$('#gradeButtons button').forEach(x=>x.classList.toggle('active',x===b));renderGroups()});
+$$('#gradeButtons button').forEach(b=>b.onclick=()=>{grade=Number(b.dataset.grade);group=null;const gc=$('#selectedGroupConfirm');if(gc)gc.textContent='';$$('#gradeButtons button').forEach(x=>x.classList.toggle('active',x===b));renderGroups()});
 function renderGroups(){
  const box=$('#groupButtons');box.innerHTML='';if(!grade)return;
  const start=grade*10+1;
- for(let n=start;n<=start+5;n++){const b=document.createElement('button');b.className='yellow';b.textContent=n;b.onclick=()=>{group=String(n);[...box.children].forEach(x=>x.classList.toggle('active',x===b))};box.appendChild(b)}
+ for(let n=start;n<=start+5;n++){const b=document.createElement('button');b.className='yellow';b.textContent=n;b.onclick=()=>{group=String(n);[...box.children].forEach(x=>x.classList.toggle('active',x===b));const c=$('#selectedGroupConfirm');if(c)c.textContent=`✓ Grupo ${group} seleccionado`};box.appendChild(b)}
 }
 $$('#pointButtons button').forEach(b=>b.onclick=()=>{points=b.dataset.points===''?null:Number(b.dataset.points);$$('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));$('#reasonWrap').classList.toggle('hidden',points===null)});
 const criteriaNames={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};

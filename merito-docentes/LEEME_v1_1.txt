@@ -1,0 +1,5 @@
+MÉRITO DOCENTES v1.1
+- El grupo seleccionado cambia claramente a verde.
+- Agrega ✓ visual.
+- Muestra texto "✓ Grupo XX seleccionado".
+- Al cambiar de grado se limpia la selección previa.

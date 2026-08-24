@@ -244,7 +244,18 @@
 }
 </style>
 
-<style id="privacy-minimization-v8110">.privacy-card{max-width:900px;margin:0 auto}.privacy-card h3{margin-top:18px}.privacy-card p{line-height:1.55}</style></head><body>
+<style id="privacy-minimization-v8110">.privacy-card{max-width:900px;margin:0 auto}.privacy-card h3{margin-top:18px}.privacy-card p{line-height:1.55}</style>
+<style id="merit-admin-adjustments-v8151">
+.merit-inline-actions{display:flex;gap:8px;flex-wrap:wrap}
+.merit-inline-actions button{padding:8px 12px}
+#meritEditPeriodDialog,#meritEditStaffDialog{border:0;border-radius:18px;max-width:560px;width:calc(100% - 32px);padding:0;box-shadow:0 16px 60px #0006}
+#meritEditPeriodDialog::backdrop,#meritEditStaffDialog::backdrop{background:#0007}
+#meritEditPeriodDialog .dialogbody,#meritEditStaffDialog .dialogbody{padding:20px}
+#meritEditPeriodDialog label,#meritEditStaffDialog label{display:block;margin-bottom:12px;font-weight:700}
+#meritEditPeriodDialog input,#meritEditStaffDialog input,#meritEditStaffDialog select{width:100%;box-sizing:border-box}
+</style>
+
+</head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
   <div class="teacher-login-card">
     <img src="logo-app-docente-v821.png" alt="">
@@ -258,7 +269,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.15.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.15.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -840,5 +851,46 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8150.js?v=8141"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8151.js?v=8141"></script>
+
+<dialog id="meritEditPeriodDialog">
+  <div class="dialogbody">
+    <h2>Editar periodo</h2>
+    <input id="meritEditPeriodId" type="hidden">
+    <label>Ciclo escolar<input id="meritEditPeriodCycle" readonly></label>
+    <label>Mes<input id="meritEditPeriodMonth" readonly></label>
+    <label>Nombre del periodo<input id="meritEditPeriodLabel"></label>
+    <label>Inicio<input id="meritEditPeriodStart" type="date"></label>
+    <label>Fin<input id="meritEditPeriodEnd" type="date"></label>
+    <div class="actions">
+      <button type="button" class="secondary" id="meritCancelEditPeriod">Cancelar</button>
+      <button type="button" class="primary" id="meritSaveEditPeriod">Guardar cambios</button>
+    </div>
+    <p id="meritEditPeriodStatus" class="message"></p>
+  </div>
+</dialog>
+
+<dialog id="meritEditStaffDialog">
+  <div class="dialogbody">
+    <h2>Editar personal autorizado</h2>
+    <input id="meritEditStaffId" type="hidden">
+    <label>Nombre<input id="meritEditStaffName"></label>
+    <label>Tipo
+      <select id="meritEditStaffRole">
+        <option value="docente">Docente</option>
+        <option value="direccion">Dirección</option>
+        <option value="subdireccion">Subdirección</option>
+        <option value="prefectura">Prefectura</option>
+        <option value="otro">Otro</option>
+      </select>
+    </label>
+    <label>Asignatura / función<input id="meritEditStaffSubject"></label>
+    <div class="actions">
+      <button type="button" class="secondary" id="meritCancelEditStaff">Cancelar</button>
+      <button type="button" class="primary" id="meritSaveEditStaff">Guardar cambios</button>
+    </div>
+    <p id="meritEditStaffStatus" class="message"></p>
+  </div>
+</dialog>
+
 </body></html>

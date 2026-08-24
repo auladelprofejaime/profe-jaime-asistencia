@@ -1,0 +1,8 @@
+APP DOCENTE v8.15.1 — Ajustes de administración Mérito Gabino A. Palma
+
+Agrega:
+- Editar nombre y fechas de periodos existentes.
+- Editar nombre, tipo y asignatura/función del personal autorizado.
+- En personal desactivado: "Eliminar de la lista" (archivo lógico, conserva historial).
+- No borra movimientos históricos.
+- Conserva todos los cambios de v8.15.0 y v8.14.4.

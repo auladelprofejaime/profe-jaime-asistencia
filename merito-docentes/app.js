@@ -51,6 +51,10 @@ $('#sendConfirm').onclick=async()=>{
    throw new Error(msgs[d.reason]||d.reason||'No se pudo guardar.');
  }
  $('#confirmDialog').close();$('#captureStatus').innerHTML='<span class="success">✓ Registro guardado correctamente.</span>';
+ const savedMessage = points===null
+   ? '✓ Reconocimiento guardado correctamente.'
+   : (cs.length ? '✓ Puntos y reconocimientos guardados correctamente.' : '✓ Puntos guardados correctamente.');
+ alert(savedMessage);
  const txt=`Grupo ${group} · ${points===null?'sin puntos':points>0?'+'+points:points}${cs.length?' · '+cs.map(x=>criteriaNames[x]).join(', '):''}`;
  $('#lastRecordText').textContent=txt;$('#lastRecord').classList.remove('hidden');
  points=null;$$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));$('#reason').value='';$('#reasonWrap').classList.add('hidden');$$('#criteria input').forEach(x=>x.checked=false);

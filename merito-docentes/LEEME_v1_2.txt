@@ -1,0 +1,6 @@
+MÉRITO DOCENTES v1.2
+- Conserva selección visual verde del grupo.
+- Después de guardar muestra un cuadro claro:
+  ✓ Puntos guardados correctamente.
+  ✓ Reconocimiento guardado correctamente.
+  ✓ Puntos y reconocimientos guardados correctamente.

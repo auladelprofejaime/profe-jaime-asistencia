@@ -266,11 +266,6 @@
 </style>
 
 
-<style id="merit-preview-dialog-v8162">
-#meritMonthlyPreviewDialog{border:0;border-radius:20px;width:min(900px,calc(100% - 28px));max-height:88vh;padding:0;box-shadow:0 18px 70px #0007}
-#meritMonthlyPreviewDialog::backdrop{background:#0008}
-#meritMonthlyPreviewDialog .dialogbody{padding:20px;overflow:auto;max-height:84vh}
-</style>
 
 </head><body>
 <div id="teacherLoginGate" class="teacher-login-gate hidden">
@@ -286,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.16.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.16.3</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -809,7 +804,7 @@
   <div class="section"><div><h2>Cierre mensual</h2><p class="hint">Revisa el resultado antes de cerrar. Si existe un empate, deberás resolverlo manualmente y dejar una nota.</p></div></div>
   <label>Periodo<select id="meritMonthlyPeriod"></select></label>
   <div class="actions">
-    <button id="meritMonthlyPreviewBtn" class="secondary" onclick="loadMeritMonthlyPreview(true)">Vista previa del cierre</button>
+    <button id="meritMonthlyPreviewBtn" class="secondary" onclick="loadMeritMonthlyPreview()">Vista previa del cierre</button>
     <button id="meritMonthlyCloseBtn" class="primary" onclick="closeMeritMonth()">Cerrar mes</button>
     <button id="meritMonthlyPublishBtn" class="secondary" onclick="publishMeritMonth()">Publicar resultado oficial</button>
   </div>
@@ -885,7 +880,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8162.js?v=8162"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8163.js?v=8163"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">
@@ -928,18 +923,5 @@
 </dialog>
 
 
-<dialog id="meritMonthlyPreviewDialog" class="merit-preview-dialog">
-  <div class="dialogbody">
-    <div class="section">
-      <div>
-        <h2>Vista previa del cierre mensual</h2>
-        <p class="hint">Esto no cierra ni publica el periodo.</p>
-      </div>
-      <button type="button" class="secondary" onclick="document.getElementById('meritMonthlyPreviewDialog').close()">Cerrar</button>
-    </div>
-    <p id="meritMonthlyDialogStatus" class="message"></p>
-    <div id="meritMonthlyDialogContent"></div>
-  </div>
-</dialog>
 
 </body></html>

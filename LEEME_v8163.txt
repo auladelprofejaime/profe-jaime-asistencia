@@ -1,0 +1,7 @@
+APP DOCENTE v8.16.3
+Ajuste de interfaz:
+- Vista previa del cierre ya NO abre ventana emergente.
+- El botón conserva su función: recalcula la vista previa.
+- El resultado se muestra únicamente integrado debajo del botón.
+- Conserva ganador provisional, reconocimientos y resolución de empates.
+- No modifica Supabase ni la lógica de cierre.

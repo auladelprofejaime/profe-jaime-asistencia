@@ -3,16 +3,7 @@ const subjects=['Artes','Inglés','Español','Matemáticas','Formación Cívica 
 const states=['white','green','yellow','red'];
 const stateText={white:'⚪ Sin información',green:'🟢 Al corriente',yellow:'🟡 Requiere atención',red:'🔴 Atención urgente'};let db,deferredPrompt;const LOCAL_BACKUP_KEY='ProfeJaimeControlEscolar_backup_interno';const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];const norm=v=>String(v??'').trim(),low=v=>norm(v).toLowerCase(),today=()=>new Date().toISOString().slice(0,10),safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const req=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});function store(n,m='readonly'){if(!db)throw new Error('La base de datos todavía no está abierta. Cierra y vuelve a abrir la app.');return db.transaction(n,m).objectStore(n)}const all=n=>req(store(n).getAll());
 const put=async(n,v)=>{let out=await req(store(n,'readwrite').put(v));if(window.ProfeSupabase)queueRemoteMirror(n,v).catch(e=>console.warn('Supabase mirror',n,e));return out};
-const del=async(n,k)=>{
- let old=null;
- if(n==='methodologies'){try{old=await req(store(n).get(k))}catch(_){}}
- let out=await req(store(n,'readwrite').delete(k));
- if(window.ProfeSupabase){
-   queueRemoteDelete(n,k).catch(e=>console.warn('Supabase delete',n,e));
-   if(n==='methodologies'&&old)removeRemoteQuarterSummaryFor(old).catch(e=>console.warn('Quarter invalidation',e));
- }
- return out
-};
+const del=async(n,k)=>{let out=await req(store(n,'readwrite').delete(k));if(window.ProfeSupabase)queueRemoteDelete(n,k).catch(e=>console.warn('Supabase delete',n,e));return out};
 const clear=n=>req(store(n,'readwrite').clear());
 
 const CHAT_SCHOOL_WEEK_ANCHOR='2026-08-31';
@@ -87,62 +78,6 @@ async function queueRemoteDelete(n,k){
  const map={students:['students','id'],activities:['activities','id'],methodologies:['methodologies','id'],notices:['notices','id'],materials:['materials','id'],studyTopics:['study_topics','id']};
  if(map[n])await ProfeSupabase.remove(map[n][0],`${map[n][1]}=eq.${encodeURIComponent(k)}`);
 }
-
-async function removeRemoteQuarterSummaryFor(m){
- if(!supabaseReady||!m||m.isQuarterSummary||m.periodType==='quarter')return;
- try{
-   const rows=await ProfeSupabase.select(
-     'methodologies',
-     `select=id,data&shift=eq.${encodeURIComponent(m.shift||'')}&group_name=eq.${encodeURIComponent(m.group||'')}&cycle=eq.${encodeURIComponent(m.cycle||'')}&quarter=eq.${encodeURIComponent(String(m.quarter||''))}`
-   );
-   for(const r of rows||[]){
-     const d=r?.data||{};
-     if(d.isQuarterSummary===true||d.periodType==='quarter'){
-       await ProfeSupabase.remove('methodologies',`id=eq.${encodeURIComponent(r.id)}`);
-     }
-   }
-   const pubKey=`quarterPublished:${m.cycle}:${m.shift}:${m.group}:${m.quarter}`;
-   const idKey=`quarterSummaryId:${m.cycle}:${m.shift}:${m.group}:${m.quarter}`;
-   localStorage.removeItem(pubKey);
-   localStorage.removeItem(idKey);
-   window._lastQuarter=null;
- }catch(e){console.warn('No se pudo invalidar resumen trimestral',e)}
-}
-
-async function cleanupInvalidRemoteQuarterSummaries(){
- if(!supabaseReady)return;
- try{
-   const rows=await ProfeSupabase.select('methodologies','select=id,cycle,quarter,shift,group_name,closed,data');
-   const monthly=(rows||[]).filter(r=>{
-     const d=r?.data||{};
-     return !(d.isQuarterSummary===true||d.periodType==='quarter');
-   });
-   const summaries=(rows||[]).filter(r=>{
-     const d=r?.data||{};
-     return d.isQuarterSummary===true||d.periodType==='quarter';
-   });
-   for(const q of summaries){
-     const d=q.data||{};
-     const expected=Array.isArray(d.monthsIncluded)?d.monthsIncluded:[];
-     if(!expected.length)continue;
-     const existing=new Set(monthly.filter(m=>
-       String(m.cycle||m.data?.cycle||'')===String(q.cycle||d.cycle||'') &&
-       String(m.quarter||m.data?.quarter||'')===String(q.quarter||d.quarter||'') &&
-       sameShift(m.shift||m.data?.shift,q.shift||d.shift) &&
-       sameGroup(m.group_name||m.data?.group,q.group_name||d.group) &&
-       (m.closed===true||m.data?.closed===true) &&
-       (m.data?.published!==false)
-     ).map(m=>m.data?.month||m.month));
-     const valid=expected.every(month=>existing.has(month));
-     if(!valid){
-       await ProfeSupabase.remove('methodologies',`id=eq.${encodeURIComponent(q.id)}`);
-       const cycle=q.cycle||d.cycle||'', quarter=q.quarter||d.quarter||'', shift=q.shift||d.shift||'', group=q.group_name||d.group||'';
-       localStorage.removeItem(`quarterPublished:${cycle}:${shift}:${group}:${quarter}`);
-       localStorage.removeItem(`quarterSummaryId:${cycle}:${shift}:${group}:${quarter}`);
-     }
-   }
- }catch(e){console.warn('No se pudieron limpiar resúmenes trimestrales inválidos',e)}
-}
 async function ensureRemotePortalAccess(s){
  if(!supabaseReady||!sameShift(s.shift,'Matutino'))return;
  await ProfeSupabase.upsert('students',remoteStudent(s),'id');
@@ -159,7 +94,6 @@ async function syncAllToSupabase(){
    if(!(await requireTeacherSession()))return;
    supaState('Sincronizando…');
    await pullStudentProfileFieldsFromSupabase();
-   await cleanupInvalidRemoteQuarterSummaries();
    const ss=await all('students');if(ss.length)await ProfeSupabase.upsert('students',ss.map(remoteStudent),'id');
    for(const s of ss.filter(x=>sameShift(x.shift,'Matutino')))await ensureRemotePortalAccess(s);
    const at=await all('attendance');if(at.length)await ProfeSupabase.upsert('attendance',at.map(remoteAttendance),'student_id,attendance_date');
@@ -202,6 +136,86 @@ async function refreshAll(){
   await showLastInternalSave();
 }
 
+
+async function loadStudentAppHours(){
+  const status=$('#studentAppHoursStatus');
+  try{
+    if(!(await requireTeacherSession()))return;
+    const d=await ProfeSupabase.rpc('teacher_get_student_app_access',{});
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo consultar.');
+    $('#studentAppHoursEnabled').checked=!!d.enabled;
+    $('#studentAppBlockedStart').value=String(d.blocked_start||'07:00').slice(0,5);
+    $('#studentAppBlockedEnd').value=String(d.blocked_end||'14:30').slice(0,5);
+    const days=new Set((d.weekdays||[]).map(Number));
+    $$('.studentAppDay').forEach(x=>x.checked=days.has(Number(x.value)));
+    $('#studentAppMessageTitle').value=d.message_title||'¡Ahora no, joven!';
+    $('#studentAppMessageBody').value=d.message_body||'';
+    if(status){
+      if(d.temporary_open_until && new Date(d.temporary_open_until)>new Date()){
+        status.textContent='Apertura temporal activa hasta '+new Date(d.temporary_open_until).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})+'.';
+      }else{
+        status.textContent=d.enabled
+          ? `Bloqueo activo de ${String(d.blocked_start||'').slice(0,5)} a ${String(d.blocked_end||'').slice(0,5)} en los días seleccionados.`
+          : 'Bloqueo por horario desactivado.';
+      }
+    }
+  }catch(e){
+    if(status)status.textContent='No se pudo cargar el horario: '+(e.message||e);
+  }
+}
+async function saveStudentAppHours(e){
+  e?.preventDefault();
+  const status=$('#studentAppHoursStatus');
+  const weekdays=$$('.studentAppDay').filter(x=>x.checked).map(x=>Number(x.value));
+  if(!weekdays.length)return alert('Selecciona al menos un día.');
+  try{
+    const d=await ProfeSupabase.rpc('teacher_set_student_app_access',{
+      p_enabled:$('#studentAppHoursEnabled').checked,
+      p_blocked_start:$('#studentAppBlockedStart').value,
+      p_blocked_end:$('#studentAppBlockedEnd').value,
+      p_weekdays:weekdays,
+      p_message_title:$('#studentAppMessageTitle').value.trim()||'¡Ahora no, joven!',
+      p_message_body:$('#studentAppMessageBody').value.trim()
+    });
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
+    await loadStudentAppHours();
+    if(status){
+      status.textContent='✓ Horario guardado correctamente.';
+      status.classList.add('success');
+      setTimeout(()=>status.classList.remove('success'),2500);
+    }
+  }catch(e){alert('No se pudo guardar el horario: '+(e.message||e))}
+}
+async function openStudentAppTemporarily(minutes){
+  try{
+    const d=await ProfeSupabase.rpc('teacher_open_student_app_temporarily',{p_minutes:Number(minutes)});
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo actualizar.');
+    await loadStudentAppHours();
+    alert(Number(minutes)>0?`App Estudiantes abierta temporalmente por ${minutes} minutos.`:'Apertura temporal cancelada.');
+  }catch(e){alert('No se pudo cambiar la apertura temporal: '+(e.message||e))}
+}
+
+
+let meritPeriodsCache=[],meritRankingCache=[],meritGradeFilter='all';
+const meritCriterionLabels={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
+function meritPane(name){$$('.merit-pane').forEach(x=>x.classList.toggle('active',x.id==='merit-'+name));$$('.meritNav').forEach(x=>x.classList.toggle('active',x.dataset.meritPane===name));if(name==='ranking')loadMeritRanking();if(name==='movements')loadMeritMovements();if(name==='staff')loadMeritStaff();if(name==='weekly')meritWeeklyPreview();if(name==='monthly'){loadMeritPeriods().then(loadMeritMonthlyPreview);}if(name==='annual')loadMeritAnnualRanking();if(name==='config')loadMeritPeriods();}
+async function meritRpc(name,args={}){if(!(await requireTeacherSession()))throw new Error('Sesión docente requerida');return await ProfeSupabase.rpc(name,args)}
+async function loadMeritPeriods(){try{meritPeriodsCache=await meritRpc('teacher_merit_periods')||[];meritPeriodsCacheV8151=meritPeriodsCache;for(const id of ['meritRankingPeriod','meritMovementPeriod','meritWeeklyPeriod','meritMonthlyPeriod']){const el=$('#'+id);if(!el)continue;const old=el.value;el.innerHTML=meritPeriodsCache.map(p=>`<option value="${safe(p.id)}">${safe(p.label)} · ${safe(p.status)}</option>`).join('');if(meritPeriodsCache.some(p=>p.id===old))el.value=old;}const box=$('#meritPeriodsList');if(box){box.innerHTML=meritPeriodsCache.length?`<table><thead><tr><th>Periodo</th><th>Fechas</th><th>Estado</th><th>Portal</th><th>Acciones</th></tr></thead><tbody>${meritPeriodsCache.map(p=>`<tr><td>${safe(p.label)}</td><td>${safe(p.starts_at)} → ${safe(p.ends_at)}</td><td>${safe(p.status)}</td><td>${safe(p.public_state)}</td><td><button type="button" class="secondary meritEditPeriodBtn" data-id="${safe(p.id)}">Editar</button></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Aún no hay periodos.</p>';$$('.meritEditPeriodBtn').forEach(b=>b.onclick=()=>meritOpenPeriodEditV8151(b.dataset.id));}return meritPeriodsCache}catch(e){alert('No se pudieron cargar los periodos de Mérito: '+(e.message||e));return[]}}
+async function saveMeritPeriod(e){e.preventDefault();try{const d=await meritRpc('teacher_merit_save_period',{p_school_year:$('#meritSchoolYear').value.trim(),p_month_number:Number($('#meritMonthNumber').value),p_label:$('#meritPeriodLabel').value.trim(),p_starts_at:$('#meritPeriodStart').value,p_ends_at:$('#meritPeriodEnd').value,p_status:'open'});if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar');$('#meritConfigStatus').textContent='✓ Periodo guardado y abierto correctamente.';await loadMeritPeriods()}catch(e){alert('No se pudo guardar el periodo: '+(e.message||e))}}
+function meritCriteriaText(o){const c=o||{};return Object.entries(meritCriterionLabels).map(([k,l])=>`${l}: ${Number(c[k]||0)}`).join(' · ')}
+async function loadMeritRanking(){if(!meritPeriodsCache.length)await loadMeritPeriods();const pid=$('#meritRankingPeriod')?.value;if(!pid){$('#meritRankingTable').innerHTML='<p class="hint">Primero crea un periodo en Configuración.</p>';return}try{meritRankingCache=await meritRpc('teacher_merit_ranking',{p_period_id:pid})||[];renderMeritRanking()}catch(e){alert('No se pudo cargar la clasificación: '+(e.message||e))}}
+function renderMeritRanking(){const rows=meritRankingCache.filter(r=>meritGradeFilter==='all'||String(r.grade)===meritGradeFilter);$('#meritRankingTable').innerHTML=`<table><thead><tr><th>Pos.</th><th>Grupo</th><th>Puntos</th><th>Reconocimientos del mes</th></tr></thead><tbody>${rows.map(r=>`<tr><td><b>${r.rank}</b></td><td><b>${safe(r.group_code)}</b></td><td class="merit-stat">${Number(r.score||0)}</td><td>${safe(meritCriteriaText(r.criteria))}</td></tr>`).join('')}</tbody></table>`}
+async function loadMeritMovements(){if(!meritPeriodsCache.length)await loadMeritPeriods();const pid=$('#meritMovementPeriod')?.value;if(!pid){$('#meritMovementsTable').innerHTML='<p class="hint">No hay periodo.</p>';return}try{const a=await meritRpc('teacher_merit_movements',{p_period_id:pid,p_limit:300})||[];$('#meritMovementsTable').innerHTML=a.length?`<table><thead><tr><th>Fecha</th><th>Grupo</th><th>Personal</th><th>Puntos</th><th>Motivo / criterios</th><th>Estado</th><th></th></tr></thead><tbody>${a.map(m=>`<tr><td>${new Date(m.created_at).toLocaleString('es-MX')}</td><td>${safe(m.group_code)}</td><td>${safe(m.display_name)}</td><td>${m.points??'—'}</td><td>${safe(m.reason||'')}${m.criteria?.length?'<br>'+safe(m.criteria.map(x=>meritCriterionLabels[x]||x).join(', ')):''}</td><td>${safe(m.status)}</td><td>${m.status==='valid'?`<button class="danger-outline meritVoid" data-id="${safe(m.id)}">Anular</button>`:''}</td></tr>`).join('')}</tbody></table>`:'<p class="hint">Aún no hay movimientos.</p>';$$('.meritVoid').forEach(b=>b.onclick=()=>voidMeritMovement(b.dataset.id))}catch(e){alert('No se pudieron cargar movimientos: '+(e.message||e))}}
+async function voidMeritMovement(id){const note=prompt('Motivo administrativo de la anulación:');if(note===null)return;if(!note.trim())return alert('Escribe el motivo de la anulación.');if(!confirm('El movimiento quedará anulado, pero conservará su historial. ¿Continuar?'))return;try{await meritRpc('teacher_merit_void_movement',{p_movement_id:id,p_admin_note:note.trim()});await loadMeritMovements();await loadMeritRanking()}catch(e){alert('No se pudo anular: '+(e.message||e))}}
+async function loadMeritStaff(){try{const a=await meritRpc('teacher_merit_staff')||[];meritStaffCacheV8151=a;$('#meritStaffList').innerHTML=a.length?`<table><thead><tr><th>Nombre</th><th>Función</th><th>Estado</th><th>Dispositivos</th><th>Acciones</th></tr></thead><tbody>${a.map(x=>`<tr><td><b>${safe(x.display_name)}</b></td><td>${safe(x.subject_area||x.role_type)}</td><td>${x.active?'Activo':'Desactivado'}</td><td>${Number(x.devices||0)}</td><td><div class="merit-inline-actions"><button class="secondary meritCode" data-id="${safe(x.id)}">${x.activation_code_created_at?'Regenerar código':'Generar código'}</button><button class="secondary meritActive" data-id="${safe(x.id)}" data-active="${x.active?'0':'1'}">${x.active?'Desactivar':'Reactivar'}</button><button class="secondary meritEditStaffBtn" data-id="${safe(x.id)}">Editar</button>${x.active?'':`<button class="secondary meritArchiveStaffBtn" data-id="${safe(x.id)}" data-name="${safe(x.display_name)}">Eliminar de la lista</button>`}</div></td></tr>`).join('')}</tbody></table>`:'<p class="hint">Aún no has agregado personal.</p>';$$('.meritCode').forEach(b=>b.onclick=()=>generateMeritCode(b.dataset.id));$$('.meritActive').forEach(b=>b.onclick=()=>setMeritStaffActive(b.dataset.id,b.dataset.active==='1'));$$('.meritEditStaffBtn').forEach(b=>b.onclick=()=>meritOpenStaffEditV8151(b.dataset.id));$$('.meritArchiveStaffBtn').forEach(b=>b.onclick=()=>meritArchiveStaffV8151(b.dataset.id,b.dataset.name))}catch(e){alert('No se pudo cargar el personal: '+(e.message||e))}}
+async function addMeritStaff(e){e.preventDefault();try{const d=await meritRpc('teacher_merit_add_staff',{p_display_name:$('#meritStaffName').value.trim(),p_role_type:$('#meritStaffRole').value,p_subject_area:$('#meritStaffSubject').value.trim()||null});if(!d?.ok)throw new Error('No se pudo agregar');e.target.reset();await loadMeritStaff()}catch(e){alert('No se pudo agregar: '+(e.message||e))}}
+async function generateMeritCode(id){if(!confirm('Al regenerar un código se invalidan las activaciones anteriores de esta persona. ¿Continuar?'))return;try{const d=await meritRpc('teacher_merit_generate_activation_code',{p_staff_id:id});$('#meritActivationCode').textContent=d.code;$('#meritActivationBox').classList.remove('hidden');await loadMeritStaff()}catch(e){alert('No se pudo generar el código: '+(e.message||e))}}
+async function setMeritStaffActive(id,active){if(!confirm(active?'¿Reactivar a esta persona?':'¿Desactivar a esta persona y sus dispositivos?'))return;try{await meritRpc('teacher_merit_set_staff_active',{p_staff_id:id,p_active:active});await loadMeritStaff()}catch(e){alert('No se pudo cambiar el estado: '+(e.message||e))}}
+async function meritWeeklyPreview(){if(!meritPeriodsCache.length)await loadMeritPeriods();const pid=$('#meritWeeklyPeriod')?.value;if(!pid){$('#meritWeeklyPreview').innerHTML='<p class="hint">Primero crea un periodo.</p>';return}try{const a=await meritRpc('teacher_merit_ranking',{p_period_id:pid})||[];$('#meritWeeklyPreview').innerHTML=`<table><thead><tr><th>Pos.</th><th>Grupo</th><th>Puntos</th></tr></thead><tbody>${a.map(x=>`<tr><td>${x.rank}</td><td><b>${safe(x.group_code)}</b></td><td>${Number(x.score||0)}</td></tr>`).join('')}</tbody></table>`}catch(e){alert('No se pudo preparar la vista previa: '+(e.message||e))}}
+async function publishMeritWeekly(){const pid=$('#meritWeeklyPeriod').value;if(!pid)return alert('Selecciona un periodo.');if(!confirm('Se publicará este corte como avance semanal oficial. ¿Continuar?'))return;try{const d=await meritRpc('teacher_merit_publish_weekly',{p_period_id:pid,p_public_message:$('#meritWeeklyMessage').value.trim()||null});$('#meritWeeklyStatus').textContent='✓ Avance semanal publicado: '+new Date(d.published_at).toLocaleString('es-MX');await meritWeeklyPreview()}catch(e){alert('No se pudo publicar: '+(e.message||e))}}
+async function setMeritPublicState(state){const pid=$('#meritWeeklyPeriod').value;if(!pid)return alert('Selecciona un periodo.');try{const d=await meritRpc('teacher_merit_set_public_state',{p_period_id:pid,p_state:state});$('#meritWeeklyStatus').textContent='✓ Estado público: '+safe(d.public_state)}catch(e){alert('No se pudo cambiar el estado: '+(e.message||e))}}
+async function loadMeritAdmin(){await loadMeritPeriods();await loadMeritRanking()}
+
 function setView(id){
   $$('.view').forEach(v=>v.classList.toggle('active',v.id===id));
   $$('.tab').forEach(b=>b.classList.toggle('active',b.dataset.view===id));
@@ -210,11 +224,10 @@ function setView(id){
     attendance:'Asistencia',
     activities:'Actividades',
     methodologies:'Metodologías',
-    points:'Puntos',
     titular:'Seguimiento 3.º A',
     students:'Alumnos',
     dossier:'Expediente del alumno',
-    reports:'Reportes',availability:'Disponibilidad',content:'Contenido',messages:'Mensajes','portal-access':'Estado de acceso a portales'
+    reports:'Reportes',availability:'Disponibilidad','student-app-hours':'Horario App Estudiantes',merit:'Mérito Gabino A. Palma',content:'Contenido','portal-access':'Estado de acceso a portales'
   };
   if($('#currentSection'))$('#currentSection').textContent=names[id]||'Menú';
   if($('#mainMenu'))$('#mainMenu').open=false;
@@ -223,13 +236,12 @@ function setView(id){
   if(id==='portal-access')renderPortalAccessReport();
   if(id==='activities')refreshActivitySelectors();
   if(id==='methodologies')refreshMethodologyUI();
-  if(id==='points')refreshPointsUI();
   if(id==='titular')renderTitularGrid();
   if(id==='students')renderStudents();
   if(id==='dossier')refreshDossierSelector();
-  if(id==='reports'){}if(id==='availability')loadAvailability();if(id==='content')refreshPortalContent();if(id==='messages'){renderTeacherMessages();let nn=readTeacherNotifs().map(n=>n.id.startsWith('msg-')?{...n,read:true}:n);saveTeacherNotifs(nn)}
+  if(id==='reports'){}if(id==='availability')loadAvailability();if(id==='student-app-hours')loadStudentAppHours();if(id==='merit')loadMeritAdmin();if(id==='content')refreshPortalContent();
 }
-function pane(prefix,name){$$('.'+prefix+'pane').forEach(x=>x.classList.toggle('active',x.id===prefix+'-'+name));$$('[data-'+prefix+'tab]').forEach(x=>x.classList.toggle('active',x.dataset[prefix+'tab']===name));if(prefix==='act'){if(name==='grid')renderActivityGrid();if(name==='manage')renderActivities()}if(prefix==='tit'&&name==='individual')refreshTitIndividual();if(prefix==='met'){if(name==='manage')renderMethodologies();if(name==='calculate')refreshCalculationMethodologies();if(name==='quarter')refreshQuarterSelectors()}if(prefix==='point'){if(name==='award')refreshPointBalances();if(name==='period')refreshPointPeriods();if(name==='manage')refreshPointManage()}}
+function pane(prefix,name){$$('.'+prefix+'pane').forEach(x=>x.classList.toggle('active',x.id===prefix+'-'+name));$$('[data-'+prefix+'tab]').forEach(x=>x.classList.toggle('active',x.dataset[prefix+'tab']===name));if(prefix==='act'){if(name==='grid')renderActivityGrid();if(name==='manage')renderActivities()}if(prefix==='tit'&&name==='individual')refreshTitIndividual();if(prefix==='met'){if(name==='manage')renderMethodologies();if(name==='calculate')refreshCalculationMethodologies();if(name==='quarter')refreshQuarterSelectors()}}
 
 async function pullStudentProfileFieldsFromSupabase(){return;}
 function birthdayWeekDays(now=new Date()){
@@ -1297,19 +1309,6 @@ async function calculateMethodology(){
   let roster=(await students()).filter(s=>sameShift(s.shift,m.shift)&&sameGroup(s.group,m.group)),
       records=await all('activityRecords'),map=new Map(records.map(r=>[r.key,r])),rows=[];
   m.gradeRecords=m.gradeRecords||{};
-
-  // Puntos v8.15: el saldo oficial vive en Supabase y los puntos aplicados
-  // pueden haber sido elegidos desde Mi Español. Se recuperan antes de recalcular.
-  let pointBalanceMap=new Map(),remoteGradeRecords={};
-  if(supabaseReady&&sameShift(m.shift,'Matutino')){
-    try{
-      const balances=await ProfeSupabase.rpc('teacher_group_points',{p_shift:m.shift,p_group:m.group})||[];
-      pointBalanceMap=new Map(balances.map(x=>[String(x.student_id),Number(x.balance||0)]));
-      const rr=await ProfeSupabase.select('methodologies',`select=data&id=eq.${encodeURIComponent(m.id)}&limit=1`);
-      remoteGradeRecords=rr?.[0]?.data?.gradeRecords||{};
-    }catch(e){console.warn('No se pudieron recuperar puntos oficiales',e)}
-  }
-
   for(const st of roster){
     let criterionGrades={},pending=[];
     for(const c of m.criteria){
@@ -1323,20 +1322,16 @@ async function calculateMethodology(){
     }
     let complete=pending.length===0&&m.criteria.every(c=>acts.some(a=>m.assignments[a.id]===c.id)&&criterionGrades[c.id]!==null),
         base=complete?m.criteria.reduce((sum,c)=>sum+(criterionGrades[c.id]*(c.percent/100)),0):null,
-        prior=m.gradeRecords[st.id]||{},
-        remotePrior=remoteGradeRecords[st.id]||{},
-        manualExtra=Number(prior.manualExtra||remotePrior.manualExtra||0),
-        pointsUsed=Number(remotePrior.pointsUsed??prior.pointsUsed??0),
-        pointsAvailable=pointBalanceMap.has(String(st.id))?Number(pointBalanceMap.get(String(st.id))):0,
-        raw=base===null?null:base+manualExtra+pointsUsed,
+        prior=m.gradeRecords[st.id]||{},manualExtra=Number(prior.manualExtra||0),pointsUsed=Number(prior.pointsUsed||0),
+        ledger=await pointsLedgerFor(m,st.id,true),maxUsable=ledger.available,
+        safeUsed=Math.min(pointsUsed,maxUsable),raw=base===null?null:base+manualExtra+safeUsed,
         finalDecimal=raw===null?null:Math.min(10,Math.max(0,raw)),
         rounded=finalDecimal===null?null:roundSchoolGrade(finalDecimal),
-        pointsGenerated=0;
-    m.gradeRecords[st.id]={...remotePrior,...prior,base,manualExtra,pointsUsed,finalDecimal,rounded,pointsGenerated,updated:new Date().toISOString()};
-    rows.push({student:st,criterionGrades,pending:[...new Set(pending)],base,final:finalDecimal,manualExtra,pointsUsed,finalDecimal,rounded,pointsGenerated,pointsAvailable,pointsTotalBefore:pointsAvailable});
+        pointsGenerated=raw===null?0:Math.max(0,raw-10);
+    m.gradeRecords[st.id]={...prior,base,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,updated:new Date().toISOString()};
+    rows.push({student:st,criterionGrades,pending:[...new Set(pending)],base,final:finalDecimal,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,pointsAvailable:Math.max(0,maxUsable-safeUsed),pointsTotalBefore:maxUsable});
   }
   await put('methodologies',m);
-
   window._lastMethodologyCalculation={methodology:m,activities:acts,rows};
   renderMethodologyResults(window._lastMethodologyCalculation);
 }
@@ -1347,8 +1342,8 @@ function renderMethodologyResults(data){
   ${rows.map(r=>`<tr><td>${r.student.number}</td><td class="name">${safe(r.student.name||r.student.id)}</td>${m.criteria.map(c=>`<td>${r.criterionGrades[c.id]===null?'—':r.criterionGrades[c.id].toFixed(1)}</td>`).join('')}
   <td>${r.base===null?'Pendiente':r.base.toFixed(2)}</td>
   <td><input class="extra-input" data-extra-student="${safe(r.student.id)}" type="number" min="0" step="0.1" value="${Number(r.manualExtra||0).toFixed(1)}" ${m.closed?'disabled':''}></td>
-  <td class="points-cell"><span class="points-positive">${r.pointsAvailable.toFixed(2)}</span><br><small>Gestionar en módulo Puntos</small></td>
-  <td>${r.pointsUsed.toFixed(2)}</td>
+  <td class="points-cell"><span class="points-positive">${r.pointsAvailable.toFixed(2)}</span>${m.closed?'':`<button class="secondary" data-use-points="${safe(r.student.id)}">Usar puntos disponibles</button>`}</td>
+  <td>${r.pointsUsed.toFixed(2)}${!m.closed&&r.pointsUsed>0?`<br><button class="secondary" data-return-points="${safe(r.student.id)}">Devolver</button>`:''}</td>
   <td class="${r.finalDecimal===null?'grade-pending':'grade-good'}">${r.finalDecimal===null?'Pendiente':r.finalDecimal.toFixed(2)}${r.pointsGenerated>0?`<br><small>Genera ${r.pointsGenerated.toFixed(2)} puntos</small>`:''}</td>
   <td class="grade-rounded">${r.rounded===null?'—':r.rounded}</td><td>${r.pending.length?safe(r.pending.join(', ')):'—'}</td></tr>`).join('')}
   </tbody></table>`;
@@ -1383,53 +1378,16 @@ async function returnUsedPoints(studentId){
 async function toggleCloseMethodologyMonth(){
   let id=$('#calcMethodology').value;if(!id)return alert('Selecciona una metodología.');
   let m=await req(store('methodologies').get(id));
-  const publishing=!m.closed;
-
-  if(publishing){
+  if(!m.closed){
     await calculateMethodology();
     if(!window._lastMethodologyCalculation?.rows?.length)return;
-    if(!confirm(`Al cerrar ${m.month||'el mes'} se bloquearán extras, puntos y asignaciones. La calificación se publicará en Alumno y Padres. ¿Cerrar y publicar?`))return;
-    m=await req(store('methodologies').get(id));
-    m.closed=true;
-    m.closedAt=new Date().toISOString();
-    m.published=true;
-    m.publishedAt=m.closedAt;
+    if(!confirm('Al cerrar el mes se bloquearán extras, puntos y asignaciones. ¿Cerrar?'))return;
+    m=await req(store('methodologies').get(id));m.closed=true;m.closedAt=new Date().toISOString();
   }else{
-    if(!confirm('¿Reabrir este mes para hacer correcciones? La calificación dejará de mostrarse en los portales hasta volver a cerrarlo.'))return;
-    m.closed=false;
-    m.closedAt=null;
-    m.published=false;
-    m.publishedAt=null;
+    if(!confirm('¿Reabrir este mes para hacer correcciones?'))return;
+    m.closed=false;m.closedAt=null;
   }
-
-  await put('methodologies',m);
-  await renderMethodologyAssignments();
-  await calculateMethodology();
-  await renderMethodologies();
-
-  if(publishing&&sameShift(m.shift,'Matutino')&&supabaseReady){
-    try{
-      const finalM=await req(store('methodologies').get(id));
-      finalM.closed=true;
-      finalM.published=true;
-      finalM.publishedAt=finalM.publishedAt||new Date().toISOString();
-      await ProfeSupabase.upsert('methodologies',remoteMethodology(finalM),'id');
-
-      const rows=window._lastMethodologyCalculation?.rows||[];
-      for(const r of rows){
-        if(r.finalDecimal===null)continue;
-        await sendTeacherPushEvent('grade_update',{
-          student_id:String(r.student.id),
-          title:`Calificación de ${finalM.month||'mes'} publicada`,
-          message:`Ya está publicada tu calificación de ${finalM.month||'este mes'}: ${r.finalDecimal.toFixed(2)}.`
-        });
-      }
-      alert(`Calificaciones de ${finalM.month||'este mes'} publicadas.`);
-    }catch(e){
-      console.warn('No se pudo completar la publicación mensual',e);
-      alert('El mes se cerró, pero hubo un problema al publicar o notificar. Revisa la conexión antes de continuar.');
-    }
-  }
+  await put('methodologies',m);await renderMethodologyAssignments();await calculateMethodology();await renderMethodologies();
 }
 async function startNewMonth(id=null){
   let sourceId=id||$('#calcMethodology').value;if(!sourceId)return alert('Selecciona una metodología.');
@@ -1438,264 +1396,6 @@ async function startNewMonth(id=null){
   let newM={...m,id:crypto.randomUUID(),name:`${m.subject||'Evaluación'} · ${chosen}`,month:chosen,assignments:{},gradeRecords:{},closed:false,closedAt:null,created:new Date().toISOString(),updated:new Date().toISOString()};
   await put('methodologies',newM);await renderMethodologies();await refreshCalculationMethodologies();$('#calcMethodology').value=newM.id;await renderMethodologyAssignments();alert(`Se inició ${chosen} desde cero. El mes anterior permanece guardado.`);
 }
-
-// ============================================================
-// PUNTOS · v8.16.2
-// ============================================================
-let pointPeriodsCache=[];
-
-function pointStatus(base,type,title,text){
-  const p=$('#'+base+'Status');if(!p)return;
-  p.className='status '+type;
-  p.querySelector('i').textContent=type==='success'?'✓':type==='error'?'⛔':type==='warning'?'⚠':'★';
-  p.querySelector('h2').textContent=title;
-  p.querySelector('p').textContent=text;
-  clearTimeout(p._t);
-  p._t=setTimeout(()=>{
-    p.className='status neutral';p.querySelector('i').textContent='★';
-    p.querySelector('h2').textContent='Escanea la credencial';
-    p.querySelector('p').textContent='Los puntos se sumarán al saldo del alumno durante todo el ciclo escolar.';
-  },2500);
-}
-function pointStateLabel(state){
-  return state==='open'?'Abierto':state==='closed'?'Cerrado':'Programado';
-}
-function pointStateClass(state){
-  return state==='open'?'points-open':state==='closed'?'points-closed':'points-scheduled';
-}
-function pointChoiceLabel(v){
-  return ({used:'Usó puntos',donated:'Donó',mixed:'Usó y donó',keep:'Conservó'})[v]||'Pendiente';
-}
-function pointChoiceClass(v){return v||'pending'}
-function pointLocalDateTime(iso){
-  if(!iso)return '—';
-  try{return new Date(iso).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})}catch(_){return iso}
-}
-async function pointMatutinoGroups(){
-  return uniq((await students()).filter(s=>sameShift(s.shift,'Matutino')).map(s=>s.group));
-}
-async function refreshPointsUI(){
-  if(!supabaseReady){
-    $('#pointBalancesList').innerHTML='<div class="empty">Inicia sesión en Supabase para usar Puntos.</div>';
-    return;
-  }
-  const groups=await pointMatutinoGroups();
-  const gs=$('#pointAwardGroup'),old=gs?.value;
-  if(gs){
-    gs.innerHTML=groups.length?groups.map(g=>`<option>${safe(g)}</option>`).join(''):'<option value="">Sin grupos</option>';
-    if(groups.includes(old))gs.value=old;
-  }
-  const methods=(await all('methodologies'))
-    .filter(m=>sameShift(m.shift,'Matutino')&&!m.isQuarterSummary&&m.periodType!=='quarter')
-    .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||Number(a.quarter||0)-Number(b.quarter||0)||MONTH_ORDER.indexOf(a.month)-MONTH_ORDER.indexOf(b.month));
-  const ms=$('#pointMethodology'),oldM=ms?.value;
-  if(ms){
-    ms.innerHTML=methods.length?methods.map(m=>`<option value="${safe(m.id)}">${safe(m.month||'Mes')} · Grupo ${safe(m.group)} · ${safe(m.cycle||'')}</option>`).join(''):'<option value="">Sin metodologías Matutino</option>';
-    if(methods.some(m=>m.id===oldM))ms.value=oldM;
-  }
-  await refreshPointProvisionalState();
-  await refreshPointBalances();
-  await refreshPointPeriods();
-}
-async function refreshPointBalances(){
-  if(!supabaseReady||!$('#pointAwardGroup'))return;
-  const group=$('#pointAwardGroup').value,box=$('#pointBalancesList');
-  if(!group){box.className='list empty';box.textContent='Selecciona un grupo.';return}
-  try{
-    const rows=await ProfeSupabase.rpc('teacher_group_points',{p_shift:'Matutino',p_group:group});
-    box.className='list';
-    box.innerHTML=(rows||[]).length?(rows||[]).map(r=>`<div class="row"><div><strong>${safe(r.list_number??'—')}. ${safe(r.student_name||r.student_id)}</strong><small>ID ${safe(r.student_id)}</small></div><div class="points-balance">${Number(r.balance||0).toFixed(2)}</div></div>`).join(''):'<div class="empty">No hay alumnos.</div>';
-  }catch(e){box.className='list empty';box.textContent='No se pudieron cargar saldos: '+(e.message||e)}
-}
-async function awardPointsByScan(){
-  const sid=norm($('#pointAwardScan').value);$('#pointAwardScan').value='';$('#pointAwardScan').focus();
-  const group=$('#pointAwardGroup').value;
-  const amount=Number($('#pointAwardAmount').value);
-  const reason=norm($('#pointAwardReason').value);
-  if(!sid)return pointStatus('pointAward','warning','Escribe o escanea un ID','Falta el ID del alumno.');
-  if(!Number.isFinite(amount)||amount<=0)return pointStatus('pointAward','warning','Cantidad inválida','Escribe una cantidad mayor que cero.');
-  if(!reason)return pointStatus('pointAward','warning','Falta el motivo','Escribe por qué se otorgan los puntos.');
-  const st=await req(store('students').get(sid));
-  if(!st)return pointStatus('pointAward','error','ID no encontrado',sid);
-  if(!sameShift(st.shift,'Matutino')||!sameGroup(st.group,group))return pointStatus('pointAward','warning','Otro grupo',`${st.name||sid} · ${st.group}`);
-  try{
-    const r=await ProfeSupabase.rpc('teacher_award_points',{p_student_id:String(sid),p_amount:amount,p_reason:reason});
-    pointStatus('pointAward','success','PUNTOS OTORGADOS',`${st.name||sid} · +${amount.toFixed(2)} · Saldo ${Number(r?.balance||0).toFixed(2)}`);
-    await refreshPointBalances();
-  }catch(e){pointStatus('pointAward','error','No se pudo registrar',e.message||String(e))}
-}
-async function refreshPointProvisionalState(){
-  const id=$('#pointMethodology')?.value,el=$('#pointProvisionalState');
-  if(!el)return;
-  if(!id){el.textContent='Selecciona una metodología.';return}
-  const m=await req(store('methodologies').get(id));
-  if(!m){el.textContent='Metodología no encontrada.';return}
-  el.textContent=m.closed?'Mes cerrado y definitivo.':m.provisionalPublished?`Provisional publicada ${pointLocalDateTime(m.provisionalPublishedAt)}.`:'Todavía no se ha publicado la calificación provisional.';
-}
-async function publishPointProvisional(){
-  const id=$('#pointMethodology').value;if(!id)return alert('Selecciona una metodología.');
-  let m=await req(store('methodologies').get(id));if(!m)return;
-  if(m.closed)return alert('Este mes ya está cerrado.');
-  const grades=m.gradeRecords||{};
-  const roster=(await students()).filter(s=>sameShift(s.shift,m.shift)&&sameGroup(s.group,m.group));
-  const pending=roster.filter(s=>grades[s.id]?.finalDecimal==null);
-  if(pending.length)return alert(`Todavía hay ${pending.length} alumno(s) sin calificación provisional calculada. Ve a Metodologías → Calcular calificaciones.`);
-  if(m.provisionalPublished&&!confirm('La provisional ya fue publicada. ¿Volver a publicar la actualización?'))return;
-  m.provisionalPublished=true;m.provisionalPublishedAt=new Date().toISOString();m.updated=new Date().toISOString();
-  await req(store('methodologies','readwrite').put(m));
-  await ProfeSupabase.upsert('methodologies',remoteMethodology(m),'id');
-  for(const st of roster){
-    const g=grades[st.id];if(g?.finalDecimal==null)continue;
-    await sendTeacherPushEvent('grade_update',{
-      student_id:String(st.id),
-      title:`Calificación provisional de ${m.month||'mes'} publicada`,
-      message:`Ya puedes consultar tu calificación provisional de ${m.month||'este mes'}: ${Number(g.finalDecimal).toFixed(2)}.`
-    }).catch(()=>{});
-  }
-  await refreshPointProvisionalState();
-  alert(`Calificación provisional de ${m.month||'este mes'} publicada.`);
-}
-function pointClosingText(value){
-  const d=new Date(value);
-  if(!Number.isFinite(d.getTime()))return '';
-  return d.toLocaleString('es-MX',{
-    weekday:'long',day:'numeric',month:'long',year:'numeric',
-    hour:'numeric',minute:'2-digit'
-  });
-}
-
-async function notifyOpenedPointPeriods(periods){
-  if(!supabaseReady)return;
-  for(const p of periods||[]){
-    if(p.state!=='open'||p.notified_at)continue;
-    try{
-      const cierre=pointClosingText(p.closes_at);
-      await sendTeacherPushEvent('point_period_open',{
-        group:String(p.group_name||''),
-        title:'⭐ Periodo de asignación de puntos abierto',
-        message:`Ya puedes decidir qué hacer con tus puntos de ${p.month||'este mes'}. Cierre: ${cierre}.`
-      });
-      await ProfeSupabase.rpc('teacher_mark_point_period_notified',{p_period_id:String(p.id)});
-      p.notified_at=new Date().toISOString();
-    }catch(e){
-      console.warn('No se pudo enviar aviso de apertura de puntos',e);
-    }
-  }
-}
-
-async function savePointPeriod(e){
-  e?.preventDefault();
-  const mid=$('#pointMethodology').value;
-  if(!mid)return alert('Selecciona una metodología.');
-  const m=await req(store('methodologies').get(mid));
-  if(!m?.provisionalPublished)return alert('Primero publica la calificación provisional.');
-  const openRaw=$('#pointPeriodOpen').value,closeRaw=$('#pointPeriodClose').value;
-  if(!openRaw||!closeRaw)return alert('Selecciona fecha y hora de apertura y cierre.');
-  const opens=new Date(openRaw),closes=new Date(closeRaw);
-  if(!Number.isFinite(opens.getTime())||!Number.isFinite(closes.getTime())||closes<=opens)return alert('Revisa las fechas y horas.');
-  try{
-    await ProfeSupabase.rpc('teacher_save_point_period',{p_methodology_id:String(mid),p_opens_at:opens.toISOString(),p_closes_at:closes.toISOString()});
-    await refreshPointPeriods();
-    const now=Date.now();
-    const statusText=opens.getTime()<=now?'abierto':'programado';
-    alert(`Periodo de ${m.month} · Grupo ${m.group} ${statusText}.`);
-  }catch(e2){alert('No se pudo programar: '+(e2.message||e2))}
-}
-async function refreshPointPeriods(){
-  if(!supabaseReady)return;
-  try{
-    pointPeriodsCache=await ProfeSupabase.rpc('teacher_point_periods',{})||[];
-    await notifyOpenedPointPeriods(pointPeriodsCache);
-  }catch(e){pointPeriodsCache=[];$('#pointPeriodsList').innerHTML='<div class="empty">No se pudieron cargar periodos: '+safe(e.message||e)+'</div>';return}
-  const box=$('#pointPeriodsList');
-  if(box){
-    box.className='list';
-    box.innerHTML=pointPeriodsCache.length?pointPeriodsCache.map(p=>`<div class="row"><div><strong>${safe(p.month)} · Grupo ${safe(p.group_name)}</strong><small>${pointLocalDateTime(p.opens_at)} → ${pointLocalDateTime(p.closes_at)} · ${Number(p.students_with_action||0)} con decisión</small></div><div><span class="${pointStateClass(p.state)}">${pointStateLabel(p.state)}</span>${p.state==='open'?`<br><button class="secondary" data-close-point-period="${safe(p.id)}" type="button">Cerrar ahora</button>`:''}</div></div>`).join(''):'<div class="empty">No hay periodos programados.</div>';
-    $$('[data-close-point-period]').forEach(b=>b.onclick=()=>closePointPeriodNow(b.dataset.closePointPeriod));
-  }
-  const sel=$('#pointManagePeriod'),old=sel?.value;
-  if(sel){
-    sel.innerHTML=pointPeriodsCache.length?pointPeriodsCache.map(p=>`<option value="${safe(p.id)}">${safe(p.month)} · Grupo ${safe(p.group_name)} · ${pointStateLabel(p.state)}</option>`).join(''):'<option value="">Sin periodos</option>';
-    if(pointPeriodsCache.some(p=>p.id===old))sel.value=old;
-  }
-  await refreshPointManage();
-}
-async function closePointPeriodNow(id){
-  if(!confirm('¿Cerrar este periodo ahora? Los alumnos ya no podrán usar ni donar puntos.'))return;
-  try{await ProfeSupabase.rpc('teacher_close_point_period',{p_period_id:id});await refreshPointPeriods()}catch(e){alert(e.message||e)}
-}
-async function refreshPointManage(){
-  const pid=$('#pointManagePeriod')?.value;
-  if(!pid){if($('#pointDecisionList'))$('#pointDecisionList').innerHTML='<div class="empty">Selecciona un periodo.</div>';return}
-  try{
-    const detail=await ProfeSupabase.rpc('teacher_point_period_detail',{p_period_id:pid});
-    const rows=detail?.students||[];
-    const sel=$('#pointManageStudent'),old=sel.value;
-    sel.innerHTML=rows.length?rows.map(r=>`<option value="${safe(r.student_id)}">${safe(r.list_number??'—')}. ${safe(r.student_name||r.student_id)}</option>`).join(''):'<option value="">Sin alumnos</option>';
-    if(rows.some(r=>r.student_id===old))sel.value=old;
-    $('#pointDecisionList').className='list points-status-list';
-    $('#pointDecisionList').innerHTML=rows.length?rows.map(r=>`<div class="row"><div><strong>${safe(r.list_number??'—')}. ${safe(r.student_name)}</strong><small>ID ${safe(r.student_id)} · Saldo ${Number(r.balance||0).toFixed(2)}</small></div><span class="points-status-pill ${pointChoiceClass(r.choice)}">${pointChoiceLabel(r.choice)}</span></div>`).join(''):'<div class="empty">Sin alumnos.</div>';
-    await refreshPointManageStudent(rows);
-  }catch(e){$('#pointDecisionList').innerHTML='<div class="empty">No se pudo cargar el periodo: '+safe(e.message||e)+'</div>'}
-}
-async function refreshPointManageStudent(rows=null){
-  const pid=$('#pointManagePeriod')?.value,sid=$('#pointManageStudent')?.value;
-  if(!pid||!sid)return;
-  if(!rows){
-    const d=await ProfeSupabase.rpc('teacher_point_period_detail',{p_period_id:pid});
-    rows=d?.students||[];
-  }
-  const row=rows.find(r=>String(r.student_id)===String(sid));
-  $('#pointManageBalance').textContent=Number(row?.balance||0).toFixed(2);
-  const c=$('#pointManageChoice');c.textContent=pointChoiceLabel(row?.choice);c.className='points-status-pill '+pointChoiceClass(row?.choice);
-  await refreshPointHistory();
-}
-async function refreshPointHistory(){
-  const sid=$('#pointManageStudent')?.value,box=$('#pointHistoryList');
-  if(!sid){box.innerHTML='<div class="empty">Selecciona un alumno.</div>';return}
-  try{
-    const d=await ProfeSupabase.rpc('teacher_student_point_history',{p_student_id:String(sid),p_limit:100});
-    const tx=d?.transactions||[];
-    box.className='list';
-    box.innerHTML=tx.length?tx.map(t=>`<div class="row"><div><strong>${Number(t.amount)>0?'+':''}${Number(t.amount).toFixed(2)} puntos</strong><small>${safe(t.reason||t.type)} · ${pointLocalDateTime(t.created_at)} · ${safe(t.source||'')}</small></div></div>`).join(''):'<div class="empty">Aún no hay movimientos.</div>';
-  }catch(e){box.innerHTML='<div class="empty">No se pudo cargar el historial.</div>'}
-}
-async function syncLocalPointMethodology(periodId){
-  const p=pointPeriodsCache.find(x=>String(x.id)===String(periodId));
-  if(!p?.methodology_id)return;
-  try{
-    const rows=await ProfeSupabase.select('methodologies',`select=data&id=eq.${encodeURIComponent(p.methodology_id)}&limit=1`);
-    const data=rows?.[0]?.data;
-    if(data?.id)await req(store('methodologies','readwrite').put(data));
-  }catch(e){console.warn('No se pudo actualizar metodología local después del movimiento de puntos',e)}
-}
-async function teacherApplyStudentPoints(){
-  const pid=$('#pointManagePeriod').value,sid=$('#pointManageStudent').value,amount=Number($('#pointManageUseAmount').value);
-  if(!pid||!sid)return alert('Selecciona periodo y alumno.');
-  if(!Number.isFinite(amount)||amount<0)return alert('Cantidad inválida.');
-  if(!confirm(`¿Registrar ${amount.toFixed(2)} puntos aplicados a la calificación de este alumno?`))return;
-  try{
-    const r=await ProfeSupabase.rpc('teacher_set_grade_points',{p_student_id:String(sid),p_period_id:pid,p_amount:amount});
-    await syncLocalPointMethodology(pid);
-    await refreshPointManage();
-    alert(`Movimiento registrado. Nuevo saldo: ${Number(r?.balance||0).toFixed(2)}.`);
-  }catch(e){alert('No se pudo aplicar: '+(e.message||e))}
-}
-async function teacherDonateStudentPoints(){
-  const pid=$('#pointManagePeriod').value,donor=$('#pointManageStudent').value,recipient=norm($('#pointManageRecipient').value),amount=Number($('#pointManageDonateAmount').value);
-  if(!pid||!donor)return alert('Selecciona periodo y alumno.');
-  if(!recipient)return alert('Escribe el ID del compañero.');
-  if(!Number.isFinite(amount)||amount<=0)return alert('Cantidad inválida.');
-  if(!confirm(`¿Donar ${amount.toFixed(2)} puntos del alumno seleccionado al ID ${recipient}?`))return;
-  try{
-    const r=await ProfeSupabase.rpc('teacher_donate_points',{p_donor_id:String(donor),p_period_id:pid,p_recipient_id:String(recipient),p_amount:amount});
-    $('#pointManageRecipient').value='';
-    await refreshPointManage();
-    alert(`Donación registrada para ${r?.recipient_name||recipient}.`);
-  }catch(e){alert('No se pudo donar: '+(e.message||e))}
-}
-
-
 async function printMethodology(){
   let data=window._lastMethodologyCalculation;if(!data){await calculateMethodology();data=window._lastMethodologyCalculation}if(!data)return;
   if(!pdfReady())return alert('No se cargó el generador de PDF.');
@@ -2059,31 +1759,7 @@ async function openDeleteRecordsDialog(){
       for(const key of selected){
         for(const storeName of DELETE_GROUPS[key].stores){
           if(db.objectStoreNames.contains(storeName)){
-            // Si se borran metodologías, elimina también las copias remotas para que
-            // Alumno/Padres y el resumen trimestral no conserven calificaciones antiguas.
-            if(storeName==='methodologies' && supabaseReady){
-              const existing=await all('methodologies');
-              for(const item of existing){
-                try{await queueRemoteDelete('methodologies',item.id)}catch(e){console.warn('No se pudo borrar metodología remota',item.id,e)}
-              }
-            }
             await req(store(storeName,'readwrite').clear());
-          }
-        }
-        if(key==='methodologies'){
-          window._lastQuarter=null;
-          if($('#quarterResults'))$('#quarterResults').innerHTML='<div class="empty">No hay meses cerrados para este trimestre.</div>';
-          Object.keys(localStorage).filter(k=>k.startsWith('quarterPublished:')||k.startsWith('quarterSummaryId:')).forEach(k=>localStorage.removeItem(k));
-          if(supabaseReady){
-            try{
-              const remote=await ProfeSupabase.select('methodologies','select=id,data');
-              for(const row of remote||[]){
-                const d=row?.data||{};
-                if(d.isQuarterSummary===true||d.periodType==='quarter'){
-                  await ProfeSupabase.remove('methodologies',`id=eq.${encodeURIComponent(row.id)}`);
-                }
-              }
-            }catch(e){console.warn('No se pudieron borrar resúmenes trimestrales remotos',e)}
           }
         }
       }
@@ -2123,89 +1799,7 @@ async function calculateQuarter(){
   });
   window._lastQuarter={shift,group,cycle,quarter,methods,rows};
   $('#quarterResults').innerHTML=`<div class="period-summary"><b>${safe(cycle)} · Trimestre ${quarter} · ${safe(shift)} · Grupo ${safe(group)}</b><br>Meses incluidos: ${methods.map(m=>safe(m.month)).join(', ')}</div><table class="matrix"><thead><tr><th>#</th><th class="name">Alumno</th>${methods.map(m=>`<th>${safe(m.month)}</th>`).join('')}<th>Promedio decimal</th><th>Redondeada</th></tr></thead><tbody>${rows.map(r=>`<tr><td>${r.student.number}</td><td class="name">${safe(r.student.name||r.student.id)}</td>${r.monthly.map(x=>`<td>${typeof x.value==='number'?x.value.toFixed(2):'Pendiente'}</td>`).join('')}<td>${r.average===null?'Pendiente':r.average.toFixed(2)}</td><td class="grade-rounded">${r.rounded===null?'—':r.rounded}</td></tr>`).join('')}</tbody></table>`;
-
 }
-async function closeQuarter(){
-  await calculateQuarter();
-  const q=window._lastQuarter;
-  if(!q)return;
-
-  if(q.rows.some(r=>r.average===null)){
-    return alert('Hay alumnos con calificación trimestral pendiente. Completa y cierra todos los meses antes de cerrar el trimestre.');
-  }
-
-  const publishKey=`quarterPublished:${q.cycle}:${q.shift}:${q.group}:${q.quarter}`;
-  if(localStorage.getItem(publishKey)==='1'){
-    return alert('Este trimestre ya fue cerrado y publicado.');
-  }
-
-  if(!confirm(`¿Cerrar el trimestre ${q.quarter}? Al hacerlo se publicará la calificación trimestral en Alumno y Padres.`))return;
-
-  if(!sameShift(q.shift,'Matutino')){
-    localStorage.setItem(publishKey,'1');
-    alert('Trimestre cerrado. Los portales Alumno/Padres solo corresponden al turno matutino.');
-    return;
-  }
-  if(!supabaseReady)return alert('Inicia sesión en Supabase antes de cerrar y publicar el trimestre.');
-
-  try{
-    const key=`quarterSummaryId:${q.cycle}:${q.shift}:${q.group}:${q.quarter}`;
-    let summaryId=localStorage.getItem(key);
-    if(!summaryId){summaryId=crypto.randomUUID();localStorage.setItem(key,summaryId)}
-
-    const gradeRecords={};
-    q.rows.forEach(r=>{
-      gradeRecords[String(r.student.id)]={
-        finalDecimal:Number(r.average),
-        rounded:r.rounded,
-        monthly:r.monthly
-      };
-    });
-
-    const now=new Date().toISOString();
-    const summary={
-      id:summaryId,
-      shift:q.shift,
-      group:q.group,
-      cycle:q.cycle,
-      quarter:q.quarter,
-      month:`Trimestre ${q.quarter}`,
-      name:`Promedio trimestral ${q.quarter}`,
-      subject:'Español',
-      criteria:[],
-      assignments:{},
-      gradeRecords,
-      closed:true,
-      closedAt:now,
-      published:true,
-      publishedAt:now,
-      created:now,
-      updated:now,
-      periodType:'quarter',
-      isQuarterSummary:true,
-      monthsIncluded:q.methods.map(m=>m.month)
-    };
-
-    await ProfeSupabase.upsert('methodologies',remoteMethodology(summary),'id');
-
-    for(const r of q.rows){
-      await sendTeacherPushEvent('grade_update',{
-        student_id:String(r.student.id),
-        title:'Calificación trimestral publicada',
-        message:`Ya está publicada tu calificación del trimestre ${q.quarter}: ${r.average.toFixed(2)}.`
-      });
-    }
-
-    localStorage.setItem(publishKey,'1');
-    $('#closeQuarterBtn').textContent='Trimestre publicado';
-    $('#closeQuarterBtn').disabled=true;
-    alert(`Trimestre ${q.quarter} cerrado y publicado.`);
-  }catch(e){
-    console.warn('No se pudo cerrar/publicar el trimestre',e);
-    alert('No se pudo publicar el trimestre. Puedes intentarlo de nuevo.');
-  }
-}
-
 async function printQuarter(){
   let q=window._lastQuarter;if(!q){await calculateQuarter();q=window._lastQuarter}if(!q)return;
   if(!pdfReady())return alert('No se cargó el generador de PDF.');
@@ -2949,21 +2543,8 @@ function bind(){
  $('#generateGroupAccessPdf')&&($('#generateGroupAccessPdf').onclick=generateGroupAccessPdf);
  $('#portalAccessGroupFilter')&&($('#portalAccessGroupFilter').onchange=renderPortalAccessReport);
  $('#portalAccessSearch')&&($('#portalAccessSearch').oninput=renderPortalAccessReport);
- setTimeout(()=>{decorateStudentAccessStatuses()},300);$$('.tab').forEach(b=>b.onclick=()=>setView(b.dataset.view));document.addEventListener('click',e=>{const menu=$('#mainMenu');if(menu?.open&&!menu.contains(e.target))menu.open=false});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#mainMenu'))$('#mainMenu').open=false});$$('[data-go]').forEach(b=>b.onclick=()=>setView(b.dataset.go));$$('[data-acttab]').forEach(b=>b.onclick=()=>pane('act',b.dataset.acttab));$$('[data-tittab]').forEach(b=>b.onclick=()=>pane('tit',b.dataset.tittab));$$('[data-mettab]').forEach(b=>b.onclick=()=>pane('met',b.dataset.mettab));$$('[data-pointtab]').forEach(b=>b.onclick=()=>pane('point',b.dataset.pointtab));for(let p of ['att','act','grid','newAct','met','calcMet'])$('#'+p+'Shift').onchange=()=>fillGroups(p);$('#attGroup').onchange=refreshAttendance;$('#attDate').onchange=refreshAttendance;$('#attRegister').onclick=registerAttendance;$('#attScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerAttendance()}};$('#attMissingBtn').onclick=showMissing;$('#attFinalizeBtn').onclick=finalizeAttendance;populateNewActivityWeeks();
-$('#activityForm').onsubmit=createActivity;$('#newActDate').onchange=syncActivityWeekFromDate;$('#cancelActivityEdit').onclick=resetActivityForm;$('#actGroup').onchange=refreshActivitySelectors;$('#actWeek').onchange=refreshActivitySelectors;$('#actSelect').onchange=refreshActivityStats;$('#actRegister').onclick=registerActivity;$('#actScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerActivity()}};$('#actClose').onclick=()=>closeActivity(true);$('#actReopen').onclick=()=>closeActivity(false);$('#gridGroup').onchange=refreshGridWeeks;$('#gridWeek').onchange=renderActivityGrid;$('#gridPdf').onclick=showWeeklyReportOptions;$('#addCriterionBtn').onclick=()=>addCriterion();$('#methodologyForm').onsubmit=saveMethodology;$('#cancelMethodologyEdit').onclick=resetMethodologyForm;$('#calcMetGroup').onchange=refreshCalculationMethodologies;$('#calcMethodology').onchange=renderMethodologyAssignments;$('#saveAssignmentsBtn').onclick=saveAssignments;$('#calculateMethodologyBtn').onclick=calculateMethodology;$('#methodologyPdfBtn').onclick=printMethodology;$('#methodologyIndividualPdfBtn').onclick=printMethodologyIndividuals;$('#closeMethodologyMonthBtn').onclick=toggleCloseMethodologyMonth;$('#newMethodologyMonthBtn').onclick=()=>startNewMonth();$('#quarterShift').onchange=refreshQuarterSelectors;
-$('#pointAwardGroup').onchange=refreshPointBalances;
-$('#pointAwardRegister').onclick=awardPointsByScan;
-$('#pointAwardScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();awardPointsByScan()}};
-$('#pointRefreshBalances').onclick=refreshPointBalances;
-$('#pointMethodology').onchange=refreshPointProvisionalState;
-$('#pointPublishProvisional').onclick=publishPointProvisional;
-$('#pointPeriodForm').onsubmit=savePointPeriod;
-$('#pointRefreshPeriods').onclick=refreshPointPeriods;
-$('#pointManagePeriod').onchange=refreshPointManage;
-$('#pointManageStudent').onchange=()=>refreshPointManageStudent();
-$('#pointManageUseBtn').onclick=teacherApplyStudentPoints;
-$('#pointManageDonateBtn').onclick=teacherDonateStudentPoints;
-$('#pointManageRefresh').onclick=refreshPointManage;$('#quarterGroup').onchange=()=>{};$('#calculateQuarterBtn').onclick=calculateQuarter;$('#closeQuarterBtn').onclick=closeQuarter;$('#quarterPdfBtn').onclick=printQuarter;$('#studentForm').onsubmit=saveStudent;$('#studentSearch').oninput=renderStudents;$('#studentGroupFilter')&&($('#studentGroupFilter').onchange=renderStudents);$('#dossierGroup')&&($('#dossierGroup').onchange=()=>refreshDossierSelector());$('#dossierStudent').onchange=e=>renderDossier(e.target.value);
+ setTimeout(()=>{decorateStudentAccessStatuses()},300);$$('.tab').forEach(b=>b.onclick=()=>setView(b.dataset.view));document.addEventListener('click',e=>{const menu=$('#mainMenu');if(menu?.open&&!menu.contains(e.target))menu.open=false});document.addEventListener('keydown',e=>{if(e.key==='Escape'&&$('#mainMenu'))$('#mainMenu').open=false});$$('[data-go]').forEach(b=>b.onclick=()=>setView(b.dataset.go));$$('[data-acttab]').forEach(b=>b.onclick=()=>pane('act',b.dataset.acttab));$$('[data-tittab]').forEach(b=>b.onclick=()=>pane('tit',b.dataset.tittab));$$('[data-mettab]').forEach(b=>b.onclick=()=>pane('met',b.dataset.mettab));for(let p of ['att','act','grid','newAct','met','calcMet'])$('#'+p+'Shift').onchange=()=>fillGroups(p);$('#attGroup').onchange=refreshAttendance;$('#attDate').onchange=refreshAttendance;$('#attRegister').onclick=registerAttendance;$('#attScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerAttendance()}};$('#attMissingBtn').onclick=showMissing;$('#attFinalizeBtn').onclick=finalizeAttendance;populateNewActivityWeeks();
+$('#activityForm').onsubmit=createActivity;$('#newActDate').onchange=syncActivityWeekFromDate;$('#cancelActivityEdit').onclick=resetActivityForm;$('#actGroup').onchange=refreshActivitySelectors;$('#actWeek').onchange=refreshActivitySelectors;$('#actSelect').onchange=refreshActivityStats;$('#actRegister').onclick=registerActivity;$('#actScan').onkeydown=e=>{if(e.key==='Enter'){e.preventDefault();registerActivity()}};$('#actClose').onclick=()=>closeActivity(true);$('#actReopen').onclick=()=>closeActivity(false);$('#gridGroup').onchange=refreshGridWeeks;$('#gridWeek').onchange=renderActivityGrid;$('#gridPdf').onclick=showWeeklyReportOptions;$('#addCriterionBtn').onclick=()=>addCriterion();$('#methodologyForm').onsubmit=saveMethodology;$('#cancelMethodologyEdit').onclick=resetMethodologyForm;$('#calcMetGroup').onchange=refreshCalculationMethodologies;$('#calcMethodology').onchange=renderMethodologyAssignments;$('#saveAssignmentsBtn').onclick=saveAssignments;$('#calculateMethodologyBtn').onclick=calculateMethodology;$('#methodologyPdfBtn').onclick=printMethodology;$('#methodologyIndividualPdfBtn').onclick=printMethodologyIndividuals;$('#closeMethodologyMonthBtn').onclick=toggleCloseMethodologyMonth;$('#newMethodologyMonthBtn').onclick=()=>startNewMonth();$('#quarterShift').onchange=refreshQuarterSelectors;$('#quarterGroup').onchange=()=>{};$('#calculateQuarterBtn').onclick=calculateQuarter;$('#quarterPdfBtn').onclick=printQuarter;$('#studentForm').onsubmit=saveStudent;$('#studentSearch').oninput=renderStudents;$('#studentGroupFilter')&&($('#studentGroupFilter').onchange=renderStudents);$('#dossierGroup')&&($('#dossierGroup').onchange=()=>refreshDossierSelector());$('#dossierStudent').onchange=e=>renderDossier(e.target.value);
  $('#openMonitorDossier').onclick=async()=>{
    setView('dossier');
    if($('#dossierGroup'))$('#dossierGroup').value='MONITOR';
@@ -2980,14 +2561,355 @@ $('#homeExportBackup').onclick=exportBackup;
 $('#reportsExportBackup').onclick=exportBackup;
 $('#openDeleteRecords').onclick=openDeleteRecordsDialog;
 $('#materialSource').onchange=updateMaterialSourceUI;updateMaterialSourceUI();
-$('#availabilityForm').onsubmit=saveAvailability;
+$$('.meritNav').forEach(b=>b.onclick=()=>meritPane(b.dataset.meritPane));
+ $('#meritPeriodForm').onsubmit=saveMeritPeriod;$('#meritStaffForm').onsubmit=addMeritStaff;
+ $('#meritRefreshRanking').onclick=loadMeritRanking;$('#meritRefreshMovements').onclick=loadMeritMovements;$('#meritRefreshStaff').onclick=loadMeritStaff;
+ $('#meritRankingPeriod').onchange=loadMeritRanking;$('#meritMovementPeriod').onchange=loadMeritMovements;$('#meritWeeklyPeriod').onchange=meritWeeklyPreview;
+ $$('.meritGrade').forEach(b=>b.onclick=()=>{meritGradeFilter=b.dataset.grade;$$('.meritGrade').forEach(x=>x.classList.toggle('active',x===b));renderMeritRanking()});
+ $('#meritPreviewWeekly').onclick=meritWeeklyPreview;$('#meritPublishWeekly').onclick=publishMeritWeekly;$('#meritFreezePublic').onclick=()=>setMeritPublicState('frozen');$('#meritProcessPublic').onclick=()=>setMeritPublicState('results_in_process');$('#meritOpenPublic').onclick=()=>setMeritPublicState('open');
+ $('#availabilityForm').onsubmit=saveAvailability;
+ $('#studentAppHoursForm').onsubmit=saveStudentAppHours;
+ $('#refreshStudentAppHours').onclick=loadStudentAppHours;
+ $$('.studentTempOpen').forEach(b=>b.onclick=()=>openStudentAppTemporarily(Number(b.dataset.minutes)));
+ $('#cancelStudentTempOpen').onclick=()=>openStudentAppTemporarily(0);
  $('#contactOverrideBtn').onclick=toggleContactOverride;
  $('#openStudentChatToday').onclick=()=>setStudentChatTeacherState('open');
  $('#closeStudentChatToday').onclick=()=>setStudentChatTeacherState('closed');
- $('#autoStudentChat').onclick=()=>setStudentChatTeacherState('auto');$('#noticeForm').onsubmit=e=>savePortalEntity('notice',e);$('#materialForm').onsubmit=e=>savePortalEntity('material',e);$('#topicForm').onsubmit=e=>savePortalEntity('topic',e);$('#refreshMessages').onclick=renderTeacherMessages;
+ $('#autoStudentChat').onclick=()=>setStudentChatTeacherState('auto');$('#noticeForm').onsubmit=e=>savePortalEntity('notice',e);$('#materialForm').onsubmit=e=>savePortalEntity('material',e);$('#topicForm').onsubmit=e=>savePortalEntity('topic',e);
 const bindRestoreInput=id=>{$('#'+id).onchange=e=>{if(e.target.files[0])restore(e.target.files[0]);e.target.value=''}};
 bindRestoreInput('restoreFile');
 bindRestoreInput('homeRestoreFile');
 bindRestoreInput('reportsRestoreFile');$('#cancelEdit').onclick=()=>{$('#studentForm').reset();$('#editId').value='';$('#studentTitle').textContent='Agregar alumno';$('#cancelEdit').classList.add('hidden')};$('#titSaveAll').onclick=saveTitularWeek;['titPeriod','titMonth','titWeek','titLabel'].forEach(id=>$('#'+id).onchange=renderTitularGrid);$('#titStudent').onchange=renderTitPreview;$('#titSavedWeek').onchange=renderTitPreview;$('#titPdf').onclick=printTitular;$('#titEmail').onclick=openTitularEmailDialog;$('#weeklyReportShortcut').onclick=()=>setView('activities');$('#attendanceReport').onclick=printAttendance;$('#titularReportShortcut').onclick=()=>{setView('titular');pane('tit','individual')};$('#dialogClose').onclick=()=>$('#dialog').close();window.addEventListener('beforeinstallprompt',e=>{e.preventDefault();deferredPrompt=e;$('#installBtn').classList.remove('hidden')});$('#installBtn').onclick=async()=>{if(deferredPrompt){deferredPrompt.prompt();await deferredPrompt.userChoice;deferredPrompt=null}}}
 window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){let t=e.data.target;if(t==='messages')showPage('messages');else showPage('home')}});
-(async()=>{try{$('#attDate').value=$('#newActDate').value=today();$('#titMonth').innerHTML=['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero','Marzo','Abril','Mayo','Junio'].map(x=>`<option>${x}</option>`).join('');bind();fillBirthdayDayOptions();await openDB();await requireTeacherSession();startTeacherNotificationPolling();if(Notification.permission==='granted')syncTeacherPushSubscription().catch(()=>{});await fillSelectors();await refreshHome();await refreshActivitySelectors();await refreshGridWeeks();await refreshTitIndividual();resetMethodologyForm();await refreshMethodologyUI();await refreshQuarterSelectors();if('serviceWorker'in navigator){let reg=await navigator.serviceWorker.register('service-worker.js?v=8162');reg.update().catch(()=>{})}await showLastInternalSave();$('#attScan').focus()}catch(e){console.error(e);alert('La app no pudo iniciar correctamente. Tus registros pueden seguir almacenados. Cierra todas las ventanas de la app y vuelve a abrirla. Detalle: '+(e?.message||e))}})()
+(async()=>{try{$('#attDate').value=$('#newActDate').value=today();$('#titMonth').innerHTML=['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero','Marzo','Abril','Mayo','Junio'].map(x=>`<option>${x}</option>`).join('');bind();fillBirthdayDayOptions();await openDB();await requireTeacherSession();startTeacherNotificationPolling();if(Notification.permission==='granted')syncTeacherPushSubscription().catch(()=>{});await fillSelectors();await refreshHome();await refreshActivitySelectors();await refreshGridWeeks();await refreshTitIndividual();resetMethodologyForm();await refreshMethodologyUI();await refreshQuarterSelectors();if('serviceWorker'in navigator){let reg=await navigator.serviceWorker.register('service-worker.js?v=8122');reg.update().catch(()=>{})}await showLastInternalSave();$('#attScan').focus()}catch(e){console.error(e);alert('La app no pudo iniciar correctamente. Tus registros pueden seguir almacenados. Cierra todas las ventanas de la app y vuelve a abrirla. Detalle: '+(e?.message||e))}})()
+
+// ===== Mérito Gabino A. Palma · ajustes administrativos v8.16.2 =====
+let meritPeriodsCacheV8151=[];
+let meritStaffCacheV8151=[];
+
+function meritMonthNameV8151(n){
+  return ['','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio','Agosto','Septiembre','Octubre','Noviembre','Diciembre'][Number(n)]||String(n||'');
+}
+function meritIsoDateV8151(v){
+  if(!v)return '';
+  return String(v).slice(0,10);
+}
+
+async function meritLoadPeriodsV8151(){
+  try{
+    const rows=await ProfeSupabase.rpc('teacher_merit_periods',{});
+    meritPeriodsCacheV8151=Array.isArray(rows)?rows:[];
+    meritDecoratePeriodTableV8151();
+  }catch(e){console.warn('merit periods v8151',e)}
+}
+function meritDecoratePeriodTableV8151(){
+  const cards=[...document.querySelectorAll('section,div')].filter(el=>{
+    const t=(el.textContent||'').trim();
+    return t.includes('Configuración') && t.includes('Periodo') && t.includes('Fechas');
+  });
+  const root=cards[0]||document;
+  const table=root.querySelector('table');
+  if(!table)return;
+
+  // Add actions header once
+  const hr=table.querySelector('thead tr');
+  if(hr && ![...hr.children].some(x=>x.textContent.trim()==='Acciones')){
+    const th=document.createElement('th');th.textContent='Acciones';hr.appendChild(th);
+  }
+
+  [...table.querySelectorAll('tbody tr')].forEach(tr=>{
+    if(tr.dataset.meritEditReady==='1')return;
+    const txt=tr.textContent||'';
+    const p=meritPeriodsCacheV8151.find(x=>txt.includes(x.label||''));
+    if(!p)return;
+    const td=document.createElement('td');
+    td.innerHTML='<div class="merit-inline-actions"><button type="button" class="secondary">Editar</button></div>';
+    td.querySelector('button').onclick=()=>meritOpenPeriodEditV8151(p.id);
+    tr.appendChild(td);tr.dataset.meritEditReady='1';
+  });
+}
+
+function meritOpenPeriodEditV8151(id){
+  const p=meritPeriodsCacheV8151.find(x=>String(x.id)===String(id));
+  if(!p)return alert('No se encontró el periodo.');
+  $('#meritEditPeriodId').value=p.id;
+  $('#meritEditPeriodCycle').value=p.school_year||'';
+  $('#meritEditPeriodMonth').value=meritMonthNameV8151(p.month_number);
+  $('#meritEditPeriodLabel').value=p.label||'';
+  $('#meritEditPeriodStart').value=meritIsoDateV8151(p.starts_at);
+  $('#meritEditPeriodEnd').value=meritIsoDateV8151(p.ends_at);
+  $('#meritEditPeriodStatus').textContent='';
+  $('#meritEditPeriodDialog').showModal();
+}
+async function meritSavePeriodEditV8151(){
+  const p=meritPeriodsCacheV8151.find(x=>String(x.id)===String($('#meritEditPeriodId').value));
+  if(!p)return;
+  const label=$('#meritEditPeriodLabel').value.trim();
+  const start=$('#meritEditPeriodStart').value;
+  const end=$('#meritEditPeriodEnd').value;
+  if(!label||!start||!end)return $('#meritEditPeriodStatus').textContent='Completa todos los campos.';
+  if(end<start)return $('#meritEditPeriodStatus').textContent='La fecha de fin no puede ser anterior al inicio.';
+  try{
+    const d=await ProfeSupabase.rpc('teacher_merit_save_period',{
+      p_school_year:p.school_year,
+      p_month_number:Number(p.month_number),
+      p_label:label,
+      p_starts_at:start,
+      p_ends_at:end,
+      p_status:p.status||'open'
+    });
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
+    $('#meritEditPeriodStatus').textContent='✓ Periodo actualizado correctamente.';
+    setTimeout(()=>$('#meritEditPeriodDialog').close(),450);
+    if(typeof meritLoadConfiguration==='function')await meritLoadConfiguration();
+    if(typeof meritLoadPeriods==='function')await meritLoadPeriods();
+    await meritLoadPeriodsV8151();
+  }catch(e){
+    $('#meritEditPeriodStatus').textContent='No se pudo guardar: '+(e.message||e);
+  }
+}
+
+async function meritLoadStaffV8151(){
+  try{
+    const rows=await ProfeSupabase.rpc('teacher_merit_staff',{});
+    meritStaffCacheV8151=Array.isArray(rows)?rows:[];
+    meritDecorateStaffTableV8151();
+  }catch(e){console.warn('merit staff v8151',e)}
+}
+function meritDecorateStaffTableV8151(){
+  const root=[...document.querySelectorAll('section,div')].find(el=>{
+    const t=(el.textContent||'').trim();
+    return t.includes('Docentes autorizados') && t.includes('Dispositivos') && t.includes('Acciones');
+  })||document;
+  const table=root.querySelector('table');
+  if(!table)return;
+
+  [...table.querySelectorAll('tbody tr')].forEach(tr=>{
+    if(tr.dataset.meritStaffEditReady==='1')return;
+    const cells=[...tr.children];
+    const name=(cells[0]?.textContent||'').trim();
+    const st=meritStaffCacheV8151.find(x=>x.display_name===name);
+    if(!st)return;
+    const actionCell=cells[cells.length-1];
+    if(!actionCell)return;
+    const wrap=document.createElement('div');
+    wrap.className='merit-inline-actions';
+    const edit=document.createElement('button');
+    edit.type='button';edit.className='secondary';edit.textContent='Editar';
+    edit.onclick=()=>meritOpenStaffEditV8151(st.id);
+    wrap.appendChild(edit);
+
+    if(st.active===false){
+      const archive=document.createElement('button');
+      archive.type='button';archive.className='secondary';archive.textContent='Eliminar de la lista';
+      archive.onclick=()=>meritArchiveStaffV8151(st.id,st.display_name);
+      wrap.appendChild(archive);
+    }
+    actionCell.appendChild(wrap);
+    tr.dataset.meritStaffEditReady='1';
+  });
+}
+function meritOpenStaffEditV8151(id){
+  const st=meritStaffCacheV8151.find(x=>String(x.id)===String(id));
+  if(!st)return alert('No se encontró el docente.');
+  $('#meritEditStaffId').value=st.id;
+  $('#meritEditStaffName').value=st.display_name||'';
+  $('#meritEditStaffRole').value=st.role_type||'docente';
+  $('#meritEditStaffSubject').value=st.subject_area||'';
+  $('#meritEditStaffStatus').textContent='';
+  $('#meritEditStaffDialog').showModal();
+}
+async function meritSaveStaffEditV8151(){
+  const id=$('#meritEditStaffId').value;
+  const name=$('#meritEditStaffName').value.trim();
+  if(!name)return $('#meritEditStaffStatus').textContent='Escribe el nombre.';
+  try{
+    const d=await ProfeSupabase.rpc('teacher_merit_update_staff',{
+      p_staff_id:id,
+      p_display_name:name,
+      p_role_type:$('#meritEditStaffRole').value,
+      p_subject_area:$('#meritEditStaffSubject').value.trim()||null
+    });
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
+    $('#meritEditStaffStatus').textContent='✓ Datos actualizados correctamente.';
+    setTimeout(()=>$('#meritEditStaffDialog').close(),450);
+    if(typeof meritLoadStaff==='function')await meritLoadStaff();
+    await meritLoadStaffV8151();
+  }catch(e){$('#meritEditStaffStatus').textContent='No se pudo guardar: '+(e.message||e)}
+}
+async function meritArchiveStaffV8151(id,name){
+  if(!confirm(`¿Eliminar a ${name} de la lista?\n\nSu historial de movimientos se conservará para auditoría.`))return;
+  try{
+    const d=await ProfeSupabase.rpc('teacher_merit_archive_staff',{p_staff_id:id});
+    if(!d?.ok)throw new Error(d?.reason||'No se pudo archivar.');
+    if(typeof meritLoadStaff==='function')await meritLoadStaff();
+    await meritLoadStaffV8151();
+  }catch(e){alert('No se pudo eliminar de la lista: '+(e.message||e))}
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+  $('#meritCancelEditPeriod')&&($('#meritCancelEditPeriod').onclick=()=>$('#meritEditPeriodDialog').close());
+  $('#meritSaveEditPeriod')&&($('#meritSaveEditPeriod').onclick=meritSavePeriodEditV8151);
+  $('#meritCancelEditStaff')&&($('#meritCancelEditStaff').onclick=()=>$('#meritEditStaffDialog').close());
+  $('#meritSaveEditStaff')&&($('#meritSaveEditStaff').onclick=meritSaveStaffEditV8151);
+
+  // Observe SPA changes and decorate after original module renders.
+  const obs=new MutationObserver(()=> {
+    if(document.body.textContent.includes('Mérito Gabino A. Palma')){
+      meritLoadPeriodsV8151();
+      meritLoadStaffV8151();
+    }
+  });
+  obs.observe(document.body,{subtree:true,childList:true});
+  setTimeout(()=>{meritLoadPeriodsV8151();meritLoadStaffV8151()},1200);
+});
+
+
+// ===== MÉRITO GABINO A. PALMA · CIERRE FINAL v8.16.2 =====
+let meritClosePreviewCache=null;
+let meritAnnualCache=[];
+let meritAnnualGrade='all';
+
+function meritCandidateText(a,key){
+ return (a||[]).map(x=>`Grupo ${safe(x.group_code)} (${Number(x[key]||0)})`).join(', ');
+}
+function meritBuildTieInputs(preview){
+ const box=$('#meritTieResolutions');if(!box)return;
+ const cards=[];
+ const overall=preview?.overall;
+ if(overall?.tied){
+   cards.push({key:'overall',title:'Ganador general',candidates:overall.candidates||[]});
+ }
+ Object.entries(preview?.categories||{}).forEach(([key,c])=>{
+   if(c?.tied)cards.push({key,title:meritCriterionLabels[key]||key,candidates:c.candidates||[]});
+ });
+ if(!cards.length){box.innerHTML='';return}
+ box.innerHTML=`<h3>⚠️ Empates por resolver</h3><p class="hint">Elige únicamente entre los grupos empatados y escribe cómo se resolvió.</p>`+
+ cards.map(c=>`<div class="merit-tie-card" data-key="${safe(c.key)}"><h3>${safe(c.title)}</h3>
+ <label>Grupo ganador<select class="meritTieGroup"><option value="">Selecciona…</option>${c.candidates.map(x=>`<option value="${safe(x.group_code)}">Grupo ${safe(x.group_code)}</option>`).join('')}</select></label>
+ <label>Nota de desempate<textarea class="meritTieNote" rows="2" placeholder="Ej. Desempate definido por..."></textarea></label></div>`).join('');
+}
+function meritCollectResolutions(){
+ const r={};
+ $$('#meritTieResolutions .merit-tie-card').forEach(card=>{
+   const key=card.dataset.key;
+   const group=card.querySelector('.meritTieGroup')?.value||'';
+   const note=card.querySelector('.meritTieNote')?.value.trim()||'';
+   if(group||note)r[key]={group,note};
+ });
+ return r;
+}
+async function loadMeritMonthlyPreview(openDialog=false){
+ const period=$('#meritMonthlyPeriod')?.value;
+ const dialog=$('#meritMonthlyPreviewDialog');
+ const dialogStatus=$('#meritMonthlyDialogStatus');
+ const dialogContent=$('#meritMonthlyDialogContent');
+
+ if(openDialog && dialog && !dialog.open) dialog.showModal();
+
+ if(!period){
+   const msg='Selecciona un periodo antes de generar la vista previa.';
+   $('#meritMonthlyStatus').textContent=msg;
+   if(dialogStatus)dialogStatus.textContent=msg;
+   if(dialogContent)dialogContent.innerHTML='';
+   return;
+ }
+
+ $('#meritMonthlyStatus').textContent='Calculando vista previa…';
+ if(dialogStatus)dialogStatus.textContent='Calculando vista previa…';
+ if(dialogContent)dialogContent.innerHTML='<p class="hint">Consultando los movimientos del periodo…</p>';
+
+ try{
+   const p=await meritRpc('teacher_merit_close_preview',{p_period_id:period});
+   if(!p || p.ok===false) throw new Error(p?.reason||'La vista previa no devolvió información.');
+
+   meritClosePreviewCache=p;
+   const overall=p.overall||{};
+   const cats=p.categories||{};
+
+   const html =
+   `<div class="merit-result-hero"><div class="hint">Primer lugar general provisional</div><div class="winner">${overall.tied?'⚠️ EMPATE':`Grupo ${safe(overall.candidates?.[0]?.group_code||'—')}`}</div><div>${Number(overall.top_score||0)} puntos</div>${overall.tied?`<p>Empatados: ${meritCandidateText(overall.candidates,'score')}</p>`:''}</div>
+   <h3>Reconocimientos del mes</h3><div class="merit-category-grid">${Object.entries(cats).map(([key,c])=>{
+      let value='Sin ganador';
+      if(!c.no_award){
+        value=c.tied?'⚠️ Empate':`Grupo ${safe(c.candidates?.[0]?.group_code||'—')}`;
+      }
+      return `<div class="merit-category-card"><b>${safe(meritCriterionLabels[key]||key)}</b><div>${value}</div><div class="hint">${Number(c.top_count||0)} registros</div>${c.tied?`<small>${safe(meritCandidateText(c.candidates,'count'))}</small>`:''}</div>`;
+   }).join('')}</div>`;
+
+   $('#meritMonthlyPreview').innerHTML=html;
+   if(dialogContent)dialogContent.innerHTML=html;
+
+   meritBuildTieInputs(p);
+
+   const msg=p.has_ties?'Vista previa lista. Hay empates que deberán resolverse antes de cerrar.':'✓ Vista previa lista.';
+   $('#meritMonthlyStatus').textContent=msg;
+   if(dialogStatus)dialogStatus.textContent=msg;
+
+   if(openDialog && dialog && !dialog.open) dialog.showModal();
+ }catch(e){
+   const msg='No se pudo generar la vista previa: '+(e.message||e);
+   $('#meritMonthlyStatus').textContent=msg;
+   if(dialogStatus)dialogStatus.textContent=msg;
+   if(dialogContent)dialogContent.innerHTML='<p class="message">'+safe(msg)+'</p>';
+   if(openDialog && dialog && !dialog.open) dialog.showModal();
+ }
+}
+async function closeMeritMonth(){
+ const period=$('#meritMonthlyPeriod')?.value;
+ if(!period)return;
+ if(!meritClosePreviewCache||String(meritClosePreviewCache.period_id)!==String(period))await loadMeritMonthlyPreview();
+ const resolutions=meritCollectResolutions();
+ if(!confirm('¿Cerrar este mes? Después del cierre ya no se usarán movimientos vivos para el acumulado anual.'))return;
+ try{
+   const d=await meritRpc('teacher_merit_close_month',{p_period_id:period,p_resolutions:resolutions});
+   if(!d?.ok){
+     if(d?.reason==='ties_require_resolution'){
+       $('#meritMonthlyStatus').textContent='Debes resolver todos los empates y escribir una nota antes de cerrar.';
+       return;
+     }
+     throw new Error(d?.reason||'No se pudo cerrar el mes.');
+   }
+   alert(`✓ Mes cerrado correctamente.\nGanador general: Grupo ${d.overall_winner}\n${d.overall_score} puntos`);
+   $('#meritMonthlyStatus').textContent='✓ Mes cerrado. El portal quedó en “Resultados en proceso”.';
+   await loadMeritPeriods();
+   await loadMeritMonthlyResult();
+ }catch(e){$('#meritMonthlyStatus').textContent='No se pudo cerrar: '+(e.message||e)}
+}
+async function loadMeritMonthlyResult(){
+ const period=$('#meritMonthlyPeriod')?.value;if(!period)return;
+ try{
+   const d=await meritRpc('teacher_merit_monthly_result',{p_period_id:period});
+   if(!d?.overall){$('#meritMonthlyResult').innerHTML='';return}
+   $('#meritMonthlyResult').innerHTML=`<hr><h3>Resultado guardado</h3><div class="merit-result-hero"><div class="winner">🏆 Grupo ${safe(d.overall.group||'—')}</div><div>${Number(d.overall.score||0)} puntos</div></div>
+   <div class="merit-category-grid">${(d.categories||[]).map(c=>`<div class="merit-category-card"><b>${safe(meritCriterionLabels[c.criterion]||c.criterion)}</b><div>${c.group?`Grupo ${safe(c.group)}`:'Sin ganador'}</div><div class="hint">${Number(c.count||0)} registros</div></div>`).join('')}</div>`;
+ }catch(e){console.warn(e)}
+}
+async function publishMeritMonth(){
+ const period=$('#meritMonthlyPeriod')?.value;if(!period)return;
+ if(!confirm('¿Publicar el resultado oficial de este mes en el portal público?'))return;
+ try{
+   const d=await meritRpc('teacher_merit_publish_monthly_official',{p_period_id:period});
+   if(!d?.ok)throw new Error(d?.reason||'No se pudo publicar.');
+   alert('✓ Resultado oficial publicado.');
+   $('#meritMonthlyStatus').textContent='✓ Resultado oficial publicado en el portal.';
+   await loadMeritPeriods();
+   await loadMeritMonthlyResult();
+ }catch(e){$('#meritMonthlyStatus').textContent='No se pudo publicar: '+(e.message||e)}
+}
+async function loadMeritAnnualRanking(){
+ try{
+   const cycle=$('#meritAnnualCycle')?.value.trim()||'2026-2027';
+   meritAnnualCache=await meritRpc('teacher_merit_annual_ranking',{p_cycle:cycle})||[];
+   renderMeritAnnualRanking();
+ }catch(e){$('#meritAnnualTable').innerHTML=`<p class="message">No se pudo cargar el acumulado: ${safe(e.message||e)}</p>`}
+}
+function renderMeritAnnualRanking(){
+ const rows=(meritAnnualCache||[]).filter(x=>meritAnnualGrade==='all'||String(x.grade)===meritAnnualGrade);
+ $('#meritAnnualTable').innerHTML=rows.length?`<table><thead><tr><th>Lugar</th><th>Grupo</th><th>Grado</th><th>Puntos acumulados</th><th>Meses cerrados</th></tr></thead><tbody>${rows.map(x=>`<tr><td><b>${Number(x.rank)}.º</b></td><td><b>${safe(x.group_code)}</b></td><td>${Number(x.grade)}.º</td><td>${Number(x.annual_score||0)}</td><td>${Number(x.months_closed||0)}</td></tr>`).join('')}</tbody></table>`:'<p class="hint">Aún no hay meses cerrados en este ciclo escolar.</p>';
+}
+
+document.addEventListener('DOMContentLoaded',()=>{
+ $('#meritMonthlyPeriod')&&($('#meritMonthlyPeriod').onchange=()=>{meritClosePreviewCache=null;$('#meritTieResolutions').innerHTML='';$('#meritMonthlyResult').innerHTML='';loadMeritMonthlyPreview();loadMeritMonthlyResult()});
+ $$('.meritAnnualGrade').forEach(b=>b.onclick=()=>{meritAnnualGrade=b.dataset.grade;$$('.meritAnnualGrade').forEach(x=>x.classList.toggle('active',x===b));renderMeritAnnualRanking()});
+});

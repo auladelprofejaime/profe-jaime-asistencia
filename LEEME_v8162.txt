@@ -1,0 +1,6 @@
+APP DOCENTE v8.16.2
+- Vista previa del cierre abre un cuadro visible.
+- Muestra “Calculando…” de inmediato.
+- Si Supabase devuelve error, lo muestra dentro del cuadro.
+- Botones de cierre mensual usan enlace directo para evitar que el evento no responda.
+- No cambia datos ni backend.

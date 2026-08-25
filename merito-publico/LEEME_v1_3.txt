@@ -1,0 +1,9 @@
+MÉRITO PÚBLICO v1.3 — ACTUALIZACIÓN FORZADA
+
+Corrige caché antigua en Safari/iOS:
+- app.js cambia a app-v13.js
+- service-worker.js cambia a service-worker-v13.js
+- el shell principal usa network-first/no-store
+- el contenido principal inicia oculto hasta comprobar horario
+- conserva el bloqueo con merit_public_access_status()
+- conserva ranking semanal y resultado oficial

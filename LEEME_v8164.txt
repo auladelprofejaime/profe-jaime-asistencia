@@ -1,0 +1,6 @@
+APP DOCENTE v8.16.4
+- Agrega Eliminar periodo en Configuración.
+- Solo aparece en periodos no cerrados/no publicados.
+- Requiere escribir exactamente el nombre del periodo.
+- Elimina únicamente datos pertenecientes al periodo seleccionado.
+- Los meses históricos cerrados/publicados quedan protegidos.

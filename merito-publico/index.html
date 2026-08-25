@@ -3,10 +3,27 @@
 <meta name="theme-color" content="#ffc800"><title>Mérito Gabino A. Palma · Avance semanal</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css"></head><body>
 <header><img src="logo-merito.jpeg" alt=""><div><h1>Mérito Gabino A. Palma</h1><p>Consulta pública</p></div></header>
-<main>
+
+<section id="schoolHoursBlock" class="school-hours-block hidden">
+  <div class="school-hours-card">
+    <img src="logo-merito.jpeg" alt="Mérito Gabino A. Palma">
+    <div class="school-hours-label">HORARIO DE CLASES</div>
+    <h1 id="schoolHoursTitle">¡Ahora no, joven!</h1>
+    <p id="schoolHoursMessage">Este portal está diseñado para consultarse fuera del horario de clases.</p>
+    <div class="school-hours-time">
+      Podrás consultar el portal a partir de las
+      <strong id="schoolHoursOpenTime">—</strong>
+    </div>
+    <p class="muted">Cuando termine el horario establecido por el profesor, el portal se habilitará automáticamente.</p>
+  </div>
+</section>
+
+<main id="publicMain" class="hidden">
 <div class="card hero"><img src="logo-merito.jpeg" alt=""><h2>Avance semanal</h2><p id="periodName" class="muted">Consultando publicación…</p><p id="updated"></p></div>
 <div class="card"><div class="pills" id="filters"><button class="pill active" data-grade="all">Todos</button><button class="pill" data-grade="1">1.º</button><button class="pill" data-grade="2">2.º</button><button class="pill" data-grade="3">3.º</button></div></div>
 <div id="stateBox" class="card hidden"></div>
 <div id="ranking" class="ranking"></div>
 <p class="muted" style="text-align:center">Este portal muestra únicamente el último corte oficial publicado por la administración.</p>
-</main><script src="app-v13.js?v=13"></script></body></html>
+</main>
+<script src="app-v14.js?v=14"></script>
+</body></html>

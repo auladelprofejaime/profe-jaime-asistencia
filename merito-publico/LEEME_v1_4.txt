@@ -1,0 +1,7 @@
+MÉRITO PÚBLICO v1.4
+FIX REAL DEL BLOQUEO:
+- index.html ahora incluye físicamente schoolHoursBlock.
+- publicMain inicia oculto hasta comprobar horario.
+- app-v14.js consulta merit_public_access_status().
+- Si blocked=true muestra “¡Ahora no, joven!” y hora de reapertura.
+- service-worker-v14.js fuerza actualización.

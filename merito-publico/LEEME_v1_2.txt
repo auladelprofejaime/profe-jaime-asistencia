@@ -1,0 +1,6 @@
+MÉRITO PÚBLICO v1.2
+- Bloquea el portal durante el mismo horario configurado para App Estudiantes.
+- Respeta apertura temporal desde App Docente.
+- Muestra hora de reapertura.
+- Revisa el horario cada minuto y al volver a la pestaña.
+- Fuera del horario conserva ranking semanal y resultados oficiales.

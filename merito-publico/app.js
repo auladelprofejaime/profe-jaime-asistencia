@@ -23,5 +23,61 @@ function render(){
 }
 $$('#filters button').forEach(b=>b.onclick=()=>{grade=b.dataset.grade;$$('#filters button').forEach(x=>x.classList.toggle('active',x===b));render()});
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
-(async()=>{try{data=await rpc('merit_public_latest');render()}catch(e){data={ok:false};render()}})();
+
+function formatMeritTime(v){
+  if(!v)return '—';
+  const [hh,mm]=String(v).slice(0,5).split(':').map(Number);
+  const d=new Date();
+  d.setHours(hh,mm,0,0);
+  return d.toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'});
+}
+async function checkMeritPublicAccess(){
+  try{
+    const a=await rpc('merit_public_access_status');
+    const block=$('#schoolHoursBlock');
+    const main=$('#publicMain');
+
+    if(a?.blocked){
+      $('#schoolHoursTitle').textContent=a.message_title||'¡Ahora no, joven!';
+      $('#schoolHoursMessage').textContent=
+        'Este portal está diseñado para consultarse fuera del horario de clases. Durante la jornada escolar, tu atención debe estar en tus clases, actividades y profesores, no en el celular.';
+      $('#schoolHoursOpenTime').textContent=formatMeritTime(a.next_open);
+      block.classList.remove('hidden');
+      main.classList.add('hidden');
+      return false;
+    }
+
+    block.classList.add('hidden');
+    main.classList.remove('hidden');
+    return true;
+  }catch(e){
+    // Si falla solo la consulta del horario, no mostramos datos hasta reintentar.
+    const block=$('#schoolHoursBlock');
+    const main=$('#publicMain');
+    block.classList.remove('hidden');
+    main.classList.add('hidden');
+    $('#schoolHoursTitle').textContent='Portal temporalmente no disponible';
+    $('#schoolHoursMessage').textContent='No se pudo comprobar el horario de acceso. Intenta nuevamente en unos momentos.';
+    $('#schoolHoursOpenTime').textContent='—';
+    return false;
+  }
+}
+async function loadMeritPublicPortal(){
+  const allowed=await checkMeritPublicAccess();
+  if(!allowed)return;
+  try{
+    data=await rpc('merit_public_latest');
+    render();
+  }catch(e){
+    data={ok:false};
+    render();
+  }
+}
+
+loadMeritPublicPortal();
 if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+
+setInterval(loadMeritPublicPortal,60000);
+document.addEventListener('visibilitychange',()=>{
+  if(document.visibilityState==='visible')loadMeritPublicPortal();
+});

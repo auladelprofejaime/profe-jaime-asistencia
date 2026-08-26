@@ -1,8 +1,16 @@
 El Aula del Profe Jaime · Diagnóstico Inicial
-Versión 0.9.1
+Versión 0.10.0
 
-Novedad:
-- Botón Generar PDF en el resultado integrado individual.
-- Genera una vista imprimible con el mismo contenido pedagógico del resultado publicado para Padres: resumen, seguimiento, fortalezas, áreas por reforzar, recomendaciones y aviso pedagógico.
-- El PDF se obtiene mediante Imprimir / Guardar como PDF del dispositivo.
-- No modifica cálculos, baremos ni rutinas de Supabase.
+CAMBIO PRINCIPAL
+- CompLEC deja de aparecer en el flujo vigente de captura.
+- Se incorpora Lectura Eficaz para 2.º de secundaria.
+- Inicial: Prueba 0 “El mercader de Bagdad”.
+- Final: Prueba A, B o C.
+- Captura tiempo y 20 respuestas A/B/C.
+- Calcula VE, CL y EL mediante las funciones instaladas en Supabase.
+- Conserva aplicaciones Inicial y Final sin sobrescribirlas.
+
+IMPORTANTE
+- Esta versión corresponde al PASO 2/4.
+- Todavía NO sustituye CompLEC dentro del perfil integrado, publicación familiar ni PDF.
+- SAGES-2, PROESC y CASM-85-R no fueron modificados.

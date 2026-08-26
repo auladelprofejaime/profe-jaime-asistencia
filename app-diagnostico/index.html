@@ -107,14 +107,14 @@
         </div>
         <div class="testGrid">
           <button class="testTile activeTest" id="openSagesBtn" type="button"><b>SAGES-2</b><span id="sagesState">Pendiente</span><small>Abrir captura</small></button>
-          <button class="testTile activeTest" id="openComplecBtn" type="button"><b>CompLEC</b><span id="complecState">Pendiente</span><small>Abrir captura</small></button>
+          <button class="testTile activeTest" id="openLecturaBtn" type="button"><b>Lectura Eficaz</b><span id="lecturaState">Pendiente</span><small>Inicial / Final</small></button>
           <button class="testTile activeTest" id="openProescBtn" type="button"><b>PROESC</b><span id="proescState">Pendiente</span><small>Abrir captura</small></button>
           <button class="testTile activeTest" id="openCasmBtn" type="button"><b>CASM-85-R</b><span id="casmState">Pendiente</span><small>Abrir captura</small></button>
         </div>
         <div class="integratedLaunch">
           <button id="openIntegratedBtn" type="button">Ver resultado integrado</button>
         </div>
-        <p class="notice">SAGES-2 ya tiene pantalla de captura. Las demás pruebas se habilitarán en los siguientes pasos.</p>
+        <p class="notice">Batería vigente: SAGES-2, Lectura Eficaz, PROESC abreviado y CASM-85-R. Lectura Eficaz y PROESC tendrán aplicación Inicial y Final.</p>
       </section>
 
       <section id="sagesCard" class="card hidden">
@@ -174,36 +174,62 @@
 
       </section>
 
-      <section id="complecCard" class="card hidden">
+      <section id="lecturaCard" class="card hidden">
         <div class="sectionHead">
           <div>
-            <p class="eyebrow">CompLEC · Competencia lectora</p>
-            <h2 id="complecStudentName">Captura CompLEC</h2>
-            <p id="complecStudentMeta" class="muted"></p>
+            <p class="eyebrow">Lectura Eficaz · 2.º de secundaria</p>
+            <h2 id="lecturaStudentName">Captura Lectura Eficaz</h2>
+            <p id="lecturaStudentMeta" class="muted"></p>
           </div>
-          <button id="backStudentFromComplec" class="secondary">← Expediente</button>
+          <button id="backStudentFromLectura" class="secondary">← Expediente</button>
         </div>
 
         <div class="sagesInfo">
-          <p><b>Captura las 20 respuestas.</b> La app corrige automáticamente y calcula Recuperación, Integración y Reflexión/Evaluación.</p>
-          <p id="complecGradeNote" class="muted"></p>
+          <p><b>Captura el tiempo empleado en leer y las 20 respuestas.</b> La app calcula automáticamente VE (velocidad espontánea), CL (comprensión lectora) y EL (eficacia lectora).</p>
+          <p class="muted">Inicial: Prueba 0 “El mercader de Bagdad”. Final: utiliza A, B o C; no se repite la Prueba 0.</p>
+        </div>
+
+        <div class="lecturaForm">
+          <label>Momento de aplicación
+            <select id="lecturaMoment">
+              <option value="initial">Inicial</option>
+              <option value="final">Final</option>
+            </select>
+          </label>
+
+          <label>Prueba aplicada
+            <select id="lecturaTestCode"></select>
+          </label>
+
+          <label>Fecha de aplicación
+            <input id="lecturaDate" type="date">
+          </label>
+
+          <div class="lecturaTimeGrid">
+            <label>Minutos de lectura
+              <input id="lecturaMinutes" type="number" min="0" max="60" inputmode="numeric" value="0">
+            </label>
+            <label>Segundos adicionales
+              <input id="lecturaSeconds" type="number" min="0" max="59" inputmode="numeric" value="0">
+            </label>
+          </div>
+          <p id="lecturaTestMeta" class="muted"></p>
         </div>
 
         <div class="complecProgress">
-          <b id="complecProgressText">0 de 20 respondidas</b>
-          <div class="progressTrack"><div id="complecProgressBar" class="progressFill"></div></div>
+          <b id="lecturaProgressText">0 de 20 respondidas</b>
+          <div class="progressTrack"><div id="lecturaProgressBar" class="progressFill"></div></div>
         </div>
 
-        <div id="complecItems" class="complecItems"></div>
+        <div id="lecturaItems" class="complecItems"></div>
 
         <div class="sagesActions">
-          <button id="previewComplecBtn" class="secondary" type="button">Calcular vista previa</button>
-          <button id="saveComplecBtn" type="button">Guardar CompLEC</button>
+          <button id="previewLecturaBtn" class="secondary" type="button">Calcular vista previa</button>
+          <button id="saveLecturaBtn" type="button">Guardar Lectura Eficaz</button>
         </div>
 
-        <div id="complecStatus" class="status"></div>
-        <div id="complecResult" class="hidden"></div>
-
+        <div id="lecturaStatus" class="status"></div>
+        <div id="lecturaResult" class="hidden"></div>
       </section>
 
       <section id="proescCard" class="card hidden">

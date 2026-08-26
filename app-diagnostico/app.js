@@ -2,7 +2,7 @@
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
 const SUPABASE_KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA";
 let accessToken=localStorage.getItem("diagnosticTeacherToken")||"";
-let activePeriod=null,activeGroup=null,activeStudentBundle=null;
+let activePeriod=null,activeGroup=null,activeStudentBundle=null,activeLecturaApplications=[];
 
 const $=s=>document.querySelector(s);
 const esc=v=>String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[m]));
@@ -109,7 +109,7 @@ async function openGroup(group){
   $("#groupsCard").classList.add("hidden");$("#studentsCard").classList.remove("hidden");$("#studentCard").classList.add("hidden");
   $("#studentsTitle").textContent=`Grupo ${group}`;
   $("#studentList").innerHTML=rows.map(s=>`<div class="row">
-    <div><b>${esc(s.list_number??"—")}. ${esc(s.name)}</b><small>ID ${esc(s.student_id)} · ${esc(s.status)} · S ${s.sages_complete?"✓":"—"} · C ${s.complec_complete?"✓":"—"} · P ${s.proesc_complete?"✓":"—"} · CA ${s.casm_complete?"✓":"—"}</small></div>
+    <div><b>${esc(s.list_number??"—")}. ${esc(s.name)}</b><small>ID ${esc(s.student_id)} · ${esc(s.status)} · S ${s.sages_complete?"✓":"—"} · LE al abrir · P ${s.proesc_complete?"✓":"—"} · CA ${s.casm_complete?"✓":"—"}</small></div>
     <button data-student="${esc(s.student_id)}">Abrir</button>
   </div>`).join("");
   $("#studentList").querySelectorAll("[data-student]").forEach(b=>b.onclick=()=>openStudent(b.dataset.student));
@@ -119,7 +119,7 @@ async function openStudent(id){
   activeStudentBundle=b;
   $("#studentsCard").classList.add("hidden");
   $("#sagesCard").classList.add("hidden");
-  $("#complecCard").classList.add("hidden");
+  $("#lecturaCard").classList.add("hidden");
   $("#proescCard").classList.add("hidden");
   $("#casmCard").classList.add("hidden");
   $("#integratedCard").classList.add("hidden");
@@ -128,9 +128,22 @@ async function openStudent(id){
   $("#studentName").textContent=b.student.name;
   const set=(sel,val)=>$(sel).textContent=val?"Completa":"Pendiente";
   set("#sagesState",b.progress.sages_complete);
-  set("#complecState",b.progress.complec_complete);
   set("#proescState",b.progress.proesc_complete);
   set("#casmState",b.progress.casm_complete);
+  try{
+    activeLecturaApplications=await rpc("teacher_diagnostic_lectura_eficaz_applications",{
+      p_period_id:activePeriod.id,
+      p_student_id:b.student.id
+    })||[];
+  }catch(e){
+    activeLecturaApplications=[];
+    console.warn("lectura eficaz applications",e);
+  }
+  const initialLE=activeLecturaApplications.find(x=>x.moment==="initial");
+  const finalLE=activeLecturaApplications.find(x=>x.moment==="final");
+  $("#lecturaState").textContent=initialLE
+    ? (finalLE?"Inicial + Final":"Inicial completa")
+    : "Pendiente";
 }
 
 function todayISO(){
@@ -390,150 +403,223 @@ const COMPLEC_META=[
   {n:19,text:"Sillas Adecuadas",q:2,process:"Integración",type:"choice"},
   {n:20,text:"Sillas Adecuadas",q:3,process:"Integración",type:"choice"}
 ];
-let complecAnswers={};
+let lecturaAnswers={};
 
-function complecGradeFromGroup(group){
-  const n=Number(String(group||"").trim());
-  if(Number.isInteger(n)&&n>=11&&n<=16)return {grade:1,label:"1.º de secundaria",centile:true};
-  if(Number.isInteger(n)&&n>=21&&n<=26)return {grade:2,label:"2.º de secundaria",centile:false};
-  if(Number.isInteger(n)&&n>=31&&n<=36)return {grade:3,label:"3.º de secundaria",centile:true};
-  return {grade:null,label:"Grupo no reconocido",centile:false};
+const LECTURA_TESTS={
+  "0":{title:"El mercader de Bagdad",words:951},
+  "A":{title:"Achoque el escogido",words:1084},
+  "B":{title:"La Leyenda de la lechuza",words:1091},
+  "C":{title:"Marie Curie",words:1047}
+};
+
+function lecturaOptionsForMoment(moment){
+  return moment==="initial"
+    ? ["0"]
+    : ["A","B","C"];
 }
-function complecOptions(meta){
-  if(meta.type==="choice")return ["A","B","C","D"];
-  if(meta.type==="cg_open")return ["30 años","3 años","Otra"];
-  if(meta.type==="bee_open")return ["Danza en círculo","Otra"];
-  if(meta.type==="traffic_open")return ["60%","Otra"];
-  return [];
+
+function renderLecturaTestOptions(){
+  const moment=$("#lecturaMoment").value||"initial";
+  const options=lecturaOptionsForMoment(moment);
+  const current=$("#lecturaTestCode").value;
+  $("#lecturaTestCode").innerHTML=options.map(code=>{
+    const t=LECTURA_TESTS[code];
+    return `<option value="${code}">Prueba ${code} · ${esc(t.title)}</option>`;
+  }).join("");
+  if(options.includes(current))$("#lecturaTestCode").value=current;
+  renderLecturaMeta();
 }
-function renderComplecItems(){
-  const box=$("#complecItems");
-  box.innerHTML=COMPLEC_META.map(m=>{
-    const opts=complecOptions(m);
-    return `<div class="complecItem" data-item="${m.n}">
-      <div class="complecItemHead">
-        <div><b>Reactivo ${m.n}</b><small>${esc(m.text)} · Pregunta ${m.q}</small></div>
-        <small>${esc(m.process)}</small>
-      </div>
-      <div class="answerBtns ${m.type==="choice"?"":"open"}">
-        ${opts.map(o=>`<button type="button" class="answerBtn ${complecAnswers[m.n]===o?"selected":""}" data-answer="${esc(o)}">${esc(o)}</button>`).join("")}
+
+function renderLecturaMeta(){
+  const code=$("#lecturaTestCode").value;
+  const t=LECTURA_TESTS[code];
+  $("#lecturaTestMeta").textContent=t
+    ? `Prueba ${code} · ${t.title} · ${t.words} palabras · 20 reactivos`
+    : "";
+}
+
+function renderLecturaItems(){
+  const box=$("#lecturaItems");
+  box.innerHTML=Array.from({length:20},(_,i)=>{
+    const n=i+1;
+    return `<div class="complecItem" data-item="${n}">
+      <div class="complecItemHead"><b>Reactivo ${n}</b></div>
+      <div class="answerGroup">
+        ${["A","B","C"].map(o=>`<button type="button" class="answerBtn ${lecturaAnswers[n]===o?"selected":""}" data-answer="${o}">${o}</button>`).join("")}
       </div>
     </div>`;
   }).join("");
-
   box.querySelectorAll(".complecItem").forEach(item=>{
-    item.querySelectorAll("[data-answer]").forEach(btn=>{
+    const n=Number(item.dataset.item);
+    item.querySelectorAll(".answerBtn").forEach(btn=>{
       btn.onclick=()=>{
-        const n=Number(item.dataset.item);
-        const value=btn.dataset.answer;
-        complecAnswers[n]=value==="Otra" ? "__OTHER__" : value;
-        renderComplecItems();
-        updateComplecProgress();
+        lecturaAnswers[n]=btn.dataset.answer;
+        item.querySelectorAll(".answerBtn").forEach(x=>x.classList.toggle("selected",x===btn));
+        updateLecturaProgress();
       };
     });
   });
 }
-function updateComplecProgress(){
-  const count=COMPLEC_META.filter(m=>complecAnswers[m.n]!=null).length;
-  $("#complecProgressText").textContent=`${count} de 20 respondidas`;
-  $("#complecProgressBar").style.width=`${count/20*100}%`;
+
+function updateLecturaProgress(){
+  const count=Object.keys(lecturaAnswers).filter(k=>lecturaAnswers[k]).length;
+  $("#lecturaProgressText").textContent=`${count} de 20 respondidas`;
+  $("#lecturaProgressBar").style.width=`${count/20*100}%`;
 }
-function openComplec(){
+
+function lecturaSecondsTotal(){
+  const min=Number($("#lecturaMinutes").value||0);
+  const sec=Number($("#lecturaSeconds").value||0);
+  if(!Number.isInteger(min)||min<0)throw new Error("Los minutos de lectura no son válidos.");
+  if(!Number.isInteger(sec)||sec<0||sec>59)throw new Error("Los segundos deben estar entre 0 y 59.");
+  const total=min*60+sec;
+  if(total<=0)throw new Error("Captura el tiempo empleado en la lectura.");
+  return total;
+}
+
+function lecturaAnswersPayload(){
+  const missing=[];
+  const arr=[];
+  for(let n=1;n<=20;n++){
+    if(!lecturaAnswers[n])missing.push(n);
+    arr.push(lecturaAnswers[n]||null);
+  }
+  if(missing.length)throw new Error(`Faltan respuestas: ${missing.join(", ")}.`);
+  return arr;
+}
+
+function lecturaCurrentApplication(){
+  const moment=$("#lecturaMoment").value||"initial";
+  return activeLecturaApplications.find(x=>x.moment===moment)||null;
+}
+
+function loadLecturaApplicationIntoForm(){
+  const moment=$("#lecturaMoment").value||"initial";
+  renderLecturaTestOptions();
+  const saved=activeLecturaApplications.find(x=>x.moment===moment);
+
+  lecturaAnswers={};
+  $("#lecturaMinutes").value=0;
+  $("#lecturaSeconds").value=0;
+  $("#lecturaDate").value=todayISO();
+  $("#lecturaResult").classList.add("hidden");
+
+  if(saved){
+    $("#lecturaTestCode").value=saved.test_code;
+    renderLecturaMeta();
+    const total=Number(saved.reading_seconds||0);
+    $("#lecturaMinutes").value=Math.floor(total/60);
+    $("#lecturaSeconds").value=total%60;
+    $("#lecturaDate").value=saved.applied_at||todayISO();
+    if(Array.isArray(saved.answers)){
+      saved.answers.forEach((v,i)=>{if(v)lecturaAnswers[i+1]=v});
+    }
+    $("#lecturaStatus").textContent=`${moment==="initial"?"Aplicación inicial":"Aplicación final"} guardada. Puedes editarla y volver a guardar.`;
+    showLecturaResult(saved);
+  }else{
+    $("#lecturaStatus").textContent="";
+  }
+  renderLecturaItems();
+  updateLecturaProgress();
+}
+
+function openLectura(){
   if(!activeStudentBundle)return;
   const b=activeStudentBundle;
   $("#studentCard").classList.add("hidden");
-  $("#sagesCard").classList.add("hidden");
-  $("#complecCard").classList.remove("hidden");
-
-  $("#complecStudentName").textContent=b.student.name;
-  $("#complecStudentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
-
-  const gr=complecGradeFromGroup(b.student.group_name);
-  $("#complecGradeNote").textContent=gr.grade===2
-    ? "2.º de secundaria: se calcularán puntuación total y procesos. El manual no publica centil específico para 2.º."
-    : gr.grade
-      ? `${gr.label}: la app aplicará automáticamente el baremo oficial disponible en el manual.`
-      : "El código de grupo no permite determinar automáticamente el grado.";
-
-  complecAnswers={};
-  (b.complec_answers||[]).forEach(r=>{if(r.answer!=null)complecAnswers[Number(r.item_number)]=r.answer});
-  renderComplecItems(); updateComplecProgress();
-  $("#complecResult").classList.add("hidden");
-  $("#complecStatus").textContent=b.progress.complec_complete?"CompLEC guardado. Puedes editarlo y volver a guardar.":"";
+  $("#lecturaCard").classList.remove("hidden");
+  $("#lecturaStudentName").textContent=b.student.name;
+  $("#lecturaStudentMeta").textContent=`Grupo ${b.student.group_name} · Lista ${b.student.list_number??"—"} · ID ${b.student.id}`;
+  $("#lecturaMoment").value="initial";
+  loadLecturaApplicationIntoForm();
 }
-function complecPayload(){
-  const missing=COMPLEC_META.filter(m=>complecAnswers[m.n]==null).map(m=>m.n);
-  if(missing.length)throw new Error(`Faltan respuestas: ${missing.join(", ")}.`);
-  const out={};
-  for(const m of COMPLEC_META){
-    const v=complecAnswers[m.n];
-    out[String(m.n)]=v==="__OTHER__" ? "Otra" : v;
-  }
-  return out;
-}
-function showComplecResult(r){
-  const p=r.process_scores||{};
-  const cent=r.centile||{};
-  const centileBlock=r.has_official_centile && cent.ok
-    ? `<p><b>Centil:</b> ${esc(cent.centile??"—")}</p>`
-    : `<p><b>Centil:</b> No se reporta para este grado.</p>`;
-  $("#complecResult").innerHTML=`
+
+function showLecturaResult(r){
+  const moment=r.moment||$("#lecturaMoment").value;
+  const test=r.test||{code:r.test_code,title:r.test_title,word_count:r.word_count};
+  $("#lecturaResult").innerHTML=`
     <div class="complecSummary">
       <div class="resultBox wide">
-        <h3>Resultado CompLEC</h3>
-        <p><b>Grado detectado:</b> ${esc(r.grade_label||"—")}</p>
-        <p><b>Puntuación total:</b> ${esc(r.total_score??"—")} / 20</p>
-        ${centileBlock}
-        <p class="percentileNote">${esc(r.norm_note||"")}</p>
+        <h3>${moment==="initial"?"Lectura inicial":"Lectura final"} · Prueba ${esc(test.code||"—")}</h3>
+        <p><b>${esc(test.title||"")}</b></p>
+        <p class="muted">${esc(test.word_count||"—")} palabras</p>
       </div>
-      <div class="resultBox"><h3>Recuperación</h3><p><b>${esc(p["Recuperación"]??0)} / 5</b></p></div>
-      <div class="resultBox"><h3>Integración</h3><p><b>${esc(p["Integración"]??0)} / 10</b></p></div>
-      <div class="resultBox"><h3>Reflexión / Evaluación</h3><p><b>${esc(p["Reflexión/Evaluación"]??0)} / 5</b></p></div>
+      <div class="resultBox"><h3>VE</h3><p><b>${esc(r.ve??"—")}</b></p><small>palabras por minuto</small></div>
+      <div class="resultBox"><h3>CL</h3><p><b>${esc(r.cl??"—")}%</b></p><small>comprensión lectora</small></div>
+      <div class="resultBox"><h3>EL</h3><p><b>${esc(r.el??"—")}</b></p><small>palabras leídas y comprendidas/min</small></div>
+      <div class="resultBox"><h3>Referencia docente</h3><p><b>${esc(r.teacher_level||"—")}</b></p></div>
+      <div class="resultBox"><h3>Aciertos / errores</h3><p><b>${esc(r.correct_count??"—")} / ${esc(r.error_count??"—")}</b></p></div>
     </div>`;
-  $("#complecResult").classList.remove("hidden");
-}
-async function previewComplec(){
-  try{
-    const answers=complecPayload();
-    $("#complecStatus").textContent="Calculando…";
-    const r=await rpc("teacher_diagnostic_complec_preview_auto",{
-      p_student_id:activeStudentBundle.student.id,
-      p_answers:answers
-    });
-    if(!r.ok)throw new Error(r.reason||"No se pudo calcular CompLEC.");
-    showComplecResult(r);
-    $("#complecStatus").textContent="Vista previa calculada. Aún no se ha guardado.";
-  }catch(e){$("#complecStatus").textContent=e.message||String(e)}
-}
-async function saveComplec(){
-  try{
-    const answers=complecPayload();
-    $("#complecStatus").textContent="Guardando…";
-    const r=await rpc("teacher_diagnostic_save_complec_auto",{
-      p_period_id:activePeriod.id,
-      p_student_id:activeStudentBundle.student.id,
-      p_answers:answers
-    });
-    if(!r.saved)throw new Error(r.reason||"No se pudo guardar CompLEC.");
-    showComplecResult(r);
-    $("#complecStatus").textContent="✓ CompLEC guardado correctamente.";
-    activeStudentBundle=await rpc("teacher_diagnostic_student_bundle",{
-      p_period_id:activePeriod.id,
-      p_student_id:activeStudentBundle.student.id
-    });
-    $("#complecState").textContent="Completa";
-  }catch(e){$("#complecStatus").textContent=e.message||String(e)}
+  $("#lecturaResult").classList.remove("hidden");
 }
 
-$("#openComplecBtn").onclick=openComplec;
-$("#backStudentFromComplec").onclick=()=>{
-  if(activeStudentBundle){
-    $("#complecCard").classList.add("hidden");
-    $("#studentCard").classList.remove("hidden");
+async function previewLectura(){
+  try{
+    if(!activeStudentBundle)throw new Error("No hay alumno seleccionado.");
+    const moment=$("#lecturaMoment").value;
+    const testCode=$("#lecturaTestCode").value;
+    const seconds=lecturaSecondsTotal();
+    const answers=lecturaAnswersPayload();
+    $("#lecturaStatus").textContent="Calculando…";
+    const r=await rpc("teacher_diagnostic_lectura_eficaz_preview",{
+      p_student_id:activeStudentBundle.student.id,
+      p_moment:moment,
+      p_test_code:testCode,
+      p_reading_seconds:seconds,
+      p_answers:answers
+    });
+    showLecturaResult(r);
+    $("#lecturaStatus").textContent="Vista previa calculada. Aún no se ha guardado.";
+  }catch(e){
+    $("#lecturaStatus").textContent=e.message||String(e);
   }
+}
+
+async function saveLectura(){
+  try{
+    if(!activeStudentBundle)throw new Error("No hay alumno seleccionado.");
+    const moment=$("#lecturaMoment").value;
+    const testCode=$("#lecturaTestCode").value;
+    const seconds=lecturaSecondsTotal();
+    const answers=lecturaAnswersPayload();
+    $("#lecturaStatus").textContent="Guardando…";
+    const r=await rpc("teacher_diagnostic_save_lectura_eficaz",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id,
+      p_moment:moment,
+      p_test_code:testCode,
+      p_reading_seconds:seconds,
+      p_answers:answers,
+      p_applied_at:$("#lecturaDate").value||todayISO()
+    });
+    if(!r.saved)throw new Error(r.reason||"No se pudo guardar Lectura Eficaz.");
+    showLecturaResult(r);
+    $("#lecturaStatus").textContent="✓ Lectura Eficaz guardada correctamente.";
+
+    activeLecturaApplications=await rpc("teacher_diagnostic_lectura_eficaz_applications",{
+      p_period_id:activePeriod.id,
+      p_student_id:activeStudentBundle.student.id
+    })||[];
+
+    const initialLE=activeLecturaApplications.find(x=>x.moment==="initial");
+    const finalLE=activeLecturaApplications.find(x=>x.moment==="final");
+    $("#lecturaState").textContent=initialLE
+      ? (finalLE?"Inicial + Final":"Inicial completa")
+      : "Pendiente";
+  }catch(e){
+    $("#lecturaStatus").textContent=e.message||String(e);
+  }
+}
+
+$("#openLecturaBtn").onclick=openLectura;
+$("#backStudentFromLectura").onclick=()=>{
+  $("#lecturaCard").classList.add("hidden");
+  $("#studentCard").classList.remove("hidden");
 };
-$("#previewComplecBtn").onclick=previewComplec;
-$("#saveComplecBtn").onclick=saveComplec;
+$("#lecturaMoment").onchange=loadLecturaApplicationIntoForm;
+$("#lecturaTestCode").onchange=renderLecturaMeta;
+$("#previewLecturaBtn").onclick=previewLectura;
+$("#saveLecturaBtn").onclick=saveLectura;
 
 
 function proescGradeFromGroup(group){
@@ -549,7 +635,7 @@ function openProesc(){
   const b=activeStudentBundle;
   $("#studentCard").classList.add("hidden");
   $("#sagesCard").classList.add("hidden");
-  $("#complecCard").classList.add("hidden");
+  $("#lecturaCard").classList.add("hidden");
   $("#proescCard").classList.remove("hidden");
 
   $("#proescStudentName").textContent=b.student.name;
@@ -735,7 +821,7 @@ function openCasm(){
   const b=activeStudentBundle;
   $("#studentCard").classList.add("hidden");
   $("#sagesCard").classList.add("hidden");
-  $("#complecCard").classList.add("hidden");
+  $("#lecturaCard").classList.add("hidden");
   $("#proescCard").classList.add("hidden");
   $("#casmCard").classList.remove("hidden");
 
@@ -949,7 +1035,7 @@ async function openIntegrated(){
 
   $("#studentCard").classList.add("hidden");
   $("#sagesCard").classList.add("hidden");
-  $("#complecCard").classList.add("hidden");
+  $("#lecturaCard").classList.add("hidden");
   $("#proescCard").classList.add("hidden");
   $("#casmCard").classList.add("hidden");
   $("#integratedCard").classList.remove("hidden");

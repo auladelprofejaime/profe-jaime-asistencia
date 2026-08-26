@@ -1,5 +1,33 @@
-const CACHE='diagnostico-profe-jaime-v0-8-9';
-const FILES=['./','./index.html','./styles.css','./app.js?v=0.8.9','./manifest.webmanifest','./icon-192.png','./icon-512.png'];
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil(caches.open(CACHE).then(c=>c.addAll(FILES)))});
-self.addEventListener('activate',e=>e.waitUntil(caches.keys().then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim())));
-self.addEventListener('fetch',e=>{if(e.request.method!=='GET')return;e.respondWith(fetch(e.request).catch(()=>caches.match(e.request)))});
+const CACHE="diagnostico-v0101";
+const ASSETS=["./","index.html","styles.css","app-v0101.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-original.jpg"];
+
+self.addEventListener("install",event=>{
+  event.waitUntil(
+    caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting())
+  );
+});
+
+self.addEventListener("activate",event=>{
+  event.waitUntil(
+    caches.keys()
+      .then(keys=>Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k))))
+      .then(()=>self.clients.claim())
+  );
+});
+
+self.addEventListener("fetch",event=>{
+  if(event.request.method!=="GET")return;
+  const url=new URL(event.request.url);
+  const shell=url.pathname.endsWith("/")||
+              url.pathname.endsWith("/index.html")||
+              url.pathname.endsWith("/app-v0101.js");
+  if(shell){
+    event.respondWith(
+      fetch(event.request,{cache:"no-store"}).catch(()=>caches.match(event.request))
+    );
+    return;
+  }
+  event.respondWith(
+    caches.match(event.request).then(cached=>cached||fetch(event.request))
+  );
+});

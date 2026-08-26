@@ -1,0 +1,12 @@
+APP DIAGNÓSTICO v0.10.1 — FIX ABRIR PERIODO
+
+Corrige:
+- El botón Abrir de un periodo ya no falla silenciosamente.
+- Si la sincronización de alumnos falla, intenta abrir de todos modos.
+- Si la consulta de grupos falla, muestra el error exacto.
+- Al abrir correctamente desplaza la pantalla hasta Grupos.
+- JavaScript renombrado a app-v0101.js para evitar mezcla de caché en Safari/iPad.
+
+Conserva:
+- Lectura Eficaz Inicial/Final del v0.10.0.
+- SAGES-2, PROESC y CASM-85-R sin cambios.

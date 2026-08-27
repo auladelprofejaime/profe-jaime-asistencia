@@ -1,0 +1,8 @@
+APP DIAGNÓSTICO v0.11.0 · PASO 3/4
+
+- Perfil integrado vigente: SAGES-2 + Lectura Eficaz Inicial + PROESC abreviado + CASM-85-R.
+- CompLEC deja de mostrarse en el perfil integrado.
+- Resumen técnico docente de lectura muestra VE, CL, EL y referencia docente.
+- El reporte/PDF familiar limpia nombres técnicos y utiliza lenguaje pedagógico.
+- Conserva captura Inicial/Final de Lectura Eficaz.
+- Todavía queda pendiente el PASO 4/4: comparativa Inicial vs Final y ajuste final de completitud.

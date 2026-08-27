@@ -1,5 +1,5 @@
 const CACHE='app-padres-v8-12-1';
-const FILES=['./','./index.html','./styles.css','./app-v8134.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
+const FILES=['./','./index.html','./styles.css','./app-v8135.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{
  self.skipWaiting();
@@ -47,7 +47,8 @@ self.addEventListener('push',event=>{
    body:data.body,
    icon:'./icon-app-padres-v821.png',
    badge:'./icon-app-padres-v821.png',
-   tag:'family-'+(data.event||Date.now()),
+   tag:'family-'+(data.event||'update')+'-'+(data.created||Date.now()),
+   renotify:true,
    data:{target:data.target||'home'}
  }));
 });

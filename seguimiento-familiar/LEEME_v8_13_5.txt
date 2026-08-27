@@ -1,0 +1,7 @@
+APP PADRES v8.13.5 — FIX NOTIFICACIONES REPUBLICADAS
+
+- Cada notificación push usa un identificador único.
+- Evita que iOS/iPadOS sustituya silenciosamente una notificación anterior
+  del mismo tipo, especialmente al volver a publicar Diagnóstico inicial.
+- Añade renotify para solicitar aviso visible al actualizar.
+- Conserva Diagnóstico inicial y seguimiento interpretativo de v8.13.4.

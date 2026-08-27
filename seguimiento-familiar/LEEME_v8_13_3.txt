@@ -1,0 +1,8 @@
+APP PADRES v8.13.3
+
+- Conserva Diagnóstico inicial con Lectura Eficaz.
+- Si el profesor vuelve a publicar cuando ya existen aplicaciones Finales,
+  aparece “Avance durante el ciclo escolar”.
+- Resume evolución de lectura y escritura con lenguaje familiar.
+- No presenta el seguimiento como calificación.
+- Si todavía no existe Final, la sección no aparece.

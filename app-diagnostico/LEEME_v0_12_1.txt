@@ -1,0 +1,8 @@
+APP DIAGNÓSTICO v0.12.1
+
+AJUSTE DE INTERPRETACIÓN FAMILIAR
+- La vista docente conserva los datos técnicos del seguimiento.
+- El PDF familiar ya no muestra VE, CL, EL ni flechas numéricas.
+- El apartado “Avance observado durante el ciclo” ahora redacta una
+  interpretación pedagógica de lectura y escritura.
+- Incluye recomendaciones según el patrón observado.

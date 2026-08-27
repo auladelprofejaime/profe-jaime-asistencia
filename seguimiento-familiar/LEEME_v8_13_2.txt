@@ -1,0 +1,8 @@
+APP PADRES v8.13.2 — FIX DIAGNÓSTICO INICIAL
+
+Corrige:
+- El botón Diagnóstico inicial abre correctamente la vista.
+- Restaura la variable de seguimiento familiar que faltaba en v8.13.1.
+- La vista se abre antes de consultar el resultado.
+- Si en el futuro falla la consulta, muestra el error dentro de la sección en lugar de dejar el botón sin respuesta.
+- Conserva Lectura Eficaz y todos los cambios de v8.13.1.

@@ -1,0 +1,8 @@
+APP DIAGNÓSTICO v0.12.2
+
+- El Resultado integrado conserva el Diagnóstico Inicial.
+- Cuando existen aplicaciones Finales, añade un bloque visible:
+  “Seguimiento final”.
+- Muestra Lectura Inicial → Final y Escritura Inicial → Final.
+- Incluye la interpretación pedagógica dentro de la misma pantalla docente.
+- No modifica el PDF ni la publicación para Padres.

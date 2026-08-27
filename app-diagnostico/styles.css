@@ -208,3 +208,12 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
  .followupWriting>div{grid-template-columns:1fr}
  .followupWriting strong{text-align:left}
 }
+
+/* Seguimiento final dentro del Resultado integrado · v0.12.2 */
+.integratedFollowupGrid{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.integratedFollowupItem{border:1px solid #e5c86f;border-radius:14px;padding:14px;background:#fffdf7}
+.integratedFollowupItem>b{display:block;font-size:1.05rem;margin-bottom:8px}
+.integratedFollowupMetrics{display:grid;gap:5px;margin-bottom:10px}
+.integratedFollowupMetrics span{font-weight:800}
+.integratedFollowupItem p{margin:0;line-height:1.45}
+@media(max-width:700px){.integratedFollowupGrid{grid-template-columns:1fr}}

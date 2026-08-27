@@ -1,0 +1,6 @@
+APP PADRES v8.13.4
+
+- El seguimiento Inicial vs. Final se presenta como interpretación pedagógica.
+- Ya no muestra VE, CL, EL ni comparaciones numéricas técnicas a las familias.
+- Redacta avances, estabilidad o áreas que requieren refuerzo en lectura y escritura.
+- Conserva el diagnóstico inicial y todas las funciones de v8.13.3.

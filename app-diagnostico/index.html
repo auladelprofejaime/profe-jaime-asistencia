@@ -113,6 +113,7 @@
         </div>
         <div class="integratedLaunch">
           <button id="openIntegratedBtn" type="button">Ver resultado integrado</button>
+          <button id="openFollowupBtn" class="secondary" type="button">Ver seguimiento Inicial vs. Final</button>
         </div>
         <p class="notice">Batería vigente: SAGES-2, Lectura Eficaz, PROESC abreviado y CASM-85-R. Lectura Eficaz y PROESC tendrán aplicación Inicial y Final.</p>
       </section>
@@ -247,6 +248,18 @@
           <p id="proescGradeNote" class="muted"></p>
         </div>
 
+        <div class="proescFollowupControls">
+          <label>Momento de aplicación
+            <select id="proescMoment">
+              <option value="initial">Inicial</option>
+              <option value="final">Final</option>
+            </select>
+          </label>
+          <label>Fecha de aplicación
+            <input id="proescDate" type="date">
+          </label>
+        </div>
+
         <div class="proescGrid">
           <label>Dictado de palabras · Lista A
             <div class="scoreInput"><input id="proescWords" type="number" min="0" max="25" inputmode="numeric"><span>/ 25</span></div>
@@ -322,6 +335,19 @@
 
       </section>
 
+      <section id="followupCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">Seguimiento del ciclo escolar</p>
+            <h2 id="followupStudentName">Inicial vs. Final</h2>
+            <p id="followupStudentMeta" class="muted"></p>
+          </div>
+          <button id="backStudentFromFollowup" class="secondary">← Expediente</button>
+        </div>
+        <div id="followupStatus" class="status"></div>
+        <div id="followupContent"></div>
+      </section>
+
       <section id="integratedCard" class="card hidden">
         <div class="sectionHead">
           <div>
@@ -349,6 +375,6 @@
     </section>
   </main>
 
-  <script src="app-v0111.js?v=0111"></script>
+  <script src="app-v0120.js?v=0120"></script>
 </body>
 </html>

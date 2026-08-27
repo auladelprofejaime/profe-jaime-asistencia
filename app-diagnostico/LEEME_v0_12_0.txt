@@ -1,0 +1,9 @@
+APP DIAGNÓSTICO v0.12.0 — SEGUIMIENTO FINAL
+
+- PROESC permite Inicial y Final.
+- Cada momento se guarda por separado.
+- Lectura Eficaz conserva Inicial y Final.
+- Nueva pantalla Seguimiento Inicial vs. Final.
+- Comparativa de VE, CL, EL y puntuaciones de escritura.
+- PDF individual incorpora avance cuando existe seguimiento Final completo.
+- Conserva diagnóstico inicial, publicación y notificaciones.

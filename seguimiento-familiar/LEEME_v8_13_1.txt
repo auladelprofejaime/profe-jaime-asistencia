@@ -1,0 +1,10 @@
+APP PADRES v8.13.1
+
+- Conserva la base v8.13.0 y sus cambios de calificaciones.
+- Recupera el apartado Diagnóstico inicial.
+- El diagnóstico vigente utiliza Lectura Eficaz en lugar de CompLEC.
+- No muestra nombres técnicos de pruebas en la explicación familiar.
+- Para el nivel inferior de lectura utiliza el lenguaje:
+  "En proceso de fortalecimiento".
+- Muestra una explicación familiar de lectura como punto de partida.
+- Los resultados siguen disponibles solo cuando el profesor los publica.

@@ -1,0 +1,7 @@
+APP DIAGNÓSTICO v0.11.1
+
+FIX DE PRUEBAS PROESC
+- Solo el Alumno Monitor (ID 00001, grupo MONITOR) se trata como 2.º de secundaria.
+- Permite validar PROESC con el alumno de pruebas.
+- Los alumnos reales siguen usando exclusivamente su código de grupo para determinar grado y baremo.
+- Conserva Lectura Eficaz y toda la integración v0.11.0.

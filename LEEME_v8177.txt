@@ -1,0 +1,20 @@
+APP DOCENTE v8.17.7 · ASISTENCIA CLARA + PDF CORREGIDO
+
+ASISTENCIA
+- Lista del día muestra a TODO el grupo, incluso sin registrar.
+- Ver faltantes usa el mismo padrón y normaliza IDs.
+- Finalizar lista marca inasistencias únicamente a quienes no tienen registro.
+- Después de finalizar, una inasistencia puede cambiarse a Retardo o Asistencia.
+- Al cambiar a Retardo se guarda la hora real y se envía la notificación de Retardo.
+- Se conserva el escáner y el modo Retardo.
+
+PDF
+- Diseño rehecho para evitar texto encimado.
+- Máximo 7 fechas por bloque/página.
+- Nombre del alumno con ancho fijo y legible.
+- Símbolos de Asistencia, Inasistencia y Retardo dibujados como vectores.
+- Leyenda limpia al pie.
+
+SE CONSERVA
+- Mi horario, contador por segundo y notificaciones.
+- Mérito y resto de funciones v8.17.6.

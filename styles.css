@@ -438,3 +438,16 @@ button.danger{
 @media(max-width:480px){
   .welcome-left .welcome-avatar{max-height:220px}
 }
+
+/* v8.17.7 · Estados claros en asistencia */
+.attendance-row{border-left:5px solid transparent}
+.attendance-present{border-left-color:#2f8f46}
+.attendance-late{border-left-color:#d89900}
+.attendance-absent{border-left-color:#c7222c}
+.attendance-pending{border-left-color:#9a9488}
+.attendance-row .rowactions{max-width:48%;justify-content:flex-end}
+@media(max-width:700px){
+  .attendance-row{align-items:flex-start}
+  .attendance-row .rowactions{max-width:none;width:100%;justify-content:flex-start;margin-top:8px}
+  .attendance-row .rowactions button{flex:1 1 auto}
+}

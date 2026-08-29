@@ -1,0 +1,8 @@
+APP DOCENTE v8.17.6 · LAYOUT RESTAURADO
+
+- Reconstruida desde v8.17.3, que tenía el Inicio correcto.
+- NO modifica la cuadrícula general de Inicio.
+- Logo + panel de horario ocupan únicamente la columna izquierda original.
+- Supabase, contadores, cumpleaños y menú conservan su posición original.
+- Contador HH:MM:SS sigue actualizándose cada segundo.
+- Sin cambios en Supabase, cron, Edge Functions o notificaciones.

@@ -348,126 +348,93 @@ button.danger{
 @media(max-width:700px){#schedule .formgrid{grid-template-columns:1fr}.attendance-report-tools .grid4{grid-template-columns:1fr}}
 
 
-/* ============================================================
-   v8.17.4 · Panel de horario en Inicio
-   ============================================================ */
-.home-schedule-widget{
-  margin-top:14px;
-  padding:14px 16px;
-  border:2px solid rgba(150,35,35,.28);
-  border-radius:18px;
-  background:rgba(255,255,255,.66);
-  text-align:center;
+/* v8.17.6 · Panel horario SIN alterar el diseño original de Inicio */
+.welcome-left{
+  width:100%;
   min-width:0;
+  align-self:stretch;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+.welcome-left .welcome-avatar{
+  width:100%;
+  max-height:330px;
+  object-fit:contain;
+  object-position:center bottom;
+  align-self:end;
+}
+.home-schedule-widget{
+  width:100%;
+  box-sizing:border-box;
+  margin-top:10px;
+  padding:11px 12px;
+  border:2px solid rgba(181,31,40,.28);
+  border-radius:16px;
+  background:rgba(255,255,255,.67);
+  text-align:center;
 }
 .home-schedule-kicker{
-  font-size:.72rem;
-  font-weight:900;
+  color:var(--r);
+  font-weight:950;
+  font-size:11px;
   letter-spacing:.14em;
-  color:#b51f28;
-  margin-bottom:3px;
 }
 .home-schedule-current{
-  font-size:1.35rem;
+  margin-top:3px;
+  color:#211b12;
+  font-size:20px;
   line-height:1.1;
   font-weight:950;
-  color:#211b12;
   overflow-wrap:anywhere;
 }
 .home-schedule-time{
   margin-top:4px;
-  font-size:.92rem;
-  font-weight:750;
   color:#675b4c;
+  font-size:13px;
+  font-weight:800;
 }
-.home-schedule-count-wrap{
-  margin:10px 0 9px;
-}
+.home-schedule-count-wrap{margin:8px 0}
 .home-schedule-countdown{
-  font-variant-numeric:tabular-nums;
-  font-size:2.15rem;
+  color:var(--r);
+  font-size:31px;
   line-height:1;
   font-weight:950;
   letter-spacing:.03em;
-  color:#b51f28;
+  font-variant-numeric:tabular-nums;
 }
 .home-schedule-count-label{
-  margin-top:4px;
-  font-size:.78rem;
-  font-weight:750;
+  margin-top:3px;
   color:#675b4c;
+  font-size:11px;
+  font-weight:800;
 }
 .home-schedule-next-label{
-  padding-top:8px;
-  border-top:1px solid rgba(130,90,15,.25);
-  font-size:.72rem;
-  font-weight:900;
+  padding-top:7px;
+  border-top:1px solid rgba(130,90,15,.22);
+  color:#675b4c;
+  font-size:10px;
+  font-weight:950;
   text-transform:uppercase;
   letter-spacing:.08em;
-  color:#675b4c;
 }
 .home-schedule-next{
   margin-top:3px;
-  font-size:.97rem;
-  line-height:1.2;
-  font-weight:850;
   color:#211b12;
+  font-size:13px;
+  line-height:1.2;
+  font-weight:900;
   overflow-wrap:anywhere;
 }
 
-/* Horizontal: el panel aprovecha el ancho debajo del logo sin crecer demasiado */
-@media (min-width: 850px){
-  .home-schedule-widget{
-    max-width:430px;
-  }
+/* Respeta exactamente los breakpoints que ya tenía la app */
+@media(max-width:760px){
+  .welcome-left .welcome-avatar{max-height:230px}
+  .home-schedule-widget{padding:9px 8px;margin-top:7px}
+  .home-schedule-current{font-size:16px}
+  .home-schedule-countdown{font-size:24px}
+  .home-schedule-next{font-size:11px}
 }
-
-/* Vertical/tablet estrecho */
-@media (max-width: 849px){
-  .home-schedule-widget{
-    margin-top:12px;
-    padding:12px 14px;
-  }
-  .home-schedule-current{font-size:1.22rem}
-  .home-schedule-countdown{font-size:1.9rem}
-}
-
-/* v8.17.5 · ubicación correcta del panel bajo el logo de Inicio */
-#welcomeScheduleSlot{}
-.welcome > .home-schedule-widget{
-  align-self:start;
-}
-@media (min-width:850px){
-  .welcome{
-    grid-template-columns:minmax(300px,430px) 1fr;
-  }
-  .welcome > .welcome-avatar{
-    grid-column:1;
-    grid-row:1;
-  }
-  .welcome > .home-schedule-widget{
-    grid-column:1;
-    grid-row:2;
-    width:100%;
-    max-width:none;
-    box-sizing:border-box;
-    margin-top:10px;
-  }
-  .welcome > .welcome-copy{
-    grid-column:2;
-    grid-row:1 / span 2;
-  }
-}
-@media (max-width:849px){
-  .welcome > .welcome-avatar{
-    order:1;
-  }
-  .welcome > .home-schedule-widget{
-    order:2;
-    width:100%;
-    box-sizing:border-box;
-  }
-  .welcome > .welcome-copy{
-    order:3;
-  }
+@media(max-width:480px){
+  .welcome-left .welcome-avatar{max-height:220px}
 }

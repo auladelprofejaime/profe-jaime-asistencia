@@ -1,0 +1,23 @@
+APP DOCENTE v8.18.1 · SEGUIMIENTO 3.º A QUINCENAL
+
+CAMBIO SOLICITADO:
+- Se elimina Número de semana.
+- Se elimina Etiqueta.
+- Ahora la captura de Seguimiento 3.º A usa:
+  Desde [calendario]
+  Hasta [calendario]
+- El botón dice Guardar quincena.
+- El selector del reporte individual dice Periodo guardado.
+- Vista previa, imagen, correo y PDF muestran el rango de fechas seleccionado.
+- El PDF ya no dice “Semana”.
+- Los periodos antiguos guardados siguen siendo compatibles y se pueden consultar.
+
+NO CAMBIA:
+- Asistencia
+- PDF de asistencia
+- encabezado institucional de todos los PDF
+- escáner
+- Mi horario
+- notificaciones
+- Mérito
+- Supabase

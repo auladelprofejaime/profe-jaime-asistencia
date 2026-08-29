@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.18.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.18.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -521,15 +521,20 @@
 </section>
 
 <section id="titular" class="view">
- <div class="subtabs"><button data-tittab="capture" class="sub active">Captura semanal</button><button data-tittab="individual" class="sub">Reporte individual</button></div>
+ <div class="subtabs"><button data-tittab="capture" class="sub active">Captura quincenal</button><button data-tittab="individual" class="sub">Reporte individual</button></div>
  <div id="tit-capture" class="titpane active">
-  <div class="card grid4"><label>Periodo<select id="titPeriod"><option>Periodo 1</option><option>Periodo 2</option><option>Periodo 3</option><option>Periodo 4</option></select></label><label>Mes<select id="titMonth"></select></label><label>Semana<input id="titWeek" placeholder="Ej. Semana 1"></label><label>Etiqueta<input id="titLabel" placeholder="Semana del 31 ago al 4 sep"></label></div>
-  <div class="card"><div class="section"><h2>Seguimiento académico · 3.º A</h2><button id="titSaveAll" class="primary">Guardar semana</button></div><p class="hint">Toca el estado de cada materia. Verde: al corriente; amarillo: requiere atención; rojo: atención prioritaria; blanco: sin información.</p><div id="titularGrid" class="tablewrap"></div></div>
+  <div class="card grid4">
+   <label>Periodo<select id="titPeriod"><option>Periodo 1</option><option>Periodo 2</option><option>Periodo 3</option><option>Periodo 4</option></select></label>
+   <label>Mes<select id="titMonth"></select></label>
+   <label>Desde<input id="titFrom" type="date"></label>
+   <label>Hasta<input id="titTo" type="date"></label>
+  </div>
+  <div class="card"><div class="section"><div><h2>Seguimiento académico · 3.º A</h2><p class="hint">Selecciona el rango de la quincena con los calendarios de Desde y Hasta.</p></div><button id="titSaveAll" class="primary">Guardar quincena</button></div><p class="hint">Toca el estado de cada materia. Verde: al corriente; amarillo: requiere atención; rojo: atención prioritaria; blanco: sin información.</p><div id="titularGrid" class="tablewrap"></div></div>
  </div>
  <div id="tit-individual" class="titpane">
   <div class="card titular-report-controls">
   <label>Alumno<select id="titStudent"></select></label>
-  <label>Semana<select id="titSavedWeek"></select></label>
+  <label>Periodo guardado<select id="titSavedWeek"></select></label>
   <label>Grupo<input value="3.º A" disabled></label>
   <div class="titular-report-actions">
     <button id="titPdf" class="secondary" type="button">Generar PDF</button>
@@ -923,7 +928,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8180.js?v=8180"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8181.js?v=8181"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

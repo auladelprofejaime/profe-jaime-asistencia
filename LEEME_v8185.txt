@@ -1,0 +1,11 @@
+APP DOCENTE v8.18.5 · BORRADOR DE HORARIO PROTEGIDO
+
+Se corrigió el refresco automático que borraba las selecciones mientras se capturaba el horario.
+
+Ahora:
+- El panel de Inicio puede actualizarse sin tocar el constructor rápido.
+- Materias, grupos y guardias seleccionadas permanecen mientras capturas.
+- Agregar grupos arriba no borra el horario que ya llevas.
+- El constructor solo se vuelve a cargar cuando cambias Día, cambias Turno o guardas correctamente.
+
+No se modifica ninguna otra función.

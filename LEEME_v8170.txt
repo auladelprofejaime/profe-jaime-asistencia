@@ -1,0 +1,13 @@
+APP DOCENTE v8.17.0 — ACTUALIZACIÓN DE CONTEXTO
+
+1. Se conserva el escáner de asistencia.
+2. Asistencia admite Presente y Retardo; las faltas se generan al finalizar lista.
+3. Notificaciones de asistencia incluyen alumno, fecha y hora.
+4. Inasistencia recuerda justificar con Trabajo Social.
+5. Reporte PDF de asistencia por un día o rango, con ✓ / ✕ / ⌛ y leyenda.
+6. Módulo Mi horario para ambos turnos con avisos 5/10/15 minutos antes.
+7. Los módulos académicos normales dejan de ofrecer Vespertino; 3.º A se conserva en Seguimiento 3.º A.
+8. Mérito Gabino A. Palma se conserva intacto.
+9. Todas las notificaciones existentes se conservan.
+
+Para avisos de Mi horario con la app cerrada se requiere instalar el backend incluido en el paquete de implementación.

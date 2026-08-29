@@ -292,6 +292,7 @@
     <div class="menu-panel">
       <button data-view="home" class="tab active"><span>⌂</span>Inicio</button>
       <button data-view="attendance" class="tab"><span>▣</span>Asistencia</button>
+      <button data-view="schedule" class="tab"><span>🕒</span>Mi horario</button>
       <button data-view="activities" class="tab"><span>●</span>Actividades</button>
       <button data-view="methodologies" class="tab"><span>%</span>Metodologías</button>
       <button data-view="titular" class="tab"><span>3A</span>Seguimiento 3.º A</button>
@@ -346,7 +347,8 @@
    <div id="weeklyBirthdays" class="birthday-week-list"><div class="empty">Sin fechas de nacimiento registradas esta semana.</div></div>
  </div>
  <div class="home-menu">
-  <button data-go="attendance" class="home-button"><span>▣</span><b>Asistencia</b><small>Matutino y vespertino con escáner</small></button>
+  <button data-go="attendance" class="home-button"><span>▣</span><b>Asistencia</b><small>Escáner · asistencia, falta y retardo</small></button>
+  <button data-go="schedule" class="home-button"><span>🕒</span><b>Mi horario</b><small>Ambos turnos · avisos antes de cada clase</small></button>
   <button data-go="activities" class="home-button"><span>✓</span><b>Actividades</b><small>Escáner y cuadrícula semanal</small></button>
   <button data-go="methodologies" class="home-button"><span>%</span><b>Metodologías</b><small>Criterios, porcentajes y cálculo de calificaciones</small></button>
   <button data-go="titular" class="home-button"><span>3A</span><b>Seguimiento 3.º A</b><small>Captura y reporte individual</small></button>
@@ -360,7 +362,35 @@
  <div class="stats"><div><b id="attPresent">0</b><span>Registrados</span></div><div><b id="attTotal">0</b><span>Alumnos</span></div><div><b id="attMissing">0</b><span>Faltantes</span></div></div>
  <div id="attStatus" class="status neutral"><i>▣</i><h2>Escanea la credencial</h2><p>El lector escribe el ID y envía Enter.</p></div>
  <div class="scan"><input id="attScan" inputmode="numeric" placeholder="ID del alumno"><button id="attRegister" class="primary">Registrar</button></div>
+ <div class="card attendance-report-tools">
+  <div class="section"><h2>Reporte PDF de asistencia</h2></div>
+  <div class="grid4">
+   <label>Desde<input id="attReportFrom" type="date"></label>
+   <label>Hasta<input id="attReportTo" type="date"></label>
+   <label class="wide"><span>&nbsp;</span><button id="attPdfRange" class="secondary" type="button">Generar PDF</button></label>
+  </div>
+  <p class="hint">✓ Asistencia · ✕ Inasistencia · ⌛ Retardo. Puedes generar un solo día o un rango de fechas.</p>
+ </div>
  <div class="card"><div class="section"><h2>Registros del día</h2><div class="actions"><button id="attMissingBtn" class="secondary">Ver faltantes</button><button id="attFinalizeBtn" class="danger-outline">Finalizar lista y marcar faltas</button></div></div><div id="attList" class="list empty">Aún no hay registros.</div></div>
+</section>
+
+<section id="schedule" class="view">
+ <div class="card">
+  <div class="section"><div><h2>Mi horario</h2><p class="hint">Horario personal de ambos turnos. Los avisos se envían antes de cada clase.</p></div><button id="schedulePauseToday" class="secondary" type="button">Pausar avisos de hoy</button></div>
+  <form id="scheduleForm" class="formgrid">
+   <input type="hidden" id="scheduleId">
+   <label>Día<select id="scheduleDay"><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="7">Domingo</option></select></label>
+   <label>Turno<select id="scheduleShift"><option>Matutino</option><option>Vespertino</option></select></label>
+   <label>Inicio<input id="scheduleStart" type="time" required></label>
+   <label>Fin<input id="scheduleEnd" type="time" required></label>
+   <label>Grupo<input id="scheduleGroup" placeholder="Ej. 22 o 3.º A" required></label>
+   <label>Materia / actividad<input id="scheduleSubject" value="Español" required></label>
+   <label>Avisar antes<select id="scheduleReminder"><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="15">15 minutos</option></select></label>
+   <label><input id="scheduleEnabled" type="checkbox" checked> Aviso activo</label>
+   <div class="wide actions"><button class="primary" type="submit">Guardar clase</button><button id="scheduleCancelEdit" class="secondary hidden" type="button">Cancelar edición</button></div>
+  </form>
+ </div>
+ <div class="card"><div class="section"><h2>Horario semanal</h2><button id="scheduleEnablePush" class="secondary" type="button">Activar avisos en este dispositivo</button></div><div id="scheduleList" class="list empty">Aún no has cargado clases.</div></div>
 </section>
 
 <section id="activities" class="view">
@@ -880,7 +910,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8164.js?v=8164"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8170.js?v=8170"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

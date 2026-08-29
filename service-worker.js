@@ -1,6 +1,6 @@
-const CACHE='app-docente-v8-14-1';
+const CACHE='app-docente-v8-17-0';
 const LOCAL=[
- './','./index.html','./styles.css','./app-v8164.js?v=8164',
+ './','./index.html','./styles.css','./app-v8170.js?v=8170',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png',
  './shared/supabase-teacher.js?v=790'
 ];
@@ -71,7 +71,8 @@ self.addEventListener('push',event=>{
     body:data.body,
     icon:'./icon-app-docente-v821.png',
     badge:'./icon-app-docente-v821.png',
-    tag:'push-'+(data.event||Date.now()),
+    tag:'push-'+(data.event||'event')+'-'+(data.created||Date.now()),
+    renotify:true,
     data:{target:data.target||'home'}
   }));
 });

@@ -1,0 +1,20 @@
+APP DOCENTE v8.17.9 · ENCABEZADO FINAL PDF ASISTENCIA
+
+PDF:
+- Logo de la App Docente en el encabezado.
+- Título: Reporte de asistencia.
+- Profesor: Jaime Armando Pérez Vázquez.
+- Grupo.
+- Fecha o rango de fechas.
+- Turno.
+- Resumen de registros/asistencias/inasistencias/retardos.
+- Tabla limpia y leyenda visual.
+
+No cambia:
+- escáner
+- faltantes
+- edición a retardo
+- notificaciones
+- Mi horario
+- contador
+- Supabase

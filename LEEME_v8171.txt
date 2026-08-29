@@ -1,0 +1,6 @@
+APP DOCENTE v8.17.1 — FIX DE ARRANQUE
+
+- Restaura closeSchoolCycle() desde la base v8.16.4.
+- Corrige: Can't find variable: closeSchoolCycle.
+- Conserva los cambios de v8.17.0.
+- No requiere ejecutar SQL ni modificar Edge Functions.

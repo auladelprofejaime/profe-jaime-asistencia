@@ -1,0 +1,28 @@
+APP DOCENTE v8.18.3 · GUARDIAS Y HORAS LIBRES
+
+NUEVAS OPCIONES EN BLOQUES DE CLASE:
+- Español
+- Tutoría
+- Reflexión
+- Titular
+- Guardia
+- Libre
+
+REGLAS:
+- Español / Tutoría / Reflexión / Titular requieren grupo.
+- Guardia y Libre NO requieren grupo.
+
+RECESOS:
+- Matutino 10:50–11:10: por defecto Receso, pero se puede cambiar a Guardia.
+- Vespertino 16:30–16:55: por defecto Primer receso, pero se puede cambiar a Guardia.
+- Vespertino 18:25–18:40: por defecto Segundo receso, pero se puede cambiar a Guardia.
+- Cada día se configura de forma independiente, así puedes poner una guardia matutina un día y una o varias guardias vespertinas en los días que te asignen.
+
+SE CONSERVA:
+- 14:00–14:15 Titular automático.
+- 20:10–20:20 Titular automático.
+- constructor rápido
+- grupos editables
+- notificaciones
+- contador del Inicio
+- edición individual

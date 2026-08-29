@@ -346,3 +346,88 @@ button.danger{
 #schedule .formgrid{margin-top:12px}.schedule-note{font-size:.9rem}
 #schedule .rowactions{display:flex;gap:6px;flex-wrap:wrap}
 @media(max-width:700px){#schedule .formgrid{grid-template-columns:1fr}.attendance-report-tools .grid4{grid-template-columns:1fr}}
+
+
+/* ============================================================
+   v8.17.4 · Panel de horario en Inicio
+   ============================================================ */
+.home-schedule-widget{
+  margin-top:14px;
+  padding:14px 16px;
+  border:2px solid rgba(150,35,35,.28);
+  border-radius:18px;
+  background:rgba(255,255,255,.66);
+  text-align:center;
+  min-width:0;
+}
+.home-schedule-kicker{
+  font-size:.72rem;
+  font-weight:900;
+  letter-spacing:.14em;
+  color:#b51f28;
+  margin-bottom:3px;
+}
+.home-schedule-current{
+  font-size:1.35rem;
+  line-height:1.1;
+  font-weight:950;
+  color:#211b12;
+  overflow-wrap:anywhere;
+}
+.home-schedule-time{
+  margin-top:4px;
+  font-size:.92rem;
+  font-weight:750;
+  color:#675b4c;
+}
+.home-schedule-count-wrap{
+  margin:10px 0 9px;
+}
+.home-schedule-countdown{
+  font-variant-numeric:tabular-nums;
+  font-size:2.15rem;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.03em;
+  color:#b51f28;
+}
+.home-schedule-count-label{
+  margin-top:4px;
+  font-size:.78rem;
+  font-weight:750;
+  color:#675b4c;
+}
+.home-schedule-next-label{
+  padding-top:8px;
+  border-top:1px solid rgba(130,90,15,.25);
+  font-size:.72rem;
+  font-weight:900;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+  color:#675b4c;
+}
+.home-schedule-next{
+  margin-top:3px;
+  font-size:.97rem;
+  line-height:1.2;
+  font-weight:850;
+  color:#211b12;
+  overflow-wrap:anywhere;
+}
+
+/* Horizontal: el panel aprovecha el ancho debajo del logo sin crecer demasiado */
+@media (min-width: 850px){
+  .home-schedule-widget{
+    max-width:430px;
+  }
+}
+
+/* Vertical/tablet estrecho */
+@media (max-width: 849px){
+  .home-schedule-widget{
+    margin-top:12px;
+    padding:12px 14px;
+  }
+  .home-schedule-current{font-size:1.22rem}
+  .home-schedule-countdown{font-size:1.9rem}
+}

@@ -1,0 +1,24 @@
+APP DOCENTE v8.17.4 · PANEL DE HORARIO EN INICIO
+
+NUEVO:
+- Panel compacto debajo del logo en la pantalla Inicio.
+- Muestra la clase actual.
+- Muestra el horario de esa clase.
+- Cuenta regresiva HH:MM:SS actualizada CADA SEGUNDO.
+- Muestra automáticamente la siguiente clase/actividad.
+- Si no hay clase en ese momento, muestra cuánto falta para la próxima.
+- Al terminar la jornada, muestra “Jornada terminada”.
+- Usa directamente el horario ya cargado en Mi horario.
+
+SE CONSERVA:
+- Notificación 5/10/15 minutos antes de terminar la clase actual.
+- Aviso de cuál clase sigue.
+- Escáner.
+- Asistencia / inasistencia / retardo.
+- Reportes PDF.
+- Mérito y funciones anteriores.
+
+NO REQUIERE:
+- SQL nuevo.
+- Cambios en cron.
+- Cambios en Edge Functions.

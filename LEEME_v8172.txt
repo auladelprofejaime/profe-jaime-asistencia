@@ -1,0 +1,23 @@
+APP DOCENTE v8.17.2 · RECONSTRUIDA Y VALIDADA
+
+Esta versión NO se construyó sobre la v8.17.1 defectuosa.
+Se reconstruyó desde la base completa v8.16.4 y después se integraron los cambios nuevos.
+
+VALIDACIONES:
+- JavaScript: sintaxis OK.
+- 100% de las funciones originales de v8.16.4 siguen presentes.
+- Verificadas funciones críticas:
+  saveMethodology, renderMethodologies, renderStudents, exportBackup,
+  saveInternal, printWeekly, printTitular, closeSchoolCycle,
+  refreshDossierSelector y openTitularEmailDialog.
+- Mi horario y PDF por rango presentes.
+- Escáner y flujo original de asistencia conservados.
+- Mérito conservado desde la base v8.16.4.
+
+CAMBIOS NUEVOS:
+- Mi horario para ambos turnos.
+- Avisos 5/10/15 minutos antes.
+- Asistencia / inasistencia / retardo con fecha y hora en notificaciones.
+- Inasistencia recuerda justificar con Trabajo Social.
+- PDF de asistencia por día o rango con ✓ ✕ ⌛ y leyenda.
+- Operación académica regular oculta Vespertino; Seguimiento 3.º A se conserva.

@@ -1,0 +1,29 @@
+APP DOCENTE v8.18.0 · ENCABEZADO INSTITUCIONAL PARA TODOS LOS PDF
+
+REGLA FIJA EN TODOS LOS REPORTES PDF:
+1. Logo de App Docente.
+2. Nombre específico del reporte.
+3. Profesor: Jaime Armando Pérez Vázquez.
+
+Cada reporte conserva debajo sus datos propios ya existentes:
+grupo, fecha, semana, alumno, periodo, trimestre, turno, etc., según corresponda.
+
+Se unificaron también los PDF que antes tenían encabezados hechos aparte:
+- Reportes individuales de metodología.
+- Datos de acceso a los portales.
+- Reporte de asistencia conserva su diseño especial, pero respeta los mismos 3 elementos fijos.
+
+No modifica:
+- lógica de asistencia
+- escáner
+- faltantes
+- retardo
+- notificaciones
+- Mi horario
+- Mérito
+- Supabase
+
+Validación:
+- JavaScript: OK
+- Sitios de creación de PDF detectados: 9
+- Llamadas al encabezado común: 10

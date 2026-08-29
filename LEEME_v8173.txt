@@ -1,0 +1,7 @@
+APP DOCENTE v8.17.3
+
+CAMBIO MI HORARIO
+- Los avisos se programan 5, 10 o 15 minutos ANTES DE QUE TERMINE la clase actual.
+- La notificación indicará cuál es la siguiente clase/actividad registrada.
+- “Materia / actividad” puede usarse también para Receso, Hora libre, Guardia, Traslado, etc.
+- Conserva todo lo validado en v8.17.2.

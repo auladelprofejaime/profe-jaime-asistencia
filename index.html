@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.17.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.17.3</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -348,7 +348,7 @@
  </div>
  <div class="home-menu">
   <button data-go="attendance" class="home-button"><span>▣</span><b>Asistencia</b><small>Escáner · asistencia, falta y retardo</small></button>
-  <button data-go="schedule" class="home-button"><span>🕒</span><b>Mi horario</b><small>Ambos turnos · avisos antes de cada clase</small></button>
+  <button data-go="schedule" class="home-button"><span>🕒</span><b>Mi horario</b><small>Ambos turnos · aviso antes de terminar y qué sigue</small></button>
   <button data-go="activities" class="home-button"><span>✓</span><b>Actividades</b><small>Escáner y cuadrícula semanal</small></button>
   <button data-go="methodologies" class="home-button"><span>%</span><b>Metodologías</b><small>Criterios, porcentajes y cálculo de calificaciones</small></button>
   <button data-go="titular" class="home-button"><span>3A</span><b>Seguimiento 3.º A</b><small>Captura y reporte individual</small></button>
@@ -376,7 +376,7 @@
 
 <section id="schedule" class="view">
  <div class="card">
-  <div class="section"><div><h2>Mi horario</h2><p class="hint">Horario personal de ambos turnos. Los avisos se envían antes de cada clase.</p></div><button id="schedulePauseToday" class="secondary" type="button">Pausar avisos de hoy</button></div>
+  <div class="section"><div><h2>Mi horario</h2><p class="hint">Horario personal de ambos turnos. El aviso se envía antes de que termine la clase actual e indica qué sigue.</p></div><button id="schedulePauseToday" class="secondary" type="button">Pausar avisos de hoy</button></div>
   <form id="scheduleForm" class="formgrid">
    <input type="hidden" id="scheduleId">
    <label>Día<select id="scheduleDay"><option value="1">Lunes</option><option value="2">Martes</option><option value="3">Miércoles</option><option value="4">Jueves</option><option value="5">Viernes</option><option value="6">Sábado</option><option value="7">Domingo</option></select></label>
@@ -385,7 +385,7 @@
    <label>Fin<input id="scheduleEnd" type="time" required></label>
    <label>Grupo<input id="scheduleGroup" placeholder="Ej. 22 o 3.º A" required></label>
    <label>Materia / actividad<input id="scheduleSubject" value="Español" required></label>
-   <label>Avisar antes<select id="scheduleReminder"><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="15">15 minutos</option></select></label>
+   <label>Avisar antes de terminar<select id="scheduleReminder"><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="15">15 minutos</option></select></label>
    <label><input id="scheduleEnabled" type="checkbox" checked> Aviso activo</label>
    <div class="wide actions"><button class="primary" type="submit">Guardar clase</button><button id="scheduleCancelEdit" class="secondary hidden" type="button">Cancelar edición</button></div>
   </form>
@@ -910,7 +910,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8172.js?v=8172"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8173.js?v=8173"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

@@ -1,0 +1,21 @@
+APP DOCENTE v8.18.4 · GRUPOS SEPARADOS CORRECTAMENTE
+
+CORRECCIÓN:
+- El campo Mis grupos acepta varios grupos separados por comas.
+- Ejemplo:
+  22, 23, 24, 25, 26, 3.º A, 3.º B, 3.º C
+
+AHORA SE GUARDAN COMO OPCIONES INDEPENDIENTES:
+- 22
+- 23
+- 24
+- 25
+- 26
+- 3.º A
+- 3.º B
+- 3.º C
+
+Por tanto, en cada bloque del horario el selector Grupo muestra cada grupo por separado.
+
+También acepta punto y coma o salto de línea.
+No modifica horarios, guardias, recesos, notificaciones ni contador.

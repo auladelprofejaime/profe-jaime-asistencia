@@ -1,6 +1,6 @@
-const CACHE='app-docente-v8-18-3';
+const CACHE='app-docente-v8-18-4';
 const LOCAL=[
- './','./index.html','./styles.css','./app-v8183.js?v=8183',
+ './','./index.html','./styles.css','./app-v8184.js?v=8184',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png',
  './shared/supabase-teacher.js?v=790'
 ];

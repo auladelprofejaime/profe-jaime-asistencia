@@ -1,0 +1,7 @@
+APP DOCENTE v8.17.5 · FIX UBICACIÓN PANEL HORARIO
+
+- Corrige la ubicación del panel de horario.
+- Ahora aparece debajo del logo grande en la pantalla Inicio.
+- Conserva contador regresivo por segundo.
+- Conserva clase actual y siguiente clase.
+- No cambia Supabase, cron, Edge Functions ni notificaciones.

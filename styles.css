@@ -431,3 +431,43 @@ button.danger{
   .home-schedule-current{font-size:1.22rem}
   .home-schedule-countdown{font-size:1.9rem}
 }
+
+/* v8.17.5 · ubicación correcta del panel bajo el logo de Inicio */
+#welcomeScheduleSlot{}
+.welcome > .home-schedule-widget{
+  align-self:start;
+}
+@media (min-width:850px){
+  .welcome{
+    grid-template-columns:minmax(300px,430px) 1fr;
+  }
+  .welcome > .welcome-avatar{
+    grid-column:1;
+    grid-row:1;
+  }
+  .welcome > .home-schedule-widget{
+    grid-column:1;
+    grid-row:2;
+    width:100%;
+    max-width:none;
+    box-sizing:border-box;
+    margin-top:10px;
+  }
+  .welcome > .welcome-copy{
+    grid-column:2;
+    grid-row:1 / span 2;
+  }
+}
+@media (max-width:849px){
+  .welcome > .welcome-avatar{
+    order:1;
+  }
+  .welcome > .home-schedule-widget{
+    order:2;
+    width:100%;
+    box-sizing:border-box;
+  }
+  .welcome > .welcome-copy{
+    order:3;
+  }
+}

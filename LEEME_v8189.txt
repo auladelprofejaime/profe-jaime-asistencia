@@ -1,0 +1,17 @@
+APP DOCENTE v8.18.9 · VISTA PREVIA DEL HORARIO GUARDADO
+
+CORRECCIÓN:
+- Vista previa ya NO muestra el día que estás capturando.
+- Ahora consulta el horario ya guardado en la app/Supabase.
+- Arma el horario semanal completo de lunes a viernes.
+- Separa Matutino y Vespertino.
+- Muestra todos los bloques registrados: clases, recesos, guardias, libre, atención papás, juntas, academia y titular.
+
+IMPRIMIR HORARIO:
+- Genera el horario semanal completo guardado.
+- Tamaño carta horizontal.
+- Matutino en una página.
+- Vespertino en otra página.
+- Usa el encabezado institucional de App Docente.
+
+No modifica el constructor rápido ni las notificaciones.

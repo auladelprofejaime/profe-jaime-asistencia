@@ -686,3 +686,68 @@ button.danger{
   .schedule-sheet-grid{grid-template-columns:1fr}
   .schedule-preview-paper{aspect-ratio:auto}
 }
+
+/* v8.18.9 · Vista previa del horario guardado completo */
+.schedule-week-section{
+  margin-top:18px;
+}
+.schedule-week-section h3{
+  margin:0 0 8px;
+  color:#b51f2b;
+  font-size:18px;
+}
+.schedule-week-table{
+  display:grid;
+  grid-template-columns:110px repeat(5,minmax(120px,1fr));
+  border:1px solid #ddcfaa;
+  border-radius:12px;
+  overflow:hidden;
+}
+.schedule-week-head,
+.schedule-week-time,
+.schedule-week-cell{
+  min-height:54px;
+  padding:8px;
+  border-right:1px solid #e3d8b9;
+  border-bottom:1px solid #e3d8b9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  box-sizing:border-box;
+}
+.schedule-week-head{
+  background:#f7c600;
+  font-weight:950;
+  min-height:42px;
+}
+.schedule-week-time{
+  background:#fff8dd;
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+}
+.schedule-week-cell{
+  flex-direction:column;
+  gap:4px;
+  background:#fff;
+}
+.schedule-week-cell strong{
+  font-size:13px;
+}
+.schedule-week-cell span{
+  font-size:12px;
+}
+.schedule-week-cell.is-break{background:#fff4bf}
+.schedule-week-cell.is-guardia{background:#ffe6b0}
+.schedule-week-cell.is-free{background:#f1f1f1}
+.schedule-week-cell.is-titular{background:#fff0d4}
+.schedule-week-cell.is-parent{background:#f5efe6}
+.schedule-week-cell.is-meeting{background:#f3efe4}
+.schedule-week-cell.is-academy{background:#f7f0df}
+.schedule-week-cell.is-class{background:#fffaf0}
+.schedule-week-cell.is-empty{background:#fafafa;color:#aaa}
+.schedule-empty-mark{font-size:16px!important}
+@media(max-width:900px){
+  .schedule-preview-paper{overflow:auto}
+  .schedule-week-table{min-width:820px}
+}

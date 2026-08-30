@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.18.5</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.18.7</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -416,7 +416,7 @@
   <div class="section">
    <div>
     <h2>2. Carga rápida del día</h2>
-    <p class="hint">Elige día y turno. Después solo asigna materia y grupo en los bloques donde tengas clase.</p>
+    <p class="hint">Elige día y turno. La app mostrará únicamente las opciones que corresponden a ese turno.</p>
    </div>
   </div>
   <div class="schedule-quick-top">
@@ -450,7 +450,7 @@
    <label>Inicio<input id="scheduleStart" type="time" required></label>
    <label>Fin<input id="scheduleEnd" type="time" required></label>
    <label>Grupo<select id="scheduleGroup"></select></label>
-   <label>Materia / actividad<select id="scheduleSubject"><option>Español</option><option>Tutoría</option><option>Reflexión</option><option>Titular</option><option>Guardia</option><option>Libre</option><option>Receso</option></select></label>
+   <label>Materia / actividad<select id="scheduleSubject"><option>Español</option><option>Tutoría</option><option>Libre</option><option>Atención papás</option><option>Junta de titulares</option><option>Academia de español</option><option>Receso</option></select></label>
    <label>Avisar antes de terminar<select id="scheduleReminder"><option value="5">5 minutos</option><option value="10">10 minutos</option><option value="15">15 minutos</option></select></label>
    <label><input id="scheduleEnabled" type="checkbox" checked> Aviso activo</label>
    <div class="wide actions"><button class="primary" type="submit">Guardar clase</button><button id="scheduleCancelEdit" class="secondary hidden" type="button">Cancelar edición</button></div>
@@ -985,7 +985,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8185.js?v=8185"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8187.js?v=8187"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

@@ -1,0 +1,10 @@
+APP DOCENTE v8.18.7 · TUTORÍA FIJA EN 3.º A
+
+CAMBIO:
+- En Vespertino, al seleccionar Tutoría, el grupo se asigna automáticamente a 3.º A.
+- El selector de grupo queda bloqueado para Tutoría.
+- Al guardar, Tutoría siempre se registra como 3.º A.
+- Esto aplica tanto al constructor rápido como a la edición individual.
+
+Español sigue permitiendo seleccionar grupo normalmente.
+No se modifica ninguna otra función.

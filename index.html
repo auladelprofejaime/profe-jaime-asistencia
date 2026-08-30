@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.18.9</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.19.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -604,6 +604,15 @@
 </section>
 
 <section id="students" class="view">
+ <div class="card">
+  <div class="section">
+   <div>
+    <h2>Accesos de alumnos</h2>
+    <p class="hint">Después de cargar tus alumnos puedes generar una hoja individual con ID, PIN de App Estudiantes y PIN de App Padres.</p>
+   </div>
+   <button id="studentsAccessShortcut" class="secondary" type="button">Imprimir ID y PIN</button>
+  </div>
+ </div>
  <div class="card"><h2>Cargar alumnos</h2><p class="hint">Importa únicamente los datos necesarios: ID, turno, grupo, lista, nombre(s) y primer apellido, cumpleaños (día y mes), observaciones e incidencias escolares.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
  <form id="studentForm" class="card formgrid">
 <h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden">
@@ -760,11 +769,11 @@
     <div class="section">
       <div>
         <h2>🔐 Estado de acceso a portales</h2>
-        <p class="hint">Consulta únicamente cuando lo necesites. Solo corresponde a alumnos del turno matutino.</p>
+        <p class="hint">Genera hojas individuales de acceso para alumnos del turno matutino. Cada alumno ocupa una página.</p>
       </div>
       <div class="actions">
         <button id="refreshPortalAccessReport" class="secondary" type="button">Actualizar estados</button>
-        <button id="generateGroupAccessPdf" class="primary" type="button">📄 Generar PDF de accesos del grupo</button>
+        <button id="generateGroupAccessPdf" class="primary" type="button">Generar e imprimir ID y PIN</button>
         <button id="refreshAllPortalPins" class="secondary" type="button">Actualizar todos los PIN temporales</button>
       </div>
     </div>
@@ -1003,7 +1012,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8189.js?v=8189"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8190.js?v=8190"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

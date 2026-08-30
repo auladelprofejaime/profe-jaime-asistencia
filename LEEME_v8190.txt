@@ -1,0 +1,25 @@
+APP DOCENTE v8.19.0 · HOJAS INDIVIDUALES DE ID Y PIN
+
+FUNCIÓN:
+- Genera un PDF por grupo.
+- Cada alumno ocupa UNA PÁGINA COMPLETA.
+- Cada página incluye:
+  Nombre del alumno
+  Grupo
+  No. de lista
+  ID del alumno
+  App Estudiantes · PIN temporal
+  App Padres · PIN temporal
+
+ACCESO:
+- Desde Estado de acceso a portales.
+- También hay un acceso directo desde Alumnos: “Imprimir ID y PIN”.
+
+SEGURIDAD:
+- La generación crea PIN temporales NUEVOS.
+- Los PIN temporales anteriores y sesiones activas dejan de funcionar.
+- Los PIN se usan únicamente para generar el PDF y no se guardan en respaldos.
+
+Se actualizaron los nombres antiguos Mi Español y Seguimiento Familiar por:
+- App Estudiantes
+- App Padres

@@ -1,0 +1,18 @@
+APP DOCENTE v8.18.8 · VISTA PREVIA E IMPRESIÓN DEL HORARIO
+
+NUEVO EN MI HORARIO:
+- Botón Vista previa.
+- Abre el horario completo del día seleccionado en un formato visual tipo carta horizontal.
+- Muestra logo de App Docente, día, turno, profesor y todos los bloques del día.
+- Incluye clases, recesos, guardias, libre, atención papás, juntas, academia y titular.
+- Botón Imprimir horario.
+- Genera PDF tamaño carta horizontal.
+
+No modifica:
+- constructor rápido
+- grupos
+- materias
+- guardias
+- notificaciones
+- contador del Inicio
+- Supabase

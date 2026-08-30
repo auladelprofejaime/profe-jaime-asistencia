@@ -572,3 +572,117 @@ button.danger{
   .schedule-slot-break{grid-template-columns:1fr}
   .schedule-slot-break-note{justify-self:start}
 }
+
+/* v8.18.8 · Vista previa e impresión del horario */
+.schedule-quick-actions{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+}
+.schedule-preview-dialog{
+  width:min(1120px,96vw);
+  max-width:none;
+  border:0;
+  border-radius:22px;
+  padding:0;
+  background:#f7f1df;
+}
+.schedule-preview-dialog::backdrop{
+  background:rgba(0,0,0,.45);
+}
+.schedule-preview-shell{
+  padding:18px;
+}
+.schedule-preview-paper{
+  background:#fff;
+  border:1px solid #dfd4b5;
+  border-radius:16px;
+  padding:22px;
+  aspect-ratio:11/8.5;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+  overflow:auto;
+}
+.schedule-sheet-header{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding-bottom:14px;
+  border-bottom:4px solid #c11f2e;
+}
+.schedule-sheet-header img{
+  width:76px;
+  height:76px;
+  object-fit:contain;
+}
+.schedule-sheet-title{
+  font-size:32px;
+  line-height:1;
+  font-weight:950;
+  color:#222;
+}
+.schedule-sheet-subtitle{
+  margin-top:7px;
+  font-size:18px;
+  font-weight:900;
+  color:#b51f2b;
+}
+.schedule-sheet-teacher{
+  margin-top:5px;
+  font-size:13px;
+  color:#666;
+}
+.schedule-sheet-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:18px;
+}
+.schedule-sheet-row{
+  display:grid;
+  grid-template-columns:120px 1fr 82px;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #e2d6b4;
+  background:#fffaf0;
+}
+.schedule-sheet-time{
+  font-size:15px;
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+}
+.schedule-sheet-subject{
+  font-size:16px;
+  font-weight:900;
+}
+.schedule-sheet-group{
+  text-align:center;
+  font-weight:900;
+  font-size:15px;
+}
+.schedule-sheet-row.is-break{background:#fff4bf}
+.schedule-sheet-row.is-guardia{background:#ffe6b0}
+.schedule-sheet-row.is-free{background:#f1f1f1}
+.schedule-sheet-row.is-titular{background:#fff0d4}
+.schedule-sheet-row.is-parent{background:#f5efe6}
+.schedule-sheet-row.is-meeting{background:#f3efe4}
+.schedule-sheet-row.is-academy{background:#f7f0df}
+.schedule-sheet-footer{
+  margin-top:16px;
+  padding-top:9px;
+  border-top:1px solid #ded3b3;
+  text-align:right;
+  font-size:11px;
+  color:#777;
+}
+.schedule-preview-actions{
+  justify-content:flex-end;
+  margin-top:14px;
+}
+@media(max-width:760px){
+  .schedule-quick-actions{grid-template-columns:1fr}
+  .schedule-sheet-grid{grid-template-columns:1fr}
+  .schedule-preview-paper{aspect-ratio:auto}
+}

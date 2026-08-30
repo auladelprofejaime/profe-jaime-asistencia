@@ -1,5 +1,5 @@
-const CACHE='app-padres-v8-12-1';
-const FILES=['./','./index.html','./styles.css','./app-v8135.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
+const CACHE='app-padres-v8-11-7';
+const FILES=['./','./index.html','./styles.css','./app.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{
  self.skipWaiting();
@@ -39,16 +39,14 @@ self.addEventListener('fetch',event=>{
  })());
 });
 
-
 self.addEventListener('push',event=>{
- let data={title:'Seguimiento Familiar',body:'Hay una actualización escolar.',target:'home'};
+ let data={title:'App Padres',body:'Hay una actualización escolar.',target:'home'};
  try{if(event.data)data={...data,...event.data.json()}}catch(e){try{data.body=event.data.text()}catch(_){}}
  event.waitUntil(self.registration.showNotification(data.title,{
    body:data.body,
    icon:'./icon-app-padres-v821.png',
    badge:'./icon-app-padres-v821.png',
-   tag:'family-'+(data.event||'update')+'-'+(data.created||Date.now()),
-   renotify:true,
+   tag:'family-'+(data.event||Date.now()),
    data:{target:data.target||'home'}
  }));
 });

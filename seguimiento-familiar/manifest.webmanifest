@@ -1,1 +1,19 @@
-{"name":"Seguimiento Familiar · El Aula del Profe Jaime","short_name":"Seguimiento Familiar","start_url":"./","display":"standalone","background_color":"#fff9e7","theme_color":"#f6c900","icons":[{"src":"icon-192.png","sizes":"192x192","type":"image/png"},{"src":"icon-512.png","sizes":"512x512","type":"image/png"}]}
+{
+  "name": "App Padres",
+  "short_name": "App Padres",
+  "description": "El Aula del Profe Jaime · App Padres",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#ffffff",
+  "lang": "es-MX",
+  "icons": [
+    {
+      "src": "icon-app-padres-v821.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ]
+}

@@ -1,0 +1,20 @@
+APP PADRES · CAMBIO DE NOMBRE PWA
+
+Subir estos archivos dentro de la carpeta:
+seguimiento-familiar/
+
+1. manifest.webmanifest
+2. service-worker.js
+
+Cambios:
+- name: App Padres
+- short_name: App Padres
+- descripción: El Aula del Profe Jaime · App Padres
+- caché actualizado a app-padres-v8-11-7
+- título predeterminado de notificaciones: App Padres
+
+IMPORTANTE EN IPHONE/IPAD:
+Si el icono ya estaba agregado a la pantalla de inicio con el nombre viejo,
+elimínalo una sola vez y vuelve a agregarlo desde Safari después de que GitHub
+termine de publicar la actualización. iOS puede conservar el nombre de una
+instalación anterior aunque la web ya haya cambiado.

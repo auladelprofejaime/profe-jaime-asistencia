@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.19.0</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.19.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -613,14 +613,15 @@
    <button id="studentsAccessShortcut" class="secondary" type="button">Imprimir ID y PIN</button>
   </div>
  </div>
- <div class="card"><h2>Cargar alumnos</h2><p class="hint">Importa únicamente los datos necesarios: ID, turno, grupo, lista, nombre(s) y primer apellido, cumpleaños (día y mes), observaciones e incidencias escolares.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
+ <div class="card"><h2>Cargar alumnos</h2><p class="hint">Importa únicamente los datos necesarios: ID, turno, grupo, primer apellido, nombre(s), cumpleaños (día y mes), observaciones e incidencias. El número de lista se asigna automáticamente por orden alfabético.</p><div class="actions"><label class="filebtn">Importar Excel<input id="studentFile" type="file" accept=".xlsx,.xls,.csv"></label><button id="templateBtn" class="secondary">Plantilla CSV</button><button id="backupBtn" class="secondary">Guardar dentro de la app</button><button id="restoreInternalBtn" class="secondary">Restaurar guardado interno</button><label class="filebtn alt">Exportar respaldo<input id="exportBackupTrigger" type="button"></label><label class="filebtn alt">Importar respaldo<input id="restoreFile" type="file" accept=".json,application/json"></label></div><p id="studentMsg" class="message"></p></div>
  <form id="studentForm" class="card formgrid">
 <h2 id="studentTitle">Agregar alumno</h2><input id="editId" type="hidden">
 <label>ID del alumno<input id="studentId" required></label>
 <label>Turno<select id="studentShift"><option>Matutino</option><option>Vespertino</option></select></label>
 <label>Grupo<input id="studentGroup" required></label>
-<label>No. de lista<input id="studentNumber" type="number" min="1" required></label>
-<label class="wide">Nombre(s) y primer apellido<input id="studentName" required placeholder="Ej. Sofía Hernández"></label>
+<label>No. de lista<input id="studentNumber" type="number" readonly placeholder="Automático"></label>
+<label>Primer apellido<input id="studentFirstSurname" required placeholder="Ej. Hernández"></label>
+<label>Nombre(s)<input id="studentGivenNames" required placeholder="Ej. Sofía Fernanda"></label>
 <label>Cumpleaños · día<select id="studentBirthDay"><option value="">Sin registrar</option></select></label>
 <label>Cumpleaños · mes<select id="studentBirthMonth"><option value="">Sin registrar</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option></select></label>
 <label class="wide">Observaciones<textarea id="studentObservations" rows="4"></textarea></label>
@@ -658,7 +659,7 @@
   <div class="section student-list-controls">
     <div>
       <h2>Lista de alumnos activos</h2>
-      <p class="hint">Filtra por grupo para trabajar sin mostrar los 400 alumnos al mismo tiempo.</p>
+      <p class="hint">Filtra por grupo. Cuando la lista oficial esté correcta, usa “Guardar lista definitiva” para congelar los números de lista.</p>
     </div>
     <div class="student-filter-controls">
       <label>Grupo
@@ -680,6 +681,13 @@
         <input id="studentSearch" placeholder="Nombre o ID">
       </label>
     </div>
+  </div>
+  <div class="student-list-lock-panel">
+    <div>
+      <strong>Estado de la lista</strong>
+      <div id="studentListLockStatus" class="hint">Selecciona un grupo.</div>
+    </div>
+    <button id="studentLockListBtn" class="primary" type="button">Guardar lista definitiva</button>
   </div>
   <div id="studentsList" class="list empty">No hay alumnos.</div>
 </div>
@@ -1012,7 +1020,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8190.js?v=8190"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8192.js?v=8192"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

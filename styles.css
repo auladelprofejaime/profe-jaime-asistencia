@@ -751,3 +751,19 @@ button.danger{
   .schedule-preview-paper{overflow:auto}
   .schedule-week-table{min-width:820px}
 }
+
+/* v8.19.2 · Lista definitiva */
+.student-list-lock-panel{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:center;
+  margin:10px 0 14px;
+  padding:12px 14px;
+  border:1px solid #e4c663;
+  border-radius:14px;
+  background:#fff8d9;
+}
+@media(max-width:700px){
+  .student-list-lock-panel{align-items:stretch;flex-direction:column}
+}

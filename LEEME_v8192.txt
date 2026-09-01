@@ -1,0 +1,14 @@
+APP DOCENTE v8.19.2 · LISTA DEFINITIVA CON NÚMEROS CONGELADOS
+
+FLUJO:
+1. Carga/importa la lista inicial.
+2. Mientras esté abierta, puede ordenarse alfabéticamente.
+3. Cuando la lista oficial esté correcta, pulsa “Guardar lista definitiva”.
+4. Los números actuales quedan congelados.
+5. Si llega un alumno nuevo, recibe el siguiente número disponible al final.
+6. Ningún alumno anterior cambia de número ni de ID.
+
+IMPORTANTE:
+- La función NO modifica IDs.
+- Protege la relación entre ID, código de barras y número de lista.
+- El bloqueo es por grupo.

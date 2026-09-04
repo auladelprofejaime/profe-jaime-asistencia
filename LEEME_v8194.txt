@@ -1,0 +1,19 @@
+APP DOCENTE v8.19.4 · IMPORTACIÓN MASIVA CORREGIDA
+
+PROBLEMA CORREGIDO:
+La versión anterior intentaba subir y generar/revisar accesos alumno por alumno
+durante la importación. Con listas grandes, el proceso podía detenerse a mitad.
+
+AHORA:
+1. Lee todo el Excel.
+2. Guarda TODOS los alumnos primero dentro de la app.
+3. Ordena y numera las listas provisionales.
+4. Sincroniza el padrón completo con Supabase en una sola operación.
+5. Los PIN se generan aparte desde Estado de acceso a portales.
+
+Si falla internet durante la sincronización:
+- los alumnos NO se pierden;
+- quedan guardados localmente;
+- se puede reintentar la sincronización después.
+
+La corrección del mes de cumpleaños de v8.19.3 se conserva.

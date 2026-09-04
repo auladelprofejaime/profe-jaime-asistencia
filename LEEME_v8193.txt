@@ -1,0 +1,22 @@
+APP DOCENTE v8.19.3 · FIX PIN/PDF + MES DE CUMPLEAÑOS
+
+CORRECCIONES:
+1. GENERACIÓN DE PIN Y PDF
+- Ya no genera todo el grupo dentro de una sola operación pesada.
+- Genera los PIN alumno por alumno.
+- Evita el error: "canceling statement due to statement timeout".
+- El botón muestra progreso: Generando 1/33, 2/33, etc.
+- Al terminar crea el mismo PDF individual, una página por alumno.
+
+2. MES DE CUMPLEAÑOS
+La importación ahora reconoce:
+- números 1 a 12
+- nombres: enero, febrero, marzo, abril, mayo, junio, julio, agosto,
+  septiembre/setiembre, octubre, noviembre y diciembre
+- también acepta una columna llamada simplemente "Mes".
+
+IMPORTANTE:
+Los alumnos que ya fueron importados con el mes vacío deben volver a importarse
+con el mismo ID. La app actualizará su expediente; no es necesario borrarlos.
+
+No modifica horario, asistencia, lista definitiva ni códigos/IDs.

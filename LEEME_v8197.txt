@@ -1,0 +1,19 @@
+APP DOCENTE v8.19.7 · CITAS CON PADRES
+
+NUEVO EN MI HORARIO:
+- Sección “Citas con padres”.
+- Lista solicitudes pendientes y citas confirmadas.
+- Confirmar o rechazar solicitud.
+- Bloquear días completos cuando no podrás atender.
+- Desbloquear fechas posteriormente.
+
+REGLAS DEL SISTEMA:
+- Padres solicitan mínimo con 2 días de anticipación.
+- Horarios: 8:00–10:30 y 11:30–12:00.
+- Se ofrecen únicamente días/bloques vinculados con clase del grupo del alumno.
+- Citas duran 20 minutos.
+- Al confirmar, App Padres recibe notificación.
+- 10 minutos antes, App Docente y App Padres reciben recordatorio automático.
+
+BACKEND:
+La migración y Edge Functions ya fueron instaladas directamente en Supabase.

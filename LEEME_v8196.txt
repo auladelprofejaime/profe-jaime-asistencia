@@ -1,0 +1,12 @@
+APP DOCENTE v8.19.6 · ESCANEO MÚLTIPLE DE ACTIVIDADES
+
+- Nuevo selector: Una actividad / Varias actividades.
+- En modo múltiple eliges todas las tareas/actividades de la ronda.
+- Escaneas al alumno una sola vez.
+- La app muestra todas las actividades seleccionadas con palomita.
+- Si no entregó alguna, quitas solo esa palomita.
+- "Registrar seleccionadas" guarda todas las entregas elegidas de una sola vez.
+- La selección general permanece para el siguiente alumno.
+- Las actividades ya registradas no se duplican.
+- "Finalizar y marcar faltantes" funciona también con varias actividades seleccionadas.
+- El modo tradicional de una actividad sigue disponible.

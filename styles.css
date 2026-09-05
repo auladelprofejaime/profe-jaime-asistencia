@@ -767,3 +767,12 @@ button.danger{
 @media(max-width:700px){
   .student-list-lock-panel{align-items:stretch;flex-direction:column}
 }
+
+/* v8.19.6 · Escaneo múltiple */
+.activity-multi-choices,.activity-multi-student-choices{display:grid;gap:10px;margin-top:12px}
+.activity-multi-choice,.activity-multi-student-choice{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #e3d9a8;border-radius:14px;background:#fffdf3}
+.activity-multi-choice input,.activity-multi-student-choice input{width:24px;height:24px;flex:0 0 auto}
+.activity-multi-choice span,.activity-multi-student-choice span{display:flex;flex-direction:column;gap:3px}
+.activity-multi-choice small,.activity-multi-student-choice small{opacity:.72}
+.activity-multi-student-choice.already{opacity:.7;background:#eef8ee}
+#actMultiConfirm{border:2px solid #e0b800}

@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.19.5</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.19.6</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -467,10 +467,29 @@
 <section id="activities" class="view">
  <div class="subtabs"><button data-acttab="scan" class="sub active">Escáner</button><button data-acttab="grid" class="sub">Cuadrícula semanal</button><button data-acttab="manage" class="sub">Crear actividad</button></div>
  <div id="act-scan" class="actpane active">
-  <div class="card grid4"><label>Turno<select id="actShift"></select></label><label>Grupo<select id="actGroup"></select></label><label>Semana<select id="actWeek"></select></label><label>Actividad<select id="actSelect"></select></label></div>
-  <div class="stats"><div><b id="actDelivered">0</b><span>Entregaron</span></div><div><b id="actNotDelivered">0</b><span>No entregaron</span></div><div><b id="actPending">0</b><span>Pendientes</span></div></div>
+  <div class="card grid4">
+   <label>Turno<select id="actShift"></select></label>
+   <label>Grupo<select id="actGroup"></select></label>
+   <label>Semana<select id="actWeek"></select></label>
+   <label>Modo de escaneo<select id="actScanMode"><option value="single">Una actividad</option><option value="multi">Varias actividades</option></select></label>
+  </div>
+  <div id="actSinglePicker" class="card"><label>Actividad<select id="actSelect"></select></label></div>
+  <div id="actMultiPicker" class="card hidden">
+   <div class="section">
+    <div><h2>Actividades para esta ronda</h2><p class="hint">Marca todas las actividades que vas a revisar. La selección se conserva para todos los alumnos.</p></div>
+    <div class="actions"><button id="actMultiAll" type="button" class="secondary">Seleccionar todas</button><button id="actMultiNone" type="button" class="secondary">Quitar todas</button></div>
+   </div>
+   <div id="actMultiChoices" class="activity-multi-choices"></div>
+  </div>
+  <div id="actSingleStats" class="stats"><div><b id="actDelivered">0</b><span>Entregaron</span></div><div><b id="actNotDelivered">0</b><span>No entregaron</span></div><div><b id="actPending">0</b><span>Pendientes</span></div></div>
   <div id="actStatus" class="status neutral"><i>▣</i><h2>Escanea para registrar entrega</h2><p>Disponible únicamente para actividades de entrega.</p></div>
   <div class="scan"><input id="actScan" inputmode="numeric" placeholder="ID del alumno"><button id="actRegister" class="primary">Registrar entrega</button></div>
+  <div id="actMultiConfirm" class="card hidden">
+   <div class="section"><div><span class="monitor-badge">ALUMNO ESCANEADO</span><h2 id="actMultiStudentName">Alumno</h2><p id="actMultiStudentMeta" class="hint"></p></div></div>
+   <p class="hint">Deja marcadas únicamente las actividades que este alumno sí entregó.</p>
+   <div id="actMultiStudentChoices" class="activity-multi-student-choices"></div>
+   <div class="actions"><button id="actMultiSave" type="button" class="primary">Registrar seleccionadas</button><button id="actMultiCancel" type="button" class="secondary">Cancelar</button></div>
+  </div>
   <div class="actions"><button id="actClose" class="danger-outline">Finalizar y marcar faltantes ✕</button><button id="actReopen" class="secondary">Dejar pendientes</button></div>
  </div>
  <div id="act-grid" class="actpane">
@@ -1020,7 +1039,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8195.js?v=8195"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8196.js?v=8196"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

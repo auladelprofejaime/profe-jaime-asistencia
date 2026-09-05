@@ -1,0 +1,17 @@
+APP DOCENTE v8.19.5 · SINCRONIZACIÓN EN LOTES
+
+PROBLEMA:
+Una carga de 183 alumnos terminó en 159 alumnos reales + el monitor.
+Los grupos 22, 24, 25 y 26 entraron completos; el grupo 23 se cortó en 23017.
+
+CORRECCIÓN:
+- La sincronización de alumnos ahora se divide en lotes de 40.
+- Se muestra progreso: Sincronizando 40/183, 80/183, etc.
+- La importación también usa lotes de 40.
+- La sincronización general ya NO genera/revisa PIN de todos los alumnos.
+- Los PIN se generan aparte desde Estado de acceso a portales.
+- Esto evita cortes por tiempo o demasiadas operaciones seguidas.
+
+Puedes volver a importar el MISMO Excel.
+Los alumnos existentes se actualizan por ID y no se duplican.
+Los 24 faltantes del grupo 23 se agregarán.

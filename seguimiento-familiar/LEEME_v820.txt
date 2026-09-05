@@ -1,0 +1,9 @@
+APP PADRES v8.2.0
+- Calendario para solicitar citas.
+- Muestra lunes a viernes.
+- Bloquea sábados y domingos.
+- Bloquea fechas con menos de 2 días de anticipación.
+- Respeta días bloqueados por el profesor.
+- Después del día se elige la hora.
+- Horarios: 8:00 a 10:30 y 11:30 a 12:00.
+- Conserva Uso de celular y acceso sin escáner.

@@ -792,3 +792,10 @@ button.danger{
  .appointment-block-controls{grid-template-columns:1fr}
  .appointment-row{align-items:stretch;flex-direction:column}
 }
+
+/* v8.19.8 · Incidencias por uso de celular */
+.cellphone-incidents-card{border-left:5px solid #b9473d}
+.cellphone-controls{margin:12px 0}
+.cellphone-row>div{display:flex;flex-direction:column;gap:4px}
+.cellphone-row small{opacity:.7}
+.cellphone-third-actions{margin-top:14px}

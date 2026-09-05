@@ -1,0 +1,20 @@
+APP DOCENTE v8.19.8 · CELULAR + CITAS CON PADRES
+
+Esta versión conserva todo lo de v8.19.7 y agrega el módulo completo de incidencias por uso de celular.
+
+USO DE CELULAR · SOLO MATUTINO
+- 1.ª incidencia: registro + push App Estudiantes + App Padres.
+- 2.ª incidencia: registro + push App Estudiantes + App Padres.
+- 3.ª incidencia: registro + push + seguimiento con familia.
+- Historial con fecha y hora.
+- Botón para abrir WhatsApp con mensaje estructurado.
+- Botón para ir directamente a Citas con padres.
+- El mensaje de tercera incidencia dice que el alumno volvió a sacar y utilizar el teléfono celular.
+
+CITAS
+- Se conserva mínimo 2 días de anticipación.
+- Solo Matutino.
+- Horarios 8:00–10:30 y 11:30–12:00.
+- Receso NO se toca.
+- Días bloqueables desde App Docente.
+- Confirmación y recordatorio 10 min antes.

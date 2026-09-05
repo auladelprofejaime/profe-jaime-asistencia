@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.19.7</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.19.8</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -736,6 +736,46 @@
   </div>
   <div id="studentsList" class="list empty">No hay alumnos.</div>
 </div>
+
+<div class="card cellphone-incidents-card">
+  <div class="section">
+    <div>
+      <span class="monitor-badge">SOLO MATUTINO</span>
+      <h2>Uso de celular</h2>
+      <p class="hint">Registra incidencias por alumno. La 1.ª y 2.ª generan aviso; la 3.ª activa seguimiento con la familia.</p>
+    </div>
+  </div>
+  <div class="grid4 cellphone-controls">
+    <label>Grupo
+      <select id="cellphoneGroup">
+        <option value="22">22</option><option value="23">23</option><option value="24">24</option><option value="25">25</option><option value="26">26</option>
+      </select>
+    </label>
+    <label class="wide">Alumno
+      <select id="cellphoneStudent"></select>
+    </label>
+    <label class="wide">Nota opcional
+      <input id="cellphoneNote" placeholder="Ej. utilizó el teléfono durante la clase">
+    </label>
+  </div>
+  <div class="actions">
+    <button id="cellphoneAdd" class="danger-outline" type="button">Registrar incidencia</button>
+    <button id="cellphoneRefresh" class="secondary" type="button">Actualizar historial</button>
+  </div>
+  <div id="cellphoneStatus" class="hint" style="margin-top:10px"></div>
+  <div id="cellphoneHistory" class="list empty">Selecciona un alumno para consultar su historial.</div>
+  <div id="cellphoneThirdActions" class="cellphone-third-actions hidden">
+    <div class="notice warning-note">
+      <b>Tercera incidencia o posterior</b>
+      <p>Corresponde seguimiento con la familia.</p>
+    </div>
+    <div class="actions">
+      <button id="cellphoneWhatsapp" class="primary" type="button">Abrir mensaje de WhatsApp</button>
+      <button id="cellphoneAppointments" class="secondary" type="button">Ir a Citas con padres</button>
+    </div>
+  </div>
+</div>
+
 <div class="card inactive-students-card"><div class="section"><div><h2>Alumnos inactivos</h2><p class="hint">Conservan expediente e historial. Puedes reactivarlos cuando sea necesario.</p></div></div><div id="inactiveStudentsList" class="list empty">No hay alumnos inactivos.</div></div>
 
   <div class="card reset-cycle-card">
@@ -1065,7 +1105,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8197.js?v=8197"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8198.js?v=8198"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

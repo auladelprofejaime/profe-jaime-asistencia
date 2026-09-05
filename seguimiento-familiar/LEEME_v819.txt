@@ -1,0 +1,15 @@
+APP PADRES v8.1.9 · ACCESO SIN ESCÁNER
+
+CAMBIO:
+- Se elimina de la pantalla de acceso el botón “Escanear código de barras”.
+- El acceso queda únicamente con:
+  • ID del alumno
+  • PIN del padre / tutor
+- Se conserva “Recordar mi sesión”.
+- Se conservan Citas con padres.
+- Se conserva Uso de celular.
+- Se conservan notificaciones push.
+
+IMPORTANTE:
+Los elementos internos del escáner permanecen ocultos para mantener compatibilidad
+con el app.js actual y evitar errores, pero ya no aparecen ni se usan en la interfaz.

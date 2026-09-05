@@ -799,3 +799,6 @@ button.danger{
 .cellphone-row>div{display:flex;flex-direction:column;gap:4px}
 .cellphone-row small{opacity:.7}
 .cellphone-third-actions{margin-top:14px}
+
+/* v8.19.9 · Monitor global */
+.monitor-student-card .monitor-badge{max-width:100%;white-space:normal}

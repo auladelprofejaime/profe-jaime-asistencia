@@ -1,0 +1,23 @@
+APP DOCENTE v8.19.9 · ALUMNO MONITOR GLOBAL
+
+ALUMNO MONITOR
+- ID permanente: 00001.
+- Conserva exactamente sus mismos PIN y accesos.
+- Sigue existiendo UNA sola vez en la base.
+- Se comporta como usuario de prueba dentro de los grupos 22, 23, 24, 25 y 26.
+
+NO ALTERA DATOS REALES
+- No suma al total de alumnos.
+- No crea un sexto grupo MONITOR en los conteos/selectores académicos.
+- No ocupa número de lista.
+- No entra en faltantes de asistencia.
+- No entra en reportes, promedios ni porcentajes reales.
+- Sus registros de prueba de asistencia tampoco aumentan el contador de asistencias reales.
+
+PRUEBAS
+- ID 00001 funciona al escanear asistencia en cualquiera de los grupos 22-26.
+- ID 00001 funciona en escaneo de actividades simple y múltiple en cualquiera de esos grupos.
+- En Uso de celular aparece como “PRUEBA · Alumno Monitor del Profe” en todos los grupos.
+- Sus incidencias de prueba utilizan el mismo historial/usuario 00001.
+
+Esta versión conserva Celular + Citas + Escaneo múltiple de actividades.

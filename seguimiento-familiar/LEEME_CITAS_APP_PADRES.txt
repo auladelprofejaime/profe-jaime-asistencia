@@ -1,0 +1,19 @@
+APP PADRES v8.1.7 · SOLICITUD DE CITAS
+
+Subir estos archivos dentro de seguimiento-familiar/:
+- index.html
+- citas.html
+
+No reemplaza app.js, styles.css, diagnóstico ni los demás archivos de App Padres.
+
+Nuevo:
+- Botón “Solicitar cita” siempre visible.
+- Mínimo 2 días de anticipación.
+- Horarios 8:00–10:30 y 11:30–12:00.
+- Solo muestra opciones ligadas al horario de clase del grupo.
+- Respeta días bloqueados por el profesor.
+- Estado: solicitud pendiente / cita confirmada.
+- Al confirmar, recibe notificación.
+- 10 min antes recibe recordatorio.
+
+También cambia el encabezado visible a “App Padres”.

@@ -1,0 +1,5 @@
+APP DOCENTE v8.20.0
+- Corrige Abrir mensaje de WhatsApp en iPad/iPhone.
+- Corrige Ir a Citas con padres.
+- Conserva celular, monitor global y citas.
+- App Padres ahora usa calendario de lunes a viernes.

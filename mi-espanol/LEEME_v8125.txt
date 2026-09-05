@@ -1,0 +1,5 @@
+APP ESTUDIANTES v8.12.5
+- Conserva la app actual.
+- Agrega historial de incidencias por uso de celular.
+- La notificación abre directamente celular.html.
+- No modifica diagnóstico ni habilita la app durante horario bloqueado.

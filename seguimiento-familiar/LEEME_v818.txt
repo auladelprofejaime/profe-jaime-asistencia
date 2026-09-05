@@ -1,0 +1,5 @@
+APP PADRES v8.1.8
+- Conserva Solicitar cita.
+- Agrega “Uso de celular” en el menú.
+- Muestra historial de incidencias con fecha/hora.
+- Las notificaciones de celular abren directamente el historial.

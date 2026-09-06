@@ -1,0 +1,11 @@
+APP DOCENTE v8.20.13
+
+Corrección puntual:
+- La Lista de alumnos activos ahora SÍ muestra visualmente:
+  APELLIDO, NOMBRE(S)
+- El orden alfabético sigue siendo por apellido.
+- Ejemplos:
+  ACEVEDO, FRANCISCO
+  ARROYO, SUSAN MICHELLE
+  BENITEZ, ZITZIRI AZUL
+- No cambia los datos originales ni los números de lista.

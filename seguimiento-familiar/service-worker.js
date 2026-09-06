@@ -1,5 +1,5 @@
-const CACHE='app-padres-v8-14-0';
-const FILES=['./','./index.html','./styles.css','./app-v8140.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
+const CACHE='app-padres-v8-14-1';
+const FILES=['./','./index.html','./styles.css','./app-v8141.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','./citas.html','./celular.html','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{
  self.skipWaiting();
@@ -45,8 +45,8 @@ self.addEventListener('push',event=>{
  try{if(event.data)data={...data,...event.data.json()}}catch(e){try{data.body=event.data.text()}catch(_){}}
  event.waitUntil(self.registration.showNotification(data.title,{
    body:data.body,
-   icon:'./icon-app-padres-v821.png',
-   badge:'./icon-app-padres-v821.png',
+   icon:'./icon-app-padres-v821.png','./citas.html','./celular.html',
+   badge:'./icon-app-padres-v821.png','./citas.html','./celular.html',
    tag:'family-'+(data.event||'update')+'-'+(data.created||Date.now()),
    renotify:true,
    data:{target:data.target||'home'}
@@ -57,12 +57,15 @@ self.addEventListener('notificationclick',event=>{
  const target=event.notification?.data?.target||'home';
  event.notification.close();
  event.waitUntil((async()=>{
+   const dest=target==='cellphone'?'./celular.html':target==='appointments'?'./citas.html':'./?push='+encodeURIComponent(target);
    const wins=await clients.matchAll({type:'window',includeUncontrolled:true});
    if(wins.length){
-     const win=wins[0];await win.focus();
-     try{win.postMessage({type:'OPEN_PUSH_TARGET',target})}catch(e){}
+     const win=wins[0];
+     try{if(target==='cellphone'||target==='appointments')await win.navigate(dest)}catch(e){}
+     await win.focus();
+     if(target!=='cellphone'&&target!=='appointments'){try{win.postMessage({type:'OPEN_PUSH_TARGET',target})}catch(e){}}
      return;
    }
-   await clients.openWindow('./?push='+encodeURIComponent(target));
+   await clients.openWindow(dest);
  })());
 });

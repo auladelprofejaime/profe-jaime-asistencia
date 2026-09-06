@@ -1,0 +1,14 @@
+APP PADRES v8.14.1 · RESTAURACIÓN COMPLETA
+
+Conserva de v8.14.0:
+- Incorporación a grupo de WhatsApp por grupo autenticado.
+- Diagnóstico inicial y seguimiento.
+- Calificaciones, asistencia, actividades, materiales, avisos, reportes y privacidad.
+
+Restaurado:
+- Solicitar cita.
+- Calendario de citas.
+- Uso de celular e historial de incidencias.
+- Apertura desde notificaciones de celular/citas.
+
+No se incorporó captura de teléfono en App Padres.

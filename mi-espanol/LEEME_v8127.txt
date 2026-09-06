@@ -1,0 +1,10 @@
+APP ESTUDIANTES v8.12.7 · FELICITACIÓN UNA SOLA VEZ
+
+Corrección:
+- La felicitación de cumpleaños aparece UNA SOLA VEZ.
+- Se registra en backend en cuanto se muestra.
+- Si el alumno cierra y vuelve a entrar ese mismo día, ya no aparece otra vez.
+- Si ya aceptó su beneficio, tampoco vuelve a aparecer.
+- El beneficio permanece visible en Inicio para que pueda guardarlo y usarlo cuando quiera.
+- El mensaje retroactivo del 31 de agosto al 6 de septiembre también aparece una sola vez.
+- Se conserva la felicitación normal para cumpleaños del 7 de septiembre en adelante.

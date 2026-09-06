@@ -89,7 +89,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8126',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8127',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -495,42 +495,35 @@ async function showBirthdayGreetingIfNeeded(){
  const state=await refreshBirthdayBenefitHome();
  if(!state?.ok||!state.eligible)return;
 
+ // La felicitación se reclama en backend para garantizar que solo se muestre una vez,
+ // aunque el alumno cierre y vuelva a abrir la app o use otro dispositivo.
+ const claim=await portalBirthdayRpc('portal_birthday_greeting_claim');
+ if(!claim?.ok||!claim.show)return;
+
  const first=(bundle?.student?.name||'').trim().split(/\s+/)[0]||'';
- const retro=Boolean(state.retroactive);
- const regular=isStudentBirthdayToday();
+ const retro=Boolean(claim.retroactive);
 
- // Cumpleaños retroactivos: 31 de agosto al 6 de septiembre.
- // Su mensaje inicial es especial y solo existe por el arranque oficial del 7 de septiembre.
- if(retro&&!state.has_benefit){
-   const key=birthdayShownKey('retro');
-   if(sessionStorage.getItem(key)!=='1'){
-     $('#birthdayGreetingEyebrow').textContent='TENEMOS UNA FELICITACIÓN PENDIENTE PARA TI';
-     $('#birthdayGreetingTitle').textContent=first?`¡También queremos celebrarte, ${first}!`:'¡También queremos celebrarte!';
-     $('#birthdayGreetingMessage').textContent='Sabemos que cumpliste años antes de que la App Estudiantes estuviera habilitada oficialmente. Pero no te preocupes: también queremos felicitarte y tienes un beneficio de cumpleaños sorpresa esperándote.';
-     $('#birthdayRevealBtn').textContent='🎁 Descubrir mi beneficio';
-     $('#birthdayGreeting').classList.remove('hidden');
-     $('#closeBirthdayGreeting').onclick=()=>{sessionStorage.setItem(key,'1');$('#birthdayGreeting').classList.add('hidden')};
-     $('#birthdayRevealBtn').onclick=()=>{sessionStorage.setItem(key,'1');revealBirthdayBenefit()};
-     return;
-   }
+ if(retro){
+   $('#birthdayGreetingEyebrow').textContent='TENEMOS UNA FELICITACIÓN PENDIENTE PARA TI';
+   $('#birthdayGreetingTitle').textContent=first?`¡También queremos celebrarte, ${first}!`:'¡También queremos celebrarte!';
+   $('#birthdayGreetingMessage').textContent='Sabemos que cumpliste años antes de que la App Estudiantes estuviera habilitada oficialmente. Pero no te preocupes: también queremos felicitarte y tienes un beneficio de cumpleaños sorpresa esperándote.';
+ }else{
+   $('#birthdayGreetingEyebrow').textContent='HOY ES TU DÍA';
+   $('#birthdayGreetingTitle').textContent=first?`¡Feliz cumpleaños, ${first}!`:'¡Feliz cumpleaños!';
+   $('#birthdayGreetingMessage').textContent='Que tengas un excelente día y un gran año. ¡Disfrútalo mucho!';
  }
 
- // Para cumpleaños normales se conserva la felicitación ya establecida.
- if(regular){
-   const key=birthdayShownKey('regular');
-   if(sessionStorage.getItem(key)!=='1'){
-     $('#birthdayGreetingEyebrow').textContent='HOY ES TU DÍA';
-     $('#birthdayGreetingTitle').textContent=first?`¡Feliz cumpleaños, ${first}!`:'¡Feliz cumpleaños!';
-     $('#birthdayGreetingMessage').textContent='Que tengas un excelente día y un gran año. ¡Disfrútalo mucho!';
-     $('#birthdayRevealBtn').textContent=state.has_benefit?'🎁 Ver mi beneficio':'🎁 Descubrir mi beneficio';
-     $('#birthdayGreeting').classList.remove('hidden');
-     $('#closeBirthdayGreeting').onclick=()=>{sessionStorage.setItem(key,'1');$('#birthdayGreeting').classList.add('hidden')};
-     $('#birthdayRevealBtn').onclick=()=>{
-       sessionStorage.setItem(key,'1');
-       if(state.has_benefit)showBirthdayBenefitReveal(state.benefit);else revealBirthdayBenefit();
-     };
-   }
- }
+ $('#birthdayRevealBtn').textContent='🎁 Descubrir mi beneficio';
+ $('#birthdayGreeting').classList.remove('hidden');
+
+ $('#closeBirthdayGreeting').onclick=()=>{
+   $('#birthdayGreeting').classList.add('hidden');
+ };
+
+ $('#birthdayRevealBtn').onclick=()=>{
+   $('#birthdayGreeting').classList.add('hidden');
+   revealBirthdayBenefit();
+ };
 }
 
 async function load(){

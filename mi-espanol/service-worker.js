@@ -1,4 +1,4 @@
-const CACHE="app-estudiantes-v8-12-6";
+const CACHE="app-estudiantes-v8-12-7";
 const FILES=["./","./index.html","./styles.css","./app.js","./manifest.webmanifest","./profe-jaime.png","./logo-app-estudiante-v821.png","./profe-jaime-no-serio.png","./icon.png","./celular.html","../shared/supabase-adapter.js"];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil((async()=>{const c=await caches.open(CACHE);await Promise.allSettled(FILES.map(u=>c.add(u)))})())});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim()})())});

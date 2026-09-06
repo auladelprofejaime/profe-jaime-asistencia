@@ -1,0 +1,11 @@
+APP DOCENTE v8.20.3 · DOCENTE SIN CANDADO DE 2 DÍAS
+
+CORRECCIÓN:
+- El candado de 2 días aplica SOLO a las familias en App Padres.
+- El docente puede asignar una cita para hoy, mañana o cualquier día hábil futuro disponible.
+- No permite fechas pasadas.
+- Se conservan los días de clase del grupo para alumnos reales.
+- El Monitor puede probar cualquier lunes a viernes.
+- Se respetan días bloqueados y horarios ocupados.
+- Receso sigue fuera.
+- App Padres conserva su regla de mínimo 2 días.

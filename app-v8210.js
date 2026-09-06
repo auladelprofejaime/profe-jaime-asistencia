@@ -2556,7 +2556,7 @@ async function importStudents(file){
             wb.SheetNames.find(x=>low(x)==='alumnos')||
             wb.SheetNames[0],
       rows=XLSX.utils.sheet_to_json(wb.Sheets[sheet],{defval:''}),
-      count=0,skip=0,
+      count=0,skip=0,completedFields=0,existingReviewed=0,newStudents=0,
       imported=[];
 
   msg.className='message';
@@ -2599,7 +2599,35 @@ async function importStudents(file){
      }else if(isStudentListLocked(st.shift,st.group)){
        st.number=await nextStudentListNumber(st.shift,st.group);
      }
-     let saved={...(prior||{}),...st,active:prior?.active===false?false:true};
+     let saved;
+     if(prior){
+       // IMPORTACIÓN SEGURA: si el alumno ya existe, el Excel únicamente
+       // completa datos que estén vacíos. Nunca sobrescribe información existente.
+       saved={...prior};
+       const missing=v=>v===null||v===undefined||String(v).trim()==='';
+       const fillText=(key,value)=>{if(missing(saved[key])&&!missing(value)){saved[key]=value;completedFields++;}};
+       const fillNumber=(key,value)=>{if(!Number(saved[key]||0)&&Number(value||0)>0){saved[key]=Number(value);completedFields++;}};
+
+       fillText('shift',st.shift);
+       fillText('group',st.group);
+       fillText('firstSurname',st.firstSurname);
+       fillText('givenNames',st.givenNames);
+       fillText('observations',st.observations);
+       fillText('incidents',st.incidents);
+       fillNumber('birthDay',st.birthDay);
+       fillNumber('birthMonth',st.birthMonth);
+
+       // El nombre visible solo se completa si estaba vacío; nunca se reemplaza.
+       if(missing(saved.name)){
+         const display=studentDisplayName(saved.firstSurname||st.firstSurname,saved.givenNames||st.givenNames);
+         if(display){saved.name=display;completedFields++;}
+       }
+       saved.active=prior.active===false?false:true;
+       existingReviewed++;
+     }else{
+       saved={...st,active:true};
+       newStudents++;
+     }
      await put('students',saved);
      imported.push(saved);
      count++;
@@ -2644,7 +2672,8 @@ async function importStudents(file){
 
   msg.className=remoteError?'message good':'message good';
   msg.textContent=
-    `${count} alumnos cargados${skip?`; ${skip} filas omitidas`:''}. `+
+    `${count} alumnos revisados${skip?`; ${skip} filas omitidas`:''}. `+
+    `${completedFields} datos faltantes completados · ${newStudents} alumnos nuevos · 0 datos existentes reemplazados. `+
     (remoteOk
       ? 'Padrón sincronizado correctamente.'
       : supabaseReady

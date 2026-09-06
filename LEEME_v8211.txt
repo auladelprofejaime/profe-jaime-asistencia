@@ -1,0 +1,12 @@
+APP DOCENTE v8.21.1 · IMPORTACIÓN SEGURA DE ALUMNOS
+
+Base: v8.21.0 WHATSAPP APP PADRES.
+
+CAMBIO ÚNICO:
+- Al volver a importar un Excel, los alumnos existentes se identifican por ID.
+- Solo se completan campos que estén vacíos en la app.
+- Ningún dato existente se reemplaza con el contenido del Excel.
+- Los alumnos con ID nuevo se agregan normalmente.
+- Al finalizar se informa cuántos datos faltantes se completaron, cuántos alumnos nuevos se agregaron y confirma 0 datos existentes reemplazados.
+
+Se conservan todas las funciones de v8.21.0.

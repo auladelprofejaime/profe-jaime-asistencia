@@ -1,6 +1,68 @@
-const CACHE="app-padres-v8-2-0";const FILES=["./","./index.html","./styles.css","./app.js","./manifest.webmanifest","./profe-jaime.png","./icon.png","./citas.html","./celular.html","../shared/supabase-adapter.js"];
-self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil((async()=>{const c=await caches.open(CACHE);await Promise.allSettled(FILES.map(u=>c.add(u)))})())});
-self.addEventListener('activate',e=>{e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim()})())});
-self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);if(r.method!=='GET'||u.origin!==self.location.origin)return;if(r.mode==='navigate'){e.respondWith((async()=>{try{return await fetch(r,{cache:'no-store'})}catch(_){return (await caches.match(r))||(await caches.match('./index.html'))||Response.error()}})());return}e.respondWith((async()=>{try{const x=await fetch(r,{cache:'no-store'});if(x?.ok)(await caches.open(CACHE)).put(r,x.clone());return x}catch(_){return (await caches.match(r))||Response.error()}})())});
-self.addEventListener('push',e=>{let d={title:"App Padres",body:'Tienes una actualización.',target:'home'};try{if(e.data)d={...d,...e.data.json()}}catch(_){}e.waitUntil(self.registration.showNotification(d.title||"App Padres",{body:d.body||'Tienes una actualización.',icon:'./icon.png',badge:'./icon.png',tag:'push-'+(d.event||Date.now()),data:{target:d.target||'home'}}))});
-self.addEventListener('notificationclick',e=>{const target=e.notification?.data?.target||'home';e.notification.close();e.waitUntil((async()=>{const dest=target==='cellphone'?'./celular.html':'./?push='+encodeURIComponent(target);const wins=await clients.matchAll({type:'window',includeUncontrolled:true});if(target==='cellphone'&&wins.length){try{await wins[0].navigate(dest);await wins[0].focus();return}catch(_){}}if(wins.length){await wins[0].focus();try{wins[0].postMessage({type:'OPEN_PUSH_TARGET',target})}catch(_){}return}await clients.openWindow(dest)})())});
+const CACHE='app-padres-v8-14-0';
+const FILES=['./','./index.html','./styles.css','./app-v8140.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','../shared/data-contract.js','../shared/supabase-adapter.js'];
+
+self.addEventListener('install',event=>{
+ self.skipWaiting();
+ event.waitUntil((async()=>{
+   const cache=await caches.open(CACHE);
+   await Promise.allSettled(FILES.map(url=>cache.add(url)));
+ })());
+});
+
+self.addEventListener('activate',event=>{
+ event.waitUntil((async()=>{
+   const keys=await caches.keys();
+   await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
+   await self.clients.claim();
+ })());
+});
+
+self.addEventListener('fetch',event=>{
+ const req=event.request,url=new URL(req.url);
+ if(req.method!=='GET'||url.origin!==self.location.origin)return;
+ if(req.mode==='navigate'){
+   event.respondWith((async()=>{
+     try{
+       const res=await fetch(req,{cache:'no-store'});
+       if(res?.ok){const c=await caches.open(CACHE);await c.put('./index.html',res.clone())}
+       return res;
+     }catch(e){return (await caches.match('./index.html'))||Response.error()}
+   })());
+   return;
+ }
+ event.respondWith((async()=>{
+   try{
+     const res=await fetch(req,{cache:'no-store'});
+     if(res?.ok){const c=await caches.open(CACHE);await c.put(req,res.clone())}
+     return res;
+   }catch(e){return (await caches.match(req))||Response.error()}
+ })());
+});
+
+
+self.addEventListener('push',event=>{
+ let data={title:'Seguimiento Familiar',body:'Hay una actualización escolar.',target:'home'};
+ try{if(event.data)data={...data,...event.data.json()}}catch(e){try{data.body=event.data.text()}catch(_){}}
+ event.waitUntil(self.registration.showNotification(data.title,{
+   body:data.body,
+   icon:'./icon-app-padres-v821.png',
+   badge:'./icon-app-padres-v821.png',
+   tag:'family-'+(data.event||'update')+'-'+(data.created||Date.now()),
+   renotify:true,
+   data:{target:data.target||'home'}
+ }));
+});
+
+self.addEventListener('notificationclick',event=>{
+ const target=event.notification?.data?.target||'home';
+ event.notification.close();
+ event.waitUntil((async()=>{
+   const wins=await clients.matchAll({type:'window',includeUncontrolled:true});
+   if(wins.length){
+     const win=wins[0];await win.focus();
+     try{win.postMessage({type:'OPEN_PUSH_TARGET',target})}catch(e){}
+     return;
+   }
+   await clients.openWindow('./?push='+encodeURIComponent(target));
+ })());
+});

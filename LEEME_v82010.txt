@@ -1,0 +1,21 @@
+APP DOCENTE v8.20.10 · PRUEBAS DE CUMPLEAÑOS DEL MONITOR
+
+En Alumnos → Alumno monitor global se agregó “Prueba de cumpleaños del Monitor”.
+
+Opciones:
+- Probar cumpleaños retroactivo · 1 septiembre
+  Sirve para probar el mensaje especial de alumnos que cumplieron antes de la activación oficial del 7 de septiembre.
+- Probar cumpleaños HOY
+  Usa automáticamente el día y mes actuales para probar la felicitación normal.
+- Día y mes manuales
+  Permite probar cualquier fecha.
+- Quitar fecha de prueba
+  Devuelve al Monitor a “sin cumpleaños”.
+
+Cada vez que se cambia o quita la fecha:
+- solo se modifica el ID 00001;
+- se elimina el beneficio de cumpleaños de prueba anterior del Monitor;
+- si ese beneficio había acreditado +1 punto personal, también se revierte ese punto de prueba;
+- el Monitor queda listo para volver a revelar un beneficio aleatorio desde cero.
+
+El backend ya fue actualizado directamente en Supabase.

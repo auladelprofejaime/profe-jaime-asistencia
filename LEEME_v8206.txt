@@ -1,0 +1,9 @@
+APP DOCENTE v8.20.6
+
+Ajuste visual de la carta compromiso para que:
+- siga cabiendo en una sola hoja tamaño carta,
+- quede mejor distribuida,
+- tenga menos sensación de amontonamiento,
+- aproveche mejor el espacio inferior.
+
+Se mantiene fecha en blanco para llenar a mano y nombre del alumno/grupo automáticos.

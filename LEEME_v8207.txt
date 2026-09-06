@@ -1,0 +1,6 @@
+APP DOCENTE v8.20.7
+
+Ajuste puntual de la carta compromiso por uso de celular:
+- se redujo el espacio vacío entre el texto y el bloque de observaciones;
+- las líneas de observaciones se recolocaron para aprovechar mejor la hoja;
+- se mantiene en una sola hoja tamaño carta.

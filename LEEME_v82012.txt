@@ -1,0 +1,16 @@
+APP DOCENTE v8.20.12 · LISTAS POR APELLIDO
+
+Cambio solicitado:
+- Las listas de alumnos muestran primero el primer apellido:
+  PÉREZ, JUAN CARLOS
+  RAMÍREZ, ANA SOFÍA
+- El orden alfabético usa primer apellido y después nombre(s).
+- Se aplica en listas y selectores de trabajo:
+  asistencia, faltantes, actividades, seguimiento, lista de alumnos,
+  alumnos inactivos, selector de expediente, cumpleaños de la semana,
+  estado de portales, metodología, trimestre, uso de celular y citas.
+- Los datos originales del expediente NO se modifican.
+- Los reportes, mensajes y documentos conservan el nombre normal cuando no son una lista.
+- El Alumno Monitor conserva su etiqueta especial de PRUEBA.
+
+No requiere cambios de backend.

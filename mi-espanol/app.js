@@ -89,7 +89,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8131',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8126',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -382,77 +382,155 @@ function startStudentPolling(){
  studentPollTimer=setInterval(()=>refreshStudentPortal().catch(()=>{}),20000);
 }
 
-async function refreshStudentBirthday(){
+
+async function portalBirthdayRpc(name,args={}){
  if(!currentToken)return null;
  try{
-   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/portal_get_birth_date`,{
+   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{
      method:'POST',
-     headers:{
-       apikey:SUPABASE_PUBLISHABLE_KEY,
-       Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,
-       'Content-Type':'application/json'
-     },
-     body:JSON.stringify({p_token:currentToken})
+     headers:{apikey:SUPABASE_PUBLISHABLE_KEY,Authorization:`Bearer ${SUPABASE_PUBLISHABLE_KEY}`,'Content-Type':'application/json'},
+     body:JSON.stringify({p_token:currentToken,...args}),
+     cache:'no-store'
    });
    if(!r.ok)return null;
-   const data=await r.json();
-   if(bundle?.student){
-     if(data?.birth_day!=null)bundle.student.birth_day=Number(data.birth_day)||null;
-     if(data?.birth_month!=null)bundle.student.birth_month=Number(data.birth_month)||null;
-     // Compatibilidad temporal mientras Supabase todavía tenga el RPC antiguo.
-     const legacy=data?.birth_date||data?.birthdate||'';
-     if(legacy)bundle.student.birthdate=legacy;
-   }
-   return data;
- }catch(e){
-   console.warn('birthday refresh',e);
-   return null;
- }
+   return await r.json();
+ }catch(e){console.warn(name,e);return null}
 }
-
+async function refreshStudentBirthday(){
+ const data=await portalBirthdayRpc('portal_get_birth_date');
+ if(bundle?.student&&data?.ok){
+   if(data?.birth_day!=null)bundle.student.birth_day=Number(data.birth_day)||null;
+   if(data?.birth_month!=null)bundle.student.birth_month=Number(data.birth_month)||null;
+ }
+ return data;
+}
 function studentBirthdayParts(){
  const d=Number(bundle?.student?.birth_day||0);
  const m=Number(bundle?.student?.birth_month||0);
  if(d>=1&&d<=31&&m>=1&&m<=12)return {day:d,month:m};
-
- // Compatibilidad temporal con birth_date hasta completar Etapa 2.
  const raw=bundle?.student?.birthdate ?? bundle?.student?.birth_date ?? '';
  if(!raw)return null;
- const s=String(raw).trim();
- let x=s.match(/^(\d{4})-(\d{2})-(\d{2})/);
- if(x)return {month:Number(x[2]),day:Number(x[3])};
- x=s.match(/^(\d{1,2})[\/-](\d{1,2})[\/-](\d{4})$/);
- if(x)return {day:Number(x[1]),month:Number(x[2])};
- return null;
+ const x=String(raw).trim().match(/^(\d{4})-(\d{2})-(\d{2})/);
+ return x?{month:Number(x[2]),day:Number(x[3])}:null;
 }
 function isStudentBirthdayToday(){
- const bd=studentBirthdayParts();
- if(!bd)return false;
- const now=new Date();
- return bd.month===now.getMonth()+1 && bd.day===now.getDate();
+ const bd=studentBirthdayParts();if(!bd)return false;
+ const now=new Date();return bd.month===now.getMonth()+1&&bd.day===now.getDate();
 }
-function birthdayShownKey(){
- const now=new Date();
- const date=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
- return `birthdayGreetingV893:${currentId}:${date}`;
+function birthdayShownKey(kind='regular'){
+ const now=new Date(),date=`${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}-${String(now.getDate()).padStart(2,'0')}`;
+ return `birthdayGreetingV8126:${kind}:${currentId}:${date}`;
+}
+let birthdayBenefitState=null;
+function benefitStateText(b){
+ if(!b)return '';
+ if(!b.accepted_at)return 'Pendiente de aceptar';
+ if(b.code==='extra_personal_point')return b.point_credited?'+1 punto acreditado':'Pendiente de acreditar';
+ if(Number(b.uses_remaining||0)<=0)return 'Utilizado';
+ if(Number(b.uses_total||1)>1)return `${Number(b.uses_remaining||0)} de ${Number(b.uses_total||0)} usos disponibles`;
+ return 'Disponible';
+}
+async function refreshBirthdayBenefitHome(){
+ const card=$('#birthdayBenefitHome');if(!card)return null;
+ const state=await portalBirthdayRpc('portal_birthday_benefit_status');
+ birthdayBenefitState=state;
+ if(!state?.ok||!state.eligible){card.classList.add('hidden');return state}
+ card.classList.remove('hidden');
+ const b=state.benefit;
+ const title=$('#birthdayBenefitHomeTitle'),txt=$('#birthdayBenefitHomeText'),status=$('#birthdayBenefitHomeStatus'),btn=$('#birthdayBenefitHomeBtn');
+ if(!b){
+   title.textContent='Tienes una sorpresa de cumpleaños';
+   txt.textContent='Tu beneficio todavía no ha sido revelado.';
+   status.textContent='Pendiente de descubrir';status.className='birthday-benefit-status';
+   btn.textContent='🎁 Descubrir mi beneficio';btn.classList.remove('hidden');
+   btn.onclick=()=>revealBirthdayBenefit();
+ }else{
+   title.textContent=b.label||'Beneficio de cumpleaños';
+   txt.textContent='Puedes guardarlo y utilizarlo cuando tú quieras. No tiene fecha de vencimiento.';
+   const st=benefitStateText(b);status.textContent=st;
+   status.className='birthday-benefit-status '+((b.used_at||Number(b.uses_remaining||0)<=0)?'used':'available');
+   if(!b.accepted_at){
+     btn.textContent='Ver y aceptar';btn.classList.remove('hidden');btn.onclick=()=>showBirthdayBenefitReveal(b);
+   }else btn.classList.add('hidden');
+ }
+ return state;
+}
+function showBirthdayBenefitReveal(b){
+ if(!b)return;
+ $('#birthdayBenefitName').textContent=b.label||'Beneficio sorpresa';
+ $('#birthdayBenefitReveal').classList.remove('hidden');
+ $('#birthdayAcceptBtn').onclick=async()=>{
+   const btn=$('#birthdayAcceptBtn');btn.disabled=true;btn.textContent='Guardando…';
+   try{
+     const out=await portalBirthdayRpc('portal_birthday_benefit_accept');
+     if(!out?.ok)throw new Error('No se pudo aceptar el beneficio.');
+     birthdayBenefitState=out;
+     $('#birthdayBenefitReveal').classList.add('hidden');
+     await refreshBirthdayBenefitHome();
+     try{
+       const fresh=await portalGetBundle(currentToken);
+       if(fresh?.ok){bundle=fresh;renderSummary()}
+     }catch(_){}
+     alert(out?.benefit?.code==='extra_personal_point'
+       ?'¡Listo! Tu punto extra personal ya fue acreditado y queda disponible para tu dinámica de puntos.'
+       :'¡Listo! Tu beneficio quedó guardado. Puedes utilizarlo cuando tú quieras.');
+   }catch(e){alert(e.message||e)}
+   finally{btn.disabled=false;btn.textContent='Aceptar beneficio'}
+ };
+}
+async function revealBirthdayBenefit(){
+ const out=await portalBirthdayRpc('portal_birthday_benefit_reveal');
+ if(!out?.ok){
+   if(out?.reason==='not_eligible_yet')alert('Tu beneficio estará disponible el día de tu cumpleaños.');
+   else alert('No fue posible revelar tu beneficio. Intenta nuevamente.');
+   return;
+ }
+ birthdayBenefitState=out;
+ $('#birthdayGreeting').classList.add('hidden');
+ showBirthdayBenefitReveal(out.benefit);
+ await refreshBirthdayBenefitHome();
 }
 async function showBirthdayGreetingIfNeeded(){
  await refreshStudentBirthday();
- if(!isStudentBirthdayToday())return;
- const key=birthdayShownKey();
-
- // Se muestra una vez por sesión/apertura de la app. El nuevo prefijo evita
- // que una prueba anterior guardada en localStorage bloquee la felicitación.
- if(sessionStorage.getItem(key)==='1')return;
+ const state=await refreshBirthdayBenefitHome();
+ if(!state?.ok||!state.eligible)return;
 
  const first=(bundle?.student?.name||'').trim().split(/\s+/)[0]||'';
- $('#birthdayGreetingTitle').textContent=first?`¡Feliz cumpleaños, ${first}!`:'¡Feliz cumpleaños!';
- $('#birthdayGreeting').classList.remove('hidden');
+ const retro=Boolean(state.retroactive);
+ const regular=isStudentBirthdayToday();
 
- $('#closeBirthdayGreeting').onclick=()=>{
-   sessionStorage.setItem(key,'1');
-   $('#birthdayGreeting').classList.add('hidden');
- };
+ // Cumpleaños retroactivos: 31 de agosto al 6 de septiembre.
+ // Su mensaje inicial es especial y solo existe por el arranque oficial del 7 de septiembre.
+ if(retro&&!state.has_benefit){
+   const key=birthdayShownKey('retro');
+   if(sessionStorage.getItem(key)!=='1'){
+     $('#birthdayGreetingEyebrow').textContent='TENEMOS UNA FELICITACIÓN PENDIENTE PARA TI';
+     $('#birthdayGreetingTitle').textContent=first?`¡También queremos celebrarte, ${first}!`:'¡También queremos celebrarte!';
+     $('#birthdayGreetingMessage').textContent='Sabemos que cumpliste años antes de que la App Estudiantes estuviera habilitada oficialmente. Pero no te preocupes: también queremos felicitarte y tienes un beneficio de cumpleaños sorpresa esperándote.';
+     $('#birthdayRevealBtn').textContent='🎁 Descubrir mi beneficio';
+     $('#birthdayGreeting').classList.remove('hidden');
+     $('#closeBirthdayGreeting').onclick=()=>{sessionStorage.setItem(key,'1');$('#birthdayGreeting').classList.add('hidden')};
+     $('#birthdayRevealBtn').onclick=()=>{sessionStorage.setItem(key,'1');revealBirthdayBenefit()};
+     return;
+   }
+ }
+
+ // Para cumpleaños normales se conserva la felicitación ya establecida.
+ if(regular){
+   const key=birthdayShownKey('regular');
+   if(sessionStorage.getItem(key)!=='1'){
+     $('#birthdayGreetingEyebrow').textContent='HOY ES TU DÍA';
+     $('#birthdayGreetingTitle').textContent=first?`¡Feliz cumpleaños, ${first}!`:'¡Feliz cumpleaños!';
+     $('#birthdayGreetingMessage').textContent='Que tengas un excelente día y un gran año. ¡Disfrútalo mucho!';
+     $('#birthdayRevealBtn').textContent=state.has_benefit?'🎁 Ver mi beneficio':'🎁 Descubrir mi beneficio';
+     $('#birthdayGreeting').classList.remove('hidden');
+     $('#closeBirthdayGreeting').onclick=()=>{sessionStorage.setItem(key,'1');$('#birthdayGreeting').classList.add('hidden')};
+     $('#birthdayRevealBtn').onclick=()=>{
+       sessionStorage.setItem(key,'1');
+       if(state.has_benefit)showBirthdayBenefitReveal(state.benefit);else revealBirthdayBenefit();
+     };
+   }
+ }
 }
 
 async function load(){

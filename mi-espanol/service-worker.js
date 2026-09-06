@@ -1,4 +1,5 @@
-const CACHE="mi-espanol-v8-12-5";const FILES=["./","./index.html","./styles.css","./app.js","./manifest.webmanifest","./profe-jaime.png","./icon.png","./celular.html","../shared/supabase-adapter.js"];
+const CACHE="app-estudiantes-v8-12-6";
+const FILES=["./","./index.html","./styles.css","./app.js","./manifest.webmanifest","./profe-jaime.png","./logo-app-estudiante-v821.png","./profe-jaime-no-serio.png","./icon.png","./celular.html","../shared/supabase-adapter.js"];
 self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil((async()=>{const c=await caches.open(CACHE);await Promise.allSettled(FILES.map(u=>c.add(u)))})())});
 self.addEventListener('activate',e=>{e.waitUntil((async()=>{const ks=await caches.keys();await Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)));await self.clients.claim()})())});
 self.addEventListener('fetch',e=>{const r=e.request,u=new URL(r.url);if(r.method!=='GET'||u.origin!==self.location.origin)return;if(r.mode==='navigate'){e.respondWith((async()=>{try{return await fetch(r,{cache:'no-store'})}catch(_){return (await caches.match(r))||(await caches.match('./index.html'))||Response.error()}})());return}e.respondWith((async()=>{try{const x=await fetch(r,{cache:'no-store'});if(x?.ok)(await caches.open(CACHE)).put(r,x.clone());return x}catch(_){return (await caches.match(r))||Response.error()}})())});

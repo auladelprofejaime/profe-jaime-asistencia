@@ -1,0 +1,12 @@
+APP DOCENTE v8.20.5 · CARTA COMPROMISO EN UNA SOLA HOJA
+
+AJUSTES:
+- La carta compromiso cabe en una sola hoja tamaño carta.
+- Se redujeron márgenes, tipografía y espacios sin quitar contenido.
+- Nombre del alumno se llena automáticamente.
+- Grupo se llena automáticamente.
+- Fecha queda en blanco para escribirla a mano el día que asista el padre/madre/tutor.
+- Nombre del padre/madre/tutor queda en blanco.
+- Se conservan compromisos, observaciones y firmas.
+
+Se conserva todo lo anterior.

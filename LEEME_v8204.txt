@@ -1,0 +1,19 @@
+APP DOCENTE v8.20.4 · CARTA COMPROMISO POR USO DE CELULAR
+
+NUEVO:
+- Desde la 3.ª incidencia aparece el botón “Descargar carta compromiso”.
+- Genera un PDF listo para imprimir y firmar en la reunión con padres.
+- Llena automáticamente:
+  • Nombre del alumno
+  • Grupo
+  • Fecha
+- Deja espacios para:
+  • Nombre del padre, madre o tutor
+  • Observaciones y acuerdos
+  • Firma del alumno
+  • Firma del padre/madre/tutor
+  • Firma del docente
+
+La carta contiene los compromisos proporcionados por el profesor y conserva el encabezado institucional de los PDF de App Docente.
+
+Se conserva todo lo anterior: celular, WhatsApp, citas, monitor global, escaneo múltiple y reglas de anticipación diferenciadas.

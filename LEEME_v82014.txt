@@ -1,0 +1,21 @@
+APP DOCENTE v8.20.14 · SIN PRUEBAS DE CUMPLEAÑOS DEL MONITOR
+
+Se retiró por completo:
+- Probar mensaje retroactivo.
+- Probar cumpleaños HOY.
+- Día/mes manual.
+- Quitar fecha de prueba.
+- Indicador de fecha de cumpleaños de prueba.
+- Código y estilos asociados.
+
+Se conserva:
+- Alumno Monitor global ID 00001.
+- Accesos/PIN del Monitor.
+- Reiniciar pruebas del Monitor.
+- Pruebas de asistencia, actividades, celular, citas, puntos, portales y demás funciones globales.
+
+Backend:
+- Monitor volvió a quedar sin fecha de nacimiento.
+- Se eliminó su beneficio de cumpleaños de prueba.
+- Se eliminó el modo especial de prueba de cumpleaños.
+- Los cumpleaños de alumnos reales continúan funcionando normalmente.

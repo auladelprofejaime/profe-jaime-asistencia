@@ -822,3 +822,19 @@ button.danger{
 @media(max-width:720px){
   .cellphone-followup-date{grid-template-columns:1fr}
 }
+
+/* v8.20.2 · Confirmación de cita acordada por WhatsApp */
+.appointment-whatsapp-confirm{
+  margin:16px 0 18px;
+  padding:16px;
+  border:1px solid #e5d59a;
+  border-radius:16px;
+  background:#fffdf5;
+}
+.appointment-manual-actions{
+  display:flex;
+  gap:8px;
+  align-items:end;
+  flex-wrap:wrap;
+}
+.appointment-manual-actions button{flex:1;min-width:130px}

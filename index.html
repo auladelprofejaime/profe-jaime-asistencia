@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.20.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.20.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -462,6 +462,30 @@
   </div>
 
   <div id="appointmentBlockedDates" class="appointment-blocked-dates"></div>
+
+  <div class="appointment-whatsapp-confirm">
+    <h3>Confirmar cita acordada por WhatsApp</h3>
+    <p class="hint">Después de que la familia responda qué horario eligió, selecciona aquí la hora acordada y confirma la cita.</p>
+
+    <div class="grid4">
+      <label>Alumno
+        <select id="appointmentManualStudent"></select>
+      </label>
+      <label>Día asignado
+        <input id="appointmentManualDate" type="date">
+      </label>
+      <label>Horario elegido
+        <select id="appointmentManualTime">
+          <option value="">Primero carga horarios</option>
+        </select>
+      </label>
+      <div class="appointment-manual-actions">
+        <button id="appointmentManualLoad" type="button" class="secondary">Cargar horarios</button>
+        <button id="appointmentManualConfirm" type="button" class="primary">Confirmar cita</button>
+      </div>
+    </div>
+    <div id="appointmentManualStatus" class="hint"></div>
+  </div>
 
   <h3>Solicitudes y citas</h3>
   <div id="appointmentList" class="list empty">Cargando citas…</div>
@@ -1117,7 +1141,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8201.js?v=8201"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8202.js?v=8202"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

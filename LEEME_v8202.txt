@@ -1,0 +1,21 @@
+APP DOCENTE v8.20.2 · CITAS DE WHATSAPP CONFIRMABLES
+
+CORRECCIONES:
+1. DÍAS DISPONIBLES
+- Alumno Monitor (00001): puede probar citas cualquier lunes a viernes.
+- Alumnos reales: solo pueden elegir días en que el profesor tiene Español con su grupo.
+- Se respetan mínimo 2 días, días bloqueados y horarios ya ocupados.
+
+2. TERCERA INCIDENCIA
+- El día elegido para el WhatsApp también queda guardado como borrador.
+- Al regresar a “Citas con padres”, la app precarga alumno y día.
+
+3. CONFIRMAR HORA ELEGIDA POR WHATSAPP
+- Nueva sección: “Confirmar cita acordada por WhatsApp”.
+- Selecciona alumno, día y la hora que respondió el padre.
+- Pulsa “Confirmar cita”.
+- La cita queda confirmada y aparece en Solicitudes y citas.
+- Si la familia usa App Padres, recibe notificación de confirmación.
+- App Padres sigue siendo opcional.
+
+Backend necesario ya fue actualizado directamente en Supabase.

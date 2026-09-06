@@ -4072,13 +4072,34 @@ El PDF tendrá UNA PÁGINA POR ALUMNO con:
         p_student_id:String(st.id),
         p_role:'parent'
       });
+      const studentPinText=String(studentPin||'');
+      const parentPinText=String(parentPin||'');
+
+      // v8.21.3: conservar localmente el PIN temporal vigente que acaba de generar
+      // esta App Docente. Supabase mantiene únicamente el hash; esta copia local
+      // permite consultarlo después en “Acceso a portales” sin volver a regenerar.
+      if(studentPinText){
+        await req(store('portalAuth','readwrite').put({
+          id:`${st.id}|student`,studentId:String(st.id),role:'student',
+          tempPinReveal:studentPinText,mustChange:true,lockedUntil:0,
+          updated:new Date().toISOString()
+        }));
+      }
+      if(parentPinText){
+        await req(store('portalAuth','readwrite').put({
+          id:`${st.id}|parent`,studentId:String(st.id),role:'parent',
+          tempPinReveal:parentPinText,mustChange:true,lockedUntil:0,
+          updated:new Date().toISOString()
+        }));
+      }
+
       rows.push({
         student_id:String(st.id),
         name:st.name||String(st.id),
         group_name:st.group||String(group),
         list_number:Number(st.number)||null,
-        student_pin:String(studentPin||''),
-        parent_pin:String(parentPin||'')
+        student_pin:studentPinText,
+        parent_pin:parentPinText
       });
     }
     if(!rows.length)throw new Error('No se pudieron generar alumnos para el PDF.');
@@ -4220,8 +4241,8 @@ async function renderPortalAccessReport(){
        <b>${safe(studentListDisplayName(s))}</b>
        <small>Grupo ${safe(s.group||'')} · ID ${safe(s.id)}</small>
      </td>
-     <td>${portalStatePill(st.student)}${st.student?.mustChange&&st.student?.tempPinReveal?`<div class="pin-mini">${safe(st.student.tempPinReveal)}</div>`:''}</td>
-     <td>${portalStatePill(st.parent)}${st.parent?.mustChange&&st.parent?.tempPinReveal?`<div class="pin-mini">${safe(st.parent.tempPinReveal)}</div>`:''}</td>
+     <td>${portalStatePill(st.student)}${st.student?.mustChange?(st.student?.tempPinReveal?`<div class="pin-mini"><b>PIN: ${safe(st.student.tempPinReveal)}</b></div>`:`<small class="pin-not-cached">PIN vigente no disponible para mostrar</small>`):''}</td>
+     <td>${portalStatePill(st.parent)}${st.parent?.mustChange?(st.parent?.tempPinReveal?`<div class="pin-mini"><b>PIN: ${safe(st.parent.tempPinReveal)}</b></div>`:`<small class="pin-not-cached">PIN vigente no disponible para mostrar</small>`):''}</td>
    </tr>`);
  }
 

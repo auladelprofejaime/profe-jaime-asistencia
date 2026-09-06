@@ -937,3 +937,6 @@ button.danger{
 .whatsapp-monitor-group-picker{display:flex;gap:12px;align-items:end;margin:12px 0}
 .whatsapp-monitor-group-picker label{font-weight:800;min-width:220px}
 .whatsapp-monitor-group-picker select{display:block;width:100%;margin-top:5px}
+
+/* v8.21.3 · PIN temporal visible en Acceso a portales */
+.pin-not-cached{display:block;margin-top:6px;color:#8a6d1d;font-weight:600;line-height:1.25}.pin-mini b{font-size:1.05rem;letter-spacing:.06em}

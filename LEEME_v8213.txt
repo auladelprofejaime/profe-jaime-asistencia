@@ -1,0 +1,10 @@
+APP DOCENTE v8.21.3 · PINES TEMPORALES VISIBLES
+
+Base: v8.21.2 MONITOR WHATSAPP POR GRUPO.
+
+- Los PIN temporales generados desde “Generar e imprimir ID y PIN” ahora también se conservan localmente en App Docente.
+- Mientras el acceso siga en estado temporal, el PIN vigente generado desde esta versión se muestra en “Acceso a portales”.
+- Los PIN generados antes de instalar v8.21.3 no pueden recuperarse en texto desde Supabase porque allí se almacenan únicamente como hash.
+- Generar un PIN nuevo lo actualiza inmediatamente en la tabla.
+- “Actualizar todos los PIN temporales” continúa funcionando y los nuevos PIN quedan visibles.
+- No se incluyen PIN en respaldos y no se modifica ningún módulo académico, asistencia, WhatsApp, puntos ni expediente.

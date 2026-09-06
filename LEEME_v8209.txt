@@ -1,0 +1,11 @@
+APP DOCENTE v8.20.9 · BENEFICIOS DE CUMPLEAÑOS
+
+- En Cumpleaños de la semana se muestra qué beneficio recibió cada alumno y su estado.
+- En Expediente del alumno aparece el apartado “Beneficio de cumpleaños”.
+- Si un alumno no usa la App Estudiantes, el docente puede revelar su beneficio desde el expediente.
+- El docente puede marcar que el alumno aceptó el beneficio.
+- El docente puede marcar cuándo se utiliza.
+- “3 dictados sin repeticiones” controla los 3 usos individualmente.
+- “+1 punto extra personal” se acredita automáticamente en la dinámica personal de puntos al aceptar.
+- Ningún beneficio tiene fecha de vencimiento.
+- El backend ya fue instalado directamente en Supabase.

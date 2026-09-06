@@ -1,0 +1,9 @@
+APP DOCENTE v8.20.11
+
+Prueba de cumpleaños del Monitor:
+- “Probar cumpleaños HOY” fuerza el modo de cumpleaños normal.
+- “Probar mensaje retroactivo” fuerza el modo retroactivo aunque todavía no sea 7 de septiembre.
+- Esto permite revisar hoy exactamente lo que verán desde el 7 los alumnos que cumplieron del 31 de agosto al 6 de septiembre.
+- Los alumnos reales conservan la lógica normal: el mensaje retroactivo no se habilita hasta el 7.
+- Cambiar el modo reinicia el beneficio de prueba del Monitor.
+Backend actualizado directamente en Supabase.

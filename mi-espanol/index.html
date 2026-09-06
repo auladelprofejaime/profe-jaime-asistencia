@@ -521,6 +521,157 @@
 .birthday-benefit-status.used{background:#eee;color:#666}
 @media(max-width:650px){.birthday-benefit-home{grid-template-columns:auto 1fr}.birthday-benefit-home>button{grid-column:1/-1;width:100%}}
 </style>
+
+<style id="birthday-experience-v8128">
+/* Experiencia principal: modal emergente, no tarjeta grande en Inicio */
+#birthdayGreeting,
+#birthdayBenefitReveal{
+  background:
+    radial-gradient(circle at 12% 12%,rgba(255,210,54,.28),transparent 23%),
+    radial-gradient(circle at 88% 18%,rgba(228,38,55,.27),transparent 22%),
+    linear-gradient(145deg,rgba(10,16,38,.97),rgba(38,17,52,.98)) !important;
+}
+#birthdayGreeting .birthday-greeting-card,
+#birthdayBenefitReveal .birthday-greeting-card{
+  width:min(560px,100%) !important;
+  background:linear-gradient(180deg,#fffdf2 0%,#ffffff 72%) !important;
+  color:#1d1b18 !important;
+  border:3px solid #f6c62f !important;
+  border-radius:30px !important;
+  padding:32px 26px 28px !important;
+  box-shadow:0 28px 80px rgba(0,0,0,.48),0 0 0 8px rgba(255,208,45,.08) !important;
+  overflow:hidden;
+}
+#birthdayGreeting .birthday-greeting-card:before,
+#birthdayBenefitReveal .birthday-greeting-card:before{
+  content:"";
+  position:absolute;
+  left:0;right:0;top:0;height:8px;
+  background:linear-gradient(90deg,#e62537,#ffd12f,#27b76b,#2984e7,#e62537);
+}
+#birthdayGreeting .birthday-cake,
+#birthdayBenefitReveal .birthday-cake{
+  width:88px;height:88px;margin:4px auto 12px;
+  display:grid;place-items:center;
+  border-radius:50%;
+  background:#fff1ad;
+  box-shadow:0 8px 22px rgba(119,82,0,.16);
+  font-size:54px !important;
+}
+#birthdayGreeting .birthday-eyebrow,
+#birthdayBenefitReveal .birthday-eyebrow{
+  color:#a81725 !important;
+  opacity:1 !important;
+  font-weight:950 !important;
+  letter-spacing:.13em !important;
+  font-size:.78rem !important;
+}
+#birthdayGreeting h2,
+#birthdayBenefitReveal h2{
+  color:#181818 !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+  line-height:1.08 !important;
+  margin:10px 0 12px !important;
+}
+#birthdayGreeting p,
+#birthdayBenefitReveal p{
+  color:#3b352d !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+  font-size:1.06rem !important;
+}
+#birthdayGreeting .birthday-sign{
+  color:#8e1b24 !important;
+  opacity:1 !important;
+}
+#birthdayGreeting .birthday-main-cta,
+#birthdayBenefitReveal #birthdayAcceptBtn{
+  min-height:56px;
+  background:linear-gradient(180deg,#ffd83e,#f3ba13) !important;
+  color:#231b07 !important;
+  border:2px solid #e6ac00 !important;
+  border-radius:16px !important;
+  font-size:1.04rem !important;
+  font-weight:950 !important;
+  box-shadow:0 7px 0 #bd8500,0 13px 22px rgba(108,75,0,.18) !important;
+}
+#birthdayGreeting .birthday-main-cta:active,
+#birthdayBenefitReveal #birthdayAcceptBtn:active{
+  transform:translateY(4px);
+  box-shadow:0 3px 0 #bd8500 !important;
+}
+#birthdayBenefitReveal .birthday-benefit-name{
+  background:linear-gradient(135deg,#fff0a8,#fff9dc) !important;
+  color:#5b3d00 !important;
+  border:2px solid #e6bd2f !important;
+  opacity:1 !important;
+  text-shadow:none !important;
+  padding:20px 18px !important;
+  margin:18px 0 !important;
+  font-size:clamp(1.25rem,5vw,1.75rem) !important;
+  border-radius:18px !important;
+  font-weight:950 !important;
+}
+
+/* Confeti animado */
+.birthday-confetti-burst{
+  position:absolute;inset:0;pointer-events:none;overflow:hidden;z-index:1;
+}
+.birthday-confetti-piece{
+  position:absolute;
+  top:-12%;
+  width:10px;height:18px;
+  border-radius:2px;
+  opacity:.95;
+  animation:bdayRain var(--dur,3.8s) linear var(--delay,0s) forwards;
+}
+@keyframes bdayRain{
+  0%{transform:translate3d(0,-15vh,0) rotate(0deg)}
+  100%{transform:translate3d(var(--drift,0px),115vh,0) rotate(820deg)}
+}
+@media(prefers-reduced-motion:reduce){.birthday-confetti-piece{animation:none;display:none}}
+
+/* Inicio: recordatorio pequeño, legible y acorde al tema oscuro */
+.birthday-benefit-home{
+  display:grid;
+  grid-template-columns:auto minmax(0,1fr) auto;
+  align-items:center;
+  gap:12px;
+  margin:14px 0 8px;
+  padding:12px 14px;
+  border-radius:16px;
+  background:linear-gradient(135deg,#202b4a,#18213b) !important;
+  border:1px solid #46557e !important;
+  box-shadow:0 8px 24px rgba(0,0,0,.16);
+  color:#fff !important;
+}
+.birthday-benefit-home.hidden{display:none!important}
+.birthday-benefit-home-icon{
+  width:46px;height:46px;display:grid;place-items:center;
+  border-radius:13px;background:#ffd23f;font-size:25px;
+}
+.birthday-benefit-home-copy{min-width:0;display:flex;flex-direction:column;gap:3px}
+.birthday-benefit-home-copy small{
+  color:#ffd95a !important;opacity:1 !important;font-weight:950;letter-spacing:.08em;font-size:.68rem
+}
+.birthday-benefit-home-copy b{
+  color:#fff !important;opacity:1 !important;font-size:.98rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis
+}
+.birthday-benefit-status{
+  color:#cbd3e7 !important;background:transparent !important;padding:0 !important;margin:0 !important;
+  font-size:.78rem !important;font-weight:750 !important;
+}
+.birthday-benefit-home-btn{
+  border:0;border-radius:12px;padding:10px 13px;
+  background:#ffd23f;color:#211a06;font-weight:950;white-space:nowrap
+}
+@media(max-width:650px){
+  .birthday-benefit-home{grid-template-columns:auto 1fr}
+  .birthday-benefit-home-btn{grid-column:1/-1;width:100%}
+}
+</style>
+
 </head>
 <body>
 <section id="privacy" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Privacidad y seguridad</h2><div class="card"><p>Mi Español utiliza únicamente la información escolar necesaria para identificar tu cuenta y mostrar tu seguimiento académico.</p><p>El acceso se realiza con ID de 5 dígitos y PIN. La información consultada corresponde a la sesión iniciada y al alumno asociado con ese acceso.</p><p><b>La app no solicita acceso a contactos, ubicación, micrófono, fotografías, videos, mensajes personales, contraseñas, WhatsApp, archivos personales ni información bancaria.</b></p><p>Las notificaciones utilizan exclusivamente los datos técnicos necesarios para registrar y entregar avisos mediante Web Push.</p><p><b>La App Estudiantes no cuenta con mensajería privada con el profesor.</b> La comunicación digital con el docente debe realizarse mediante el canal disponible en la App Padres / Seguimiento Familiar.</p><p>La información se utiliza para seguimiento y comunicación escolar y no para publicidad ni fines comerciales.</p><p>Esta es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas, trámites o procedimientos oficiales.</p></div></section><div id="birthdayGreeting" class="birthday-greeting hidden" aria-modal="true" role="dialog">
@@ -534,8 +685,7 @@
     <p id="birthdayGreetingMessage">Que tengas un excelente día y un gran año. ¡Disfrútalo mucho!</p>
     <div class="birthday-sign">— Profe Jaime</div>
     <div class="birthday-actions">
-      <button id="birthdayRevealBtn" class="action primary" type="button">🎁 Descubrir mi beneficio</button>
-      <button id="closeBirthdayGreeting" class="action" type="button">Verlo después</button>
+      <button id="birthdayRevealBtn" class="action primary birthday-main-cta" type="button">🎁 Descubrir mi beneficio</button>
     </div>
   </div>
 </div>
@@ -564,7 +714,7 @@
     <div class="student-schedule-time">Podrás ingresar a partir de las <b id="studentScheduleOpenTime">--:--</b>.</div>
     <p class="student-schedule-foot">Cuando termine el horario establecido por el profesor, la aplicación se habilitará automáticamente.</p>
   </div>
-</div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.12.7</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
+</div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.12.8</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
 <main>
 <section id="home" class="view active"><div class="hero"><div><small>BIENVENIDO</small><h2 id="hello">Hola.</h2><p>Tu materia de Español, en un solo lugar.</p></div><img src="logo-app-estudiante-v821.png"></div><div class="portal-menu">
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
@@ -577,15 +727,14 @@
 <button data-view="notices" class="portal-menu-btn"><span>📢</span><b>Avisos</b></button>
 <button data-view="privacy" class="portal-menu-btn"><span>🔒</span><b>Privacidad y seguridad</b></button>
 </div>
-<div id="birthdayBenefitHome" class="card birthday-benefit-home hidden">
+<div id="birthdayBenefitHome" class="birthday-benefit-home hidden">
   <div class="birthday-benefit-home-icon">🎁</div>
   <div class="birthday-benefit-home-copy">
-    <small>BENEFICIO DE CUMPLEAÑOS</small>
-    <h3 id="birthdayBenefitHomeTitle">Tienes una sorpresa pendiente</h3>
-    <p id="birthdayBenefitHomeText">Descubre tu beneficio de cumpleaños.</p>
-    <div id="birthdayBenefitHomeStatus" class="birthday-benefit-status"></div>
+    <small>REGALO DE CUMPLEAÑOS</small>
+    <b id="birthdayBenefitHomeTitle">Tienes un beneficio guardado</b>
+    <span id="birthdayBenefitHomeStatus" class="birthday-benefit-status"></span>
   </div>
-  <button id="birthdayBenefitHomeBtn" class="action primary" type="button">Descubrir</button>
+  <button id="birthdayBenefitHomeBtn" class="birthday-benefit-home-btn" type="button">Ver beneficio</button>
 </div>
 <div class="grid" id="summaryCards"></div><h3 class="section-title">Avisos recientes</h3><div id="homeNotices" class="cards"></div></section>
 <section id="activities" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Próximas entregas</h2><div id="activityCards" class="cards"></div></section>

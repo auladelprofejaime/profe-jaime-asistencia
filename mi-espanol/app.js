@@ -89,7 +89,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8127',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8128',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -434,33 +434,69 @@ async function refreshBirthdayBenefitHome(){
  const card=$('#birthdayBenefitHome');if(!card)return null;
  const state=await portalBirthdayRpc('portal_birthday_benefit_status');
  birthdayBenefitState=state;
- if(!state?.ok||!state.eligible){card.classList.add('hidden');return state}
- card.classList.remove('hidden');
+
+ // Nunca usar Inicio como la experiencia principal.
+ // Si aún no existe beneficio, se mantiene completamente oculto.
+ if(!state?.ok||!state.eligible||!state.benefit){
+   card.classList.add('hidden');
+   return state;
+ }
+
  const b=state.benefit;
- const title=$('#birthdayBenefitHomeTitle'),txt=$('#birthdayBenefitHomeText'),status=$('#birthdayBenefitHomeStatus'),btn=$('#birthdayBenefitHomeBtn');
- if(!b){
-   title.textContent='Tienes una sorpresa de cumpleaños';
-   txt.textContent='Tu beneficio todavía no ha sido revelado.';
-   status.textContent='Pendiente de descubrir';status.className='birthday-benefit-status';
-   btn.textContent='🎁 Descubrir mi beneficio';btn.classList.remove('hidden');
-   btn.onclick=()=>revealBirthdayBenefit();
+ const title=$('#birthdayBenefitHomeTitle'),status=$('#birthdayBenefitHomeStatus'),btn=$('#birthdayBenefitHomeBtn');
+
+ card.classList.remove('hidden');
+
+ if(!b.accepted_at){
+   title.textContent='Tienes una sorpresa pendiente de aceptar';
+   status.textContent='Toca para ver tu beneficio';
+   btn.textContent='Ver y aceptar';
+   btn.onclick=()=>showBirthdayBenefitReveal(b);
  }else{
-   title.textContent=b.label||'Beneficio de cumpleaños';
-   txt.textContent='Puedes guardarlo y utilizarlo cuando tú quieras. No tiene fecha de vencimiento.';
-   const st=benefitStateText(b);status.textContent=st;
-   status.className='birthday-benefit-status '+((b.used_at||Number(b.uses_remaining||0)<=0)?'used':'available');
-   if(!b.accepted_at){
-     btn.textContent='Ver y aceptar';btn.classList.remove('hidden');btn.onclick=()=>showBirthdayBenefitReveal(b);
-   }else btn.classList.add('hidden');
+   title.textContent=b.label||'Beneficio de cumpleaños guardado';
+   status.textContent=benefitStateText(b);
+   btn.textContent='Ver beneficio';
+   btn.onclick=()=>showBirthdayBenefitReveal(b);
  }
  return state;
+}
+function launchBirthdayConfetti(targetId){
+ const host=$(targetId);if(!host)return;
+ host.querySelector('.birthday-confetti-burst')?.remove();
+ const burst=document.createElement('div');burst.className='birthday-confetti-burst';
+ const colors=['#ffd43b','#e52d3d','#2fbf71','#3488eb','#ff8c2b','#9b5de5'];
+ for(let i=0;i<56;i++){
+   const p=document.createElement('i');
+   p.className='birthday-confetti-piece';
+   p.style.left=(Math.random()*100)+'%';
+   p.style.background=colors[i%colors.length];
+   p.style.setProperty('--dur',(2.8+Math.random()*2.4)+'s');
+   p.style.setProperty('--delay',(Math.random()*.8)+'s');
+   p.style.setProperty('--drift',((Math.random()-.5)*180)+'px');
+   p.style.transform=`rotate(${Math.random()*180}deg)`;
+   burst.appendChild(p);
+ }
+ host.appendChild(burst);
+ setTimeout(()=>burst.remove(),6200);
 }
 function showBirthdayBenefitReveal(b){
  if(!b)return;
  $('#birthdayBenefitName').textContent=b.label||'Beneficio sorpresa';
  $('#birthdayBenefitReveal').classList.remove('hidden');
- $('#birthdayAcceptBtn').onclick=async()=>{
-   const btn=$('#birthdayAcceptBtn');btn.disabled=true;btn.textContent='Guardando…';
+ launchBirthdayConfetti('#birthdayBenefitReveal');
+
+ const btn=$('#birthdayAcceptBtn');
+ if(b.accepted_at){
+   btn.disabled=false;
+   btn.textContent='Cerrar';
+   btn.onclick=()=>$('#birthdayBenefitReveal').classList.add('hidden');
+   return;
+ }
+
+ btn.disabled=false;
+ btn.textContent='Aceptar beneficio';
+ btn.onclick=async()=>{
+   btn.disabled=true;btn.textContent='Guardando…';
    try{
      const out=await portalBirthdayRpc('portal_birthday_benefit_accept');
      if(!out?.ok)throw new Error('No se pudo aceptar el beneficio.');
@@ -492,13 +528,23 @@ async function revealBirthdayBenefit(){
 }
 async function showBirthdayGreetingIfNeeded(){
  await refreshStudentBirthday();
- const state=await refreshBirthdayBenefitHome();
- if(!state?.ok||!state.eligible)return;
 
- // La felicitación se reclama en backend para garantizar que solo se muestre una vez,
- // aunque el alumno cierre y vuelva a abrir la app o use otro dispositivo.
+ // Primero revisamos elegibilidad, pero NO mostramos ninguna tarjeta grande.
+ const state=await portalBirthdayRpc('portal_birthday_benefit_status');
+ birthdayBenefitState=state;
+ if(!state?.ok||!state.eligible){
+   $('#birthdayBenefitHome')?.classList.add('hidden');
+   return;
+ }
+
+ // Backend garantiza una sola aparición por cumpleaños/ciclo.
  const claim=await portalBirthdayRpc('portal_birthday_greeting_claim');
- if(!claim?.ok||!claim.show)return;
+
+ // Si ya se mostró antes, solo actualizamos el recordatorio pequeño del beneficio.
+ if(!claim?.ok||!claim.show){
+   await refreshBirthdayBenefitHome();
+   return;
+ }
 
  const first=(bundle?.student?.name||'').trim().split(/\s+/)[0]||'';
  const retro=Boolean(claim.retroactive);
@@ -506,23 +552,33 @@ async function showBirthdayGreetingIfNeeded(){
  if(retro){
    $('#birthdayGreetingEyebrow').textContent='TENEMOS UNA FELICITACIÓN PENDIENTE PARA TI';
    $('#birthdayGreetingTitle').textContent=first?`¡También queremos celebrarte, ${first}!`:'¡También queremos celebrarte!';
-   $('#birthdayGreetingMessage').textContent='Sabemos que cumpliste años antes de que la App Estudiantes estuviera habilitada oficialmente. Pero no te preocupes: también queremos felicitarte y tienes un beneficio de cumpleaños sorpresa esperándote.';
+   $('#birthdayGreetingMessage').textContent='Sabemos que cumpliste años antes de que la App Estudiantes estuviera habilitada oficialmente. Pero no te preocupes: también queremos felicitarte y tienes una sorpresa de cumpleaños esperándote.';
  }else{
    $('#birthdayGreetingEyebrow').textContent='HOY ES TU DÍA';
    $('#birthdayGreetingTitle').textContent=first?`¡Feliz cumpleaños, ${first}!`:'¡Feliz cumpleaños!';
-   $('#birthdayGreetingMessage').textContent='Que tengas un excelente día y un gran año. ¡Disfrútalo mucho!';
+   $('#birthdayGreetingMessage').textContent='Que tengas un excelente día y un gran año. ¡Disfrútalo mucho! Además, tenemos una sorpresa de cumpleaños para ti.';
  }
 
  $('#birthdayRevealBtn').textContent='🎁 Descubrir mi beneficio';
  $('#birthdayGreeting').classList.remove('hidden');
+ launchBirthdayConfetti('#birthdayGreeting');
 
- $('#closeBirthdayGreeting').onclick=()=>{
-   $('#birthdayGreeting').classList.add('hidden');
- };
-
- $('#birthdayRevealBtn').onclick=()=>{
-   $('#birthdayGreeting').classList.add('hidden');
-   revealBirthdayBenefit();
+ $('#birthdayRevealBtn').onclick=async()=>{
+   const btn=$('#birthdayRevealBtn');
+   btn.disabled=true;btn.textContent='Preparando tu sorpresa…';
+   try{
+     // claim ya asignó el beneficio aleatorio; status lo recupera.
+     const st=await portalBirthdayRpc('portal_birthday_benefit_status');
+     const b=st?.benefit;
+     if(!b)throw new Error('No fue posible cargar tu beneficio.');
+     $('#birthdayGreeting').classList.add('hidden');
+     showBirthdayBenefitReveal(b);
+     await refreshBirthdayBenefitHome();
+   }catch(e){
+     alert(e.message||e);
+   }finally{
+     btn.disabled=false;btn.textContent='🎁 Descubrir mi beneficio';
+   }
  };
 }
 

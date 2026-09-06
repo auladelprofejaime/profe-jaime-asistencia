@@ -1,0 +1,13 @@
+APP ESTUDIANTES v8.12.8 · CUMPLEAÑOS EMERGENTE RESTAURADO
+
+CORRECCIÓN VISUAL Y DE FLUJO:
+- La felicitación vuelve a aparecer como PANTALLA EMERGENTE.
+- Se agregó confeti animado.
+- Texto y botones tienen alto contraste.
+- El botón principal es “Descubrir mi beneficio”.
+- La felicitación solo aparece una vez gracias al registro en Supabase.
+- El Inicio YA NO muestra una tarjeta grande como experiencia principal.
+- Si queda un beneficio pendiente o aceptado, solo aparece un recordatorio pequeño y discreto.
+- Después de aceptar, el alumno puede volver a consultar su beneficio guardado.
+- Los cumpleaños retroactivos conservan su mensaje especial.
+- Monitor puede probar retroactivo antes del 7 de septiembre gracias al modo de prueba del backend.

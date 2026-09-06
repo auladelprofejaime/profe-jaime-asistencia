@@ -802,3 +802,23 @@ button.danger{
 
 /* v8.19.9 · Monitor global */
 .monitor-student-card .monitor-badge{max-width:100%;white-space:normal}
+
+/* v8.20.1 · Seguimiento celular con día asignado */
+.cellphone-followup-date{
+  display:grid;
+  grid-template-columns:minmax(220px,1fr) auto;
+  gap:10px;
+  align-items:end;
+  margin:12px 0;
+}
+.cellphone-available-times{
+  padding:12px 14px;
+  border:1px solid #eadca0;
+  border-radius:14px;
+  background:#fffdf3;
+  line-height:1.6;
+  margin-bottom:12px;
+}
+@media(max-width:720px){
+  .cellphone-followup-date{grid-template-columns:1fr}
+}

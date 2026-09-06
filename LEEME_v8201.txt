@@ -1,0 +1,17 @@
+APP DOCENTE v8.20.1 · WHATSAPP TERCERA INCIDENCIA
+
+Cambio solicitado:
+- En la 3.ª incidencia se elige primero el día asignado para la cita.
+- La app muestra horarios disponibles para ese día.
+- Respeta lunes a viernes, mínimo 2 días de anticipación, días bloqueados y citas ya ocupadas.
+- Receso no forma parte de los horarios.
+- El mensaje ya NO pide usar App Padres.
+- El mensaje dice:
+  “La cita ha sido asignada para el día [fecha]. Tengo disponibles los siguientes horarios...”
+- La familia únicamente responde qué horario le resulta conveniente.
+
+Se conserva:
+- Monitor global.
+- Citas de App Padres.
+- Incidencias de celular.
+- Escaneo múltiple de actividades.

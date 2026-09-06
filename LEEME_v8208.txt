@@ -1,0 +1,29 @@
+APP DOCENTE v8.20.8 · AGENDA SEMANAL + HISTORIAL DE CITAS + RESET MONITOR
+
+NUEVO EN INICIO
+- “Agenda de la semana” junto a Cumpleaños.
+- Muestra citas con padres pendientes/confirmadas de la semana.
+- No muestra historiales antiguos.
+
+NUEVO EN EXPEDIENTE DEL ALUMNO
+- Historial individual de citas con padres.
+- Total de citas confirmadas.
+- Cuántas veces se presentó la familia.
+- Cuántas veces no se presentó.
+- Botones “Se presentó” / “No se presentó” por cita.
+
+MI HORARIO
+- Se conserva para solicitudes pendientes y citas próximas.
+- El backend limita la lista general a próximas citas, evitando un listado histórico gigantesco.
+
+ALUMNO MONITOR
+- Nuevo botón “Reiniciar pruebas del Monitor”.
+- Borra registros de prueba del ID 00001:
+  asistencia, actividades, celular, citas, reportes, mensajes, puntos y resultados diagnósticos.
+- También limpia sus registros locales del iPad.
+- NO elimina el alumno 00001.
+- NO cambia sus PIN.
+- NO elimina sus sesiones ni sus notificaciones push.
+
+BACKEND
+Ya fue actualizado directamente en Supabase.

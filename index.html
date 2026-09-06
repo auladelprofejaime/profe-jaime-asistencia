@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.20.7</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.20.8</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -358,6 +358,16 @@
      <div><h2>🎂 Cumpleaños de la semana</h2><p class="hint">Alumnos que cumplen años de lunes a domingo.</p></div>
    </div>
    <div id="weeklyBirthdays" class="birthday-week-list"><div class="empty">Sin fechas de nacimiento registradas esta semana.</div></div>
+ </div>
+ <div class="card weekly-agenda-card">
+   <div class="section">
+     <div>
+       <h2>🗓️ Agenda de la semana</h2>
+       <p class="hint">Citas con padres confirmadas o pendientes durante esta semana.</p>
+     </div>
+     <button id="weeklyAgendaRefresh" class="secondary" type="button">Actualizar</button>
+   </div>
+   <div id="weeklyAgenda" class="weekly-agenda-list"><div class="empty">Sin citas programadas esta semana.</div></div>
  </div>
  <div class="home-menu">
   <button data-go="attendance" class="home-button"><span>▣</span><b>Asistencia</b><small>Escáner · asistencia, falta y retardo</small></button>
@@ -708,6 +718,7 @@
     <div class="actions">
       <button id="openMonitorDossier" class="primary" type="button">Abrir expediente</button>
       <button id="openMonitorPortals" class="secondary" type="button">Ver accesos a portales</button>
+      <button id="resetMonitorTests" class="danger-outline" type="button">Reiniciar pruebas del Monitor</button>
     </div>
   </div>
   <div class="monitor-student-info">
@@ -868,7 +879,19 @@
 
 <article class="card dossier-card"><h3>📊 Historial</h3><div id="dossierHistory" class="history-grid"></div></article>
 <article class="card dossier-card"><h3>📝 Observaciones</h3><div class="note-block"><b>Observaciones</b><p id="dossierObservations">Sin observaciones.</p></div><div class="note-block"><b>Incidencias</b><p id="dossierIncidents">Sin incidencias registradas.</p></div></article>
-</div></div></section>
+</div>
+<article class="card dossier-appointments-card">
+  <div class="section">
+    <div>
+      <h3>🗓️ Citas con padres · Historial del alumno</h3>
+      <p class="hint">Aquí se concentra el historial individual. Puedes indicar si la familia se presentó o no se presentó.</p>
+    </div>
+    <button id="dossierAppointmentRefresh" class="secondary" type="button">Actualizar historial</button>
+  </div>
+  <div id="dossierAppointmentSummary" class="dossier-appointment-summary"></div>
+  <div id="dossierAppointmentHistory" class="list empty">Sin citas registradas.</div>
+</article>
+</div></section>
 
 <section id="reports" class="view">
  <div class="card"><div class="section"><div><h2>Reportes</h2><p class="hint">Los reportes se abren en una vista preparada para imprimir o guardar como PDF desde el iPad.</p></div><button id="saveAllReports" class="primary">Guardar dentro de la app</button></div></div>
@@ -1142,7 +1165,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8207.js?v=8207"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8208.js?v=8208"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

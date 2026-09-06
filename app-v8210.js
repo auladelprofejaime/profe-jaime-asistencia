@@ -3974,11 +3974,17 @@ async function repromptWhatsappGroup(row){
   }catch(e){alert('No se pudo solicitar nuevamente: '+(e.message||e))}
 }
 async function prepareWhatsappMonitorTest(){
+  const group=$('#whatsappMonitorGroup')?.value||'';
+  if(!group)return alert('Selecciona primero el grupo que quieres comprobar.');
   try{
-    const out=await ProfeSupabase.rpc('teacher_whatsapp_monitor_use_test_link',{});
-    if(!out?.ok)throw new Error(out?.reason||'No se pudo preparar la prueba.');
-    $('#whatsappMonitorStatus').textContent='Prueba preparada. Entra a App Padres con el usuario Monitor para revisar el flujo desde el inicio.';
-    alert('Prueba del Monitor preparada. La confirmación anterior fue reiniciada.');
+    const out=await ProfeSupabase.rpc('teacher_whatsapp_monitor_select_group',{p_group_name:group});
+    if(!out?.ok){
+      if(out?.reason==='group_not_configured')return alert(`El grupo ${group} no tiene un enlace activo de WhatsApp. Revisa su configuración antes de probarlo.`);
+      if(out?.reason==='group_not_found')return alert(`No se encontró la configuración del grupo ${group}.`);
+      throw new Error(out?.reason||'No se pudo preparar la prueba.');
+    }
+    $('#whatsappMonitorStatus').textContent=`Monitor preparado para comprobar el grupo ${out.group_name}. Entra a App Padres con el usuario Monitor y verifica que el botón abra el grupo correcto.`;
+    alert(`Listo. El Monitor probará ahora el enlace REAL del grupo ${out.group_name}. La confirmación anterior del Monitor fue reiniciada.`);
   }catch(e){alert('No se pudo preparar la prueba: '+(e.message||e))}
 }
 async function resetWhatsappMonitorConfirmation(){

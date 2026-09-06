@@ -1,0 +1,12 @@
+APP DOCENTE v8.21.2 · MONITOR WHATSAPP POR GRUPO
+
+Base: v8.21.1 IMPORTACION SEGURA.
+
+Cambio puntual:
+- En Grupos de WhatsApp – App Padres, el Alumno Monitor ahora puede probar individualmente los grupos 22, 23, 24, 25 y 26.
+- La prueba utiliza el enlace REAL vigente del grupo seleccionado.
+- Al preparar una prueba se reinicia la confirmación del Monitor para que App Padres muestre nuevamente el flujo de incorporación.
+- El Monitor no se incorpora a la matrícula del grupo y no altera asistencia, actividades, calificaciones ni otros datos académicos.
+- Si el grupo no tiene un enlace activo/configurado, la App Docente avisa y no inicia la prueba.
+
+Se conserva íntegramente la importación segura de v8.21.1 y todas las funciones previas.

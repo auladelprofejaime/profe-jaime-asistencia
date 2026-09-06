@@ -932,3 +932,8 @@ button.danger{
 .whatsapp-group-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
 .whatsapp-monitor-test-card{border:2px solid rgba(37,211,102,.28)}
 @media(max-width:760px){.whatsapp-group-grid{grid-template-columns:1fr}.whatsapp-group-name{padding-bottom:0}}
+
+/* v8.21.2 · Selector de grupo para prueba WhatsApp con Monitor */
+.whatsapp-monitor-group-picker{display:flex;gap:12px;align-items:end;margin:12px 0}
+.whatsapp-monitor-group-picker label{font-weight:800;min-width:220px}
+.whatsapp-monitor-group-picker select{display:block;width:100%;margin-top:5px}

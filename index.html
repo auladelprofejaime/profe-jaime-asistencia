@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.21.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.21.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -978,12 +978,23 @@
 
   <div class="card whatsapp-monitor-test-card">
     <h3>Prueba con Alumno Monitor</h3>
-    <p class="hint">El Monitor utiliza un enlace de prueba separado de los grupos reales. Esto permite revisar todo el flujo en App Padres sin asociar el enlace a 22, 23, 24, 25 o 26.</p>
+    <p class="hint">Selecciona el grupo que quieras comprobar. El Monitor utilizará temporalmente el enlace REAL configurado para ese grupo, sin convertirse en alumno del grupo ni afectar matrícula, asistencia o calificaciones.</p>
+    <div class="whatsapp-monitor-group-picker">
+      <label>Grupo a comprobar
+        <select id="whatsappMonitorGroup">
+          <option value="22">22</option>
+          <option value="23">23</option>
+          <option value="24">24</option>
+          <option value="25">25</option>
+          <option value="26">26</option>
+        </select>
+      </label>
+    </div>
     <div class="actions">
-      <button id="whatsappMonitorPrepare" type="button" class="primary">Preparar prueba del Monitor</button>
+      <button id="whatsappMonitorPrepare" type="button" class="primary">Probar este grupo con Monitor</button>
       <button id="whatsappMonitorReset" type="button" class="secondary">Reiniciar confirmación del Monitor</button>
     </div>
-    <p id="whatsappMonitorStatus" class="hint">El enlace de prueba está configurado en Supabase.</p>
+    <p id="whatsappMonitorStatus" class="hint">Selecciona un grupo y prepara la prueba. Después entra a App Padres con el usuario Monitor.</p>
   </div>
 </section>
 
@@ -1199,7 +1210,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8210.js?v=8211"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8210.js?v=8212"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

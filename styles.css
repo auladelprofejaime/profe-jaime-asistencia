@@ -893,3 +893,28 @@ button.danger{
 .birthday-benefit-teacher-summary small{opacity:.65;font-weight:700}
 .birthday-benefit-teacher-name{font-size:1.15rem;font-weight:900;background:#fff5c9;border:1px solid #e8c958;border-radius:14px;padding:14px;margin:10px 0}
 
+
+
+/* v8.20.15 · Escaneo múltiple compacto */
+#actMultiPicker .section{align-items:flex-start;gap:10px 14px}
+#actMultiPicker .actions{gap:8px}
+#actMultiPicker .actions .secondary{padding:9px 14px;font-size:.92rem}
+.activity-multi-choices,.activity-multi-student-choices{display:grid;gap:8px;margin-top:10px}
+.activity-multi-choice,.activity-multi-student-choice{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(0,0,0,.12);border-radius:14px;background:#fff;min-height:auto;cursor:pointer}
+.activity-multi-choice input,.activity-multi-student-choice input{width:18px;height:18px;margin:0}
+.activity-multi-choice span,.activity-multi-student-choice span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.activity-multi-choice b,.activity-multi-student-choice b{font-size:1rem;line-height:1.2}
+.activity-multi-choice small,.activity-multi-student-choice small{font-size:.82rem;opacity:.72;line-height:1.2}
+.activity-multi-choice:has(input:checked),.activity-multi-student-choice:has(input:checked){background:#fff8d8;border-color:#d8b326}
+.activity-multi-student-choice.already{background:#eef7ef;border-color:#8cc79a}
+#actMultiConfirm .hint{margin-top:6px}
+@media (min-width: 900px){
+  .activity-multi-choices,.activity-multi-student-choices{grid-template-columns:1fr 1fr}
+}
+@media (max-width: 640px){
+  #actMultiPicker .section{flex-direction:column;align-items:stretch}
+  #actMultiPicker .actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .activity-multi-choice,.activity-multi-student-choice{padding:9px 10px;gap:9px}
+  .activity-multi-choice b,.activity-multi-student-choice b{font-size:.96rem}
+  .activity-multi-choice small,.activity-multi-student-choice small{font-size:.8rem}
+}

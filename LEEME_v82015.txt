@@ -1,0 +1,5 @@
+v8.20.15
+- Ajuste visual del modo "Varias actividades" a lista compacta.
+- Menor altura por actividad.
+- Checkbox más pequeño.
+- Mejor aprovechamiento del espacio.

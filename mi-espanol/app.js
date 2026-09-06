@@ -89,7 +89,7 @@ let studentSWRegistration=null;
 
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
-  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8128',{scope:'./'});
+  studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js?v=8129',{scope:'./'});
   await navigator.serviceWorker.ready;
   return studentSWRegistration;
 }
@@ -551,12 +551,12 @@ async function showBirthdayGreetingIfNeeded(){
 
  if(retro){
    $('#birthdayGreetingEyebrow').textContent='TENEMOS UNA FELICITACIÓN PENDIENTE PARA TI';
-   $('#birthdayGreetingTitle').textContent=first?`¡También queremos celebrarte, ${first}!`:'¡También queremos celebrarte!';
-   $('#birthdayGreetingMessage').textContent='Sabemos que cumpliste años antes de que la App Estudiantes estuviera habilitada oficialmente. Pero no te preocupes: también queremos felicitarte y tienes una sorpresa de cumpleaños esperándote.';
+   $('#birthdayGreetingTitle').textContent=first?`¡Quiero felicitarte, ${first}!`:'¡Quiero felicitarte!';
+   $('#birthdayGreetingMessage').textContent='Soy tu Profe Jaime y sé que cumpliste años antes de que la App Estudiantes estuviera habilitada oficialmente. No quería dejar pasar la oportunidad de felicitarte. También tienes una sorpresa de cumpleaños esperándote.';
  }else{
    $('#birthdayGreetingEyebrow').textContent='HOY ES TU DÍA';
    $('#birthdayGreetingTitle').textContent=first?`¡Feliz cumpleaños, ${first}!`:'¡Feliz cumpleaños!';
-   $('#birthdayGreetingMessage').textContent='Que tengas un excelente día y un gran año. ¡Disfrútalo mucho! Además, tenemos una sorpresa de cumpleaños para ti.';
+   $('#birthdayGreetingMessage').textContent='Soy tu Profe Jaime y hoy quiero felicitarte. Espero que tengas un excelente día y un gran año. ¡Disfrútalo mucho! Además, preparé una sorpresa de cumpleaños para ti.';
  }
 
  $('#birthdayRevealBtn').textContent='🎁 Descubrir mi beneficio';

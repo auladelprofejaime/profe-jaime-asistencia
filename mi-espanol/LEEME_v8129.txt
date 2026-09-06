@@ -1,0 +1,8 @@
+APP ESTUDIANTES v8.12.9
+
+Cambio de redacción:
+- La felicitación ahora habla siempre en primera persona, enviada por Profe Jaime.
+- Se eliminó la redacción en plural como “tenemos” o “queremos”.
+- Cumpleaños normal: “Soy tu Profe Jaime y hoy quiero felicitarte...”
+- Retroactivo: “Soy tu Profe Jaime y sé que cumpliste años antes de que la app estuviera habilitada...”
+- Se mantiene modal emergente, confeti, beneficio aleatorio y una sola aparición.

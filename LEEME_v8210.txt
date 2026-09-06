@@ -1,0 +1,9 @@
+APP DOCENTE v8.21.0 · WHATSAPP APP PADRES
+
+- Administración dinámica de enlaces de WhatsApp por grupo.
+- Activar/desactivar por grupo.
+- Cambio de enlace sin forzar confirmación.
+- Acción explícita para solicitar nuevamente incorporación.
+- Herramientas de prueba con Alumno Monitor.
+- PDF vigente de accesos conserva su diseño y añade la leyenda de WhatsApp solo cuando el grupo tiene invitación activa.
+- Conserva v8.20.15 y todas sus funciones previas.

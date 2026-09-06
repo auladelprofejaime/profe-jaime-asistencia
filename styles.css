@@ -918,3 +918,17 @@ button.danger{
   .activity-multi-choice b,.activity-multi-student-choice b{font-size:.96rem}
   .activity-multi-choice small,.activity-multi-student-choice small{font-size:.8rem}
 }
+
+
+/* v8.21.0 · Grupos de WhatsApp App Padres */
+.whatsapp-groups-list{display:grid;gap:12px;margin-top:14px}
+.whatsapp-group-row{border:1px solid rgba(0,0,0,.12);border-radius:16px;padding:14px;background:#fff}
+.whatsapp-group-grid{display:grid;grid-template-columns:90px minmax(280px,1fr) 150px;gap:12px;align-items:end}
+.whatsapp-group-name{font-size:1.25rem;font-weight:900;padding:10px 0}
+.whatsapp-group-row label{font-weight:800}
+.whatsapp-group-row input[type="url"]{width:100%;box-sizing:border-box;margin-top:5px}
+.whatsapp-active-line{display:flex;align-items:center;gap:7px;min-height:44px}
+.whatsapp-row-meta{font-size:.82rem;opacity:.7;margin:8px 0 0}
+.whatsapp-group-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.whatsapp-monitor-test-card{border:2px solid rgba(37,211,102,.28)}
+@media(max-width:760px){.whatsapp-group-grid{grid-template-columns:1fr}.whatsapp-group-name{padding-bottom:0}}

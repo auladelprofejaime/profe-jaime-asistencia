@@ -3940,14 +3940,50 @@ async function loadWhatsappGroupSettings(){
       </div>
       <div class="whatsapp-group-actions">
         <button type="button" class="primary whatsapp-group-save">Guardar cambios</button>
+        <button type="button" class="secondary whatsapp-group-confirmations">Ver quién confirmó</button>
         <button type="button" class="secondary whatsapp-group-reprompt">Solicitar nuevamente incorporación a este grupo</button>
       </div>
       <p class="whatsapp-row-meta">Versión de incorporación: ${Number(g.invite_version||1)} · Confirmaciones vigentes: ${Number(g.confirmed_count||0)}</p>
+      <div class="whatsapp-confirmation-list hidden"></div>
     </div>`).join('');
     box.querySelectorAll('.whatsapp-group-save').forEach(btn=>btn.onclick=()=>saveWhatsappGroupRow(btn.closest('[data-wa-group]')));
+    box.querySelectorAll('.whatsapp-group-confirmations').forEach(btn=>btn.onclick=()=>toggleWhatsappConfirmations(btn.closest('[data-wa-group]'),btn));
     box.querySelectorAll('.whatsapp-group-reprompt').forEach(btn=>btn.onclick=()=>repromptWhatsappGroup(btn.closest('[data-wa-group]')));
   }catch(e){box.innerHTML=`<p class="warning-note">No se pudieron cargar los grupos: ${safe(e.message||e)}</p>`}
 }
+
+async function toggleWhatsappConfirmations(row,button){
+  const group=row?.dataset.waGroup||'';
+  const panel=row?.querySelector('.whatsapp-confirmation-list');
+  if(!group||!panel)return;
+  if(!panel.classList.contains('hidden')){
+    panel.classList.add('hidden');
+    button.textContent='Ver quién confirmó';
+    return;
+  }
+  panel.classList.remove('hidden');
+  button.textContent='Ocultar confirmaciones';
+  panel.innerHTML='<p class="hint">Cargando confirmaciones…</p>';
+  try{
+    const out=await ProfeSupabase.rpc('teacher_whatsapp_group_confirmation_list',{p_group_name:group});
+    if(!out?.ok)throw new Error(out?.reason||'No se pudieron cargar las confirmaciones.');
+    const rows=out.confirmations||[];
+    if(!rows.length){
+      panel.innerHTML='<p class="hint">Todavía ninguna familia ha confirmado su incorporación desde App Padres.</p>';
+      return;
+    }
+    panel.innerHTML=`<div class="whatsapp-confirmation-head"><b>Familias que confirmaron</b><span>${rows.length} confirmación${rows.length===1?'':'es'}</span></div>
+      <div class="tablewrap"><table class="matrix whatsapp-confirmation-table"><thead><tr><th>No.</th><th>Alumno</th><th>Confirmó</th><th>Fecha y hora</th></tr></thead><tbody>${rows.map(r=>{
+        const who=`Papá, mamá o tutor de ${safe(r.student_name||r.student_id)}`;
+        let when='—';
+        if(r.confirmed_at){try{when=new Date(r.confirmed_at).toLocaleString('es-MX',{dateStyle:'short',timeStyle:'short'})}catch(e){when=String(r.confirmed_at)}}
+        return `<tr><td>${r.list_number??'—'}</td><td><b>${safe(r.student_name||r.student_id)}</b><br><small>ID ${safe(r.student_id)}</small></td><td>✓ ${who}</td><td>${safe(when)}</td></tr>`;
+      }).join('')}</tbody></table></div>`;
+  }catch(e){
+    panel.innerHTML=`<p class="warning-note">No se pudieron cargar las confirmaciones: ${safe(e.message||e)}</p>`;
+  }
+}
+
 async function saveWhatsappGroupRow(row){
   const group=row?.dataset.waGroup||'';
   const url=row?.querySelector('.whatsapp-group-url')?.value.trim()||'';

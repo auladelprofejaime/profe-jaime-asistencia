@@ -1,0 +1,14 @@
+APP DOCENTE v8.21.4 · CONFIRMACIONES WHATSAPP POR FAMILIA
+
+Base: v8.21.3.
+
+Novedad:
+- En “Grupos de WhatsApp – App Padres” cada grupo incluye “Ver quién confirmó”.
+- Muestra número de lista, alumno, ID, vínculo “Papá, mamá o tutor de [alumno]” y fecha/hora de confirmación.
+- Solo muestra confirmaciones vigentes para la versión actual del enlace del grupo.
+- El Alumno Monitor no aparece en la lista real de familias.
+
+IMPORTANTE:
+- No modifica ni regenera PIN.
+- No toca asistencia, actividades, calificaciones, citas, diagnóstico, Mérito ni datos académicos.
+- No puede verificar la membresía real dentro de WhatsApp; muestra la confirmación realizada por la familia dentro de App Padres.

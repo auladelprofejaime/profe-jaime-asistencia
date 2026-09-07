@@ -940,3 +940,9 @@ button.danger{
 
 /* v8.21.3 · PIN temporal visible en Acceso a portales */
 .pin-not-cached{display:block;margin-top:6px;color:#8a6d1d;font-weight:600;line-height:1.25}.pin-mini b{font-size:1.05rem;letter-spacing:.06em}
+
+/* v8.21.4 · confirmaciones WhatsApp por familia */
+.whatsapp-confirmation-list{margin-top:12px;padding:12px;border:1px solid #d8dee8;border-radius:12px;background:#fafbfd}
+.whatsapp-confirmation-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+.whatsapp-confirmation-table small{font-size:11px;opacity:.72}
+.whatsapp-confirmation-table td:nth-child(3){min-width:240px}

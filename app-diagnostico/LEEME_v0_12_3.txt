@@ -1,0 +1,9 @@
+APP DIAGNÓSTICO v0.12.3
+
+- Agrega “Cronómetro de aplicación grupal” a Lectura Eficaz.
+- Un cronómetro general registra un tiempo individual distinto por alumno.
+- La sesión en curso persiste localmente y se recupera usando la marca exacta de inicio.
+- Segundo toque no sobrescribe: pide confirmación y permite modificación manual.
+- Al finalizar, los tiempos quedan como precarga local para la captura individual de los 20 reactivos.
+- El guardado definitivo sigue usando teacher_diagnostic_save_lectura_eficaz y reading_seconds.
+- No modifica Supabase, fórmulas VE/CL/EL, claves, pruebas, resultados existentes ni otros módulos.

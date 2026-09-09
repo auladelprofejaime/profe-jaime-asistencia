@@ -188,6 +188,10 @@
         <div class="sagesInfo">
           <p><b>Captura el tiempo empleado en leer y las 20 respuestas.</b> La app calcula automáticamente VE (velocidad espontánea), CL (comprensión lectora) y EL (eficacia lectora).</p>
           <p class="muted">Inicial: Prueba 0 “El mercader de Bagdad”. Final: utiliza A, B o C; no se repite la Prueba 0.</p>
+          <div class="lecturaTimerLaunch">
+            <button id="openLecturaGroupTimerBtn" type="button">⏱ Cronómetro de aplicación grupal</button>
+            <small>Todos inician juntos; cada alumno conserva el tiempo exacto en que termina.</small>
+          </div>
         </div>
 
         <div class="lecturaForm">
@@ -232,6 +236,64 @@
         <div id="lecturaStatus" class="status"></div>
         <div id="lecturaResult" class="hidden"></div>
       </section>
+
+      <section id="lecturaGroupTimerCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">Lectura Eficaz · aplicación grupal</p>
+            <h2>Cronómetro de aplicación grupal</h2>
+            <p class="muted">Un cronómetro para todo el grupo. Cada toque guarda el tiempo individual de ese alumno.</p>
+          </div>
+          <button id="backFromLecturaGroupTimer" class="secondary" type="button">← Volver</button>
+        </div>
+
+        <div class="lecturaTimerControls">
+          <label>Grupo
+            <select id="lecturaTimerGroup"></select>
+          </label>
+          <label>Momento
+            <select id="lecturaTimerMoment">
+              <option value="initial">Inicial</option>
+              <option value="final">Final</option>
+            </select>
+          </label>
+          <label>Prueba
+            <select id="lecturaTimerTest"></select>
+          </label>
+        </div>
+
+        <div class="lecturaTimerClockBox">
+          <span>Tiempo general</span>
+          <b id="lecturaTimerClock">00:00</b>
+          <div class="lecturaTimerMainActions">
+            <button id="startLecturaTimerBtn" type="button">Iniciar lectura</button>
+            <button id="finishLecturaTimerBtn" class="secondary" type="button" disabled>Finalizar aplicación</button>
+          </div>
+          <small id="lecturaTimerCounter">Selecciona un grupo para cargar a los alumnos.</small>
+        </div>
+
+        <div id="lecturaTimerGrid" class="lecturaTimerGrid"></div>
+        <div id="lecturaTimerStatus" class="status"></div>
+      </section>
+
+      <div id="lecturaTimerEditModal" class="lecturaTimerModal hidden" role="dialog" aria-modal="true" aria-labelledby="lecturaTimerEditTitle">
+        <div class="lecturaTimerModalBox">
+          <h3 id="lecturaTimerEditTitle">Modificar tiempo</h3>
+          <p id="lecturaTimerEditMessage"></p>
+          <div class="lecturaTimeGrid">
+            <label>Minutos
+              <input id="lecturaTimerEditMinutes" type="number" min="0" max="60" inputmode="numeric">
+            </label>
+            <label>Segundos
+              <input id="lecturaTimerEditSeconds" type="number" min="0" max="59" inputmode="numeric">
+            </label>
+          </div>
+          <div class="sagesActions">
+            <button id="cancelLecturaTimerEdit" class="secondary" type="button">Cancelar</button>
+            <button id="saveLecturaTimerEdit" type="button">Modificar</button>
+          </div>
+        </div>
+      </div>
 
       <section id="proescCard" class="card hidden">
         <div class="sectionHead">
@@ -375,6 +437,6 @@
     </section>
   </main>
 
-  <script src="app-v0122.js?v=0122"></script>
+  <script src="app-v0123.js?v=0123"></script>
 </body>
 </html>

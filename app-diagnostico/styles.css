@@ -217,3 +217,12 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .integratedFollowupMetrics span{font-weight:800}
 .integratedFollowupItem p{margin:0;line-height:1.45}
 @media(max-width:700px){.integratedFollowupGrid{grid-template-columns:1fr}}
+
+
+/* Lectura Eficaz · cronómetro grupal · v0.12.3 */
+.lecturaTimerLaunch{margin-top:14px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}.lecturaTimerLaunch small{color:#655d54}
+.lecturaTimerControls{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin:16px 0}.lecturaTimerControls label{display:flex;flex-direction:column;gap:7px;font-weight:800}
+.lecturaTimerClockBox{text-align:center;padding:20px;border:2px solid #ead681;border-radius:18px;background:#fff9df;margin:14px 0 18px}.lecturaTimerClockBox>span{display:block;font-weight:800;color:#6b6256}.lecturaTimerClockBox>b{display:block;font-size:clamp(46px,9vw,78px);font-variant-numeric:tabular-nums;line-height:1.05;margin:8px 0 14px}.lecturaTimerMainActions{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}.lecturaTimerClockBox small{display:block;margin-top:12px;font-weight:800}
+.lecturaTimerGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px}.lecturaTimerStudent{min-height:94px;border-radius:16px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}.lecturaTimerStudent b{font-size:21px;font-variant-numeric:tabular-nums}.lecturaTimerStudent small{font-size:11px;line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis}.lecturaTimerStudent.pending{background:#f2ead0;color:#332c24;border:2px solid #d8cba9}.lecturaTimerStudent.captured{background:#2d7f46;color:#fff;border:2px solid #1f6335}
+.lecturaTimerModal{position:fixed;inset:0;z-index:10000;background:#0008;display:grid;place-items:center;padding:18px}.lecturaTimerModal.hidden{display:none}.lecturaTimerModalBox{width:min(480px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 12px 40px #0005}.lecturaTimerModalBox h3{margin-top:0}.lecturaTimerModalBox .sagesActions{margin-top:16px}
+@media(max-width:650px){.lecturaTimerControls{grid-template-columns:1fr}.lecturaTimerGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.lecturaTimerStudent{min-height:88px;padding:8px 5px}.lecturaTimerStudent b{font-size:18px}}

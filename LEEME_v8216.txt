@@ -1,0 +1,7 @@
+App Docente v8.21.6
+
+Pagos de libros: flujo rápido por escáner.
+- Al escanear un gafete y recibir Enter, se abre automáticamente una ventana con alumno, grupo, ID, saldo, monto y forma de pago.
+- Al registrar, la ventana se cierra y el campo de escáner queda listo para el siguiente alumno.
+- La búsqueda manual por grupo/alumno/ID se conserva para quien no traiga gafete.
+- No modifica PINs ni módulos académicos existentes.

@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.21.4</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.21.6</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -305,6 +305,7 @@
       <button data-view="content" class="tab"><span>✦</span>Contenido</button>
       <button data-view="portal-access" class="tab"><span>🔐</span>Estado de acceso a portales</button>
       <button data-view="whatsapp-groups" class="tab"><span>💬</span>Grupos de WhatsApp – App Padres</button>
+      <button data-view="payments" class="tab"><span>💵</span>Pagos de libros</button>
       <button data-view="privacy" class="tab"><span>🔒</span>Privacidad y seguridad</button>
     </div>
   </details>
@@ -379,6 +380,7 @@
   <button data-go="students" class="home-button"><span>☷</span><b>Alumnos</b><small>Importar, agregar y ordenar</small></button>
   <button data-go="dossier" class="home-button"><span>👤</span><b>Expediente del alumno</b><small>Datos e historial individual</small></button>
   <button data-go="reports" class="home-button"><span>PDF</span><b>Reportes</b><small>Listos para guardar o compartir</small></button>
+  <button data-go="payments" class="home-button"><span>💵</span><b>Pagos de libros</b><small>Escáner · abonos · saldos · historial</small></button>
  </div>
 </section>
 <section id="attendance" class="view">
@@ -1196,6 +1198,15 @@
   </div>
 </section>
 
+
+<section id="payments" class="view">
+ <div class="card"><div class="section"><div><span class="eyebrow">LIBRO DE LECTURA</span><h2>Pagos de libros</h2><p class="hint">Total por alumno: <b>$280</b>. Registra abonos por escáner o búsqueda manual. Las correcciones quedan como anulaciones en el historial.</p></div><button id="payRefresh" class="secondary" type="button">Actualizar</button></div></div>
+ <div class="stats"><div><b id="payExpected">$0</b><span>Esperado</span></div><div><b id="payReceived">$0</b><span>Recibido</span></div><div><b id="payPending">$0</b><span>Pendiente</span></div><div><b id="payPaidCount">0</b><span>Liquidados</span></div></div>
+ <div class="card grid4"><label>Grupo<select id="payGroup"></select></label><label>Alumno<select id="payStudent"></select></label><label>ID / escáner<input id="payScan" inputmode="numeric" placeholder="Escanea o escribe ID"></label><div class="actions" style="align-items:end"><button id="payFind" class="primary" type="button">Buscar</button></div></div>
+ <div id="payStudentCard" class="card"><div class="empty">Selecciona o escanea un alumno.</div></div>
+ <div class="card"><h2>Registrar abono</h2><div class="grid4"><label>Monto<input id="payAmount" type="number" min="1" max="280" step="1" placeholder="80"></label><label>Forma de pago<select id="payMethod"><option value="cash">Efectivo</option><option value="transfer">Transferencia</option></select></label><label>Fecha y hora<input id="payDate" type="datetime-local"></label><label>Nota opcional<input id="payNote" maxlength="180" placeholder="Ej. abono anterior"></label></div><div class="actions"><button id="payRegister" class="primary" type="button">Registrar abono</button></div><p id="payMessage" class="hint"></p></div>
+ <div class="card"><div class="section"><div><h2>Estado por alumno</h2><p class="hint">✅ Liquidado · 🟡 Parcial · ⚪ Sin pago</p></div></div><div id="payRoster" class="list empty">Cargando…</div></div>
+</section>
 <section id="privacy" class="view"><div class="card privacy-card"><h2>🔒 Privacidad y seguridad</h2>
 <p>Esta aplicación es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas, trámites o procedimientos oficiales.</p>
 <h3>Datos utilizados</h3><p>Se utilizan únicamente los datos necesarios para identificar al estudiante y realizar seguimiento escolar: ID, nombre(s) y primer apellido, turno, grupo, número de lista, cumpleaños solo con día y mes, observaciones o incidencias escolares pertinentes y registros académicos generados en la aplicación.</p>
@@ -1210,7 +1221,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8210.js?v=8214"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8216.js?v=8216"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

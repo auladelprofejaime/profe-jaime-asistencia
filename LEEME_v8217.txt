@@ -1,0 +1,5 @@
+App Docente v8.21.7
+Corrección de despliegue del módulo Pagos de libros.
+Este paquete contiene SOLO los archivos raíz que deben subirse/reemplazarse en App Docente.
+No incluye carpetas de otras apps.
+Archivos: index.html, app-v8217.js, service-worker.js.

@@ -226,3 +226,11 @@ button{border:0;border-radius:12px;padding:12px 16px;background:#b92025;color:#f
 .lecturaTimerGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(125px,1fr));gap:10px}.lecturaTimerStudent{min-height:94px;border-radius:16px;padding:12px 8px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px}.lecturaTimerStudent b{font-size:21px;font-variant-numeric:tabular-nums}.lecturaTimerStudent small{font-size:11px;line-height:1.15;max-width:100%;overflow:hidden;text-overflow:ellipsis}.lecturaTimerStudent.pending{background:#f2ead0;color:#332c24;border:2px solid #d8cba9}.lecturaTimerStudent.captured{background:#2d7f46;color:#fff;border:2px solid #1f6335}
 .lecturaTimerModal{position:fixed;inset:0;z-index:10000;background:#0008;display:grid;place-items:center;padding:18px}.lecturaTimerModal.hidden{display:none}.lecturaTimerModalBox{width:min(480px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 12px 40px #0005}.lecturaTimerModalBox h3{margin-top:0}.lecturaTimerModalBox .sagesActions{margin-top:16px}
 @media(max-width:650px){.lecturaTimerControls{grid-template-columns:1fr}.lecturaTimerGrid{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}.lecturaTimerStudent{min-height:88px;padding:8px 5px}.lecturaTimerStudent b{font-size:18px}}
+
+
+/* v0.12.4 · grupos independientes y mosaico por últimos 2 dígitos del ID */
+.lecturaTimerGroupTiles{display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:10px;margin:8px 0 16px}
+.lecturaTimerGroupTile{min-height:74px;border:2px solid var(--line,#d8dee9);border-radius:14px;background:#fff;padding:10px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.lecturaTimerGroupTile.selected{border-width:3px;box-shadow:0 0 0 2px rgba(0,0,0,.04)}
+.lecturaTimerGroupTile b{font-size:1.05rem}.lecturaTimerGroupTile small{font-size:.78rem;opacity:.72}
+.lecturaTimerStudent b{font-size:1.35rem;line-height:1.15}

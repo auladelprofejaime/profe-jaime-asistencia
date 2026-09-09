@@ -242,15 +242,18 @@
           <div>
             <p class="eyebrow">Lectura Eficaz · aplicación grupal</p>
             <h2>Cronómetro de aplicación grupal</h2>
-            <p class="muted">Un cronómetro para todo el grupo. Cada toque guarda el tiempo individual de ese alumno.</p>
+            <p class="muted">Entra al grupo, inicia la lectura y toca los 2 últimos números del ID cuando cada alumno termine. El tiempo de ese alumno se congela y queda asociado automáticamente a su registro de Lectura Eficaz.</p>
           </div>
           <button id="backFromLecturaGroupTimer" class="secondary" type="button">← Volver</button>
         </div>
 
+        <div class="lecturaTimerGroupPicker">
+          <p class="muted"><b>Selecciona un grupo</b></p>
+          <div id="lecturaTimerGroupTiles" class="lecturaTimerGroupTiles"></div>
+          <select id="lecturaTimerGroup" class="hidden" aria-hidden="true"></select>
+        </div>
+
         <div class="lecturaTimerControls">
-          <label>Grupo
-            <select id="lecturaTimerGroup"></select>
-          </label>
           <label>Momento
             <select id="lecturaTimerMoment">
               <option value="initial">Inicial</option>
@@ -437,6 +440,6 @@
     </section>
   </main>
 
-  <script src="app-v0123.js?v=0123"></script>
+  <script src="app-v0124.js?v=0124"></script>
 </body>
 </html>

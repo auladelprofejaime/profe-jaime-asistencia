@@ -1,0 +1,9 @@
+APP DIAGNÓSTICO v0.12.5
+
+Corrección de acceso visible al cronómetro grupal de Lectura Eficaz.
+
+- En la pantalla de cada grupo aparece el botón “⏱ Lectura Eficaz grupal”.
+- Abre directamente el cronómetro para el grupo activo.
+- Mosaico identificado con los 2 últimos dígitos del ID.
+- Cada alumno conserva su tiempo individual mientras el cronómetro general continúa.
+- Mantiene intactos los módulos, fórmulas y guardado definitivo existentes.

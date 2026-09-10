@@ -1,0 +1,14 @@
+APP DOCENTE v8.21.8 - FIX AISLAMIENTO SERVICE WORKER
+
+Correccion critica:
+- El service worker de App Docente ya NO intercepta rutas de subcarpetas como app-diagnostico, seguimiento-familiar, merito-docentes, etc.
+- Al activar una nueva version solo elimina caches cuyo nombre empieza con app-docente-.
+- No borra caches de Diagnostico, Padres, Merito u otras apps.
+- Se conserva el modulo Pagos de libros y el flujo de escaneo emergente de v8.21.7.
+- No modifica PINs, datos ni Supabase.
+
+Subir SOLO estos cuatro archivos a la raiz de App Docente:
+index.html
+app-v8218.js
+service-worker.js
+LEEME_v8218.txt

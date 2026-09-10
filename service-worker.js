@@ -1,6 +1,8 @@
-const CACHE='app-docente-v8-21-7';
+const CACHE='app-docente-v8-21-8';
+const APP_CACHE_PREFIX='app-docente-';
+const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
- './','./index.html','./styles.css','./app-v8217.js?v=8217',
+ './','./index.html','./styles.css','./app-v8218.js?v=8218',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png',
  './shared/supabase-teacher.js?v=790'
 ];
@@ -21,26 +23,39 @@ self.addEventListener('install',e=>{
 
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
   const ks=await caches.keys();
-  await Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
+  // IMPORTANTE: solo elimina caches viejos de App Docente.
+  // No tocar Diagnostico, Padres, Merito ni otras apps del mismo dominio.
+  await Promise.all(ks.filter(k=>k.startsWith(APP_CACHE_PREFIX)&&k!==CACHE).map(k=>caches.delete(k)));
   await self.clients.claim();
 })()));
+
+function isDocenteRootRequest(url){
+  if(url.origin!==self.location.origin) return false;
+  const p=url.pathname;
+  if(!p.startsWith(ROOT_PATH)) return false;
+  const relative=p.slice(ROOT_PATH.length);
+  // La App Docente vive en la raiz del proyecto. Cualquier subcarpeta
+  // pertenece a otra app y NO debe ser interceptada por este SW,
+  // salvo /shared/, que si es dependencia comun de Docente.
+  if(relative==='' || relative==='index.html' || relative.startsWith('app-v8218.js') ||
+     relative==='styles.css' || relative==='manifest.webmanifest' || relative==='icon.svg' ||
+     relative==='avatar-profe-jaime.png' || relative==='icon-app-docente-v821.png' ||
+     relative.startsWith('shared/')) return true;
+  return !relative.includes('/');
+}
 
 self.addEventListener('fetch',e=>{
   const r=e.request;
   const u=new URL(r.url);
 
-  // Supabase, APIs, POST/PUT/PATCH/DELETE and other external requests
-  // must go directly to the network.
-  if(r.method!=='GET' || u.origin!==self.location.origin){
-    return;
-  }
+  if(r.method!=='GET' || !isDocenteRootRequest(u)) return;
 
   if(r.mode==='navigate'){
     e.respondWith((async()=>{
       try{
         const f=await fetch(r,{cache:'no-store'});
         const c=await caches.open(CACHE);
-        if(f && f.ok) await c.put('./index.html',f.clone());
+        if(f&&f.ok) await c.put('./index.html',f.clone());
         return f;
       }catch(_){
         return await caches.match('./index.html') || Response.error();
@@ -52,7 +67,7 @@ self.addEventListener('fetch',e=>{
   e.respondWith((async()=>{
     try{
       const f=await fetch(r,{cache:'no-store'});
-      if(f && f.ok){
+      if(f&&f.ok){
         const c=await caches.open(CACHE);
         await c.put(r,f.clone());
       }
@@ -62,7 +77,6 @@ self.addEventListener('fetch',e=>{
     }
   })());
 });
-
 
 self.addEventListener('push',event=>{
   let data={title:'App docente',body:'Tienes una actualización.',target:'home'};

@@ -296,6 +296,7 @@
       <button data-view="activities" class="tab"><span>●</span>Actividades</button>
       <button data-view="methodologies" class="tab"><span>%</span>Metodologías</button>
       <button data-view="titular" class="tab"><span>3A</span>Seguimiento 3.º A</button>
+      <button data-view="reto3a" class="tab"><span>🟢</span>Reto 3.º A</button>
       <button data-view="students" class="tab"><span>♟</span>Alumnos</button>
       <button data-view="dossier" class="tab"><span>👤</span>Expediente del alumno</button>
       <button data-view="reports" class="tab"><span>▤</span>Reportes</button>
@@ -377,6 +378,7 @@
   <button data-go="activities" class="home-button"><span>✓</span><b>Actividades</b><small>Escáner y cuadrícula semanal</small></button>
   <button data-go="methodologies" class="home-button"><span>%</span><b>Metodologías</b><small>Criterios, porcentajes y cálculo de calificaciones</small></button>
   <button data-go="titular" class="home-button"><span>3A</span><b>Seguimiento 3.º A</b><small>Captura y reporte individual</small></button>
+  <button data-go="reto3a" class="home-button"><span>🟢</span><b>Reto 3.º A</b><small>15 días sin incidencias · contador proyectable</small></button>
   <button data-go="students" class="home-button"><span>☷</span><b>Alumnos</b><small>Importar, agregar y ordenar</small></button>
   <button data-go="dossier" class="home-button"><span>👤</span><b>Expediente del alumno</b><small>Datos e historial individual</small></button>
   <button data-go="reports" class="home-button"><span>PDF</span><b>Reportes</b><small>Listos para guardar o compartir</small></button>
@@ -1199,6 +1201,57 @@
 </section>
 
 
+<section id="reto3a" class="view">
+<style>
+#reto3a .reto-hero{display:grid;grid-template-columns:minmax(220px,1.2fr) minmax(220px,.8fr);gap:16px;align-items:stretch}
+#reto3a .reto-counter{display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;min-height:250px}
+#reto3a .reto-number{font-size:clamp(4rem,11vw,8rem);font-weight:900;line-height:.9;letter-spacing:-.06em}
+#reto3a .reto-goal{font-size:1.1rem;font-weight:800;margin-top:10px}
+#reto3a .reto-progress{height:16px;background:#ececec;border-radius:999px;overflow:hidden;margin:14px 0;width:100%}
+#reto3a .reto-progress>i{display:block;height:100%;background:linear-gradient(90deg,#1a8f4c,#71c95a);width:0;transition:width .35s ease}
+#reto3a .reto-actions{display:grid;gap:10px;align-content:center}
+#reto3a .reto-actions button{min-height:58px;font-size:1rem}
+#reto3a .reto-incident-box{display:grid;grid-template-columns:1fr 2fr auto;gap:10px;align-items:end}
+#reto3a .reto-history .list-row{align-items:flex-start}
+#reto3a .reto-public-link{word-break:break-all}
+#reto3a .reto-celebrate{font-size:1.15rem;font-weight:800;text-align:center;padding:14px;border-radius:16px;background:#e9f8ef}
+@media(max-width:760px){#reto3a .reto-hero{grid-template-columns:1fr}#reto3a .reto-incident-box{grid-template-columns:1fr}}
+</style>
+<div class="card">
+ <div class="section"><div><span class="eyebrow">3.º A · RETO GRUPAL</span><h2>🟢 Días sin incidencias</h2><p class="hint">Meta: 15 días escolares consecutivos sin quejas, observaciones ni anotaciones. Si ocurre una incidencia, el contador vuelve a 0.</p></div><button id="reto3aRefresh" class="secondary" type="button">Actualizar</button></div>
+</div>
+<div class="reto-hero">
+ <div class="card reto-counter">
+  <div class="eyebrow">LLEVAMOS</div>
+  <div id="reto3aCurrent" class="reto-number">0</div>
+  <div class="reto-goal">DÍAS SIN INCIDENCIAS · META <span id="reto3aGoal">15</span></div>
+  <div class="reto-progress"><i id="reto3aProgress"></i></div>
+  <div class="stats" style="width:100%"><div><b id="reto3aRecord">0</b><span>Récord</span></div><div><b id="reto3aCycle">1</b><span>Reto</span></div></div>
+  <div id="reto3aCelebrate" class="reto-celebrate hidden">🏆 ¡Meta alcanzada! Beneficio: +3 puntos en Español o Tutoría.</div>
+ </div>
+ <div class="card reto-actions">
+  <button id="reto3aAddDay" class="primary" type="button">✅ Sumar día sin incidencias</button>
+  <p class="hint">Úsalo al terminar una jornada escolar limpia.</p>
+  <button id="reto3aNewCycle" class="secondary hidden" type="button">🏁 Iniciar nuevo reto de 15 días</button>
+ </div>
+</div>
+<div class="card">
+ <h2>⚠️ Registrar incidencia</h2>
+ <p class="hint">Una queja, observación o anotación reinicia el contador inmediatamente.</p>
+ <div class="reto-incident-box">
+  <label>Tipo<select id="reto3aIncidentType"><option value="queja">Queja</option><option value="observacion">Observación</option><option value="anotacion">Anotación</option></select></label>
+  <label>Nota opcional<input id="reto3aIncidentNote" maxlength="180" placeholder="Ej. reporte de docente"></label>
+  <button id="reto3aIncident" class="danger" type="button">Reiniciar a 0</button>
+ </div>
+ <p id="reto3aMessage" class="message"></p>
+</div>
+<div class="card">
+ <div class="section"><div><h2>🖥️ Pantalla para proyectar</h2><p class="hint">Este enlace es solo de visualización. No muestra nombres ni permite modificar el contador.</p></div><button id="reto3aOpenPublic" class="primary" type="button">Abrir pantalla</button></div>
+ <p class="reto-public-link"><code id="reto3aPublicUrl">…/reto-3a/</code></p>
+ <p class="hint">La pantalla pública se actualiza sola mientras permanece abierta en la computadora.</p>
+</div>
+<div class="card reto-history"><h2>Historial reciente</h2><div id="reto3aHistory" class="list empty">Cargando…</div></div>
+</section>
 <section id="payments" class="view">
  <div class="card"><div class="section"><div><span class="eyebrow">LIBRO DE LECTURA</span><h2>Pagos de libros</h2><p class="hint">Total por alumno: <b>$280</b>. Registra abonos por escáner o búsqueda manual. Las correcciones quedan como anulaciones en el historial.</p></div><button id="payRefresh" class="secondary" type="button">Actualizar</button></div></div>
  <div class="stats"><div><b id="payExpected">$0</b><span>Esperado</span></div><div><b id="payReceived">$0</b><span>Recibido</span></div><div><b id="payPending">$0</b><span>Pendiente</span></div><div><b id="payPaidCount">0</b><span>Liquidados</span></div></div>
@@ -1221,7 +1274,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8218.js?v=8218"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8219.js?v=8219"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

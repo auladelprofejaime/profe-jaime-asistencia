@@ -1,0 +1,14 @@
+APP DOCENTE v8.21.9 · RETO 3.º A
+
+Cambios:
+- Nuevo módulo Reto 3.º A controlado desde App Docente.
+- Contador 0/15, récord, historial, incidencia y nuevo ciclo.
+- Pantalla pública independiente /reto-3a/ para proyectar.
+- La pantalla pública no muestra nombres ni permite modificar datos.
+- Conserva Pagos de libros v8.21.8 y el resto de módulos.
+- No se modifican PINs.
+
+SUBIR A GITHUB:
+1) Reemplazar en la raíz: index.html, app-v8219.js, service-worker.js.
+2) Crear/subir la carpeta nueva reto-3a con sus 3 archivos.
+3) LEEME_v8219.txt es solo informativo.

@@ -1,0 +1,6 @@
+const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co",SUPABASE_KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA";
+const $=s=>document.querySelector(s);
+async function rpc(){const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/public_reto_3a_status`,{method:'POST',cache:'no-store',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},body:'{}'});if(!r.ok)throw new Error(await r.text());return r.json()}
+function render(d){const c=Number(d.current_days||0),g=Number(d.goal_days||15);$('#counter').textContent=c;$('#goal').textContent=g;$('#record').textContent=Number(d.record_days||0);$('#cycle').textContent=Number(d.cycle_number||1);$('#progress').style.width=`${Math.min(100,c/g*100)}%`;$('#celebrate').classList.toggle('hidden',!d.goal_reached);$('#benefit').classList.toggle('hidden',!!d.goal_reached);$('#status').textContent=d.goal_reached?'META CUMPLIDA':'CONTADOR ACTUAL';$('#updated').textContent='Última actualización: '+new Date(d.updated_at).toLocaleString('es-MX',{dateStyle:'medium',timeStyle:'short'})}
+async function load(){try{render(await rpc())}catch(e){$('#updated').textContent='No se pudo actualizar. Reintentando…'}}
+load();setInterval(load,5000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load()});

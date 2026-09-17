@@ -1,106 +1,948 @@
+:root{--y:#f5c400;--ys:#fff1a8;--r:#c9232d;--rd:#8e1820;--g:#15803d;--gs:#dcfce7;--ink:#211b12;--muted:#71675b;--paper:#fffdf6;--line:#e6d9bd;--shadow:0 10px 26px rgba(65,43,5,.12)}*{box-sizing:border-box}body{margin:0;font-family:system-ui,-apple-system,"Segoe UI",sans-serif;background:#fff9e8;color:var(--ink)}button,input,select,textarea{font:inherit}button{cursor:pointer}.topbar{position:sticky;top:0;z-index:10;display:flex;align-items:center;gap:12px;padding:12px max(14px,env(safe-area-inset-left));background:var(--y);border-bottom:5px solid var(--r)}.avatar-mini{width:54px;height:54px;border-radius:16px;object-fit:cover;object-position:center 18%;background:#fff;border:3px solid var(--r);box-shadow:0 4px 0 var(--rd)}.topbar h1{margin:0;font-size:22px;line-height:1}.topbar p{margin:4px 0 0;color:var(--rd);font-weight:900;font-size:12px;text-transform:uppercase;letter-spacing:.09em}.top-actions{margin-left:auto;display:flex;gap:8px;align-items:center}.save-all{border:2px solid var(--rd);background:var(--r);color:#fff;border-radius:11px;padding:9px 13px;font-weight:900;box-shadow:0 3px 0 var(--rd)}.tabs{display:grid;grid-template-columns:repeat(6,1fr);position:sticky;top:77px;z-index:9;background:#fff;border-bottom:1px solid var(--line);overflow:auto}.tab,.sub{border:0;background:#fff;padding:13px 8px;font-weight:900;color:var(--muted);white-space:nowrap}.tab.active{color:var(--r);box-shadow:inset 0 -4px var(--r)}main{max-width:1100px;margin:auto;padding:16px 14px calc(40px + env(safe-area-inset-bottom))}.view,.actpane,.titpane{display:none}.view.active,.actpane.active,.titpane.active{display:block}.subtabs{display:flex;gap:8px;margin-bottom:14px;overflow:auto}.sub{border:2px solid var(--line);border-radius:12px}.sub.active{background:var(--r);color:#fff;border-color:var(--r)}.card{background:var(--paper);border:1px solid var(--line);border-radius:18px;padding:16px;margin-bottom:16px;box-shadow:var(--shadow)}.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}.formgrid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.formgrid h2,.wide{grid-column:1/-1}label{display:flex;flex-direction:column;gap:6px;font-size:13px;font-weight:850;color:var(--muted)}input,select,textarea{min-height:45px;border:2px solid var(--line);border-radius:11px;padding:10px;background:#fff;color:var(--ink)}input:focus,select:focus,textarea:focus{outline:3px solid var(--ys);border-color:var(--y)}.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin:15px 0}.stats div{background:#fff;border:1px solid var(--line);border-radius:16px;text-align:center;padding:13px}.stats b{display:block;font-size:30px;color:var(--r)}.stats span{font-size:12px;color:var(--muted);font-weight:850}.status{border:4px solid var(--y);border-radius:22px;text-align:center;padding:26px 14px;background:#fff;margin:15px 0;transition:.15s}.status i{font-style:normal;font-size:38px}.status h2{margin:6px}.status p{margin:0;color:var(--muted)}.status.success{background:var(--gs);border-color:var(--g);color:#14532d}.status.error{background:#fee2e2;border-color:var(--r);color:#7f1d1d}.status.warning{background:#fff3c4;border-color:#d97706;color:#78350f}.scan{display:grid;grid-template-columns:1fr auto;gap:10px;margin-bottom:14px}.scan input{font-size:21px;text-align:center;font-weight:900}.primary,.secondary,.danger-outline,.filebtn,.mini{border-radius:11px;padding:10px 14px;font-weight:900;border:2px solid transparent;display:inline-flex;align-items:center;justify-content:center}.primary{background:var(--r);color:#fff;box-shadow:0 4px 0 var(--rd)}.secondary{background:var(--y);color:var(--ink);border-color:#d0a600}.danger-outline{background:#fff;color:var(--r);border-color:var(--r)}.mini{background:rgba(255,255,255,.65);border-color:var(--rd);color:var(--rd)}.actions{display:flex;gap:8px;flex-wrap:wrap}.section{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:10px}.section h2{margin:0}.list{display:flex;flex-direction:column;gap:8px}.list.empty,.empty{padding:18px;text-align:center;color:var(--muted)}.row{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:13px;padding:11px}.row strong{display:block}.row small{color:var(--muted)}.rowactions{display:flex;gap:6px}.rowactions button{border:0;border-radius:8px;padding:7px 9px;font-weight:850}.edit{background:var(--ys)}.del{background:#fee2e2;color:var(--r)}.filebtn{position:relative;overflow:hidden;background:var(--r);color:#fff}.filebtn.alt{background:var(--y);color:var(--ink)}.filebtn input{position:absolute;inset:0;opacity:0}.hint,.message{color:var(--muted)}.message.good{color:var(--g)}.message.bad{color:var(--r)}.tablewrap{overflow:auto;border:1px solid var(--line);border-radius:14px;background:#fff;max-height:65vh}.matrix{border-collapse:separate;border-spacing:0;width:max-content;min-width:100%;font-size:13px}.matrix th,.matrix td{border-right:1px solid var(--line);border-bottom:1px solid var(--line);padding:8px;text-align:center;background:#fff}.matrix th{position:sticky;top:0;z-index:2;background:var(--y);font-weight:900}.matrix .sticky{position:sticky;left:0;z-index:3;text-align:left;min-width:210px;background:#fff}.matrix th.sticky{z-index:4;background:var(--y)}.matrix .num{position:sticky;left:0;z-index:3;min-width:44px}.matrix .name{position:sticky;left:44px;z-index:3;min-width:190px;text-align:left}.matrix th.name,.matrix th.num{background:var(--y);z-index:5}.matrix td.num,.matrix td.name{background:#fff}.mark{min-width:58px;font-size:22px;font-weight:900;cursor:pointer}.mark.yes{background:#dcfce7;color:#166534}.mark.no{background:#fee2e2;color:#991b1b}.mark.blank{background:#fff}.statusbtn{border:0;border-radius:9px;padding:7px;min-width:112px;font-weight:800}.s-green{background:#dcfce7;color:#166534}.s-yellow{background:#fef3c7;color:#854d0e}.s-red{background:#fee2e2;color:#991b1b}.s-white{background:#f3f4f6;color:#4b5563}.report-preview{background:#fff;border:1px solid var(--line);border-radius:16px;padding:20px;min-height:180px}.report-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.reportcard{background:#fff;border:2px solid var(--line);border-radius:18px;padding:24px;text-align:left;box-shadow:var(--shadow)}.reportcard b{display:block;font-size:18px;color:var(--r);margin-bottom:6px}.reportcard span{color:var(--muted)}dialog{width:min(760px,calc(100% - 24px));border:0;border-radius:18px;padding:18px;box-shadow:0 30px 90px rgba(0,0,0,.35)}dialog::backdrop{background:rgba(30,20,0,.55)}.dialoghead{display:flex;justify-content:space-between;align-items:center}.dialoghead button{border:0;border-radius:50%;width:40px;height:40px;background:#fee2e2;color:var(--r);font-size:25px}.hidden{display:none!important}@media(max-width:760px){.grid4{grid-template-columns:1fr 1fr}.report-cards{grid-template-columns:1fr}.tabs{font-size:12px}.tab{padding:12px 6px}}@media(max-width:480px){.grid4,.formgrid{grid-template-columns:1fr}.scan{grid-template-columns:1fr}.section{align-items:stretch;flex-direction:column}.stats b{font-size:24px}}@media print{.topbar,.tabs,.subtabs,.no-print,main>section:not(.print-target){display:none!important}body{background:#fff}.print-page{display:block!important;padding:0}.matrix{font-size:10px;width:100%}.matrix th,.matrix td{padding:4px}.card{box-shadow:none;border:0}}
+.welcome{display:grid;grid-template-columns:minmax(210px,330px) 1fr;align-items:center;gap:24px;overflow:hidden;background:linear-gradient(135deg,#f5c400 0%,#ffe97a 62%,#fffdf6 100%);border:3px solid var(--r)}
+.welcome-avatar{width:100%;max-height:330px;object-fit:contain;object-position:center bottom;align-self:end;filter:drop-shadow(0 12px 15px rgba(70,35,0,.18))}
+.welcome-copy{padding:18px 18px 18px 0}.welcome-copy .eyebrow{font-weight:950;letter-spacing:.18em;color:var(--r)}.welcome-copy h2{font-size:38px;margin:5px 0 8px}.welcome-copy p{font-size:17px;color:#514637;max-width:530px;line-height:1.45}
+.home-summary{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px}.summary-card{background:#fff;border:1px solid var(--line);border-radius:17px;padding:16px;text-align:center;box-shadow:var(--shadow)}.summary-card b{display:block;color:var(--r);font-size:30px}.summary-card span{font-size:12px;color:var(--muted);font-weight:850}
+.home-menu{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}.home-button{border:2px solid var(--line);border-radius:18px;background:#fff;padding:20px;text-align:left;box-shadow:var(--shadow)}.home-button>span{display:grid;place-items:center;width:46px;height:46px;border-radius:13px;background:var(--y);color:var(--r);font-weight:950;margin-bottom:12px}.home-button b{display:block;font-size:18px;color:var(--r);margin-bottom:5px}.home-button small{color:var(--muted);line-height:1.35}
+@media(max-width:760px){.welcome{grid-template-columns:150px 1fr}.welcome-copy h2{font-size:30px}.home-summary{grid-template-columns:1fr 1fr}.home-menu{grid-template-columns:1fr 1fr}.save-all{font-size:12px;padding:8px 9px}}
+@media(max-width:480px){.welcome{grid-template-columns:1fr;text-align:center}.welcome-avatar{max-height:220px}.welcome-copy{padding:0 12px 18px}.home-menu{grid-template-columns:1fr}.topbar h1{font-size:18px}.topbar p{font-size:10px}.save-all{font-size:0}.save-all:after{content:'Guardar';font-size:11px}}
 
-:root{
-  --yellow:#f7c600;--red:#b92025;--red2:#9f171d;--ink:#2a231b;--muted:#6d655d;
-  --paper:#fffdf7;--cream:#fff7dc;--line:#e7dcc0;--soft:#f6edd1;--ok:#1f7a43;
-  font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
-  color:var(--ink);background:var(--cream)
+.save-state{margin:10px 0 0;font-weight:800;color:#5d513f}.warning-note{background:#fff3c4;border-left:5px solid #d97706;padding:10px;border-radius:8px}.top-actions .mini{white-space:nowrap}@media(max-width:620px){#updateAppBtn{font-size:0}#updateAppBtn:after{content:'Actualizar';font-size:11px}.top-actions{gap:5px}}
+
+.activity-edit{background:#f5c400!important;color:#211b12!important;border:2px solid #c79d00!important;min-width:96px}
+
+.order-list{display:flex;flex-direction:column;gap:8px}.order-item{display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:#fff;border:1px solid var(--line);border-radius:12px;padding:10px}.order-item strong{display:block}.order-item small{color:var(--muted)}.order-actions{display:flex;gap:6px}.order-actions button{border:2px solid #d0a600;background:var(--y);border-radius:9px;padding:7px 11px;font-weight:900}.report-options{display:flex;flex-direction:column;gap:8px;margin:12px 0}.report-option{display:grid;grid-template-columns:auto 1fr auto;gap:10px;align-items:center;padding:10px;border:1px solid var(--line);border-radius:11px;background:#fff}.report-option input{width:24px;height:24px;min-height:0}.report-option .move{display:flex;gap:5px}.report-option .move button{border:1px solid #d0a600;background:var(--y);border-radius:8px;padding:6px 9px;font-weight:900}.offline-note{background:#ecfdf5;border:1px solid #86efac;color:#166534;padding:10px;border-radius:10px;font-weight:700}
+
+
+/* v5.0: actividades numéricas y metodologías */
+.metpane{display:none}.metpane.active{display:block}
+.criteria-editor{display:flex;flex-direction:column;gap:10px}
+.criterion-row{display:grid;grid-template-columns:1fr 140px auto;gap:10px;align-items:end;padding:12px;background:#fff;border:1px solid var(--line);border-radius:14px}
+.criterion-row button{min-height:46px}
+.percentage-total{padding:12px;border-radius:12px;background:#fff8d6;border:1px solid #e8cf61;font-size:17px}
+.percentage-total strong{font-size:22px;color:var(--red)}
+.percentage-total .ok{color:var(--green);font-weight:800}
+.percentage-total .bad{color:var(--red);font-weight:800}
+.numeric-score{width:68px!important;min-height:38px!important;padding:6px!important;text-align:center;font-weight:900;border-radius:9px!important}
+.mark.numeric{background:#fff}
+.activity-mode{display:inline-block;margin-left:7px;padding:3px 7px;border-radius:999px;font-size:11px;font-weight:900}
+.activity-mode.delivery{background:#dcfce7;color:#166534}
+.activity-mode.numeric{background:#dbeafe;color:#1e40af}
+.assignment-row{display:grid;grid-template-columns:minmax(180px,1fr) 220px;gap:12px;align-items:center;background:white;border:1px solid var(--line);padding:12px;border-radius:14px}
+.assignment-row small{display:block;color:var(--muted)}
+.grade-good{font-weight:900;color:#166534}.grade-pending{font-weight:900;color:#b45309}
+.methodology-summary{margin:10px 0;padding:12px;border-radius:12px;background:#fff8d6;border:1px solid #e8cf61}
+@media(max-width:650px){
+  .criterion-row,.assignment-row{grid-template-columns:1fr}
 }
-*{box-sizing:border-box}
-html{background:var(--cream)}
-body{margin:0;background:linear-gradient(180deg,#fff7d8 0,#fffdf8 48%,#fff 100%);min-height:100vh;color:var(--ink)}
-button,input,select,textarea{font:inherit}
-button{cursor:pointer}
-.hidden{display:none!important}
-.muted,.hint,.small{color:var(--muted)}
-.eyebrow{font-size:12px;font-weight:900;letter-spacing:.11em;text-transform:uppercase;color:var(--red);margin:0 0 5px}
-h1,h2,h3,h4{color:var(--ink);line-height:1.12}
-h1{font-size:clamp(28px,4vw,44px);margin:0}
-h2{font-size:clamp(23px,3vw,34px);margin:.2rem 0 .8rem}
-h3{font-size:20px;margin:.2rem 0 .65rem}
-p{line-height:1.45}
-a{color:var(--red2)}
 
-.topbar{
- display:flex;align-items:center;gap:14px;padding:14px 22px;background:var(--yellow);
- border-bottom:3px solid var(--red);position:sticky;top:0;z-index:50;box-shadow:0 2px 8px #00000012
+
+/* v5.1: reporte individual de metodología */
+.individual-report-help{
+  margin-top:10px;
+  padding:12px;
+  border-radius:12px;
+  background:#fff8d6;
+  border:1px solid #e8cf61;
 }
-.topbar img{width:58px;height:58px;object-fit:cover;border-radius:14px;background:white}
-.topbar .brand{min-width:0}
-.topbar strong{display:block;font-size:clamp(22px,3vw,34px);line-height:1}
-.topbar span{display:block;margin-top:6px;font-size:15px}
-.topbar .actions,.topActions{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:wrap}
 
-.wrap,.container,main{max-width:1180px;margin:0 auto;padding:18px}
-.card,.panel,.section{
- background:#fff;border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:18px;
- box-shadow:0 8px 24px #5e481514
+
+/* v5.2: menú principal desplegable */
+.dropdown-nav{
+  display:block;
+  position:sticky;
+  top:77px;
+  z-index:9;
+  padding:8px 14px;
+  background:#fff;
+  border-bottom:1px solid var(--line);
+  overflow:visible;
 }
-.sectionHead,.cardHead,.row-between{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap}
-.grid,.cards,.menuGrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px}
-.twoCol{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px}
-.threeCol{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
-
-button,.btn,.primary,.secondary,.danger{
- border:0;border-radius:13px;padding:11px 16px;font-weight:800;min-height:44px;
- transition:transform .08s ease,filter .15s ease
+.main-menu{
+  position:relative;
+  max-width:1100px;
+  margin:0 auto;
 }
-button:active,.btn:active{transform:translateY(1px)}
-button,.btn,.primary{background:var(--red);color:#fff}
-button:hover,.btn:hover{filter:brightness(.96)}
-.secondary{background:var(--soft);color:var(--ink);border:1px solid #eadfbf}
-.danger{background:#7d1117;color:#fff}
-button:disabled{opacity:.48;cursor:not-allowed}
-
-input,select,textarea{
- width:100%;padding:11px 13px;border:1px solid #cfc5aa;border-radius:11px;background:#fff;color:var(--ink);
- min-height:43px
+.main-menu summary{
+  list-style:none;
+  min-height:48px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 14px;
+  border:2px solid var(--line);
+  border-radius:14px;
+  background:#fffdf6;
+  color:var(--ink);
+  cursor:pointer;
+  user-select:none;
+  box-shadow:0 5px 14px rgba(65,43,5,.08);
 }
-textarea{min-height:95px;resize:vertical}
-label{display:block;font-weight:750;margin:10px 0 5px}
-.field,.formGroup{margin-bottom:12px}
-.actions,.buttonRow,.toolbar{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
-
-details{background:#fff;border-bottom:1px solid #e7dcc0}
-summary{cursor:pointer;font-weight:800;padding:9px 14px}
-nav,.menu,.nav{background:#fffdf7}
-.menu button,.nav button{margin:4px}
-
-table{width:100%;border-collapse:separate;border-spacing:0;background:#fff}
-th,td{padding:10px 11px;border-bottom:1px solid #ece5d2;text-align:left;vertical-align:middle}
-th{background:#f8f0d7;font-weight:850;position:sticky;top:0}
-tr:last-child td{border-bottom:0}
-.tableWrap,.table-scroll{overflow:auto;border:1px solid var(--line);border-radius:14px}
-
-.badge,.pill,.chip,.status{
- display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:6px 10px;background:#f3ead0;
- font-weight:750;font-size:13px
+.main-menu summary::-webkit-details-marker{display:none}
+.main-menu summary::marker{display:none}
+.main-menu[open] summary{
+  border-color:var(--r);
+  border-bottom-left-radius:8px;
+  border-bottom-right-radius:8px;
 }
-.status.ok,.badge.ok{background:#e2f3e8;color:#175b32}
-.status.warn,.badge.warn{background:#fff0c7;color:#6e4c00}
-.status.error,.badge.error{background:#fbe0e2;color:#86161d}
+.menu-title{
+  color:var(--r);
+  font-weight:950;
+  font-size:17px;
+}
+#currentSection{
+  flex:1;
+  text-align:left;
+  font-size:17px;
+}
+.menu-arrow{
+  font-size:22px;
+  color:var(--r);
+  transition:transform .18s ease;
+}
+.main-menu[open] .menu-arrow{transform:rotate(180deg)}
+.menu-panel{
+  position:absolute;
+  top:calc(100% + 6px);
+  left:0;
+  right:0;
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:8px;
+  padding:10px;
+  background:#fff;
+  border:2px solid var(--r);
+  border-radius:14px;
+  box-shadow:0 18px 45px rgba(60,35,0,.22);
+  max-height:62vh;
+  overflow:auto;
+}
+.dropdown-nav .tab{
+  display:flex;
+  align-items:center;
+  justify-content:flex-start;
+  gap:10px;
+  min-height:52px;
+  padding:10px 13px;
+  border:2px solid var(--line);
+  border-radius:12px;
+  background:#fffdf6;
+  color:var(--ink);
+  box-shadow:none;
+  text-align:left;
+  white-space:normal;
+}
+.dropdown-nav .tab span{
+  min-width:35px;
+  height:35px;
+  display:grid;
+  place-items:center;
+  border-radius:10px;
+  background:var(--y);
+  color:var(--rd);
+  font-weight:950;
+}
+.dropdown-nav .tab.active{
+  color:var(--r);
+  border-color:var(--r);
+  background:#fff3f3;
+  box-shadow:none;
+}
+.dropdown-nav .tab.active span{
+  background:var(--r);
+  color:#fff;
+}
+@media(max-width:600px){
+  .menu-panel{grid-template-columns:1fr}
+}
+@media print{
+  .dropdown-nav{display:none!important}
+}
 
-.hero,.homeHero{text-align:center}
-.hero img,.homeHero img,.logoGrande{max-width:min(520px,78vw);height:auto;display:block;margin:0 auto 14px}
-.kpi,.stat{background:#fff8e3;border:1px solid #ead9a7;border-radius:16px;padding:14px}
-.kpi strong,.stat strong{font-size:26px;display:block}
 
-.modal,.overlay{position:fixed;inset:0;background:#0008;display:flex;align-items:center;justify-content:center;padding:18px;z-index:100}
-.modalCard,.dialog{background:#fff;border-radius:20px;max-width:650px;width:100%;max-height:88vh;overflow:auto;padding:22px;box-shadow:0 24px 70px #0005}
+/* v5.3: reportes 3.º A por PDF, imagen y correo */
+.titular-report-controls{
+  display:grid;
+  grid-template-columns:1fr 1fr 180px;
+  gap:12px;
+  align-items:end;
+}
+.titular-report-actions{
+  grid-column:1/-1;
+  display:flex;
+  gap:10px;
+  flex-wrap:wrap;
+}
+.titular-report-actions button{min-width:170px}
+.email-compose{
+  display:grid;
+  grid-template-columns:1fr;
+  gap:12px;
+}
+.email-compose textarea{
+  width:100%;
+  min-height:150px;
+  resize:vertical;
+  border:2px solid var(--line);
+  border-radius:12px;
+  padding:12px;
+  font:inherit;
+}
+.email-note{
+  padding:12px;
+  border-radius:12px;
+  background:#fff8d6;
+  border:1px solid #e8cf61;
+  color:#5f4b00;
+}
+@media(max-width:700px){
+  .titular-report-controls{grid-template-columns:1fr}
+  .titular-report-actions{grid-column:auto}
+  .titular-report-actions button{width:100%}
+}
 
-.toast{position:fixed;right:18px;bottom:18px;z-index:200;background:#2a231b;color:#fff;padding:12px 16px;border-radius:12px;box-shadow:0 8px 24px #0004}
-hr{border:0;border-top:1px solid var(--line);margin:18px 0}
-img{max-width:100%}
+.pdf-email-note{padding:12px;border-radius:12px;background:#fff8d6;border:1px solid #e8cf61;color:#5f4b00}
 
+/* v5.7: respaldo para cambio de dispositivo */
+.device-backup-box{margin-top:14px;padding:16px;border:2px solid #d7aa00;border-radius:16px;background:#fff8d6}
+.device-backup-box h2,.device-backup-box h3{margin:0 0 7px}
+.device-backup-box p{margin:5px 0 12px}
+.backup-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px;margin:12px 0}
+.backup-summary div{padding:10px;background:#fff;border:1px solid var(--line);border-radius:10px}
+@media(max-width:520px){.backup-summary{grid-template-columns:1fr}}
+
+
+/* v6.0: administración y borrado selectivo de datos */
+.danger-zone{
+  border:2px solid #c9232d;
+  background:#fff3f3;
+}
+button.danger{
+  background:#c9232d;
+  color:#fff;
+  border-color:#991822;
+}
+.delete-options{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin:12px 0;
+}
+.delete-option{
+  display:flex;
+  gap:10px;
+  align-items:flex-start;
+  padding:12px;
+  background:#fff;
+  border:1px solid #d8caca;
+  border-radius:12px;
+}
+.delete-option input{
+  width:22px;
+  height:22px;
+  flex:0 0 auto;
+}
+.delete-option b{display:block}
+.delete-option small{display:block;color:#665b5b;margin-top:3px}
+.delete-total{
+  padding:12px;
+  border-radius:12px;
+  background:#ffe0e0;
+  color:#7c1119;
+  font-weight:800;
+}
+@media(max-width:650px){
+  .delete-options{grid-template-columns:1fr}
+}
+
+/* v6.1 expediente */
+.formgrid textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:11px;font:inherit;resize:vertical}
+.student-open{cursor:pointer}.student-open:hover strong,.student-open:focus strong{color:#991822;text-decoration:underline}
+.dossier-selector{display:grid;grid-template-columns:1fr minmax(260px,420px);gap:16px;align-items:end}
+.dossier-header{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.dossier-header h2{margin:7px 0 4px}.shift-badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#f5c400;color:#211b12;font-weight:900}.shift-badge.vespertino{background:#c9232d;color:#fff}
+.dossier-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}.dossier-card h3{margin-top:0;color:#991822}
+.dossier-card dl{display:grid;grid-template-columns:minmax(130px,.75fr) 1.25fr;gap:9px 14px;margin:0}.dossier-card dt{font-weight:900;color:#574d3e}.dossier-card dd{margin:0;word-break:break-word}
+.history-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}.history-item{padding:13px;border-radius:13px;background:#fff8d6;border:1px solid #dfc75c}.history-item b{display:block;font-size:1.7rem;color:#991822}.history-item span{display:block;margin-top:3px;font-weight:800}
+.note-block{padding:12px;margin-top:10px;border-radius:12px;background:#f7f4ed;border:1px solid var(--line)}.note-block p{white-space:pre-wrap;margin:6px 0 0}.contact-actions{margin-top:16px}.contact-actions button{flex:1 1 190px}
+@media(max-width:760px){.dossier-selector,.dossier-grid{grid-template-columns:1fr}.dossier-header{align-items:flex-start;flex-direction:column}.dossier-card dl{grid-template-columns:1fr}.dossier-card dd{margin-bottom:6px}}
+
+
+/* v6.2: periodos, extras y puntos disponibles */
+.period-actions{margin:10px 0 14px}
+.month-closed{
+  display:inline-block;padding:5px 9px;border-radius:999px;
+  background:#d9d9d9;color:#333;font-size:.82rem;font-weight:900
+}
+.month-open{
+  display:inline-block;padding:5px 9px;border-radius:999px;
+  background:#dff5e4;color:#176529;font-size:.82rem;font-weight:900
+}
+.extra-input{
+  width:74px!important;min-width:74px;text-align:center;padding:7px!important
+}
+.points-cell{min-width:145px}
+.points-cell button{margin-top:5px;width:100%;padding:7px 8px;font-size:.8rem}
+.grade-rounded{font-size:1.05rem;font-weight:1000;color:#991822}
+.points-positive{font-weight:1000;color:#176529}
+.points-modal-number{
+  width:100%;font-size:2rem;text-align:center;font-weight:900;
+  padding:14px;border:2px solid #d7aa00;border-radius:14px
+}
+.quick-points{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:12px 0}
+.quick-points button{padding:12px 6px}
+.period-summary{
+  padding:12px;border-radius:13px;background:#fff8d6;border:1px solid #dfc75c;margin-bottom:10px
+}
+@media(max-width:650px){.quick-points{grid-template-columns:repeat(2,1fr)}}
+
+/* v7.0 ecosistema */
+.weekday-picker{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}.weekday-picker label{background:#fff8d6;border:1px solid #dfc75c;border-radius:10px;padding:8px 10px}
+.switchline{display:flex!important;gap:10px;align-items:center}.switchline input{width:22px!important;height:22px}
+.portal-content-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}.portal-content-grid textarea{width:100%;border:2px solid var(--line);border-radius:12px;padding:10px;font:inherit}
+.mini-list{margin-top:12px;display:grid;gap:7px}.mini-item{background:#f7f4ed;border:1px solid var(--line);border-radius:10px;padding:9px}.mini-item small{display:block;color:#666}
+.message-inbox{display:grid;gap:10px}.message-card{border:1px solid var(--line);border-radius:14px;padding:13px;background:#fff}.message-card.unread{border-left:6px solid #c9232d}.message-card small{color:#666}
+@media(max-width:900px){.portal-content-grid{grid-template-columns:1fr}}
+
+/* v7.1: materiales por archivo o enlace */
+.material-source-badge{display:inline-block;padding:3px 7px;border-radius:999px;background:#fff8d6;border:1px solid #dfc75c;font-size:.78rem;font-weight:800;margin-left:4px}
+.material-file-name{display:block;margin-top:4px;color:#5f5548;font-size:.86rem}
+
+/* v7.2 acceso a portales */
+.portal-access-card{border:2px solid #d7aa00;background:#fffaf0;margin-bottom:14px}.auth-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}.auth-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:13px}.auth-box h4{margin:0 0 6px}.auth-status{font-size:.87rem;color:#655d50;margin:5px 0 10px}.temp-pin-result{font-size:1.7rem;font-weight:1000;letter-spacing:.15em;background:#211b12;color:#ffd43b;padding:10px 12px;border-radius:12px;text-align:center;margin:8px 0}
+@media(max-width:650px){.auth-grid{grid-template-columns:1fr}}
+
+/* v7.4 estado de acceso */
+.access-pill{display:inline-flex;align-items:center;gap:6px;padding:5px 9px;border-radius:999px;font-size:.78rem;font-weight:900;white-space:nowrap}
+.access-pill.gray{background:#f1f1f1;color:#595959;border:1px solid #d9d9d9}
+.access-pill.yellow{background:#fff3bf;color:#725b00;border:1px solid #e5cb58}
+.access-pill.green{background:#dff6e7;color:#146c37;border:1px solid #9bd6ad}
+.access-pill.red{background:#ffe1e3;color:#a51d2a;border:1px solid #efadb4}
+.access-summary-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:12px 0}
+.access-summary-box{background:#fff;border:1px solid var(--line);border-radius:14px;padding:12px;text-align:center}
+.access-summary-box b{display:block;font-size:1.5rem}
+.table-wrap{overflow:auto}.access-table{width:100%;border-collapse:collapse}.access-table th,.access-table td{padding:9px;border-bottom:1px solid var(--line);text-align:left;vertical-align:middle}.access-table th{font-size:.82rem;color:#665f54}
+.student-access-mini{display:flex;gap:6px;flex-wrap:wrap;margin-top:6px}
+@media(max-width:760px){.access-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+
+.teacher-login-gate{position:fixed;inset:0;z-index:9999;background:rgba(19,18,16,.88);display:grid;place-items:center;padding:18px}
+.teacher-login-gate.hidden{display:none}.teacher-login-card{width:min(440px,100%);background:#fff;border-radius:22px;padding:22px;box-shadow:0 24px 70px rgba(0,0,0,.4)}
+.teacher-login-card img{width:78px;height:78px;object-fit:contain;float:right}.teacher-login-card label{display:block;margin:12px 0}.teacher-login-card input{width:100%;margin-top:5px}
+.remember-line{display:flex!important;gap:8px;align-items:center}.remember-line input{width:20px!important}.login-error{color:#b4232d;font-weight:800;margin-top:8px}
+.cloud-sync-box{margin:14px 0;background:#fff9dc;border:2px solid #e4bd17;border-radius:18px;padding:15px;display:flex;align-items:center;justify-content:space-between;gap:12px}.cloud-sync-box h3{margin:0 0 3px}.cloud-sync-box p{margin:0}.sync-ok{color:#15703a;font-weight:800}.sync-bad{color:#a8232e;font-weight:800}
+@media(max-width:650px){.cloud-sync-box{align-items:stretch;flex-direction:column}}
+
+.inactive-students-card{border:1px dashed #b9b1a5;background:#faf8f4}.inactive-badge{display:inline-block;background:#ece8e1;color:#665f55;border-radius:999px;padding:3px 8px;font-size:.75rem;font-weight:900;margin-left:6px}.cycle-close-card{border:2px solid #b72d38;background:#fff7f7}.student-inactive-header{display:inline-block;background:#5e5a55;color:#fff;border-radius:999px;padding:4px 9px;font-size:.76rem;font-weight:900;margin-left:8px}
+
+.pin-mini{margin-top:5px;display:inline-block;padding:4px 7px;border-radius:8px;background:#211b12;color:#ffd43b;font-weight:1000;letter-spacing:.12em}
+.message-card.unread{border-left:5px solid #d3212d;background:#fff9f2}
+
+.notif-bell{position:relative;border:1px solid #4a3920;background:#fff4bd;border-radius:14px;padding:10px 13px;font-size:1.25rem;cursor:pointer}
+.notif-count{position:absolute;right:-6px;top:-7px;min-width:22px;height:22px;border-radius:999px;background:#d3202d;color:#fff;display:grid;place-items:center;font-size:.72rem;font-weight:1000;border:2px solid #fff}
+.notif-count.hidden{display:none}.notification-list{display:grid;gap:9px}.notification-item{border:1px solid #e4d8bd;border-radius:14px;padding:11px;background:#fff}.notification-item.unread{border-left:5px solid #d3202d;background:#fff9f0}.notification-item small{display:block;color:#756b5b;margin-top:4px}.notification-tools{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.message-unread-dot{display:inline-block;width:10px;height:10px;border-radius:50%;background:#d3202d;margin-left:7px}
+
+/* v8.17.2 · Mi horario + reportes de asistencia */
+.attendance-report-tools .wide{align-self:end}.attendance-report-tools button{width:100%}
+#schedule .formgrid{margin-top:12px}.schedule-note{font-size:.9rem}
+#schedule .rowactions{display:flex;gap:6px;flex-wrap:wrap}
+@media(max-width:700px){#schedule .formgrid{grid-template-columns:1fr}.attendance-report-tools .grid4{grid-template-columns:1fr}}
+
+
+/* v8.17.6 · Panel horario SIN alterar el diseño original de Inicio */
+.welcome-left{
+  width:100%;
+  min-width:0;
+  align-self:stretch;
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+}
+.welcome-left .welcome-avatar{
+  width:100%;
+  max-height:330px;
+  object-fit:contain;
+  object-position:center bottom;
+  align-self:end;
+}
+.home-schedule-widget{
+  width:100%;
+  box-sizing:border-box;
+  margin-top:10px;
+  padding:11px 12px;
+  border:2px solid rgba(181,31,40,.28);
+  border-radius:16px;
+  background:rgba(255,255,255,.67);
+  text-align:center;
+}
+.home-schedule-kicker{
+  color:var(--r);
+  font-weight:950;
+  font-size:11px;
+  letter-spacing:.14em;
+}
+.home-schedule-current{
+  margin-top:3px;
+  color:#211b12;
+  font-size:20px;
+  line-height:1.1;
+  font-weight:950;
+  overflow-wrap:anywhere;
+}
+.home-schedule-time{
+  margin-top:4px;
+  color:#675b4c;
+  font-size:13px;
+  font-weight:800;
+}
+.home-schedule-count-wrap{margin:8px 0}
+.home-schedule-countdown{
+  color:var(--r);
+  font-size:31px;
+  line-height:1;
+  font-weight:950;
+  letter-spacing:.03em;
+  font-variant-numeric:tabular-nums;
+}
+.home-schedule-count-label{
+  margin-top:3px;
+  color:#675b4c;
+  font-size:11px;
+  font-weight:800;
+}
+.home-schedule-next-label{
+  padding-top:7px;
+  border-top:1px solid rgba(130,90,15,.22);
+  color:#675b4c;
+  font-size:10px;
+  font-weight:950;
+  text-transform:uppercase;
+  letter-spacing:.08em;
+}
+.home-schedule-next{
+  margin-top:3px;
+  color:#211b12;
+  font-size:13px;
+  line-height:1.2;
+  font-weight:900;
+  overflow-wrap:anywhere;
+}
+
+/* Respeta exactamente los breakpoints que ya tenía la app */
 @media(max-width:760px){
- .topbar{padding:10px 12px;align-items:flex-start;flex-wrap:wrap}
- .topbar img{width:48px;height:48px}
- .topbar .actions,.topActions{width:100%;margin-left:0}
- .wrap,.container,main{padding:12px}
- .card,.panel,.section{padding:15px;border-radius:16px}
- .twoCol,.threeCol{grid-template-columns:1fr}
- button,.btn,.primary,.secondary,.danger{min-height:46px}
+  .welcome-left .welcome-avatar{max-height:230px}
+  .home-schedule-widget{padding:9px 8px;margin-top:7px}
+  .home-schedule-current{font-size:16px}
+  .home-schedule-countdown{font-size:24px}
+  .home-schedule-next{font-size:11px}
+}
+@media(max-width:480px){
+  .welcome-left .welcome-avatar{max-height:220px}
 }
 
-/* Compatibilidad con controles históricos de App Docente */
-.menuButton,.menuBtn,.navBtn,.actionBtn,.tile,.menuTile{background:#fff;border:1px solid #e2d5ae;color:var(--ink);border-radius:16px;padding:14px;text-align:left;box-shadow:0 4px 14px #5e481510}
-.menuButton:hover,.menuBtn:hover,.navBtn:hover,.actionBtn:hover,.tile:hover,.menuTile:hover{background:#fff9e8}
+/* v8.17.7 · Estados claros en asistencia */
+.attendance-row{border-left:5px solid transparent}
+.attendance-present{border-left-color:#2f8f46}
+.attendance-late{border-left-color:#d89900}
+.attendance-absent{border-left-color:#c7222c}
+.attendance-pending{border-left-color:#9a9488}
+.attendance-row .rowactions{max-width:48%;justify-content:flex-end}
+@media(max-width:700px){
+  .attendance-row{align-items:flex-start}
+  .attendance-row .rowactions{max-width:none;width:100%;justify-content:flex-start;margin-top:8px}
+  .attendance-row .rowactions button{flex:1 1 auto}
+}
+
+/* v8.18.2 · Constructor rápido de Mi horario */
+.schedule-group-manager{
+  display:grid;
+  grid-template-columns:minmax(0,1fr) auto;
+  gap:10px;
+  align-items:end;
+}
+.schedule-group-chips{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:12px;
+}
+.schedule-group-chip{
+  display:inline-flex;
+  align-items:center;
+  gap:7px;
+  padding:7px 10px;
+  border-radius:999px;
+  background:#fff5ca;
+  border:1px solid #e6c355;
+  font-weight:850;
+}
+.schedule-group-chip button{
+  width:24px;
+  height:24px;
+  min-width:24px;
+  padding:0;
+  border:0;
+  border-radius:50%;
+  background:#c62230;
+  color:#fff;
+  font-size:17px;
+  line-height:1;
+}
+.schedule-quick-top{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:12px;
+  margin-bottom:14px;
+}
+.schedule-quick-grid{
+  display:grid;
+  gap:9px;
+}
+.schedule-slot{
+  display:grid;
+  grid-template-columns:125px minmax(0,1fr) minmax(0,1fr);
+  gap:10px;
+  align-items:end;
+  padding:11px;
+  background:#fff;
+  border:1px solid #eadcb3;
+  border-radius:14px;
+}
+.schedule-slot-time{
+  align-self:center;
+  font-size:16px;
+  font-weight:950;
+  color:#2d261c;
+  font-variant-numeric:tabular-nums;
+}
+.schedule-slot-fixed{
+  background:#fff6cf;
+  border-color:#e3bd24;
+  grid-template-columns:125px minmax(0,1fr) auto;
+  align-items:center;
+}
+.schedule-slot-fixed-name{
+  font-size:16px;
+  font-weight:950;
+  color:#b51f2b;
+}
+.schedule-slot-lock{
+  padding:5px 9px;
+  border-radius:999px;
+  background:#f4c600;
+  font-size:11px;
+  font-weight:900;
+}
+.schedule-quick-actions{
+  margin-top:14px;
+}
+.schedule-quick-actions .primary{
+  width:100%;
+}
+.schedule-manual-details>summary{
+  cursor:pointer;
+  padding:5px 0;
+}
+.schedule-manual-details[open]>summary{
+  margin-bottom:12px;
+}
+@media(max-width:760px){
+  .schedule-quick-top{grid-template-columns:1fr}
+  .schedule-slot,
+  .schedule-slot-fixed{grid-template-columns:1fr}
+  .schedule-slot-lock{justify-self:start}
+  .schedule-group-manager{grid-template-columns:1fr}
+}
+
+/* v8.18.3 · Guardias y horas libres */
+.schedule-slot-break{
+  background:#fff9df;
+  border-color:#dfbd51;
+  grid-template-columns:125px minmax(0,1fr) auto;
+  align-items:end;
+}
+.schedule-slot-break-note{
+  align-self:center;
+  padding:5px 9px;
+  border-radius:999px;
+  background:#f4c600;
+  font-size:11px;
+  font-weight:900;
+}
+@media(max-width:760px){
+  .schedule-slot-break{grid-template-columns:1fr}
+  .schedule-slot-break-note{justify-self:start}
+}
+
+/* v8.18.8 · Vista previa e impresión del horario */
+.schedule-quick-actions{
+  display:grid;
+  grid-template-columns:1fr auto;
+  gap:10px;
+}
+.schedule-preview-dialog{
+  width:min(1120px,96vw);
+  max-width:none;
+  border:0;
+  border-radius:22px;
+  padding:0;
+  background:#f7f1df;
+}
+.schedule-preview-dialog::backdrop{
+  background:rgba(0,0,0,.45);
+}
+.schedule-preview-shell{
+  padding:18px;
+}
+.schedule-preview-paper{
+  background:#fff;
+  border:1px solid #dfd4b5;
+  border-radius:16px;
+  padding:22px;
+  aspect-ratio:11/8.5;
+  box-shadow:0 8px 24px rgba(0,0,0,.08);
+  overflow:auto;
+}
+.schedule-sheet-header{
+  display:flex;
+  align-items:center;
+  gap:16px;
+  padding-bottom:14px;
+  border-bottom:4px solid #c11f2e;
+}
+.schedule-sheet-header img{
+  width:76px;
+  height:76px;
+  object-fit:contain;
+}
+.schedule-sheet-title{
+  font-size:32px;
+  line-height:1;
+  font-weight:950;
+  color:#222;
+}
+.schedule-sheet-subtitle{
+  margin-top:7px;
+  font-size:18px;
+  font-weight:900;
+  color:#b51f2b;
+}
+.schedule-sheet-teacher{
+  margin-top:5px;
+  font-size:13px;
+  color:#666;
+}
+.schedule-sheet-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:10px;
+  margin-top:18px;
+}
+.schedule-sheet-row{
+  display:grid;
+  grid-template-columns:120px 1fr 82px;
+  align-items:center;
+  gap:10px;
+  min-height:58px;
+  padding:10px 12px;
+  border-radius:12px;
+  border:1px solid #e2d6b4;
+  background:#fffaf0;
+}
+.schedule-sheet-time{
+  font-size:15px;
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+}
+.schedule-sheet-subject{
+  font-size:16px;
+  font-weight:900;
+}
+.schedule-sheet-group{
+  text-align:center;
+  font-weight:900;
+  font-size:15px;
+}
+.schedule-sheet-row.is-break{background:#fff4bf}
+.schedule-sheet-row.is-guardia{background:#ffe6b0}
+.schedule-sheet-row.is-free{background:#f1f1f1}
+.schedule-sheet-row.is-titular{background:#fff0d4}
+.schedule-sheet-row.is-parent{background:#f5efe6}
+.schedule-sheet-row.is-meeting{background:#f3efe4}
+.schedule-sheet-row.is-academy{background:#f7f0df}
+.schedule-sheet-footer{
+  margin-top:16px;
+  padding-top:9px;
+  border-top:1px solid #ded3b3;
+  text-align:right;
+  font-size:11px;
+  color:#777;
+}
+.schedule-preview-actions{
+  justify-content:flex-end;
+  margin-top:14px;
+}
+@media(max-width:760px){
+  .schedule-quick-actions{grid-template-columns:1fr}
+  .schedule-sheet-grid{grid-template-columns:1fr}
+  .schedule-preview-paper{aspect-ratio:auto}
+}
+
+/* v8.18.9 · Vista previa del horario guardado completo */
+.schedule-week-section{
+  margin-top:18px;
+}
+.schedule-week-section h3{
+  margin:0 0 8px;
+  color:#b51f2b;
+  font-size:18px;
+}
+.schedule-week-table{
+  display:grid;
+  grid-template-columns:110px repeat(5,minmax(120px,1fr));
+  border:1px solid #ddcfaa;
+  border-radius:12px;
+  overflow:hidden;
+}
+.schedule-week-head,
+.schedule-week-time,
+.schedule-week-cell{
+  min-height:54px;
+  padding:8px;
+  border-right:1px solid #e3d8b9;
+  border-bottom:1px solid #e3d8b9;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  text-align:center;
+  box-sizing:border-box;
+}
+.schedule-week-head{
+  background:#f7c600;
+  font-weight:950;
+  min-height:42px;
+}
+.schedule-week-time{
+  background:#fff8dd;
+  font-weight:950;
+  font-variant-numeric:tabular-nums;
+}
+.schedule-week-cell{
+  flex-direction:column;
+  gap:4px;
+  background:#fff;
+}
+.schedule-week-cell strong{
+  font-size:13px;
+}
+.schedule-week-cell span{
+  font-size:12px;
+}
+.schedule-week-cell.is-break{background:#fff4bf}
+.schedule-week-cell.is-guardia{background:#ffe6b0}
+.schedule-week-cell.is-free{background:#f1f1f1}
+.schedule-week-cell.is-titular{background:#fff0d4}
+.schedule-week-cell.is-parent{background:#f5efe6}
+.schedule-week-cell.is-meeting{background:#f3efe4}
+.schedule-week-cell.is-academy{background:#f7f0df}
+.schedule-week-cell.is-class{background:#fffaf0}
+.schedule-week-cell.is-empty{background:#fafafa;color:#aaa}
+.schedule-empty-mark{font-size:16px!important}
+@media(max-width:900px){
+  .schedule-preview-paper{overflow:auto}
+  .schedule-week-table{min-width:820px}
+}
+
+/* v8.19.2 · Lista definitiva */
+.student-list-lock-panel{
+  display:flex;
+  justify-content:space-between;
+  gap:14px;
+  align-items:center;
+  margin:10px 0 14px;
+  padding:12px 14px;
+  border:1px solid #e4c663;
+  border-radius:14px;
+  background:#fff8d9;
+}
+@media(max-width:700px){
+  .student-list-lock-panel{align-items:stretch;flex-direction:column}
+}
+
+/* v8.19.6 · Escaneo múltiple */
+.activity-multi-choices,.activity-multi-student-choices{display:grid;gap:10px;margin-top:12px}
+.activity-multi-choice,.activity-multi-student-choice{display:flex;align-items:center;gap:12px;padding:12px 14px;border:1px solid #e3d9a8;border-radius:14px;background:#fffdf3}
+.activity-multi-choice input,.activity-multi-student-choice input{width:24px;height:24px;flex:0 0 auto}
+.activity-multi-choice span,.activity-multi-student-choice span{display:flex;flex-direction:column;gap:3px}
+.activity-multi-choice small,.activity-multi-student-choice small{opacity:.72}
+.activity-multi-student-choice.already{opacity:.7;background:#eef8ee}
+#actMultiConfirm{border:2px solid #e0b800}
+
+/* v8.19.7 · Citas con padres */
+.parent-appointments-card{border-left:5px solid #d4aa00}
+.appointment-block-controls{display:grid;grid-template-columns:180px 1fr auto;gap:10px;align-items:end;margin:12px 0}
+.appointment-blocked-dates{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0 18px}
+.appointment-block-chip{display:inline-flex;align-items:center;gap:7px;padding:7px 10px;border-radius:999px;background:#fff3cd;border:1px solid #e7cf78;font-size:.9rem}
+.appointment-block-chip button{border:0;background:transparent;font-size:1.25rem;cursor:pointer;line-height:1}
+.appointment-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.appointment-main{display:flex;flex-direction:column;gap:3px}
+.appointment-status{display:inline-block;width:max-content;padding:4px 8px;border-radius:999px;font-size:.78rem;font-weight:800}
+.appointment-status.pending{background:#fff3cd;color:#725900}
+.appointment-status.confirmed{background:#e8f7e8;color:#176b2d}
+@media(max-width:720px){
+ .appointment-block-controls{grid-template-columns:1fr}
+ .appointment-row{align-items:stretch;flex-direction:column}
+}
+
+/* v8.19.8 · Incidencias por uso de celular */
+.cellphone-incidents-card{border-left:5px solid #b9473d}
+.cellphone-controls{margin:12px 0}
+.cellphone-row>div{display:flex;flex-direction:column;gap:4px}
+.cellphone-row small{opacity:.7}
+.cellphone-third-actions{margin-top:14px}
+
+/* v8.19.9 · Monitor global */
+.monitor-student-card .monitor-badge{max-width:100%;white-space:normal}
+
+/* v8.20.1 · Seguimiento celular con día asignado */
+.cellphone-followup-date{
+  display:grid;
+  grid-template-columns:minmax(220px,1fr) auto;
+  gap:10px;
+  align-items:end;
+  margin:12px 0;
+}
+.cellphone-available-times{
+  padding:12px 14px;
+  border:1px solid #eadca0;
+  border-radius:14px;
+  background:#fffdf3;
+  line-height:1.6;
+  margin-bottom:12px;
+}
+@media(max-width:720px){
+  .cellphone-followup-date{grid-template-columns:1fr}
+}
+
+/* v8.20.2 · Confirmación de cita acordada por WhatsApp */
+.appointment-whatsapp-confirm{
+  margin:16px 0 18px;
+  padding:16px;
+  border:1px solid #e5d59a;
+  border-radius:16px;
+  background:#fffdf5;
+}
+.appointment-manual-actions{
+  display:flex;
+  gap:8px;
+  align-items:end;
+  flex-wrap:wrap;
+}
+.appointment-manual-actions button{flex:1;min-width:130px}
+
+/* v8.20.8 · Agenda semanal, historial de citas y limpieza del Monitor */
+.weekly-agenda-card{margin-top:14px}
+.weekly-agenda-list{display:grid;gap:9px}
+.weekly-agenda-item{
+  display:grid;
+  grid-template-columns:minmax(150px,190px) 1fr auto;
+  gap:14px;
+  align-items:center;
+  padding:12px 14px;
+  border-radius:14px;
+  background:#fff9df;
+}
+.weekly-agenda-date,.weekly-agenda-info{display:flex;flex-direction:column;gap:2px}
+.weekly-agenda-date span,.weekly-agenda-info span{font-size:.88rem;opacity:.72}
+.dossier-appointments-card{margin-top:14px}
+.dossier-appointment-summary{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:10px;
+  margin:12px 0;
+}
+.dossier-appointment-summary>div{
+  text-align:center;
+  padding:12px;
+  border-radius:14px;
+  background:#fff8dd;
+}
+.dossier-appointment-summary b{display:block;font-size:1.55rem;color:#c51f2d}
+.dossier-appointment-summary span{font-size:.85rem}
+.dossier-appointment-row{display:flex;justify-content:space-between;gap:12px;align-items:center}
+.dossier-appointment-main{display:flex;flex-direction:column;gap:3px}
+.dossier-appointment-result{display:inline-block;width:max-content;padding:4px 8px;border-radius:999px;font-size:.78rem;font-weight:800}
+.dossier-appointment-result.attended{background:#e1f5e4;color:#176b2d}
+.dossier-appointment-result.no_show{background:#fde2df;color:#8a2c27}
+.dossier-appointment-result.pending{background:#f0eee8;color:#6d665c}
+@media(max-width:720px){
+  .weekly-agenda-item{grid-template-columns:1fr}
+  .dossier-appointment-summary{grid-template-columns:1fr}
+  .dossier-appointment-row{align-items:stretch;flex-direction:column}
+}
+
+/* v8.20.9 · Beneficios de cumpleaños */
+.birthday-person{display:flex;flex-wrap:wrap;align-items:center;gap:7px 10px;padding:3px 0}
+.birthday-benefit-mini{display:inline-block;padding:4px 8px;border-radius:999px;font-size:.76rem;font-weight:850}
+.birthday-benefit-mini.pending{background:#eee9df;color:#756b59}
+.birthday-benefit-mini.revealed{background:#fff1c4;color:#795600}
+.birthday-benefit-mini.accepted{background:#e3f4e7;color:#216a34}
+.birthday-benefit-mini.used{background:#e9e9e9;color:#626262}
+.dossier-birthday-benefit-card{margin-top:14px}
+.birthday-benefit-teacher-summary{display:flex;align-items:center;justify-content:space-between;gap:12px;margin:10px 0}
+.birthday-benefit-teacher-summary>div{display:flex;flex-direction:column}
+.birthday-benefit-teacher-summary small{opacity:.65;font-weight:700}
+.birthday-benefit-teacher-name{font-size:1.15rem;font-weight:900;background:#fff5c9;border:1px solid #e8c958;border-radius:14px;padding:14px;margin:10px 0}
+
+
+
+/* v8.20.15 · Escaneo múltiple compacto */
+#actMultiPicker .section{align-items:flex-start;gap:10px 14px}
+#actMultiPicker .actions{gap:8px}
+#actMultiPicker .actions .secondary{padding:9px 14px;font-size:.92rem}
+.activity-multi-choices,.activity-multi-student-choices{display:grid;gap:8px;margin-top:10px}
+.activity-multi-choice,.activity-multi-student-choice{display:grid;grid-template-columns:22px minmax(0,1fr);align-items:center;gap:10px;padding:10px 12px;border:1px solid rgba(0,0,0,.12);border-radius:14px;background:#fff;min-height:auto;cursor:pointer}
+.activity-multi-choice input,.activity-multi-student-choice input{width:18px;height:18px;margin:0}
+.activity-multi-choice span,.activity-multi-student-choice span{display:flex;flex-direction:column;gap:2px;min-width:0}
+.activity-multi-choice b,.activity-multi-student-choice b{font-size:1rem;line-height:1.2}
+.activity-multi-choice small,.activity-multi-student-choice small{font-size:.82rem;opacity:.72;line-height:1.2}
+.activity-multi-choice:has(input:checked),.activity-multi-student-choice:has(input:checked){background:#fff8d8;border-color:#d8b326}
+.activity-multi-student-choice.already{background:#eef7ef;border-color:#8cc79a}
+#actMultiConfirm .hint{margin-top:6px}
+@media (min-width: 900px){
+  .activity-multi-choices,.activity-multi-student-choices{grid-template-columns:1fr 1fr}
+}
+@media (max-width: 640px){
+  #actMultiPicker .section{flex-direction:column;align-items:stretch}
+  #actMultiPicker .actions{width:100%;display:grid;grid-template-columns:1fr 1fr}
+  .activity-multi-choice,.activity-multi-student-choice{padding:9px 10px;gap:9px}
+  .activity-multi-choice b,.activity-multi-student-choice b{font-size:.96rem}
+  .activity-multi-choice small,.activity-multi-student-choice small{font-size:.8rem}
+}
+
+
+/* v8.21.0 · Grupos de WhatsApp App Padres */
+.whatsapp-groups-list{display:grid;gap:12px;margin-top:14px}
+.whatsapp-group-row{border:1px solid rgba(0,0,0,.12);border-radius:16px;padding:14px;background:#fff}
+.whatsapp-group-grid{display:grid;grid-template-columns:90px minmax(280px,1fr) 150px;gap:12px;align-items:end}
+.whatsapp-group-name{font-size:1.25rem;font-weight:900;padding:10px 0}
+.whatsapp-group-row label{font-weight:800}
+.whatsapp-group-row input[type="url"]{width:100%;box-sizing:border-box;margin-top:5px}
+.whatsapp-active-line{display:flex;align-items:center;gap:7px;min-height:44px}
+.whatsapp-row-meta{font-size:.82rem;opacity:.7;margin:8px 0 0}
+.whatsapp-group-actions{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+.whatsapp-monitor-test-card{border:2px solid rgba(37,211,102,.28)}
+@media(max-width:760px){.whatsapp-group-grid{grid-template-columns:1fr}.whatsapp-group-name{padding-bottom:0}}
+
+/* v8.21.2 · Selector de grupo para prueba WhatsApp con Monitor */
+.whatsapp-monitor-group-picker{display:flex;gap:12px;align-items:end;margin:12px 0}
+.whatsapp-monitor-group-picker label{font-weight:800;min-width:220px}
+.whatsapp-monitor-group-picker select{display:block;width:100%;margin-top:5px}
+
+/* v8.21.3 · PIN temporal visible en Acceso a portales */
+.pin-not-cached{display:block;margin-top:6px;color:#8a6d1d;font-weight:600;line-height:1.25}.pin-mini b{font-size:1.05rem;letter-spacing:.06em}
+
+/* v8.21.4 · confirmaciones WhatsApp por familia */
+.whatsapp-confirmation-list{margin-top:12px;padding:12px;border:1px solid #d8dee8;border-radius:12px;background:#fafbfd}
+.whatsapp-confirmation-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
+.whatsapp-confirmation-table small{font-size:11px;opacity:.72}
+.whatsapp-confirmation-table td:nth-child(3){min-width:240px}

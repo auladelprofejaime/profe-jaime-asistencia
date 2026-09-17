@@ -1,5 +1,5 @@
-const CACHE="diagnostico-v0127";
-const ASSETS=["./","index.html","styles.css","app-v0127.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-original.jpg"];
+const CACHE="diagnostico-v0128";
+const ASSETS=["./","index.html","styles.css","app-v0128.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-original.jpg"];
 
 self.addEventListener("install",event=>{
   event.waitUntil(
@@ -20,7 +20,7 @@ self.addEventListener("fetch",event=>{
   const url=new URL(event.request.url);
   const shell=url.pathname.endsWith("/")||
               url.pathname.endsWith("/index.html")||
-              url.pathname.endsWith("/app-v0127.js");
+              url.pathname.endsWith("/app-v0128.js");
   if(shell){
     event.respondWith(
       fetch(event.request,{cache:"no-store"}).catch(()=>caches.match(event.request))

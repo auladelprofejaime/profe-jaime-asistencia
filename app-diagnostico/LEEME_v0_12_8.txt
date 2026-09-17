@@ -1,0 +1,1 @@
+v0.12.8 FIX visible: acceso directo a Lectura Eficaz Vespertino desde la pantalla Grupos. 1C 32, 3A 30, 3B 31, 3C 29. El mosaico usa el número de lista original.

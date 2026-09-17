@@ -1,0 +1,7 @@
+APP DOCENTE v8.22.3
+Corrección: Pagos de libros funciona sin conexión.
+- Los abonos se guardan en la cola local cuando no hay red.
+- El saldo/pagado se refleja inmediatamente en la copia local.
+- Al recuperar conexión se sincronizan los movimientos pendientes.
+- Se conserva el aislamiento del service worker respecto de las demás apps.
+Subir a la raíz: index.html, app-v8223.js y service-worker.js.

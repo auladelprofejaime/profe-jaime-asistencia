@@ -1,0 +1,9 @@
+APP DIAGNÓSTICO v0.13.2 — CONSULTA DE TIEMPOS POR PERIODO
+
+- Conserva todos los módulos existentes.
+- "Consultar tiempos registrados" revisa los registros vespertinos guardados en localStorage
+  sin depender del periodo actualmente abierto.
+- Muestra grupo, periodo asociado, fecha, alumno, número de lista y tiempo.
+- No borra ni migra registros existentes.
+- No modifica PINs ni datos de App Docente.
+- Subir estos archivos ÚNICAMENTE dentro de /app-diagnostico/.

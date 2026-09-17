@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.22.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.22.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -389,7 +389,7 @@
  <div class="card grid4"><label>Turno<select id="attShift"></select></label><label>Grupo<select id="attGroup"></select></label><label>Fecha<input id="attDate" type="date"></label><label>Modo<select id="attMode"><option value="presente">Presente</option><option value="retardo">Retardo</option></select></label></div>
  <div class="stats"><div><b id="attPresent">0</b><span>Registrados</span></div><div><b id="attTotal">0</b><span>Alumnos</span></div><div><b id="attMissing">0</b><span>Faltantes</span></div></div>
  <div id="attStatus" class="status neutral"><i>▣</i><h2>Escanea la credencial</h2><p>El lector escribe el ID y envía Enter.</p></div>
- <div class="scan"><input id="attScan" inputmode="numeric" placeholder="ID del alumno"><button id="attRegister" class="primary">Registrar</button></div>
+ <div class="scan"><input id="attScan" inputmode="numeric" placeholder="ID del alumno"><button id="attRegister" class="primary" type="button">Registrar</button></div>
  <div class="card attendance-report-tools">
   <div class="section"><h2>Reporte PDF de asistencia</h2></div>
   <div class="grid4">
@@ -548,7 +548,7 @@
   </div>
   <div id="actSingleStats" class="stats"><div><b id="actDelivered">0</b><span>Entregaron</span></div><div><b id="actNotDelivered">0</b><span>No entregaron</span></div><div><b id="actPending">0</b><span>Pendientes</span></div></div>
   <div id="actStatus" class="status neutral"><i>▣</i><h2>Escanea para registrar entrega</h2><p>Disponible únicamente para actividades de entrega.</p></div>
-  <div class="scan"><input id="actScan" inputmode="numeric" placeholder="ID del alumno"><button id="actRegister" class="primary">Registrar entrega</button></div>
+  <div class="scan"><input id="actScan" inputmode="numeric" placeholder="ID del alumno"><button id="actRegister" class="primary" type="button">Registrar entrega</button></div>
   <div id="actMultiConfirm" class="card hidden">
    <div class="section"><div><span class="monitor-badge">ALUMNO ESCANEADO</span><h2 id="actMultiStudentName">Alumno</h2><p id="actMultiStudentMeta" class="hint"></p></div></div>
    <p class="hint">Deja marcadas únicamente las actividades que este alumno sí entregó.</p>
@@ -1274,7 +1274,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8221.js?v=8221"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8222.js?v=8222"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

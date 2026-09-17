@@ -69,7 +69,24 @@
           <h3>Lectura Eficaz · Vespertino</h3>
           <p class="muted">Estos alumnos se usan únicamente para Lectura Eficaz y no se agregan al padrón general de diagnóstico.</p>
           <div id="lecturaVespertinoQuickGroups" class="lecturaTimerGroupTiles"></div>
+          <div style="margin-top:14px">
+            <button id="openLecturaHistoryBtn" type="button">📋 Consultar tiempos registrados</button>
+          </div>
         </div>
+      </section>
+
+      <section id="lecturaHistoryCard" class="card hidden">
+        <div class="sectionHead">
+          <div>
+            <p class="eyebrow">Lectura Eficaz · Vespertino</p>
+            <h2>Historial de tiempos</h2>
+            <p class="muted">Consulta los tiempos guardados de 1C, 3A, 3B y 3C, incluso después de finalizar una aplicación.</p>
+          </div>
+          <button id="backFromLecturaHistory" class="secondary" type="button">← Grupos</button>
+        </div>
+        <div id="lecturaHistorySummary" class="status"></div>
+        <div id="lecturaHistoryGroups" class="lecturaTimerGroupTiles"></div>
+        <div id="lecturaHistoryResults" style="margin-top:16px"></div>
       </section>
 
       <section id="groupDashboardCard" class="card hidden">
@@ -448,6 +465,6 @@
     </section>
   </main>
 
-  <script src="app-v0130.js?v=0130"></script>
+  <script src="app-v0131.js?v=0131"></script>
 </body>
 </html>

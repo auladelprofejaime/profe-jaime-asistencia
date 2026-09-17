@@ -1,0 +1,4 @@
+v0.13.1
+Añade menú permanente 'Consultar tiempos registrados' en Grupos > Lectura Eficaz Vespertino.
+La recuperación busca tanto registros individuales locales como sesiones archivadas, sin depender del periodo activo.
+Abre 3B por defecto para facilitar la recuperación inmediata.

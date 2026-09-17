@@ -1,0 +1,3 @@
+v0.12.7
+Corrección crítica: los padrones vespertinos se cargan directamente en el cronómetro aunque falle la consulta de grupos a Supabase.
+1C: 32; 3A: 30; 3B: 31; 3C: 29. El mosaico usa número de lista original.

@@ -1,0 +1,2 @@
+v0.12.9
+Corrección visual: los botones de grupo de Lectura Eficaz ahora muestran texto oscuro sobre fondo blanco.

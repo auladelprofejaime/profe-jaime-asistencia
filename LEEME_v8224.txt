@@ -1,0 +1,2 @@
+App Docente v8.22.4
+Pagos local-first: escáner y registro no requieren consulta individual previa a Supabase. El abono se refleja localmente de inmediato y se sincroniza al recuperar conexión.

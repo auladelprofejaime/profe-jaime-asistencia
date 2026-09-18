@@ -1,0 +1,3 @@
+v0.13.4 — Auditoría visible en la pantalla inicial de Periodo diagnóstico.
+Muestra fecha de creación y conteos locales Matutino/Vespertino por periodo.
+No mueve, elimina ni modifica tiempos. No borrar periodos hasta revisar los conteos.

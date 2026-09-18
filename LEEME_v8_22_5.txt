@@ -1,0 +1,8 @@
+APP DOCENTE v8.22.5 — REPORTE DE ACTIVIDADES POR RANGO
+
+Cambio puntual:
+- El botón de PDF de la cuadrícula ahora permite elegir Fecha inicial y Fecha final.
+- Puede abarcar una semana, dos semanas o cualquier rango.
+- Solo incluye actividades del turno/grupo seleccionado cuya fecha asignada cae dentro del rango.
+- Conserva selección individual de actividades, PDF general, PDF individuales y envío a Padres.
+- No modifica actividades, registros, pagos, asistencia, PIN, Reto 3A ni otras funciones.

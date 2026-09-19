@@ -94,3 +94,17 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - No se borraron ni reiniciaron datos.
 - Estado al revisar: 18 grupos activos; 0 movimientos; 0 reconocimientos; 0 publicaciones semanales; 0 cierres mensuales.
 - Periodo configurado: “Octubre 2026”, 2026-10-01 a 2026-10-23, estado open. Antes del 1 de octubre el registro de movimientos debe responder `no_open_period` por estar fuera de fechas.
+
+
+## Mérito Gabino A. Palma — preparación Consejo Técnico 2026-09-25
+- Creado periodo de prueba separado: “Prueba Consejo Técnico · 25 septiembre 2026”, activo únicamente el 2026-09-25.
+- El periodo oficial “Octubre 2026” permanece intacto del 2026-10-01 al 2026-10-23.
+- App Mérito Docentes reforzada a v1.3:
+  - comprobación visible del estado del sistema;
+  - muestra “Sistema listo para registrar” cuando hay periodo activo;
+  - informa cuando el periodo aún no inicia;
+  - timeout de red y mensajes de conexión comprensibles;
+  - caché actualizado para evitar versión vieja.
+- Añadida RPC pública mínima `merit_current_period_status()`, que solo informa si hay periodo activo y sus fechas/etiqueta; no expone datos sensibles.
+- Al 2026-09-19, la comprobación devuelve periodo inactivo, como corresponde; el 2026-09-25 deberá detectar el periodo de prueba.
+- Actualmente solo hay un integrante de `merit_staff` activo. Para que varios docentes prueben la app con trazabilidad individual, deben agregarse/activarse desde “Docentes autorizados” antes del Consejo.

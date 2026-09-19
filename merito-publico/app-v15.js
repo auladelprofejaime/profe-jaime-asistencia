@@ -74,7 +74,7 @@ async function loadMeritPublicPortal(){
 }
 
 loadMeritPublicPortal();
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker-v15.js?v=15').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker-v15.js?v=16').catch(()=>{});
 
 setInterval(loadMeritPublicPortal,60000);
 document.addEventListener('visibilitychange',()=>{

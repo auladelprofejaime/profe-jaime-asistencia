@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.3</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.4</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -1248,14 +1248,12 @@
  <div class="card"><h2>Registrar abono</h2><div class="grid4"><label>Monto<input id="payAmount" type="number" min="1" max="280" step="1" placeholder="80"></label><label>Forma de pago<select id="payMethod"><option value="cash">Efectivo</option><option value="transfer">Transferencia</option></select></label><label>Fecha y hora<input id="payDate" type="datetime-local"></label><label>Nota opcional<input id="payNote" maxlength="180" placeholder="Ej. abono anterior"></label></div><div class="actions"><button id="payRegister" class="primary" type="button">Registrar abono</button></div><p id="payMessage" class="hint"></p></div>
  <div class="card"><div class="section"><div><h2>Estado por alumno</h2><p class="hint">⚪ Pendiente de pago · 🟡 Pago en proceso · 🟢 Liquidado · 🔵 Libro solicitado · ✅ Libro entregado</p></div><button id="bookEditorialOpen" class="secondary" type="button">Administración editorial</button></div><div id="payRoster" class="list empty">Cargando…</div></div>
  <dialog id="bookEditorialDialog" data-private-visible="0"><div class="dialoghead"><h2>Administración editorial</h2><button id="bookEditorialClose" type="button">×</button></div><div class="dialogbody">
- <div class="section"><div><p class="hint">Información financiera privada de uso docente. Los importes permanecen ocultos hasta que decidas mostrarlos.</p></div><button id="bookEditorialPrivacyToggle" data-private-toggle class="secondary" type="button">👁 Mostrar importes</button></div>
- <h3>Resumen de cobro</h3>
- <div class="stats"><div><b id="payExpected" class="private-value masked">$0</b><span>Esperado a $280</span></div><div><b id="payReceived" class="private-value masked">$0</b><span>Total recibido</span></div><div><b id="payPending" class="private-value masked">$0</b><span>Pendiente</span></div><div><b id="payPaidCount" class="private-value masked">0</b><span>Liquidados</span></div></div>
- <div class="stats"><div><b id="bookEditorialCash" class="private-value masked">$0</b><span>Recibido en efectivo</span></div><div><b id="bookEditorialTransfer" class="private-value masked">$0</b><span>Recibido por transferencia</span></div><div><b id="bookEditorialCostTotal" class="private-value masked">$0</b><span>Costo editorial de liquidados</span></div><div><b id="bookEditorialProfit" class="private-value masked">$0</b><span>Ganancia en liquidados</span></div></div>
- <h3>Solicitud y entrega</h3>
- <div class="stats"><div><b id="bookEditorialDue" class="private-value masked">$0</b><span>A pagar en próximo pedido</span></div><div><b id="bookEditorialReady" class="private-value masked">0</b><span>Liquidados sin solicitar</span></div><div><b id="bookEditorialRequested" class="private-value masked">0</b><span>Solicitados acumulados</span></div><div><b id="bookEditorialDelivered" class="private-value masked">0</b><span>Entregados</span></div></div>
- <div class="stats"><div><b id="bookEditorialRequestedCost" class="private-value masked">$0</b><span>Costo editorial acumulado solicitado</span></div></div>
- <p class="hint">Costo editorial interno: <b>$250 por libro</b>. Precio cobrado a familias: <b>$280 por libro</b>. La ganancia mostrada corresponde a libros ya liquidados.</p>
+ <div class="section"><div><p class="hint">Resumen privado de los libros y de lo que corresponde pagar a la editorial.</p></div><button id="bookEditorialPrivacyToggle" data-private-toggle class="secondary" type="button">👁 Mostrar importes</button></div>
+ <h3>Estado de libros</h3>
+ <div class="stats"><div><b id="bookEditorialPaidCount" class="private-value masked">0</b><span>Liquidados</span></div><div><b id="bookEditorialReady" class="private-value masked">0</b><span>Pendientes de solicitar</span></div><div><b id="bookEditorialRequested" class="private-value masked">0</b><span>Solicitados</span></div><div><b id="bookEditorialDelivered" class="private-value masked">0</b><span>Entregados</span></div></div>
+ <h3>Dinero con editorial</h3>
+ <div class="stats"><div><b id="bookEditorialDue" class="private-value masked">$0</b><span>Próximo pago</span></div><div><b id="bookEditorialRequestedCost" class="private-value masked">$0</b><span>Total comprometido a editorial</span></div><div><b id="bookEditorialProfit" class="private-value masked">$0</b><span>Ganancia acumulada</span></div></div>
+ <p class="hint">Editorial: <b>$250 por libro</b> · Precio a familias: <b>$280</b> · Diferencia: <b>$30 por libro liquidado</b>.</p>
  <div class="actions"><button id="bookEditorialRefresh" class="secondary" type="button">Actualizar resumen</button></div>
  </div></dialog>
  <div class="card"><div class="section"><div><h2>📄 Reportes de libros para familias</h2><p class="hint">Genera el aviso que necesites. Los estados provienen de Gestión de libros.</p></div></div>
@@ -1289,7 +1287,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8233.js?v=8233"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8234.js?v=8234"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

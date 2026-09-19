@@ -27,14 +27,39 @@ async function rpc(name,args={}){
 function roleLabel(r){return ({docente:'Docente',direccion:'Dirección',subdireccion:'Subdirección',prefectura:'Prefectura',otro:'Personal autorizado'})[r]||r||''}
 async function checkDevice(){
  if(!token) return showActivation();
- try{const d=await rpc('merit_device_info',{p_token:token});if(!d?.ok)throw 0;staff=d.staff;showCapture()}catch{localStorage.removeItem(TOKEN_KEY);token='';showActivation()}
+ try{
+   const d=await rpc('merit_device_info',{p_token:token});
+   if(!d?.ok)throw new Error(d?.reason||'unauthorized');
+   staff=d.staff;
+   showCapture();
+   if(d.must_change_pin)setTimeout(()=>$('#pinDialog')?.showModal(),80);
+ }catch{
+   localStorage.removeItem(TOKEN_KEY);token='';showActivation();
+ }
 }
 function showActivation(){$('#activation').classList.remove('hidden');$('#capture').classList.add('hidden')}
 function showCapture(){$('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');$('#staffName').textContent=staff.display_name;$('#staffRole').textContent=roleLabel(staff.role_type);checkSystemReady()}
 $('#activateBtn').onclick=async()=>{
- const code=$('#activationCode').value.trim();const st=$('#activationStatus');st.textContent='';
- if(!/^\d{4}$/.test(code))return st.innerHTML='<span class="error">Escribe los 4 dígitos.</span>';
- try{const d=await rpc('merit_activate_device',{p_code:code});if(!d?.ok)throw new Error('Código inválido o inactivo.');token=d.installation_token;staff=d.staff;localStorage.setItem(TOKEN_KEY,token);$('#activationCode').value='';showCapture()}catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
+ const staffCode=$('#staffCode').value.trim();
+ const pin=$('#activationCode').value.trim();
+ const st=$('#activationStatus');st.textContent='';
+ if(!/^\d{6}$/.test(staffCode))return st.innerHTML='<span class="error">Escribe tu ID de 6 dígitos.</span>';
+ if(!/^\d{4}$/.test(pin))return st.innerHTML='<span class="error">Escribe tu NIP de 4 dígitos.</span>';
+ try{
+   const d=await rpc('merit_login_device',{p_staff_code:staffCode,p_pin:pin});
+   if(!d?.ok){
+     const msgs={invalid_credentials:'ID o NIP incorrectos.',trial_expired:'Este ID de prueba ya venció. Consulta al administrador.'};
+     throw new Error(msgs[d?.reason]||'No se pudo ingresar.');
+   }
+   token=d.installation_token;staff=d.staff;
+   localStorage.setItem(TOKEN_KEY,token);
+   $('#staffCode').value='';$('#activationCode').value='';
+   showCapture();
+   if(d.must_change_pin){
+     $('#currentPin').value=pin;
+     setTimeout(()=>$('#pinDialog')?.showModal(),80);
+   }
+ }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
 $('#forgetDevice').onclick=()=>{if(confirm('¿Desvincular este dispositivo? Para volver a usarlo necesitarás un código de activación vigente.')){localStorage.removeItem(TOKEN_KEY);location.reload()}};
 $$('#gradeButtons button').forEach(b=>b.onclick=()=>{grade=Number(b.dataset.grade);group=null;const gc=$('#selectedGroupConfirm');if(gc)gc.textContent='';$$('#gradeButtons button').forEach(x=>x.classList.toggle('active',x===b));renderGroups()});
@@ -74,6 +99,24 @@ $('#sendConfirm').onclick=async()=>{
  points=null;$$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));$('#reason').value='';$('#reasonWrap').classList.add('hidden');$$('#criteria input').forEach(x=>x.checked=false);
  }catch(e){$('#confirmDialog').close();$('#captureStatus').innerHTML=`<span class="error">${e.message||e}</span>`}finally{btn.disabled=false}
 };
+$('#saveNewPin').onclick=async()=>{
+ const current=$('#currentPin').value.trim();
+ const next=$('#newPin').value.trim();
+ const confirmPin=$('#newPinConfirm').value.trim();
+ const st=$('#pinChangeStatus');st.textContent='';
+ if(!/^\d{4}$/.test(current))return st.innerHTML='<span class="error">Escribe tu NIP actual de 4 dígitos.</span>';
+ if(!/^\d{4}$/.test(next))return st.innerHTML='<span class="error">El nuevo NIP debe tener 4 dígitos.</span>';
+ if(next!==confirmPin)return st.innerHTML='<span class="error">Los nuevos NIP no coinciden.</span>';
+ try{
+   const d=await rpc('merit_change_pin',{p_token:token,p_current_pin:current,p_new_pin:next});
+   if(!d?.ok){
+     const msgs={invalid_current_pin:'El NIP actual no es correcto.',same_pin:'El nuevo NIP debe ser diferente al impreso.',invalid_new_pin:'El nuevo NIP debe tener 4 dígitos.'};
+     throw new Error(msgs[d?.reason]||'No se pudo cambiar el NIP.');
+   }
+   st.innerHTML='<span class="success">✓ NIP actualizado correctamente.</span>';
+   setTimeout(()=>$('#pinDialog').close(),600);
+ }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
+};
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=14').catch(()=>{});
 checkDevice();

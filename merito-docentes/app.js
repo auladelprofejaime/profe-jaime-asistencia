@@ -161,8 +161,55 @@ function showCapture(){
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
  $('#staffName').textContent=staff?.display_name||(`ID ${staff?.staff_code||''}`);
  $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
- checkSystemReady();updateOfflineUI();
+ checkSystemReady();updateOfflineUI();refreshTieVotes();
 }
+
+function tieVoteLabel(issue){
+ const labels={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
+ return issue.issue_type==='overall'?'Mérito del Mes':(labels[issue.criterion_code]||'Reconocimiento');
+}
+async function castTieVote(issueId,groupCode){
+ const st=$('#tieVoteStatus');
+ if(!navigator.onLine){if(st)st.innerHTML='<span class="error">Necesitas internet para votar.</span>';return}
+ if(!confirm('¿Confirmas tu voto por el grupo '+groupCode+'?\n\nTu voto quedará registrado y no podrá cambiarse.'))return;
+ try{
+  if(st)st.textContent='Registrando voto…';
+  const d=await rpc('merit_cast_tie_vote',{p_token:token,p_issue_id:issueId,p_group_code:groupCode});
+  if(!d?.ok){
+   const msgs={already_voted:'Tu voto para este desempate ya fue registrado.',vote_not_open:'Esta votación ya fue cerrada.',not_eligible:'Tu acceso no está incluido en esta votación.',invalid_candidate:'Ese grupo no pertenece a este desempate.'};
+   throw new Error(msgs[d?.reason]||d?.reason||'No se pudo registrar el voto.');
+  }
+  if(st)st.innerHTML='<span class="success">✓ Voto registrado correctamente.</span>';
+  await refreshTieVotes();
+ }catch(e){if(st)st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>'}
+}
+async function refreshTieVotes(){
+ const card=$('#tieVoteCard'),box=$('#tieVoteContent'),st=$('#tieVoteStatus');
+ if(!card||!box||!token)return;
+ if(!navigator.onLine){
+  if(!card.classList.contains('hidden')&&st)st.innerHTML='<span class="muted">Conéctate a internet para emitir tu voto.</span>';
+  return;
+ }
+ try{
+  const d=await rpc('merit_pending_tie_votes',{p_token:token});
+  if(!d?.ok){card.classList.add('hidden');return}
+  const sessions=Array.isArray(d.sessions)?d.sessions:[];
+  const useful=sessions.filter(s=>Array.isArray(s.issues)&&s.issues.length);
+  if(!useful.length){card.classList.add('hidden');box.innerHTML='';if(st)st.textContent='';return}
+  card.classList.remove('hidden');
+  box.innerHTML=useful.map(s=>'<div class="tie-vote-session"><b>'+escapeHtml(s.period_label||'Cierre mensual')+'</b>'+
+    s.issues.map(issue=>'<div class="tie-vote-issue"><b>'+escapeHtml(tieVoteLabel(issue))+'</b>'+
+      (issue.has_voted
+       ?'<div class="tie-voted success">✓ Voto registrado: Grupo '+escapeHtml(issue.my_vote||'')+'</div>'
+       :'<div class="tie-vote-options">'+(issue.candidates||[]).map(c=>'<button type="button" class="secondary tieVoteChoice" data-issue="'+escapeHtml(issue.issue_id)+'" data-group="'+escapeHtml(c.group_code)+'">Grupo '+escapeHtml(c.group_code)+'</button>').join('')+'</div>')+
+    '</div>').join('')+'</div>').join('');
+  $('.tieVoteChoice').forEach(b=>b.onclick=()=>castTieVote(b.dataset.issue,b.dataset.group));
+  if(st)st.textContent='';
+ }catch(e){
+  if(st)st.innerHTML='<span class="error">No se pudo consultar la votación: '+escapeHtml(e.message||e)+'</span>';
+ }
+}
+
 function openPinDialog(needsProfile,currentPin=''){
  const dlg=$('#pinDialog'),fields=$('#profileFields');
  dlg.dataset.needsProfile=needsProfile?'1':'0';
@@ -356,12 +403,13 @@ async function checkSystemReady(){
 $('#systemReadyRefresh')?.addEventListener('click',checkSystemReady);
 $('#offlineRetry')?.addEventListener('click',syncPending);
 
-window.addEventListener('online',()=>{updateOfflineUI();checkDevice();syncPending()});
+window.addEventListener('online',()=>{updateOfflineUI();checkDevice();syncPending();refreshTieVotes()});
 window.addEventListener('offline',()=>{updateOfflineUI();checkSystemReady()});
-setInterval(()=>{if(navigator.onLine&&getQueue().length)syncPending()},30000);
+setInterval(()=>{if(navigator.onLine&&getQueue().length)syncPending();if(navigator.onLine&&token)refreshTieVotes()},30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&token)refreshTieVotes()});
 
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=17').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=18').catch(()=>{});
 updateOfflineUI();
 checkDevice();

@@ -259,3 +259,18 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Scanner/ejemplo actualizado al rango 700002…700070.
 - App Docente actualizada a v8.23.22; caché app-docente-v8-23-22.
 - Verificación de seguridad de Supabase posterior: 0 avisos devueltos por advisor.
+
+
+## Mérito Docentes — recordar sesión
+- En el inicio de sesión de Mérito Docentes se agregó la casilla:
+  - “Recordar mi sesión en este dispositivo”
+- Viene activada por defecto.
+- Si está activada:
+  - se conserva el token de sesión autorizado en almacenamiento persistente del dispositivo;
+  - el docente no necesita volver a escribir ID + NIP cada vez que abre la app.
+- Si está desactivada:
+  - la sesión se guarda solo para la sesión actual del navegador/app;
+  - al cerrar esa sesión deberá volver a iniciar con ID + NIP.
+- El NIP NO se guarda en almacenamiento local ni de sesión.
+- “Desvincular” elimina tanto la sesión persistente como la temporal.
+- Mérito Docentes usa app.js?v=17 y caché merito-docentes-v1-8.

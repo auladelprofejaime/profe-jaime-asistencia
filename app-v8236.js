@@ -6447,7 +6447,11 @@ function validateScanChangeAvailability(tx=scanCashTransaction()){
 function renderScanCashCalculator(){
  const method=$('#payScanMethod')?.value||'cash',area=$('#payScanCashCalculator');
  if(area)area.classList.toggle('hidden',method!=='cash');
- if(method!=='cash')return;
+ if(method!=='cash'){
+   const save=$('#payScanSave'),amount=Math.max(0,Number($('#payScanAmount')?.value||0)||0);
+   if(save)save.disabled=amount<=0;
+   return;
+ }
  const tx=scanCashTransaction(),remaining=Math.max(0,tx.changeDue-tx.changeSelected);
  if($('#payScanTenderTotal'))$('#payScanTenderTotal').textContent=money(tx.tenderTotal);
  if($('#payScanChangeDue'))$('#payScanChangeDue').textContent=money(tx.changeDue);

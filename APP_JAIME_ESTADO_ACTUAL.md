@@ -331,3 +331,35 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - botones Compartir PDF / Descargar PDF / Cerrar
   - branding Mérito Gabino A. Palma + Aula del Profe Jaime.
 - App Docente actualizada a v8.23.24; caché app-docente-v8-23-24.
+
+
+## Mérito Docentes — notificaciones push obligatorias
+- Después de completar perfil y cambiar NIP, el docente debe activar notificaciones antes de continuar.
+- La pantalla obligatoria dice:
+  - “Activa las notificaciones”
+  - explica que son necesarias para avisos importantes de Mérito Gabino A. Palma.
+- Si el navegador/dispositivo no admite Web Push, la pantalla indica que en iPhone/iPad debe agregarse Mérito Docentes a la pantalla de inicio y abrirse desde ahí.
+- No se permite avanzar mientras el permiso/suscripción push no quede activo en ese dispositivo.
+- Las suscripciones quedan ligadas al token/dispositivo de Mérito y al registro del personal, no a la cuenta Supabase de App Docente.
+- Nueva tabla privada: merit_push_subscriptions (RLS habilitado, acceso directo revocado; se opera mediante RPC validadas).
+- RPC:
+  - merit_register_push(...)
+  - merit_push_status(text)
+  - merit_unregister_push(text,text)
+- Edge Function nueva: merit-push.
+- Solo se procesan dos eventos en el service worker de Mérito Docentes:
+  1. merit_vote_open — “Votación de desempate abierta”.
+  2. merit_results_published — resultados oficiales: Mérito del Mes + reconocimientos del periodo.
+- Al tocar notificación de votación, abre Mérito Docentes.
+- Al tocar notificación de resultados, abre Mérito Público.
+- App Docente envía merit_vote_open únicamente cuando una votación nueva se abre por empate.
+- Al publicar resultado oficial, App Docente envía merit_results_published después de que el periodo queda published/official.
+- Mérito Docentes:
+  - app.js?v=19
+  - caché merito-docentes-v1-10
+- App Docente:
+  - v8.23.25
+  - merit-tie-vote-v82325.js?v=82325
+  - caché app-docente-v8-23-25
+- Verificación: token inválido en merit_register_push devuelve unauthorized.
+- No se generaron suscripciones reales durante la implementación.

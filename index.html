@@ -886,16 +886,7 @@
 <article class="card dossier-card"><h3>📊 Historial</h3><div id="dossierHistory" class="history-grid"></div></article>
 <article class="card dossier-card"><h3>📝 Observaciones</h3><div class="note-block"><b>Observaciones</b><p id="dossierObservations">Sin observaciones.</p></div><div class="note-block"><b>Incidencias</b><p id="dossierIncidents">Sin incidencias registradas.</p></div></article>
 </div>
-<article class="card dossier-birthday-benefit-card">
-  <div class="section">
-    <div>
-      <h3>🎁 Beneficio de cumpleaños</h3>
-      <p class="hint">Un beneficio aleatorio por ciclo. No vence y aquí puedes ver exactamente qué recibió el alumno.</p>
-    </div>
-    <button id="dossierBirthdayRefresh" class="secondary" type="button">Actualizar</button>
-  </div>
-  <div id="dossierBirthdayBenefit" class="birthday-benefit-teacher"><div class="empty">Sin información.</div></div>
-</article>
+
 <article class="card dossier-appointments-card">
   <div class="section">
     <div>
@@ -942,7 +933,7 @@
       </div>
       <div class="actions">
         <button id="refreshPortalAccessReport" class="secondary" type="button">Actualizar estados</button>
-        <button id="generateGroupAccessPdf" class="primary" type="button">Generar e imprimir ID y PIN</button>
+        <button id="generateGroupAccessPdf" class="primary" type="button">Generar PIN faltantes del grupo</button>
         <button id="refreshAllPortalPins" class="secondary" type="button">Actualizar todos los PIN temporales</button>
       </div>
     </div>
@@ -1028,7 +1019,7 @@
       <div><h2>🎂 Beneficios de cumpleaños</h2><p class="hint">Controla todos los cumpleaños desde el 31 de agosto: quién ya generó su beneficio, quién falta de aceptar y cuántos usos quedan.</p></div>
       <button id="refreshBirthdayBenefits" class="secondary" type="button">Actualizar</button>
     </div>
-    <div id="birthdayBenefitsSummary" class="stats"></div>
+    <div class="grid4" style="margin:12px 0"><label>Grupo<select id="birthdayBenefitsGroup"><option value="__ALL__">Todos los grupos</option></select></label></div><div id="birthdayBenefitsSummary" class="stats"></div>
     <div id="birthdayBenefitsList" class="list"><div class="empty">Cargando beneficios…</div></div>
   </div>
 </section>
@@ -1272,7 +1263,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8229.js?v=8229"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8230.js?v=8230"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

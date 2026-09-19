@@ -6,10 +6,11 @@
 <header><img src="logo-merito.jpeg" alt=""><div><h1>Mérito Gabino A. Palma</h1><p>Captura para docentes autorizados</p></div></header>
 <main>
 <section id="activation" class="card">
-<h2>Activar este dispositivo</h2>
-<p class="muted">Ingresa el código de 4 dígitos que te proporcionó el administrador. Solo se solicita la primera vez o si el dispositivo es revocado.</p>
-<label>Código de activación<input id="activationCode" inputmode="numeric" maxlength="4" autocomplete="one-time-code" placeholder="0000"></label>
-<button id="activateBtn" class="primary full">ACTIVAR DISPOSITIVO</button>
+<h2>Ingresar a Mérito Docentes</h2>
+<p class="muted">Escribe el ID y NIP que aparecen en tu hoja. Solo se solicitan la primera vez en este dispositivo.</p>
+<label>ID docente<input id="staffCode" inputmode="numeric" maxlength="6" autocomplete="username" placeholder="700001"></label>
+<label>NIP<input id="activationCode" inputmode="numeric" maxlength="4" autocomplete="current-password" placeholder="0000"></label>
+<button id="activateBtn" class="primary full">INGRESAR Y ACTIVAR DISPOSITIVO</button>
 <p id="activationStatus"></p>
 </section>
 
@@ -54,5 +55,6 @@
 </div>
 </section>
 </main>
+<dialog id="pinDialog"><div class="dialogbody"><h2>Cambia tu NIP</h2><p class="muted">Tu participación ya fue confirmada. Antes de continuar, cambia el NIP impreso en tu hoja por uno personal de 4 dígitos.</p><label>NIP actual<input id="currentPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Nuevo NIP<input id="newPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Confirma nuevo NIP<input id="newPinConfirm" inputmode="numeric" maxlength="4" placeholder="0000"></label><button id="saveNewPin" class="primary full">GUARDAR NUEVO NIP</button><p id="pinChangeStatus"></p></div></dialog>
 <dialog id="confirmDialog"><div class="dialogbody"><h2>Confirmar registro</h2><div id="confirmSummary"></div><div class="actions"><button id="cancelConfirm" class="secondary">Regresar</button><button id="sendConfirm" class="primary">CONFIRMAR Y GUARDAR</button></div></div></dialog>
-<script src="app.js?v=13"></script></body></html>
+<script src="app.js?v=14"></script></body></html>

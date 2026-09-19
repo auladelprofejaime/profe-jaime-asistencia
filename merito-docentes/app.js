@@ -73,7 +73,16 @@ const criteriaNames={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Punt
 function selectedCriteria(){return $$('#criteria input:checked').map(x=>x.value)}
 $('#reviewBtn').onclick=async()=>{
  $('#captureStatus').textContent='';
- try{const d=await rpc('merit_device_info',{p_token:token});if(!d?.ok)throw new Error('Este dispositivo ya no está autorizado.');staff=d.staff}catch(e){localStorage.removeItem(TOKEN_KEY);return location.reload()}
+ try{
+   const d=await rpc('merit_device_info',{p_token:token});
+   if(!d?.ok)throw new Error('Este dispositivo ya no está autorizado.');
+   staff=d.staff;
+   if(d.must_change_pin){
+     $('#captureStatus').innerHTML='<span class="error">Antes de continuar, cambia tu NIP.</span>';
+     $('#pinDialog')?.showModal();
+     return;
+   }
+ }catch(e){localStorage.removeItem(TOKEN_KEY);return location.reload()}
  if(!group)return $('#captureStatus').innerHTML='<span class="error">Selecciona un grupo.</span>';
  const cs=selectedCriteria(); const reason=$('#reason').value.trim();
  if(points!==null&&!reason)return $('#captureStatus').innerHTML='<span class="error">Escribe el motivo de los puntos.</span>';
@@ -86,7 +95,8 @@ $('#sendConfirm').onclick=async()=>{
  const btn=$('#sendConfirm');btn.disabled=true;
  try{const cs=selectedCriteria(), reason=$('#reason').value.trim(); const d=await rpc('merit_register_movement',{p_token:token,p_group_code:group,p_points:points,p_reason:points===null?null:reason,p_criteria:cs});
  if(!d?.ok){
-   const msgs={daily_positive_limit:`Ya alcanzaste el límite positivo para este grupo hoy. Te quedan ${d.remaining??0} puntos.`,daily_negative_limit:`Ya alcanzaste el límite negativo para este grupo hoy. Te quedan ${d.remaining??0} puntos.`,no_open_period:'No hay un periodo abierto para la fecha actual.',unauthorized:'Este dispositivo ya no está autorizado.'};
+   const msgs={daily_positive_limit:`Ya alcanzaste el límite positivo para este grupo hoy. Te quedan ${d.remaining??0} puntos.`,daily_negative_limit:`Ya alcanzaste el límite negativo para este grupo hoy. Te quedan ${d.remaining??0} puntos.`,no_open_period:'No hay un periodo abierto para la fecha actual.',unauthorized:'Este dispositivo ya no está autorizado.',trial_expired:'Este ID de prueba ya venció.',pin_change_required:'Antes de continuar, cambia tu NIP.'};
+   if(d.reason==='pin_change_required')setTimeout(()=>$('#pinDialog')?.showModal(),50);
    throw new Error(msgs[d.reason]||d.reason||'No se pudo guardar.');
  }
  $('#confirmDialog').close();$('#captureStatus').innerHTML='<span class="success">✓ Registro guardado correctamente.</span>';

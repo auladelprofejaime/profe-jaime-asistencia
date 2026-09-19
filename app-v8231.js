@@ -6426,13 +6426,13 @@ function generateBookFamilyReport(){
  const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)return alert('No se pudo cargar el generador PDF.');
  const g=$('#bookReportGroup')?.value||'__ALL__',filter=$('#bookReportStatus')?.value||'all';
  let rows=(bookFulfillmentDashboard.students||[]).filter(r=>g==='__ALL__'||String(r.group_name)===g);
- const statusOf=r=>r.fulfillment_status==='delivered'?'delivered':r.fulfillment_status==='requested'?'requested':r.payment_status==='partial'?'partial':null;
- rows=rows.filter(r=>statusOf(r)&&(filter==='all'||statusOf(r)===filter));
+ const statusOf=r=>r.fulfillment_status==='delivered'?'delivered':r.fulfillment_status==='requested'?'requested':r.payment_status==='paid'?'paid':r.payment_status==='partial'?'partial':'unpaid';
+ rows=rows.filter(r=>filter==='all'||statusOf(r)===filter);
  if(!rows.length)return alert('No hay alumnos con ese estado para generar el reporte.');
- const labels={all:'Estado de libros',partial:'Pagos en proceso',requested:'Libros solicitados',delivered:'Libros entregados'};
+ const labels={all:'Estado de libros',unpaid:'Pendientes de pago',partial:'Pagos en proceso',paid:'Libros liquidados',requested:'Libros solicitados',delivered:'Libros entregados'};
  const doc=new jsPDF({unit:'mm',format:'letter'});pdfHeader(doc,`Reporte de libros · ${labels[filter]}`,'ESPAÑOL');
  doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(33,27,18);doc.text(g==='__ALL__'?'Grupos de Español':`Grupo ${g}`,14,36);
- const body=rows.map(r=>[r.list_number||'—',r.name,r.group_name,statusOf(r)==='partial'?'Pago en proceso':statusOf(r)==='requested'?'Libro solicitado':'Libro entregado']);
+ const body=rows.map(r=>{const s=statusOf(r);const label=s==='unpaid'?'Pendiente de pago':s==='partial'?'Pago en proceso':s==='paid'?'Liquidado':s==='requested'?'Libro solicitado':'Libro entregado';return [r.list_number||'—',r.name,r.group_name,label]});
  doc.autoTable({startY:42,head:[['No.','Alumno(a)','Grupo','Estado']],body,styles:{fontSize:9,cellPadding:2,valign:'middle'},headStyles:{fillColor:[245,196,0],textColor:[33,27,18]},columnStyles:{0:{cellWidth:18},1:{cellWidth:92},2:{cellWidth:24},3:{cellWidth:48}}});
  if(filter==='partial'||filter==='all'){doc.setFontSize(8);doc.setTextColor(80,80,80);doc.text(doc.splitTextToSize('Pago en proceso indica que ya existe un abono dentro del esquema de pago establecido.',180),14,doc.lastAutoTable.finalY+7);}
  pdfFooter(doc);

@@ -6348,7 +6348,8 @@ async function loadBookFulfillment(){
    box.innerHTML=ready.map(r=>`<label class="list-row" style="display:flex;gap:.7rem;align-items:center"><input type="checkbox" data-book-request="${safe(r.id)}" style="width:auto"><span><b>${safe(r.list_number||'—')}. ${safe(r.name)}</b><small>Grupo ${safe(r.group_name)} · Liquidado · ${money(EDITORIAL_UNIT_COST)} a editorial</small></span></label>`).join('')||'<div class="empty">No hay libros liquidados pendientes de solicitar.</div>';
    const del=$('#bookDeliveryList');
    if(del)del.innerHTML=requested.map(r=>`<label class="list-row" style="display:flex;gap:.7rem;align-items:center"><input type="checkbox" data-book-deliver="${safe(r.id)}" style="width:auto"><span><b>${safe(r.list_number||'—')}. ${safe(r.name)}</b><small>Grupo ${safe(r.group_name)} · Solicitado ${r.requested_at?new Date(r.requested_at).toLocaleDateString('es-MX'):''}</small></span></label>`).join('')||'<div class="empty">No hay libros solicitados pendientes de entregar.</div>';
-   renderBookFamilyPreview();
+   fillBookGroupSelects();
+   renderBookManagement();
  }catch(e){box.innerHTML=`<div class="empty">${safe(e.message||e)}</div>`}
 }
 async function markBooksRequested(){
@@ -6365,34 +6366,69 @@ async function markBooksDelivered(){
  if(!confirm(`¿Confirmar que ${ids.length} libro(s) ya fueron entregados a los alumnos?`))return;
  try{const out=await window.ProfeSupabase.rpc('teacher_book_mark_delivered',{p_student_ids:ids});if(!out?.ok)throw Error(out?.reason||'No se pudo guardar');await loadBookFulfillment();alert('Entrega registrada correctamente.')}catch(e){alert('No se modificó ningún registro: '+(e.message||e))}
 }
-function renderBookFamilyPreview(){
- const box=$('#bookFamilyPreview'),sel=$('#bookReportGroup');if(!box||!bookFulfillmentDashboard)return;
- const rows=bookFulfillmentDashboard.students||[];
- const groups=[...new Set(rows.map(r=>String(r.group_name||'')).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
- if(sel&&!sel.dataset.ready){sel.innerHTML='<option value="__ALL__">Todos los grupos</option>'+groups.map(g=>`<option value="${safe(g)}">${safe(g)}</option>`).join('');sel.dataset.ready='1'}
- const g=sel?.value||'__ALL__';
- const visible=rows.filter(r=>(g==='__ALL__'||String(r.group_name)===g)&&(r.payment_status==='partial'||r.fulfillment_status==='requested'||r.fulfillment_status==='delivered'));
- box.innerHTML=visible.map(r=>`<div class="list-row"><b>${bookFulfillmentStateLabel(r)} · ${safe(r.list_number||'—')}. ${safe(r.name)}</b><small>Grupo ${safe(r.group_name)}</small></div>`).join('')||'<div class="empty">No hay estados para mostrar en este grupo.</div>';
+function fillBookGroupSelects(){
+ if(!bookFulfillmentDashboard)return;
+ const groups=[...new Set((bookFulfillmentDashboard.students||[]).map(r=>String(r.group_name||'')).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+ for(const id of ['bookManageGroup','bookReportGroup']){
+   const sel=$('#'+id);if(!sel)continue;const current=sel.value||'__ALL__';
+   sel.innerHTML='<option value="__ALL__">Todos los grupos</option>'+groups.map(g=>`<option value="${safe(g)}">${safe(g)}</option>`).join('');
+   if([...sel.options].some(o=>o.value===current))sel.value=current;
+ }
+}
+function renderBookManagement(){
+ const box=$('#bookManageList');if(!box||!bookFulfillmentDashboard)return;
+ fillBookGroupSelects();
+ const g=$('#bookManageGroup')?.value||'__ALL__';
+ const rows=(bookFulfillmentDashboard.students||[]).filter(r=>g==='__ALL__'||String(r.group_name)===g);
+ box.innerHTML=rows.map(r=>{
+   let state='',action='';
+   if(r.fulfillment_status==='delivered')state='🟢 Libro entregado';
+   else if(r.fulfillment_status==='requested'){state='🔵 Libro solicitado';action=`<button class="primary" type="button" data-book-one-deliver="${safe(r.id)}">Marcar entregado</button>`;}
+   else if(r.payment_status==='paid'){state='✅ Liquidado';action=`<button class="primary" type="button" data-book-one-request="${safe(r.id)}">Marcar solicitado</button>`;}
+   else if(r.payment_status==='partial')state='🟡 Pago en proceso';
+   else state='⚪ Sin pago registrado';
+   return `<div class="list-row" style="display:flex;justify-content:space-between;gap:.8rem;align-items:center"><span><b>${safe(r.list_number||'—')}. ${safe(r.name)}</b><small>Grupo ${safe(r.group_name)} · ${state}</small></span>${action}</div>`;
+ }).join('')||'<div class="empty">No hay alumnos para mostrar.</div>';
+ box.querySelectorAll('[data-book-one-request]').forEach(btn=>btn.onclick=()=>markBooksRequested([btn.dataset.bookOneRequest]));
+ box.querySelectorAll('[data-book-one-deliver]').forEach(btn=>btn.onclick=()=>markBooksDelivered([btn.dataset.bookOneDeliver]));
+}
+async function markBooksRequested(forcedIds=null){
+ const ids=forcedIds||[...document.querySelectorAll('[data-book-request]:checked')].map(x=>x.dataset.bookRequest);
+ if(!ids.length)return alert('Selecciona al menos un libro liquidado.');
+ if(!navigator.onLine||!cloudOnline)return alert('Para cambiar el estado a solicitado necesitas conexión. No se modificó ningún registro.');
+ if(!confirm(`¿Marcar ${ids.length} libro(s) como solicitados a la editorial?`))return;
+ try{const out=await window.ProfeSupabase.rpc('teacher_book_mark_requested',{p_student_ids:ids});if(!out?.ok)throw Error(out?.reason||'No se pudo guardar');await loadBookFulfillment();renderBookManagement();alert('Libro(s) marcado(s) como solicitado(s).')}catch(e){alert('No se modificó ningún registro: '+(e.message||e))}
+}
+async function markBooksDelivered(forcedIds=null){
+ const ids=forcedIds||[...document.querySelectorAll('[data-book-deliver]:checked')].map(x=>x.dataset.bookDeliver);
+ if(!ids.length)return alert('Selecciona al menos un libro solicitado.');
+ if(!navigator.onLine||!cloudOnline)return alert('Para cambiar el estado a entregado necesitas conexión. No se modificó ningún registro.');
+ if(!confirm(`¿Confirmar que ${ids.length} libro(s) ya fueron entregados a los alumnos?`))return;
+ try{const out=await window.ProfeSupabase.rpc('teacher_book_mark_delivered',{p_student_ids:ids});if(!out?.ok)throw Error(out?.reason||'No se pudo guardar');await loadBookFulfillment();renderBookManagement();alert('Entrega registrada correctamente.')}catch(e){alert('No se modificó ningún registro: '+(e.message||e))}
 }
 function generateBookFamilyReport(){
  if(!bookFulfillmentDashboard)return alert('Primero actualiza el seguimiento de libros.');
  const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)return alert('No se pudo cargar el generador PDF.');
- const g=$('#bookReportGroup')?.value||'__ALL__', rows=(bookFulfillmentDashboard.students||[]).filter(r=>(g==='__ALL__'||String(r.group_name)===g)&&(r.payment_status==='partial'||r.fulfillment_status==='requested'||r.fulfillment_status==='delivered'));
- if(!rows.length)return alert('No hay estados para incluir en el reporte.');
- const doc=new jsPDF({unit:'mm',format:'letter'});doc.setFont('helvetica','bold');doc.setFontSize(16);doc.text('Reporte de libros',14,18);
- doc.setFont('helvetica','normal');doc.setFontSize(10);doc.text(g==='__ALL__'?'Grupos de Español':`Grupo ${g}`,14,25);
- doc.text('Estados: Pago en proceso · Libro solicitado · Libro entregado',14,31);
- doc.autoTable({startY:37,head:[['No.','Alumno(a)','Grupo','Estado']],body:rows.map(r=>[r.list_number||'—',r.name,r.group_name,bookFulfillmentStateLabel(r).replace(/^[^ ]+ /,'')]),styles:{fontSize:9},headStyles:{fillColor:[60,60,60]}});
- doc.setFontSize(8);doc.text('“Pago en proceso” indica que ya existe un abono dentro del esquema de pago establecido.',14,doc.lastAutoTable.finalY+8);
- doc.save(`Reporte_libros_${g==='__ALL__'?'todos':g}_${today()}.pdf`);
+ const g=$('#bookReportGroup')?.value||'__ALL__',filter=$('#bookReportStatus')?.value||'all';
+ let rows=(bookFulfillmentDashboard.students||[]).filter(r=>g==='__ALL__'||String(r.group_name)===g);
+ const statusOf=r=>r.fulfillment_status==='delivered'?'delivered':r.fulfillment_status==='requested'?'requested':r.payment_status==='partial'?'partial':null;
+ rows=rows.filter(r=>statusOf(r)&&(filter==='all'||statusOf(r)===filter));
+ if(!rows.length)return alert('No hay alumnos con ese estado para generar el reporte.');
+ const labels={all:'Estado de libros',partial:'Pagos en proceso',requested:'Libros solicitados',delivered:'Libros entregados'};
+ const doc=new jsPDF({unit:'mm',format:'letter'});pdfHeader(doc,`Reporte de libros · ${labels[filter]}`,'ESPAÑOL');
+ doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(33,27,18);doc.text(g==='__ALL__'?'Grupos de Español':`Grupo ${g}`,14,36);
+ const body=rows.map(r=>[r.list_number||'—',r.name,r.group_name,statusOf(r)==='partial'?'Pago en proceso':statusOf(r)==='requested'?'Libro solicitado':'Libro entregado']);
+ doc.autoTable({startY:42,head:[['No.','Alumno(a)','Grupo','Estado']],body,styles:{fontSize:9,cellPadding:2,valign:'middle'},headStyles:{fillColor:[245,196,0],textColor:[33,27,18]},columnStyles:{0:{cellWidth:18},1:{cellWidth:92},2:{cellWidth:24},3:{cellWidth:48}}});
+ if(filter==='partial'||filter==='all'){doc.setFontSize(8);doc.setTextColor(80,80,80);doc.text(doc.splitTextToSize('Pago en proceso indica que ya existe un abono dentro del esquema de pago establecido.',180),14,doc.lastAutoTable.finalY+7);}
+ pdfFooter(doc);
+ const file=`Reporte_libros_${filter}_${g==='__ALL__'?'todos':g}_${today()}.pdf`;
+ printContent('Reporte de libros',`<p><b>${safe(labels[filter])}</b> · ${g==='__ALL__'?'Todos los grupos':'Grupo '+safe(g)}</p>`,pdfBlob(doc),file);
 }
 window.addEventListener('load',()=>{
  $('#bookEditorialOpen')?.addEventListener('click',async()=>{const d=$('#bookEditorialDialog');if(d){d.showModal();await loadBookFulfillment();}});
  $('#bookEditorialClose')?.addEventListener('click',()=>$('#bookEditorialDialog')?.close());
  $('#bookEditorialRefresh')?.addEventListener('click',loadBookFulfillment);
- $('#bookMarkRequested')?.addEventListener('click',markBooksRequested);
- $('#bookMarkDelivered')?.addEventListener('click',markBooksDelivered);
- $('#bookReportGroup')?.addEventListener('change',renderBookFamilyPreview);
+ $('#bookManageGroup')?.addEventListener('change',renderBookManagement);
  $('#bookFamilyPdf')?.addEventListener('click',generateBookFamilyReport);
  $('#payRefresh')?.addEventListener('click',()=>setTimeout(loadBookFulfillment,250));
  setTimeout(()=>loadBookFulfillment().catch(()=>{}),2200);

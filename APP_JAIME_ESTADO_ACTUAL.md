@@ -363,3 +363,38 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - caché app-docente-v8-23-25
 - Verificación: token inválido en merit_register_push devuelve unauthorized.
 - No se generaron suscripciones reales durante la implementación.
+
+
+## Mérito Docentes — notificación automática de inicio de mes
+- Se agregó un tercer tipo de notificación push: merit_period_started.
+- Texto:
+  - Título: “🔄 Inicia un nuevo mes de Mérito”
+  - Mensaje: “Comienza [periodo]. Todos los grupos inician nuevamente desde cero. Ya puedes registrar puntos y reconocimientos del nuevo periodo.”
+- Se envía automáticamente el día real de inicio del periodo mensual oficial; no cuando se crea/configura por adelantado.
+- Programación:
+  - cron job: merit-month-start-notification
+  - horario: 12:30 UTC = 06:30 hora de Ciudad de México
+  - frecuencia diaria
+- El backend solo notifica periodos que:
+  - empiezan ese día en America/Mexico_City,
+  - están status=open,
+  - duran más de un día,
+  - y no comienzan con “Prueba”.
+- Por lo anterior, “Prueba Consejo Técnico · 25 septiembre 2026” queda excluida.
+- Se creó merit_period_push_log para impedir envíos duplicados por periodo.
+- Edge Function merit-push actualizada a v2.
+- Se corrigieron permisos internos de service_role únicamente para las tablas necesarias del backend de push.
+- Prueba real del endpoint el 2026-09-19:
+  - HTTP 200
+  - date=2026-09-19
+  - periods_notified=0
+  - sent=0
+  - no se generó ningún envío ni registro.
+- Mérito Docentes:
+  - app.js?v=20
+  - service worker caché merito-docentes-v1-11
+  - ahora acepta exactamente tres eventos:
+    1. merit_period_started
+    2. merit_vote_open
+    3. merit_results_published
+- La pantalla obligatoria de permisos explica ahora los tres tipos de avisos.

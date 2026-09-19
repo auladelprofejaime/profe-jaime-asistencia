@@ -192,3 +192,20 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - teacher_merit_reset_staff_pin(uuid) realiza recuperación individual.
   - merit_register_movement admite client_event_id y captured_at.
 - Corrección adicional: se eliminó un error de sintaxis previo “async async function” en la impresión de hojas de acceso.
+
+
+## Mérito Gabino A. Palma — branding Aula del Profe Jaime
+- Aplicado branding de autoría en todas las superficies principales de Mérito:
+  - App Mérito Docentes
+  - Portal público de Mérito
+  - Módulo Mérito dentro de App Docente
+  - Hojas imprimibles de acceso docente
+- Encabezado/subfirma acordada:
+  - “Una app de Aula del Profe Jaime”
+- Pie/firma acordada:
+  - “Aula del Profe Jaime · Creado por Profesor Jaime Armando”
+- La identidad principal sigue siendo “Mérito Gabino A. Palma”; Aula del Profe Jaime se presenta como autoría/desarrollo.
+- En las hojas imprimibles se usa el logo de Mérito Gabino A. Palma, no el logo de App Docente.
+- Las hojas también incluyen la firma Aula del Profe Jaime en el pie.
+- App Docente actualizada a v8.23.19.
+- Cachés actualizados: App Docente v8.23.19, Mérito Docentes v1.7, Mérito Público v1.6.

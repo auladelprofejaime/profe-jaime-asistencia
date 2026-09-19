@@ -958,3 +958,30 @@ button.danger{
  .cash-denom-row label{align-items:flex-start;flex-direction:column}
  .cash-denom-row input{max-width:100%;width:100%}
 }
+
+/* Estado por alumno · Pagos de libros */
+.book-roster{display:flex;flex-direction:column;border:1px solid var(--border,#dfe3e8);border-radius:14px;overflow:hidden;background:#fff}
+.book-roster-row{display:grid;grid-template-columns:minmax(0,1fr) 145px;align-items:stretch;border-bottom:1px solid #dfe3e8;transition:background .18s ease}
+.book-roster-row:last-child{border-bottom:0}
+.book-student-main{display:grid;grid-template-columns:minmax(230px,1.7fr) minmax(88px,.55fr) minmax(88px,.55fr) minmax(165px,.9fr);gap:12px;align-items:center;width:100%;border:0;background:transparent;padding:12px 14px;text-align:left;color:inherit;cursor:pointer}
+.book-student-main:hover{background:rgba(255,255,255,.34)}
+.book-student-name{min-width:0;display:flex;flex-direction:column;gap:3px}
+.book-student-name b{white-space:normal;line-height:1.22}
+.book-student-name small,.book-money small,.book-row-action span{font-size:.72rem;color:#6b7280}
+.book-money{display:flex;flex-direction:column;gap:2px}
+.book-money b{font-size:.92rem}
+.book-state-pill{justify-self:start;font-size:.82rem;font-weight:700;line-height:1.2}
+.book-row-action{border-left:1px solid rgba(80,90,100,.15);padding:8px 10px;display:flex;flex-direction:column;justify-content:center;gap:5px;background:rgba(255,255,255,.32)}
+.book-row-action .book-mini-action{width:100%;font-size:.78rem;padding:.5rem .55rem}
+.book-row-action-empty small{font-size:.74rem;color:#6b7280}
+.book-tone-partial{background:#fffbea}
+.book-tone-paid,.book-tone-delivered{background:#edf8ef}
+.book-tone-requested{background:#edf4ff}
+.book-tone-external{background:#f5f6f8}
+.book-tone-pending{background:#fff}
+@media(max-width:780px){
+ .book-roster-row{grid-template-columns:1fr}
+ .book-student-main{grid-template-columns:minmax(0,1fr) 80px 80px;gap:8px;padding:11px}
+ .book-state-pill{grid-column:1/-1}
+ .book-row-action{border-left:0;border-top:1px solid rgba(80,90,100,.13);padding:8px 11px}
+}

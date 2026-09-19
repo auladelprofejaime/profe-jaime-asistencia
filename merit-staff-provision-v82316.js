@@ -122,20 +122,35 @@
     return `<svg viewBox="0 0 ${x+10} 70" width="100%" height="86" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">${bars}<text x="${(x+10)/2}" y="67" text-anchor="middle" font-family="Arial,sans-serif" font-size="8">${text}</text></svg>`;
   }
 
-  async function printTeacherFolios(){
+  async async function printTeacherFolios(){
+    let credentials=[];
+    try{
+      credentials=await rpc('teacher_merit_print_credentials',{});
+    }catch(e){
+      alert('No se pudieron cargar las hojas de acceso: '+(e.message||e));
+      return;
+    }
+    if(!Array.isArray(credentials)||!credentials.length){
+      alert('No hay credenciales disponibles para imprimir.');
+      return;
+    }
     const w=window.open('','_blank');
-    if(!w){alert('Permite ventanas emergentes para imprimir los folios.');return;}
-    const cards=Array.from({length:60},(_,i)=>{
-      const code=''+String(i+1).padStart(3,'0');
+    if(!w){
+      alert('Permite ventanas emergentes para imprimir las hojas.');
+      return;
+    }
+    const cards=credentials.map(item=>{
+      const code=String(item.staff_code||'');
+      const pin=String(item.pin||'');
       return `<section class="folio">
-        <div class="top"><div><div class="eyebrow">MÉRITO GABINO A. PALMA</div><h1>Folio docente</h1></div><div class="id">${code}</div></div>
+        <div class="top"><div><div class="eyebrow">MÉRITO GABINO A. PALMA</div><h1>Acceso docente</h1></div><div class="id">${code}</div></div>
         <div class="barcode">${code39Svg(code)}</div>
         <div class="credentials"><div><span>ID DOCENTE</span><b>${code}</b></div><div><span>NIP INICIAL</span><b>${pin}</b></div></div>
         <div class="note"><b>Acceso de prueba a Mérito Docentes.</b><br>Ingresa con este ID y NIP. Si confirmas tu participación, el Profr. Jaime asociará este ID a tu nombre y el sistema te pedirá cambiar el NIP por uno personal.</div>
         <div class="steps"><b>1.</b> Ingresa con ID + NIP. &nbsp; <b>2.</b> Prueba la app. &nbsp; <b>3.</b> Si participas, confirma tu nombre con el Profr. Jaime y cambia tu NIP.</div>
       </section>`;
     }).join('');
-    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Folios docentes · Mérito Gabino A. Palma</title><style>
+    w.document.write(`<!doctype html><html><head><meta charset="utf-8"><title>Hojas de acceso docentes · Mérito Gabino A. Palma</title><style>
       @page{size:letter;margin:8mm}*{box-sizing:border-box}body{font-family:Arial,sans-serif;margin:0;color:#211b12}
       .folio{height:126mm;border:1.5px solid #d7b11e;border-radius:14px;padding:10mm;margin:0 0 8mm;page-break-inside:avoid;background:#fff}
       .folio:nth-child(2n){page-break-after:always}.top{display:flex;justify-content:space-between;gap:10mm;align-items:flex-start}

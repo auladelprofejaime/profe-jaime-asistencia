@@ -475,6 +475,6 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=19').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=20').catch(()=>{});
 updateOfflineUI();
 checkDevice();

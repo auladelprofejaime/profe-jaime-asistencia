@@ -161,7 +161,7 @@ function showCapture(){
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
  $('#staffName').textContent=staff?.display_name||(`ID ${staff?.staff_code||''}`);
  $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
- checkSystemReady();updateOfflineUI();refreshTieVotes();
+ checkSystemReady();updateOfflineUI();refreshTieVotes();setTimeout(ensureNotificationGate,120);
 }
 
 function tieVoteLabel(issue){
@@ -210,6 +210,70 @@ async function refreshTieVotes(){
  }
 }
 
+
+function urlBase64ToUint8Array(base64String){
+ const padding='='.repeat((4-base64String.length%4)%4);
+ const base64=(base64String+padding).replace(/-/g,'+').replace(/_/g,'/');
+ const raw=atob(base64);return Uint8Array.from([...raw].map(c=>c.charCodeAt(0)));
+}
+async function meritVapidPublicKey(){
+ const r=await fetch(SUPABASE_URL+'/functions/v1/merit-push',{method:'GET',headers:{apikey:SUPABASE_KEY},cache:'no-store'});
+ if(!r.ok)throw new Error('No se pudo preparar el servicio de notificaciones.');
+ const d=await r.json();if(!d?.public_key)throw new Error('No se encontró la llave pública de notificaciones.');
+ return d.public_key;
+}
+async function registerMeritPushSubscription(){
+ const reg=await navigator.serviceWorker.ready;
+ let sub=await reg.pushManager.getSubscription();
+ if(!sub){
+   const key=await meritVapidPublicKey();
+   sub=await reg.pushManager.subscribe({userVisibleOnly:true,applicationServerKey:urlBase64ToUint8Array(key)});
+ }
+ const j=sub.toJSON(),keys=j.keys||{};
+ const d=await rpc('merit_register_push',{
+   p_token:token,p_endpoint:sub.endpoint,p_p256dh:keys.p256dh||'',p_auth:keys.auth||'',p_user_agent:navigator.userAgent
+ });
+ if(!d?.ok)throw new Error(d?.reason||'No se pudo registrar este dispositivo para notificaciones.');
+ return true;
+}
+async function ensureNotificationGate(){
+ if(!token||!staff||staff.is_placeholder||cachedMustChange())return;
+ const dlg=$('#notificationDialog'),st=$('#notificationStatus'),help=$('#notificationHelp');
+ if(!dlg)return;
+ if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){
+   help.innerHTML='<b>Este navegador no permite notificaciones para esta app.</b><br>En iPhone/iPad, agrega Mérito Docentes a la pantalla de inicio y ábrela desde ahí.';
+   if(!dlg.open)dlg.showModal();return;
+ }
+ try{
+   const reg=await navigator.serviceWorker.ready;
+   const sub=await reg.pushManager.getSubscription();
+   if(Notification.permission==='granted'&&sub){
+     await registerMeritPushSubscription();
+     if(dlg.open)dlg.close();return;
+   }
+ }catch(_){}
+ if(Notification.permission==='denied'){
+   help.innerHTML='<b>Las notificaciones están bloqueadas.</b><br>Debes habilitarlas en la configuración del navegador/dispositivo para continuar.';
+ }else{
+   help.textContent='Al tocar “Activar notificaciones” el dispositivo te pedirá permiso.';
+ }
+ if(st)st.textContent='';
+ if(!dlg.open)dlg.showModal();
+}
+async function enableMeritNotifications(){
+ const st=$('#notificationStatus'),btn=$('#enableNotificationsBtn');
+ if(btn)btn.disabled=true;if(st)st.textContent='Activando notificaciones…';
+ try{
+   if(!navigator.onLine)throw new Error('Necesitas internet para activar las notificaciones.');
+   if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window))throw new Error('Este navegador no admite notificaciones. En iPhone/iPad instala la app en la pantalla de inicio.');
+   const permission=await Notification.requestPermission();
+   if(permission!=='granted')throw new Error('Debes permitir las notificaciones para continuar.');
+   await registerMeritPushSubscription();
+   if(st)st.innerHTML='<span class="success">✓ Notificaciones activadas correctamente.</span>';
+   setTimeout(()=>{$('#notificationDialog')?.close()},500);
+ }catch(e){if(st)st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>'}
+ finally{if(btn)btn.disabled=false}
+}
 function openPinDialog(needsProfile,currentPin=''){
  const dlg=$('#pinDialog'),fields=$('#profileFields');
  dlg.dataset.needsProfile=needsProfile?'1':'0';
@@ -380,7 +444,7 @@ $('#saveNewPin').onclick=async()=>{
   }
   cacheSession(false);showCapture();
   st.innerHTML='<span class="success">✓ NIP actualizado correctamente.</span>';
-  setTimeout(()=>$('#pinDialog').close(),650);
+  setTimeout(()=>{ $('#pinDialog').close(); setTimeout(ensureNotificationGate,120); },650);
  }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
 
@@ -409,7 +473,8 @@ setInterval(()=>{if(navigator.onLine&&getQueue().length)syncPending();if(navigat
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&token)refreshTieVotes()});
 
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
+$('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=18').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=19').catch(()=>{});
 updateOfflineUI();
 checkDevice();

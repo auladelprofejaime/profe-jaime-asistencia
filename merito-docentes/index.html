@@ -16,6 +16,7 @@
 
 <section id="capture" class="hidden">
 <div id="systemReadyCard" class="card statusbar"><div><span class="muted">Estado del sistema</span><h2 id="systemReadyTitle" style="margin:3px 0">Comprobando…</h2><span id="systemReadyDetail" class="badge">Conectando</span></div><button id="systemReadyRefresh" class="secondary" type="button">Comprobar</button></div>
+<div id="offlineCard" class="card statusbar"><div><span class="muted">Conexión y sincronización</span><h2 id="offlineTitle" style="margin:3px 0">Comprobando conexión…</h2><span id="offlineDetail" class="badge">0 pendientes</span></div><button id="offlineRetry" class="secondary" type="button">Sincronizar</button></div>
 <div class="card statusbar"><div><span class="muted">Dispositivo autorizado</span><h2 id="staffName" style="margin:3px 0"></h2><span id="staffRole" class="badge"></span></div><button id="forgetDevice" class="secondary">Desvincular</button></div>
 
 <div class="card">
@@ -55,6 +56,6 @@
 </div>
 </section>
 </main>
-<dialog id="pinDialog"><div class="dialogbody"><h2>Completa tu registro</h2><p class="muted">Tu participación ya fue activada. Completa tus datos y cambia el NIP impreso por uno personal.</p><label>Nombre<input id="profileFirstName" autocomplete="given-name"></label><label>Primer apellido<input id="profileFirstSurname" autocomplete="family-name"></label><label>Asignatura<input id="profileSubject" autocomplete="organization-title"></label><label>NIP actual<input id="currentPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Nuevo NIP<input id="newPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Confirma nuevo NIP<input id="newPinConfirm" inputmode="numeric" maxlength="4" placeholder="0000"></label><button id="saveNewPin" class="primary full">GUARDAR DATOS Y NUEVO NIP</button><p id="pinChangeStatus"></p></div></dialog>
+<dialog id="pinDialog"><div class="dialogbody"><h2 id="pinDialogTitle">Completa tu registro</h2><p id="pinDialogText" class="muted">Completa tus datos y cambia tu NIP.</p><div id="profileFields"><label>Nombre<input id="profileFirstName" autocomplete="given-name"></label><label>Primer apellido<input id="profileFirstSurname" autocomplete="family-name"></label><label>Asignatura<input id="profileSubject" autocomplete="organization-title"></label></div><label>NIP actual<input id="currentPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Nuevo NIP<input id="newPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Confirma nuevo NIP<input id="newPinConfirm" inputmode="numeric" maxlength="4" placeholder="0000"></label><button id="saveNewPin" class="primary full">GUARDAR</button><p id="pinChangeStatus"></p></div></dialog>
 <dialog id="confirmDialog"><div class="dialogbody"><h2>Confirmar registro</h2><div id="confirmSummary"></div><div class="actions"><button id="cancelConfirm" class="secondary">Regresar</button><button id="sendConfirm" class="primary">CONFIRMAR Y GUARDAR</button></div></div></dialog>
-<script src="app.js?v=15"></script></body></html>
+<script src="app.js?v=16"></script></body></html>

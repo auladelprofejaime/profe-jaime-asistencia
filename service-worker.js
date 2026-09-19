@@ -1,8 +1,8 @@
-const CACHE='app-docente-v8-23-6';
+const CACHE='app-docente-v8-23-7';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
- './','./index.html','./styles.css','./app-v8236.js?v=8236',
+ './','./index.html','./styles.css','./app-v8237.js?v=8237',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png','./logo-app-docente-v821.png',
  './shared/supabase-teacher.js?v=800'
 ];
@@ -37,7 +37,7 @@ function isDocenteRootRequest(url){
   // La App Docente vive en la raiz del proyecto. Cualquier subcarpeta
   // pertenece a otra app y NO debe ser interceptada por este SW,
   // salvo /shared/, que si es dependencia comun de Docente.
-  if(relative==='' || relative==='index.html' || relative.startsWith('app-v8236.js') ||
+  if(relative==='' || relative==='index.html' || relative.startsWith('app-v8237.js') ||
      relative==='styles.css' || relative==='manifest.webmanifest' || relative==='icon.svg' ||
      relative==='avatar-profe-jaime.png' || relative==='icon-app-docente-v821.png' || relative==='logo-app-docente-v821.png' ||
      relative.startsWith('shared/')) return true;

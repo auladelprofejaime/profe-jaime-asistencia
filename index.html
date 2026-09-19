@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.14</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.15</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -1121,7 +1121,31 @@
 </div>
 <div id="merit-ranking" class="merit-pane active card"><div class="section"><div><h2>Clasificación general de la escuela</h2><p class="hint">Todos los grados y grupos compiten en una sola clasificación. El portal público solo mostrará el último corte publicado.</p></div><button id="meritRefreshRanking" class="secondary">Actualizar</button></div><label>Periodo<select id="meritRankingPeriod"></select></label><div id="meritRankingTable" class="tablewrap"></div></div>
 <div id="merit-movements" class="merit-pane card"><div class="section"><div><h2>Movimientos</h2><p class="hint">Los registros nunca se eliminan físicamente. Una anulación conserva su trazabilidad.</p></div><button id="meritRefreshMovements" class="secondary">Actualizar</button></div><label>Periodo<select id="meritMovementPeriod"></select></label><div id="meritMovementsTable" class="tablewrap"></div></div>
-<div id="merit-staff" class="merit-pane card"><div class="section"><div><h2>Docentes autorizados</h2><p class="hint">El código de 4 dígitos se muestra únicamente al generarlo. Regenerarlo invalida activaciones anteriores.</p></div><button id="meritRefreshStaff" class="secondary">Actualizar</button></div><form id="meritStaffForm" class="formgrid"><label>Nombre<input id="meritStaffName" required></label><label>Tipo<select id="meritStaffRole"><option value="docente">Docente</option><option value="direccion">Dirección</option><option value="subdireccion">Subdirección</option><option value="prefectura">Prefectura</option><option value="otro">Otro</option></select></label><label>Asignatura / función<input id="meritStaffSubject"></label><div class="actions"><button class="primary" type="submit">Agregar personal</button></div></form><div id="meritActivationBox" class="hidden"><p class="hint">Entrega este código directamente a la persona:</p><div id="meritActivationCode" class="merit-code"></div></div><div id="meritStaffList" class="tablewrap"></div></div>
+<div id="merit-staff" class="merit-pane card">
+<div class="section"><div><h2>Docentes autorizados</h2><p class="hint">Activa únicamente a quienes acepten participar. Los folios no escaneados permanecen inactivos.</p></div><div class="actions"><button id="meritPrintTeacherFolios" class="secondary" type="button">🖨️ Imprimir 60 folios</button><button id="meritRefreshStaff" class="secondary" type="button">Actualizar</button></div></div>
+
+<div class="card" style="margin:12px 0;background:#fffaf0">
+  <div class="section"><div><h3 style="margin:0">Escanear folio docente</h3><p class="hint">Escanea el código de barras MGP-D001…MGP-D060. Si el docente acepta participar, escribe sus datos y actívalo.</p></div><div id="meritTeacherFolioSummary" class="badge">Cargando folios…</div></div>
+  <div class="formgrid">
+    <label>Folio / escáner<input id="meritTeacherFolioScan" autocomplete="off" placeholder="MGP-D001"></label>
+    <div class="actions" style="align-items:end"><button id="meritTeacherFolioFind" class="primary" type="button">Buscar folio</button></div>
+  </div>
+  <div id="meritTeacherFolioResult" class="hidden" style="margin-top:12px">
+    <div class="formgrid">
+      <label>Folio<input id="meritTeacherFolioCode" readonly></label>
+      <label>Nombre del profesor(a)<input id="meritTeacherFolioName" autocomplete="off"></label>
+      <label>Tipo<select id="meritTeacherFolioRole"><option value="docente">Docente</option><option value="direccion">Dirección</option><option value="subdireccion">Subdirección</option><option value="prefectura">Prefectura</option><option value="otro">Otro</option></select></label>
+      <label>Asignatura / función<input id="meritTeacherFolioSubject"></label>
+    </div>
+    <div class="actions"><button id="meritTeacherFolioActivate" class="primary" type="button">✓ Activar docente y generar código</button><button id="meritTeacherFolioCancel" class="secondary" type="button">Cancelar</button></div>
+    <p id="meritTeacherFolioStatus" class="message"></p>
+  </div>
+</div>
+
+<form id="meritStaffForm" class="formgrid"><label>Nombre<input id="meritStaffName" required></label><label>Tipo<select id="meritStaffRole"><option value="docente">Docente</option><option value="direccion">Dirección</option><option value="subdireccion">Subdirección</option><option value="prefectura">Prefectura</option><option value="otro">Otro</option></select></label><label>Asignatura / función<input id="meritStaffSubject"></label><div class="actions"><button class="primary" type="submit">Agregar personal manualmente</button></div></form>
+<div id="meritActivationBox" class="hidden"><p class="hint">Código de activación para la app Mérito Docentes:</p><div id="meritActivationCode" class="merit-code"></div><p class="hint">La persona debe escribir estos 4 dígitos una sola vez en su celular.</p></div>
+<div id="meritStaffList" class="tablewrap"></div>
+</div>
 <div id="merit-weekly" class="merit-pane card"><h2>Publicación semanal</h2><p class="hint">Crea una fotografía oficial de la clasificación. El portal nunca consulta los movimientos internos.</p><label>Periodo<select id="meritWeeklyPeriod"></select></label><label>Mensaje público opcional<textarea id="meritWeeklyMessage" rows="3" placeholder="Ej. Corte correspondiente a esta semana"></textarea></label><div class="actions"><button id="meritPreviewWeekly" class="secondary">Vista previa</button><button id="meritPublishWeekly" class="primary">Publicar avance semanal</button><button id="meritFreezePublic" class="secondary">Congelar portal</button><button id="meritProcessPublic" class="secondary">Resultados en proceso</button><button id="meritOpenPublic" class="secondary">Reabrir publicación</button></div><p id="meritWeeklyStatus" class="message"></p><div id="meritWeeklyPreview" class="tablewrap"></div></div>
 <div id="merit-monthly" class="merit-pane card">
   <div class="section"><div><h2>Cierre mensual</h2><p class="hint">Revisa el resultado antes de cerrar. Si existe un empate, deberás resolverlo manualmente y dejar una nota.</p></div></div>
@@ -1293,7 +1317,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v82312.js?v=82312"></script><script src="merit-period-fix-v82313.js?v=82313"></script><script src="merit-schoolwide-fix-v82314.js?v=82314"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v82312.js?v=82312"></script><script src="merit-period-fix-v82313.js?v=82313"></script><script src="merit-schoolwide-fix-v82314.js?v=82314"></script><script src="merit-staff-provision-v82315.js?v=82315"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

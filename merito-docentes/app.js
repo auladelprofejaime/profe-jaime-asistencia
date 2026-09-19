@@ -110,23 +110,40 @@ $('#sendConfirm').onclick=async()=>{
  }catch(e){$('#confirmDialog').close();$('#captureStatus').innerHTML=`<span class="error">${e.message||e}</span>`}finally{btn.disabled=false}
 };
 $('#saveNewPin').onclick=async()=>{
+ const firstName=$('#profileFirstName').value.trim();
+ const firstSurname=$('#profileFirstSurname').value.trim();
+ const subject=$('#profileSubject').value.trim();
  const current=$('#currentPin').value.trim();
  const next=$('#newPin').value.trim();
  const confirmPin=$('#newPinConfirm').value.trim();
  const st=$('#pinChangeStatus');st.textContent='';
+ if(!firstName)return st.innerHTML='<span class="error">Escribe tu nombre.</span>';
+ if(!firstSurname)return st.innerHTML='<span class="error">Escribe tu primer apellido.</span>';
+ if(!subject)return st.innerHTML='<span class="error">Escribe tu asignatura.</span>';
  if(!/^\d{4}$/.test(current))return st.innerHTML='<span class="error">Escribe tu NIP actual de 4 dígitos.</span>';
  if(!/^\d{4}$/.test(next))return st.innerHTML='<span class="error">El nuevo NIP debe tener 4 dígitos.</span>';
  if(next!==confirmPin)return st.innerHTML='<span class="error">Los nuevos NIP no coinciden.</span>';
  try{
-   const d=await rpc('merit_change_pin',{p_token:token,p_current_pin:current,p_new_pin:next});
+   const d=await rpc('merit_complete_profile_and_change_pin',{
+     p_token:token,
+     p_current_pin:current,
+     p_new_pin:next,
+     p_first_name:firstName,
+     p_first_surname:firstSurname,
+     p_subject_area:subject
+   });
    if(!d?.ok){
      const msgs={invalid_current_pin:'El NIP actual no es correcto.',same_pin:'El nuevo NIP debe ser diferente al impreso.',invalid_new_pin:'El nuevo NIP debe tener 4 dígitos.'};
      throw new Error(msgs[d?.reason]||'No se pudo cambiar el NIP.');
    }
-   st.innerHTML='<span class="success">✓ NIP actualizado correctamente.</span>';
+   staff.display_name=d.display_name||staff.display_name;
+   staff.subject_area=d.subject_area||staff.subject_area;
+   $('#staffName').textContent=staff.display_name;
+   $('#staffRole').textContent=staff.subject_area||roleLabel(staff.role_type);
+   st.innerHTML='<span class="success">✓ Registro completado y NIP actualizado.</span>';
    setTimeout(()=>$('#pinDialog').close(),600);
  }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=14').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=15').catch(()=>{});
 checkDevice();

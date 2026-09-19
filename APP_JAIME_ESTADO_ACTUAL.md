@@ -225,3 +225,21 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Nombre de archivo: Merito_Gabino_A_Palma_Accesos_Docentes.pdf
 - Para 60 accesos, el PDF genera 30 páginas.
 - App Docente actualizada a v8.23.20 y caché app-docente-v8-23-20.
+
+
+## Mérito Gabino A. Palma — barcode compacto y periodos visibles v8.23.21
+- App Docente actualizada a v8.23.21.
+- PDF de accesos docentes:
+  - Código de barras reducido para escáner pequeño tipo tienda.
+  - Nuevo tamaño aproximado en PDF: 230 pt de ancho × 30 pt de alto.
+  - Se conserva ID visible debajo.
+  - Se mantiene hoja carta con 2 credenciales horizontales por página.
+- Periodos:
+  - Confirmado en base que existen y siguen intactos:
+    - Prueba Consejo Técnico · 25 septiembre 2026 (2026-09-25 a 2026-09-25, open)
+    - Octubre 2026 (2026-10-01 a 2026-10-23, open)
+  - El problema era de carga/visualización cuando la sesión de profesor aún no estaba restaurada.
+  - Nuevo módulo merit-period-fix-v82321.js reintenta automáticamente la carga tras restaurar sesión.
+  - Reintenta a 700 ms, 1800 ms y 3500 ms, al volver a enfocar la app y al entrar a cualquier pestaña de Mérito.
+  - Si detecta “sesión requerida / no autorizado”, muestra “Conectando con la sesión del profesor…” en lugar de dejar “sin periodos”.
+- Caché App Docente actualizado a app-docente-v8-23-21.

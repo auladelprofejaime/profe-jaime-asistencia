@@ -274,3 +274,45 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - El NIP NO se guarda en almacenamiento local ni de sesión.
 - “Desvincular” elimina tanto la sesión persistente como la temporal.
 - Mérito Docentes usa app.js?v=17 y caché merito-docentes-v1-8.
+
+
+## Mérito Gabino A. Palma — votación de desempate
+- Se implementó votación formal para empates del cierre mensual.
+- Flujo:
+  1. En App Docente, al pulsar “Cerrar mes”, se ejecuta la vista previa.
+  2. Si no hay empates, el cierre continúa normalmente.
+  3. Si existe uno o varios empates, el periodo pasa a frozen / results_in_process y se abre automáticamente una sesión de votación.
+  4. Solo se incluyen como votantes quienes están activos, confirmados, no archivados y con perfil completo.
+  5. En Mérito Docentes aparece automáticamente una tarjeta “Votación de desempate”.
+  6. Cada integrante puede emitir un solo voto por cada empate; no puede cambiarlo ni duplicarlo desde otro dispositivo.
+  7. La app del personal no muestra conteos mientras la votación está abierta.
+  8. App Docente sí muestra participación y conteos por candidato.
+  9. El administrador puede “Cerrar votación y resolver desempate”.
+  10. Si existe un ganador único por votos, se genera automáticamente la resolución y se cierra el mes.
+  11. Si la votación permanece empatada, la App Docente solicita al Comité Organizador elegir entre los grupos que continúan empatados y escribir una nota.
+  12. La resolución del Comité queda registrada y después se realiza el cierre mensual.
+- Backend nuevo:
+  - merit_tie_vote_sessions
+  - merit_tie_vote_issues
+  - merit_tie_vote_candidates
+  - merit_tie_vote_eligible
+  - merit_tie_vote_ballots
+  - teacher_merit_open_tie_vote(uuid)
+  - teacher_merit_tie_vote_status(uuid)
+  - teacher_merit_close_tie_vote(uuid,jsonb)
+  - merit_pending_tie_votes(text)
+  - merit_cast_tie_vote(text,uuid,text)
+- Las tablas nuevas tienen RLS habilitado y acceso directo revocado a anon/authenticated; la operación se realiza mediante RPC validadas.
+- Mérito Docentes:
+  - app.js?v=18
+  - caché merito-docentes-v1-9
+  - consulta votaciones al entrar, al recuperar internet, al volver a primer plano y cada 30 s.
+- App Docente:
+  - v8.23.23
+  - módulo merit-tie-vote-v82323.js?v=82323
+  - caché app-docente-v8-23-23
+- Verificación:
+  - 0 sesiones de votación reales creadas durante implementación.
+  - Periodo Prueba Consejo Técnico 25/09/2026 sigue open/public_state open.
+  - Periodo Octubre 2026 sigue open/public_state open.
+  - RPC de consulta/voto rechazan tokens inválidos con unauthorized.

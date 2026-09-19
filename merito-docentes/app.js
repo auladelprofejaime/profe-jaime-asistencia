@@ -5,10 +5,24 @@ const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 let token=localStorage.getItem(TOKEN_KEY)||'', staff=null, grade=null, group=null, points=null;
 
 async function rpc(name,args={}){
- const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{method:'POST',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(args)});
- const text=await r.text(); let d=null; try{d=text?JSON.parse(text):null}catch{d=text}
- if(!r.ok) throw new Error(d?.message||d?.error||text||`HTTP ${r.status}`);
- return d;
+ const controller=new AbortController();
+ const timer=setTimeout(()=>controller.abort(),8000);
+ try{
+  const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{
+   method:'POST',
+   cache:'no-store',
+   signal:controller.signal,
+   headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},
+   body:JSON.stringify(args)
+  });
+  const text=await r.text(); let d=null; try{d=text?JSON.parse(text):null}catch{d=text}
+  if(!r.ok) throw new Error(d?.message||d?.error||text||`HTTP ${r.status}`);
+  return d;
+ }catch(e){
+  if(e?.name==='AbortError')throw new Error('La conexión tardó demasiado. Revisa internet e inténtalo de nuevo.');
+  if(!navigator.onLine)throw new Error('No hay conexión a internet.');
+  throw e;
+ }finally{clearTimeout(timer)}
 }
 function roleLabel(r){return ({docente:'Docente',direccion:'Dirección',subdireccion:'Subdirección',prefectura:'Prefectura',otro:'Personal autorizado'})[r]||r||''}
 async function checkDevice(){
@@ -16,7 +30,7 @@ async function checkDevice(){
  try{const d=await rpc('merit_device_info',{p_token:token});if(!d?.ok)throw 0;staff=d.staff;showCapture()}catch{localStorage.removeItem(TOKEN_KEY);token='';showActivation()}
 }
 function showActivation(){$('#activation').classList.remove('hidden');$('#capture').classList.add('hidden')}
-function showCapture(){$('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');$('#staffName').textContent=staff.display_name;$('#staffRole').textContent=roleLabel(staff.role_type)}
+function showCapture(){$('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');$('#staffName').textContent=staff.display_name;$('#staffRole').textContent=roleLabel(staff.role_type);checkSystemReady()}
 $('#activateBtn').onclick=async()=>{
  const code=$('#activationCode').value.trim();const st=$('#activationStatus');st.textContent='';
  if(!/^\d{4}$/.test(code))return st.innerHTML='<span class="error">Escribe los 4 dígitos.</span>';

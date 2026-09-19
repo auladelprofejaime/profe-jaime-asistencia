@@ -122,3 +122,19 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Se agregó botón “Imprimir 60 folios” con código de barras Code 39, legible también en texto.
 - Los folios activos conservan su staff_code para trazabilidad.
 - Verificación posterior: total_folios=60, available_inactive=60, assigned=0.
+
+
+## Mérito Gabino A. Palma — acceso docente definitivo para prueba 2026-09-25
+- Se sustituyeron los folios alfanuméricos MGP-D001…MGP-D060 por IDs exclusivamente numéricos de 6 dígitos: 700001…700060.
+- Cada uno de los 60 IDs tiene un NIP inicial único de 4 dígitos.
+- Los 60 accesos pueden entrar a la app Mérito Docentes durante septiembre aunque aún no tengan nombre, para la demostración del Consejo Técnico.
+- Mérito Docentes v1.4 ahora inicia con ID + NIP, no con un código de activación aislado.
+- La hoja imprimible contiene: ID, NIP inicial y código de barras numérico del ID.
+- En App Docente v8.23.16, el administrador escanea el ID y captura nombre/tipo/asignatura para confirmar al participante.
+- Confirmar a un docente conserva el mismo ID y el mismo NIP inicial, pero marca must_change_pin=true.
+- El docente debe cambiar obligatoriamente su NIP antes de seguir registrando movimientos después de ser confirmado.
+- Tras el cambio, el NIP inicial se elimina de la credencial imprimible y deja de ser válido.
+- Los IDs no confirmados vencen después del 2026-09-30. Desde el 2026-10-01 no pueden iniciar sesión ni registrar movimientos; sus dispositivos quedan revocados al detectarse y el registro se archiva para conservar trazabilidad de la prueba.
+- No usar “31 de septiembre”: septiembre termina el día 30.
+- Verificación: 60 IDs, 60 NIP iniciales únicos y válidos de 4 dígitos; rango 700001–700060.
+- Prueba transaccional de login realizada con 700001: login_ok=true; la transacción fue revertida para no dejar un dispositivo de prueba.

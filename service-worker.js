@@ -1,8 +1,8 @@
-const CACHE='app-docente-v8-23-13';
+const CACHE='app-docente-v8-23-14';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
- './','./index.html','./styles.css','./app-v82312.js?v=82312','./merit-period-fix-v82313.js?v=82313',
+ './','./index.html','./styles.css','./app-v82312.js?v=82312','./merit-period-fix-v82313.js?v=82313','./merit-schoolwide-fix-v82314.js?v=82314',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png','./logo-app-docente-v821.png',
  './shared/supabase-teacher.js?v=800'
 ];

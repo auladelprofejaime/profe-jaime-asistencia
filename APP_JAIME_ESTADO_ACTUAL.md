@@ -159,3 +159,36 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - App Docente: v8.23.17.
 - Mérito Docentes: v1.5.
 - Los accesos no activados siguen venciendo después del 2026-09-30.
+
+
+## Mérito Gabino A. Palma — recuperación individual de NIP y modo offline
+- App Docente: v8.23.18.
+- Mérito Docentes: v1.6.
+- Recuperación de acceso:
+  - En la matriz de docentes confirmados, cada docente con ID tiene botón individual “Generar NIP temporal”.
+  - El restablecimiento afecta únicamente a ese docente.
+  - Conserva nombre, asignatura, ID e historial.
+  - Revoca únicamente sus dispositivos activos.
+  - Genera un NIP temporal de 4 dígitos mostrado al administrador.
+  - Al volver a ingresar con ID + NIP temporal, el docente solo cambia su NIP; NO vuelve a capturar nombre/apellido/asignatura.
+  - Se retiró visualmente el flujo legado “Generar código” del listado de Mérito.
+- Alta inicial:
+  - El administrador sigue haciendo únicamente escanear ID -> Activar participación.
+  - Un ID se considera ocupado desde confirmed_at, aunque el docente todavía no complete su perfil.
+  - El primer registro del docente sí solicita nombre, primer apellido, asignatura y cambio de NIP.
+- Offline:
+  - Una vez que el dispositivo ya tuvo un acceso válido y conserva token/sesión local, puede capturar movimientos sin internet.
+  - Los movimientos offline se guardan en una cola local del dispositivo.
+  - Cada movimiento lleva client_event_id único para evitar duplicados y captured_at para conservar la fecha/hora real de captura.
+  - Al recuperar internet, la app sincroniza automáticamente; también tiene botón manual “Sincronizar”.
+  - La pantalla muestra estado: sin internet, pendientes, sincronizando o todo sincronizado.
+  - El servidor acepta sincronización tardía con una ventana máxima de 72 horas y asigna el movimiento al periodo correspondiente a captured_at.
+  - Los límites diarios se calculan con captured_at, no con la hora posterior de sincronización.
+  - Primer acceso, recuperación de NIP y cambio de NIP requieren internet; no se almacenan NIP nuevos en cola offline.
+  - Si una sesión fue revocada mientras el dispositivo estaba sin conexión, una captura local puede quedar pendiente, pero el servidor no la publicará hasta que vuelva a existir autorización válida.
+- Base:
+  - merit_movements incorpora client_event_id y captured_at.
+  - Índice único parcial sobre client_event_id.
+  - teacher_merit_reset_staff_pin(uuid) realiza recuperación individual.
+  - merit_register_movement admite client_event_id y captured_at.
+- Corrección adicional: se eliminó un error de sintaxis previo “async async function” en la impresión de hojas de acceso.

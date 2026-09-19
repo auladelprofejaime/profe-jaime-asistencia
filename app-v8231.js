@@ -3939,9 +3939,15 @@ async function forceUpdate(){
     }
     if('caches' in window){
       const keys=await caches.keys();
-      await Promise.all(keys.filter(key=>key.startsWith('aula-profe-jaime-')).map(key=>caches.delete(key)));
+      // Solo caché de archivos de App Docente; no toca IndexedDB ni localStorage.
+      await Promise.all(keys.filter(key=>key.startsWith('app-docente-')||key.startsWith('aula-profe-jaime-')).map(key=>caches.delete(key)));
     }
-    await fetch(`index.html?actualizar=${Date.now()}`,{cache:'no-store'});
+    if('serviceWorker' in navigator){
+      const registrations=await navigator.serviceWorker.getRegistrations();
+      for(const reg of registrations){if(reg.waiting)reg.waiting.postMessage?.({type:'SKIP_WAITING'});}
+      await new Promise(resolve=>setTimeout(resolve,700));
+    }
+    await fetch(`./index.html?actualizar=${Date.now()}`,{cache:'no-store'});
     const url=new URL(location.href);
     url.searchParams.set('actualizar',Date.now());
     location.replace(url.toString());

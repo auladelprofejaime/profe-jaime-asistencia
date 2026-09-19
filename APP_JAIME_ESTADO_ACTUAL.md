@@ -209,3 +209,19 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Las hojas también incluyen la firma Aula del Profe Jaime en el pie.
 - App Docente actualizada a v8.23.19.
 - Cachés actualizados: App Docente v8.23.19, Mérito Docentes v1.7, Mérito Público v1.6.
+
+
+## Mérito Gabino A. Palma — PDF de accesos docentes v8.23.20
+- El generador de accesos docentes ahora crea un PDF real tamaño carta, no una ventana de impresión HTML.
+- Distribución: 2 usuarios por hoja carta vertical; cada credencial ocupa media carta horizontal para cortar la hoja a la mitad.
+- Incluye línea de corte al centro.
+- Conserva diseño de Mérito Gabino A. Palma, logo de Mérito y branding Aula del Profe Jaime.
+- Se agregó visor interno de PDF dentro de App Docente con botones:
+  - Compartir PDF
+  - Descargar PDF
+  - Cerrar
+- Cerrar regresa al módulo de Mérito sin cerrar/reiniciar la app.
+- Compartir usa Web Share con archivo PDF cuando el dispositivo lo permite; si no, descarga el PDF como alternativa.
+- Nombre de archivo: Merito_Gabino_A_Palma_Accesos_Docentes.pdf
+- Para 60 accesos, el PDF genera 30 páginas.
+- App Docente actualizada a v8.23.20 y caché app-docente-v8-23-20.

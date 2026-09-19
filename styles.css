@@ -946,3 +946,15 @@ button.danger{
 .whatsapp-confirmation-head{display:flex;justify-content:space-between;gap:12px;align-items:center;margin-bottom:8px}
 .whatsapp-confirmation-table small{font-size:11px;opacity:.72}
 .whatsapp-confirmation-table td:nth-child(3){min-width:240px}
+
+
+/* v8.23.2 · privacidad financiera */
+.private-value{display:inline-block;transition:filter .18s ease,opacity .18s ease}
+.private-value.masked{filter:blur(7px);user-select:none;opacity:.78}
+.cash-denom-row{display:flex;align-items:center;justify-content:space-between;gap:1rem}
+.cash-denom-row label{display:flex;align-items:center;justify-content:space-between;gap:1rem;width:100%}
+.cash-denom-row input{max-width:110px;text-align:center}
+@media(max-width:640px){
+ .cash-denom-row label{align-items:flex-start;flex-direction:column}
+ .cash-denom-row input{max-width:100%;width:100%}
+}

@@ -1,4 +1,4 @@
-const C='merito-publico-v1-5';
+const C='merito-publico-v1-6';
 const A=['./','index.html','styles.css','app-v15.js','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest'];
 self.addEventListener('install',e=>e.waitUntil(
   caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting())

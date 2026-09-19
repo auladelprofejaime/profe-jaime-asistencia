@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.1</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.2</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -308,6 +308,8 @@
       <button data-view="portal-access" class="tab"><span>🔐</span>Estado de acceso a portales</button>
       <button data-view="whatsapp-groups" class="tab"><span>💬</span>Grupos de WhatsApp – App Padres</button>
       <button data-view="payments" class="tab"><span>💵</span>Pagos de libros</button>
+      <button data-view="cash-control" class="tab"><span>🧮</span>Corte de efectivo</button>
+      <button data-view="transfers" class="tab"><span>🏦</span>Transferencias</button>
       <button data-view="privacy" class="tab"><span>🔒</span>Privacidad y seguridad</button>
     </div>
   </details>
@@ -1243,20 +1245,35 @@
 </section>
 <section id="payments" class="view">
  <div class="card"><div class="section"><div><span class="eyebrow">LIBRO DE LECTURA</span><h2>Pagos de libros</h2><p class="hint">Total por alumno: <b>$280</b>. Registra abonos por escáner o búsqueda manual. Las correcciones quedan como anulaciones en el historial.</p></div><button id="payRefresh" class="secondary" type="button">Actualizar</button></div></div>
- <div class="stats"><div><b id="payExpected">$0</b><span>Esperado</span></div><div><b id="payReceived">$0</b><span>Recibido</span></div><div><b id="payPending">$0</b><span>Pendiente</span></div><div><b id="payPaidCount">0</b><span>Liquidados</span></div></div>
  <div class="card grid4"><label>Grupo<select id="payGroup"></select></label><label>Alumno<select id="payStudent"></select></label><label>ID / escáner<input id="payScan" inputmode="numeric" placeholder="Escanea o escribe ID"></label><div class="actions" style="align-items:end"><button id="payFind" class="primary" type="button">Buscar</button></div></div>
  <div id="payStudentCard" class="card"><div class="empty">Selecciona o escanea un alumno.</div></div>
  <div class="card"><h2>Registrar abono</h2><div class="grid4"><label>Monto<input id="payAmount" type="number" min="1" max="280" step="1" placeholder="80"></label><label>Forma de pago<select id="payMethod"><option value="cash">Efectivo</option><option value="transfer">Transferencia</option></select></label><label>Fecha y hora<input id="payDate" type="datetime-local"></label><label>Nota opcional<input id="payNote" maxlength="180" placeholder="Ej. abono anterior"></label></div><div class="actions"><button id="payRegister" class="primary" type="button">Registrar abono</button></div><p id="payMessage" class="hint"></p></div>
  <div class="card"><div class="section"><div><h2>Estado por alumno</h2><p class="hint">⚪ Pendiente de pago · 🟡 Pago en proceso · 🟢 Liquidado · 🔵 Libro solicitado · ✅ Libro entregado</p></div><button id="bookEditorialOpen" class="secondary" type="button">Administración editorial</button></div><div id="payRoster" class="list empty">Cargando…</div></div>
- <dialog id="bookEditorialDialog"><div class="dialoghead"><h2>Administración editorial</h2><button id="bookEditorialClose" type="button">×</button></div><div class="dialogbody">
- <p class="hint">Información privada de uso docente.</p>
- <div class="stats"><div><b id="bookEditorialDue">$0</b><span>A pagar en próximo pedido</span></div><div><b id="bookEditorialReady">0</b><span>Liquidados sin solicitar</span></div><div><b id="bookEditorialRequested">0</b><span>Solicitados</span></div><div><b id="bookEditorialDelivered">0</b><span>Entregados</span></div></div>
- <p class="hint">Costo editorial interno: <b>$250 por libro</b>. Este dato no aparece en reportes para familias.</p>
+ <dialog id="bookEditorialDialog" data-private-visible="0"><div class="dialoghead"><h2>Administración editorial</h2><button id="bookEditorialClose" type="button">×</button></div><div class="dialogbody">
+ <div class="section"><div><p class="hint">Información financiera privada de uso docente. Los importes permanecen ocultos hasta que decidas mostrarlos.</p></div><button id="bookEditorialPrivacyToggle" data-private-toggle class="secondary" type="button">👁 Mostrar importes</button></div>
+ <h3>Resumen de cobro</h3>
+ <div class="stats"><div><b id="payExpected" class="private-value masked">$0</b><span>Esperado a $280</span></div><div><b id="payReceived" class="private-value masked">$0</b><span>Total recibido</span></div><div><b id="payPending" class="private-value masked">$0</b><span>Pendiente</span></div><div><b id="payPaidCount" class="private-value masked">0</b><span>Liquidados</span></div></div>
+ <div class="stats"><div><b id="bookEditorialCash" class="private-value masked">$0</b><span>Recibido en efectivo</span></div><div><b id="bookEditorialTransfer" class="private-value masked">$0</b><span>Recibido por transferencia</span></div><div><b id="bookEditorialCostTotal" class="private-value masked">$0</b><span>Costo editorial de liquidados</span></div><div><b id="bookEditorialProfit" class="private-value masked">$0</b><span>Ganancia en liquidados</span></div></div>
+ <h3>Solicitud y entrega</h3>
+ <div class="stats"><div><b id="bookEditorialDue" class="private-value masked">$0</b><span>A pagar en próximo pedido</span></div><div><b id="bookEditorialReady" class="private-value masked">0</b><span>Liquidados sin solicitar</span></div><div><b id="bookEditorialRequested" class="private-value masked">0</b><span>Solicitados acumulados</span></div><div><b id="bookEditorialDelivered" class="private-value masked">0</b><span>Entregados</span></div></div>
+ <div class="stats"><div><b id="bookEditorialRequestedCost" class="private-value masked">$0</b><span>Costo editorial acumulado solicitado</span></div></div>
+ <p class="hint">Costo editorial interno: <b>$250 por libro</b>. Precio cobrado a familias: <b>$280 por libro</b>. La ganancia mostrada corresponde a libros ya liquidados.</p>
  <div class="actions"><button id="bookEditorialRefresh" class="secondary" type="button">Actualizar resumen</button></div>
  </div></dialog>
  <div class="card"><div class="section"><div><h2>📄 Reportes de libros para familias</h2><p class="hint">Genera el aviso que necesites. Los estados provienen de Gestión de libros.</p></div></div>
  <div class="grid4"><label>Grupo<select id="bookReportGroup"><option value="__ALL__">Todos los grupos</option></select></label><label>Tipo de reporte<select id="bookReportStatus"><option value="all">Todos los estados</option><option value="unpaid">⚪ Pendientes de pago</option><option value="partial">🟡 Pagos en proceso</option><option value="paid">🟢 Liquidados</option><option value="requested">🔵 Libros solicitados</option><option value="delivered">✅ Libros entregados</option></select></label><div class="actions" style="align-items:end"><button id="bookFamilyPdf" class="primary" type="button">Generar PDF</button></div></div>
  </div>
+</section>
+<section id="cash-control" class="view" data-private-visible="0">
+ <div class="card"><div class="section"><div><span class="eyebrow">CONTROL PRIVADO</span><h2>🧮 Corte de efectivo</h2><p class="hint">Cuenta el efectivo físico de los pagos de libros y compáralo con lo registrado como efectivo en la app.</p></div><button id="cashPrivacyToggle" data-private-toggle class="secondary" type="button">👁 Mostrar importes</button></div></div>
+ <div class="stats"><div><b id="cashExpected" class="private-value masked">$0</b><span>Efectivo registrado</span></div><div><b id="cashCounted" class="private-value masked">$0</b><span>Efectivo contado</span></div><div><b id="cashDifference" class="private-value masked">$0</b><span>Diferencia</span></div></div>
+ <div class="card"><h2>Denominaciones</h2><p class="hint">Captura cuántos billetes o monedas tienes de cada denominación.</p><div id="cashDenominations" class="list"></div><div class="actions"><button id="cashSaveCut" class="primary" type="button">Guardar corte</button><button id="cashResetCut" class="secondary" type="button">Poner conteo en cero</button></div><p id="cashLastSaved" class="hint">Todavía no hay un corte guardado.</p></div>
+ <div id="cashCutStatus" class="status neutral"><i>▣</i><h2>Captura las denominaciones</h2><p>La diferencia se calcula contra los pagos registrados como efectivo.</p></div>
+</section>
+<section id="transfers" class="view" data-private-visible="0">
+ <div class="card"><div class="section"><div><span class="eyebrow">CONTROL PRIVADO</span><h2>🏦 Transferencias</h2><p class="hint">Consulta únicamente los pagos de libros registrados como transferencia. Estos importes ya forman parte del total recibido.</p></div><button id="transferPrivacyToggle" data-private-toggle class="secondary" type="button">👁 Mostrar importes</button></div></div>
+ <div class="stats"><div><b id="transferTotal" class="private-value masked">$0</b><span>Total en transferencias</span></div><div><b id="transferCount" class="private-value masked">0</b><span>Transferencias vigentes</span></div><div><b id="transferGrandTotal" class="private-value masked">$0</b><span>Total general recibido</span></div></div>
+ <div class="card"><h2>Historial de transferencias</h2><div id="transferList" class="list empty">Cargando…</div></div>
 </section>
 <section id="privacy" class="view"><div class="card privacy-card"><h2>🔒 Privacidad y seguridad</h2>
 <p>Esta aplicación es una herramienta independiente de apoyo docente. No es una aplicación oficial de la SEP ni de la AEFCM y no sustituye sus sistemas, trámites o procedimientos oficiales.</p>
@@ -1272,7 +1289,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8231.js?v=8231"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v8232.js?v=8232"></script>
 
 <dialog id="meritEditPeriodDialog">
   <div class="dialogbody">

@@ -316,3 +316,18 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - Periodo Prueba Consejo Técnico 25/09/2026 sigue open/public_state open.
   - Periodo Octubre 2026 sigue open/public_state open.
   - RPC de consulta/voto rechazan tokens inválidos con unauthorized.
+
+
+## Mérito Gabino A. Palma — QR directo en PDF de accesos v8.23.24
+- El generador PDF de accesos docentes incorpora automáticamente un código QR en cada credencial.
+- El QR dirige directamente a la App Mérito Docentes:
+  https://auladelprofejaime.github.io/profe-jaime-asistencia/merito-docentes/
+- El QR aparece pequeño, en la zona inferior derecha de cada media carta, con la leyenda “Escanea para ingresar”.
+- Se mantiene:
+  - hoja tamaño carta vertical
+  - 2 accesos horizontales por hoja
+  - 69 accesos disponibles (700002–700070)
+  - barcode compacto
+  - botones Compartir PDF / Descargar PDF / Cerrar
+  - branding Mérito Gabino A. Palma + Aula del Profe Jaime.
+- App Docente actualizada a v8.23.24; caché app-docente-v8-23-24.

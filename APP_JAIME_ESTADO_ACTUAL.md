@@ -81,3 +81,16 @@ Ese chat debe recuperar el estado real desde GitHub/Supabase en lugar de depende
 Archivo creado el 2026-09-19 para evitar dependencia de una sola conversación extensa.
 Al crear este archivo, el HEAD observado de `main` fue:
 `d8442057bc8cc237d853c9e37d6634f79969291c`
+
+
+## Mérito Gabino A. Palma — revisión de arranque 2026-09-19
+- App Docente actualizada a v8.23.14 para Mérito.
+- La clasificación es ÚNICA a nivel escuela: los 18 grupos (11–16, 21–26, 31–36) compiten juntos.
+- Se eliminaron los filtros de clasificación por 1.º, 2.º y 3.º tanto de “Clasificación actual” como de “Acumulado anual”.
+- El portal público de Mérito quedó en v1.5 y también muestra una sola clasificación general, sin filtros por grado.
+- El selector “grado y grupo” del portal de docentes se conserva únicamente como mecanismo rápido para elegir el grupo al registrar un movimiento; no crea rankings separados.
+- Backend confirmado: ranking actual, publicación semanal, cierre mensual y acumulado anual usan ranking general de todos los grupos.
+- Corregida la función `teacher_merit_ranking`: el conteo de reconocimientos ahora cuenta solo movimientos válidos del grupo y periodo correspondientes.
+- No se borraron ni reiniciaron datos.
+- Estado al revisar: 18 grupos activos; 0 movimientos; 0 reconocimientos; 0 publicaciones semanales; 0 cierres mensuales.
+- Periodo configurado: “Octubre 2026”, 2026-10-01 a 2026-10-23, estado open. Antes del 1 de octubre el registro de movimientos debe responder `no_open_period` por estar fuera de fechas.

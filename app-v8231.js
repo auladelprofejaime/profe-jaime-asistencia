@@ -6387,6 +6387,8 @@ function generateBookFamilyReport(){
  doc.save(`Reporte_libros_${g==='__ALL__'?'todos':g}_${today()}.pdf`);
 }
 window.addEventListener('load',()=>{
+ $('#bookEditorialOpen')?.addEventListener('click',async()=>{const d=$('#bookEditorialDialog');if(d){d.showModal();await loadBookFulfillment();}});
+ $('#bookEditorialClose')?.addEventListener('click',()=>$('#bookEditorialDialog')?.close());
  $('#bookEditorialRefresh')?.addEventListener('click',loadBookFulfillment);
  $('#bookMarkRequested')?.addEventListener('click',markBooksRequested);
  $('#bookMarkDelivered')?.addEventListener('click',markBooksDelivered);

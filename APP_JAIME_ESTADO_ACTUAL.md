@@ -243,3 +243,19 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - Reintenta a 700 ms, 1800 ms y 3500 ms, al volver a enfocar la app y al entrar a cualquier pestaña de Mérito.
   - Si detecta “sesión requerida / no autorizado”, muestra “Conectando con la sesión del profesor…” en lugar de dejar “sin periodos”.
 - Caché App Docente actualizado a app-docente-v8-23-21.
+
+
+## Mérito Gabino A. Palma — rango definitivo de IDs de personal v8.23.22
+- El ID 700001 queda reservado y asignado al registro activo de Jaime Armando Perez Vazquez.
+- Los accesos disponibles para demás personal son 700002–700070.
+- Total de accesos reservados para personal adicional: 69.
+- Los 60 placeholders originales fueron recorridos conservando sus filas y NIP:
+  - antes: 700001–700060
+  - ahora: 700002–700061
+- Se crearon 9 accesos adicionales: 700062–700070.
+- Los 69 accesos 700002–700070 tienen NIP inicial válido de 4 dígitos y los 69 NIP son únicos.
+- 700001 no se incluye en el PDF de accesos disponibles.
+- El PDF / botón de App Docente ahora muestra 69 accesos.
+- Scanner/ejemplo actualizado al rango 700002…700070.
+- App Docente actualizada a v8.23.22; caché app-docente-v8-23-22.
+- Verificación de seguridad de Supabase posterior: 0 avisos devueltos por advisor.

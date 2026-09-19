@@ -4,9 +4,21 @@ const TOKEN_KEY='meritInstallationTokenV1';
 const STAFF_CACHE_KEY='meritStaffCacheV16';
 const SETUP_CACHE_KEY='meritMustChangePinV16';
 const QUEUE_KEY='meritOfflineQueueV16';
-const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
-let token=localStorage.getItem(TOKEN_KEY)||'';
+const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const rememberedToken=localStorage.getItem(TOKEN_KEY)||'';
+const sessionToken=sessionStorage.getItem(TOKEN_KEY)||'';
+let token=rememberedToken||sessionToken||'';
+let rememberSession=!!rememberedToken;
 let staff=null,grade=null,group=null,points=null,syncing=false;
+
+function sessionStore(){return rememberSession?localStorage:sessionStorage}
+function saveSessionToken(v){
+  localStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem(TOKEN_KEY);
+  sessionStore().setItem(TOKEN_KEY,v);
+}
+function clearSessionToken(){
+  localStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem(TOKEN_KEY);
+}
 
 async function rpc(name,args={}){
  const controller=new AbortController();
@@ -31,11 +43,14 @@ async function rpc(name,args={}){
 
 function roleLabel(r){return ({docente:'Docente',direccion:'Dirección',subdireccion:'Subdirección',prefectura:'Prefectura',otro:'Personal autorizado'})[r]||r||''}
 function cacheSession(mustChange=false){
- if(staff)localStorage.setItem(STAFF_CACHE_KEY,JSON.stringify(staff));
- localStorage.setItem(SETUP_CACHE_KEY,mustChange?'1':'0');
+ const store=sessionStore();
+ localStorage.removeItem(STAFF_CACHE_KEY);sessionStorage.removeItem(STAFF_CACHE_KEY);
+ localStorage.removeItem(SETUP_CACHE_KEY);sessionStorage.removeItem(SETUP_CACHE_KEY);
+ if(staff)store.setItem(STAFF_CACHE_KEY,JSON.stringify(staff));
+ store.setItem(SETUP_CACHE_KEY,mustChange?'1':'0');
 }
-function readCachedStaff(){try{return JSON.parse(localStorage.getItem(STAFF_CACHE_KEY)||'null')}catch{return null}}
-function cachedMustChange(){return localStorage.getItem(SETUP_CACHE_KEY)==='1'}
+function readCachedStaff(){try{return JSON.parse(localStorage.getItem(STAFF_CACHE_KEY)||sessionStorage.getItem(STAFF_CACHE_KEY)||'null')}catch{return null}}
+function cachedMustChange(){return (localStorage.getItem(SETUP_CACHE_KEY)||sessionStorage.getItem(SETUP_CACHE_KEY))==='1'}
 function getQueue(){try{const q=JSON.parse(localStorage.getItem(QUEUE_KEY)||'[]');return Array.isArray(q)?q:[]}catch{return []}}
 function saveQueue(q){localStorage.setItem(QUEUE_KEY,JSON.stringify(q));updateOfflineUI()}
 function eventId(){return crypto?.randomUUID?.()||('evt-'+Date.now()+'-'+Math.random().toString(16).slice(2))}
@@ -126,8 +141,9 @@ async function checkDevice(){
  try{
   const d=await rpc('merit_device_info',{p_token:token});
   if(!d?.ok){
-   localStorage.removeItem(TOKEN_KEY);token='';
-   localStorage.removeItem(STAFF_CACHE_KEY);localStorage.removeItem(SETUP_CACHE_KEY);
+   clearSessionToken();token='';
+   localStorage.removeItem(STAFF_CACHE_KEY);sessionStorage.removeItem(STAFF_CACHE_KEY);
+   localStorage.removeItem(SETUP_CACHE_KEY);sessionStorage.removeItem(SETUP_CACHE_KEY);
    return showActivation();
   }
   staff=d.staff;cacheSession(!!d.must_change_pin);showCapture();
@@ -174,7 +190,8 @@ $('#activateBtn').onclick=async()=>{
    throw new Error(msgs[d?.reason]||'No se pudo ingresar.');
   }
   token=d.installation_token;staff=d.staff;
-  localStorage.setItem(TOKEN_KEY,token);cacheSession(!!d.must_change_pin);
+  rememberSession=$('#rememberSession')?.checked!==false;
+  saveSessionToken(token);cacheSession(!!d.must_change_pin);
   $('#staffCode').value='';$('#activationCode').value='';showCapture();
   if(d.must_change_pin)setTimeout(()=>openPinDialog(!!staff.is_placeholder,pin),80);
   syncPending();
@@ -183,7 +200,9 @@ $('#activateBtn').onclick=async()=>{
 
 $('#forgetDevice').onclick=()=>{
  if(confirm('¿Desvincular este dispositivo? Para volver a usarlo necesitarás tu ID y NIP vigentes.')){
-  localStorage.removeItem(TOKEN_KEY);localStorage.removeItem(STAFF_CACHE_KEY);localStorage.removeItem(SETUP_CACHE_KEY);
+  clearSessionToken();
+  localStorage.removeItem(STAFF_CACHE_KEY);sessionStorage.removeItem(STAFF_CACHE_KEY);
+  localStorage.removeItem(SETUP_CACHE_KEY);sessionStorage.removeItem(SETUP_CACHE_KEY);
   location.reload();
  }
 };
@@ -221,7 +240,7 @@ $('#reviewBtn').onclick=async()=>{
   try{
    const d=await rpc('merit_device_info',{p_token:token});
    if(!d?.ok){
-    localStorage.removeItem(TOKEN_KEY);token='';return showActivation();
+    clearSessionToken();token='';return showActivation();
    }
    staff=d.staff;cacheSession(!!d.must_change_pin);
    if(d.must_change_pin){
@@ -342,6 +361,7 @@ window.addEventListener('offline',()=>{updateOfflineUI();checkSystemReady()});
 setInterval(()=>{if(navigator.onLine&&getQueue().length)syncPending()},30000);
 
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=16').catch(()=>{});
+if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=17').catch(()=>{});
 updateOfflineUI();
 checkDevice();

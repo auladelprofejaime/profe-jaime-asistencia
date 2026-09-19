@@ -108,3 +108,17 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Añadida RPC pública mínima `merit_current_period_status()`, que solo informa si hay periodo activo y sus fechas/etiqueta; no expone datos sensibles.
 - Al 2026-09-19, la comprobación devuelve periodo inactivo, como corresponde; el 2026-09-25 deberá detectar el periodo de prueba.
 - Actualmente solo hay un integrante de `merit_staff` activo. Para que varios docentes prueben la app con trazabilidad individual, deben agregarse/activarse desde “Docentes autorizados” antes del Consejo.
+
+
+## Mérito Gabino A. Palma — folios docentes para Consejo Técnico
+- Creados 60 folios alfanuméricos reservados: MGP-D001 a MGP-D060.
+- Los 60 están inicialmente inactivos, sin nombre y no aparecen como docentes reales hasta ser asignados.
+- App Docente actualizada a v8.23.15 con flujo:
+  1. Escanear/escribir folio MGP-Dxxx.
+  2. Capturar nombre, tipo y asignatura/función.
+  3. Activar folio.
+  4. Generar automáticamente código personal de 4 dígitos para activar la app Mérito Docentes.
+- Los folios no escaneados permanecen inactivos y no requieren borrado posterior.
+- Se agregó botón “Imprimir 60 folios” con código de barras Code 39, legible también en texto.
+- Los folios activos conservan su staff_code para trazabilidad.
+- Verificación posterior: total_folios=60, available_inactive=60, assigned=0.

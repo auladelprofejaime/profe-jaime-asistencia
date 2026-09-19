@@ -6212,6 +6212,9 @@ async function loadBookPayments(){
   const rows=out.students||[], groups=[...new Set(rows.map(x=>String(x.group_name||'')).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
   const g=$('#payGroup'), old=g.value;g.innerHTML=groups.map(x=>`<option value="${safe(x)}">${safe(x)}</option>`).join('');if(groups.includes(old))g.value=old;
   fillBookPaymentStudents(); renderBookPaymentRoster();
+  // La gestión de libros parte inmediatamente de la misma lista/estado de pagos.
+  if(!bookFulfillmentDashboard){bookFulfillmentDashboard={ok:true,students:(rows||[]).map(r=>({...r,payment_status:r.status,fulfillment_status:null}))};fillBookGroupSelects();renderBookManagement();}
+  loadBookFulfillment().catch(()=>{});
   if(!$('#payDate').value)$('#payDate').value=localDateTimeInput();
  }catch(e){$('#payRoster').innerHTML=`<div class="empty">No se pudieron cargar los pagos: ${safe(e.message||e)}</div>`}
 }
@@ -6328,9 +6331,10 @@ function bookFulfillmentStateLabel(r){
  return '⚪ Sin proceso iniciado';
 }
 async function loadBookFulfillment(){
- const box=$('#bookEditorialList'); if(!box)return;
+ const box=$('#bookEditorialList'), manage=$('#bookManageList');
  try{
    let out;
+   if(manage)manage.innerHTML='<div class="empty">Cargando…</div>'; 
    if(navigator.onLine&&cloudOnline){
      out=await window.ProfeSupabase.rpc('teacher_book_fulfillment_dashboard',{});
      if(!out?.ok)throw Error(out?.reason||'No se pudo cargar');
@@ -6350,7 +6354,18 @@ async function loadBookFulfillment(){
    if(del)del.innerHTML=requested.map(r=>`<label class="list-row" style="display:flex;gap:.7rem;align-items:center"><input type="checkbox" data-book-deliver="${safe(r.id)}" style="width:auto"><span><b>${safe(r.list_number||'—')}. ${safe(r.name)}</b><small>Grupo ${safe(r.group_name)} · Solicitado ${r.requested_at?new Date(r.requested_at).toLocaleDateString('es-MX'):''}</small></span></label>`).join('')||'<div class="empty">No hay libros solicitados pendientes de entregar.</div>';
    fillBookGroupSelects();
    renderBookManagement();
- }catch(e){box.innerHTML=`<div class="empty">${safe(e.message||e)}</div>`}
+ }catch(e){
+   // Gestión usa como fuente primaria el mismo tablero de pagos que “Estado por alumno”.
+   const pay=bookPayDashboard||offlineRpcGet('teacher_book_payment_dashboard',{});
+   if(pay?.students){
+     bookFulfillmentDashboard={ok:true,students:(pay.students||[]).map(r=>({...r,payment_status:r.status,fulfillment_status:null}))};
+     fillBookGroupSelects();renderBookManagement();
+     if(box)box.innerHTML='<div class="empty">Abre esta sección con conexión para consultar el resumen editorial.</div>';
+   }else{
+     if(manage)manage.innerHTML=`<div class="empty">No se pudo cargar la información: ${safe(e.message||e)}</div>`;
+     if(box)box.innerHTML=`<div class="empty">${safe(e.message||e)}</div>`;
+   }
+ }
 }
 async function markBooksRequested(){
  const ids=[...document.querySelectorAll('[data-book-request]:checked')].map(x=>x.dataset.bookRequest);

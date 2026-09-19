@@ -138,3 +138,24 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - No usar “31 de septiembre”: septiembre termina el día 30.
 - Verificación: 60 IDs, 60 NIP iniciales únicos y válidos de 4 dígitos; rango 700001–700060.
 - Prueba transaccional de login realizada con 700001: login_ok=true; la transacción fue revertida para no dejar un dispositivo de prueba.
+
+
+## Mérito Gabino A. Palma — activación simplificada por ID
+- Flujo definitivo para participantes del Consejo Técnico:
+  1. El docente recibe hoja con ID numérico + NIP inicial.
+  2. Puede probar la app durante septiembre con esas credenciales.
+  3. Si acepta participar, el administrador escanea únicamente el ID desde App Docente.
+  4. El administrador pulsa “Activar participación”; NO captura nombre ni asignatura.
+  5. El ID queda marcado para completar registro y must_change_pin=true.
+  6. En la app Mérito Docentes, el participante debe capturar obligatoriamente:
+     - Nombre
+     - Primer apellido
+     - Asignatura
+     - NIP actual
+     - Nuevo NIP
+     - Confirmación del nuevo NIP
+  7. Hasta completar esos datos y cambiar el NIP, no puede registrar movimientos.
+  8. Al completar el registro, display_name se forma con Nombre + primer apellido, se guarda asignatura, se elimina el NIP inicial y el nuevo NIP queda vigente.
+- App Docente: v8.23.17.
+- Mérito Docentes: v1.5.
+- Los accesos no activados siguen venciendo después del 2026-09-30.

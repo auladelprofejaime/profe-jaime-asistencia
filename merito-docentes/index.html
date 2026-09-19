@@ -2,8 +2,12 @@
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#ffc800"><title>Mérito Gabino A. Palma · Docentes</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css">
+<style>
+.brand-byline{font-size:.82rem;font-weight:700;opacity:.72;margin-top:3px}
+.app-brand-footer{max-width:980px;margin:18px auto 26px;padding:14px 18px;text-align:center;font-size:.84rem;font-weight:700;opacity:.72;border-top:1px solid rgba(0,0,0,.12)}
+</style>
 </head><body>
-<header><img src="logo-merito.jpeg" alt=""><div><h1>Mérito Gabino A. Palma</h1><p>Captura para docentes autorizados</p></div></header>
+<header><img src="logo-merito.jpeg" alt=""><div><h1>Mérito Gabino A. Palma</h1><p>Captura para docentes autorizados</p><div class="brand-byline">Una app de Aula del Profe Jaime</div></div></header>
 <main>
 <section id="activation" class="card">
 <h2>Ingresar a Mérito Docentes</h2>
@@ -58,4 +62,5 @@
 </main>
 <dialog id="pinDialog"><div class="dialogbody"><h2 id="pinDialogTitle">Completa tu registro</h2><p id="pinDialogText" class="muted">Completa tus datos y cambia tu NIP.</p><div id="profileFields"><label>Nombre<input id="profileFirstName" autocomplete="given-name"></label><label>Primer apellido<input id="profileFirstSurname" autocomplete="family-name"></label><label>Asignatura<input id="profileSubject" autocomplete="organization-title"></label></div><label>NIP actual<input id="currentPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Nuevo NIP<input id="newPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Confirma nuevo NIP<input id="newPinConfirm" inputmode="numeric" maxlength="4" placeholder="0000"></label><button id="saveNewPin" class="primary full">GUARDAR</button><p id="pinChangeStatus"></p></div></dialog>
 <dialog id="confirmDialog"><div class="dialogbody"><h2>Confirmar registro</h2><div id="confirmSummary"></div><div class="actions"><button id="cancelConfirm" class="secondary">Regresar</button><button id="sendConfirm" class="primary">CONFIRMAR Y GUARDAR</button></div></div></dialog>
+<footer class="app-brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</footer>
 <script src="app.js?v=16"></script></body></html>

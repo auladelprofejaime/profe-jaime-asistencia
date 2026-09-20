@@ -486,8 +486,8 @@ $('#offlineRetry')?.addEventListener('click',syncPending);
 
 window.addEventListener('online',()=>{updateOfflineUI();checkDevice();syncPending();refreshTieVotes()});
 window.addEventListener('offline',()=>{updateOfflineUI();checkSystemReady()});
-setInterval(()=>{if(navigator.onLine&&getQueue().length)syncPending();if(navigator.onLine&&token)refreshTieVotes()},30000);
-document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&token)refreshTieVotes()});
+setInterval(()=>{if(navigator.onLine&&getQueue().length)syncPending();if(navigator.onLine&&token){checkDevice();refreshTieVotes()}},30000);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&token){checkDevice();refreshTieVotes()}});
 
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
 
@@ -556,6 +556,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=26').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=27').catch(()=>{});
 updateOfflineUI();
 checkDevice();

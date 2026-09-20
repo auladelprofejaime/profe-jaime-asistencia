@@ -659,3 +659,30 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Mérito Docentes:
   - app.js?v=28
   - caché merito-docentes-v1-19
+
+
+## Mérito — limpieza automática del periodo de prueba de septiembre
+- El periodo de prueba de septiembre se elimina automáticamente al iniciar octubre.
+- Trabajo programado:
+  - jobid 6
+  - jobname merit-september-trial-cleanup-2026
+  - schedule 5 6 1 10 * (06:05 UTC = 00:05 America/Mexico_City el 01/10/2026)
+  - active=true
+- Función: public.merit_cleanup_september_trial_2026()
+- La función solo puede ejecutar la limpieza a partir del 01/10/2026; antes devuelve too_early.
+- Al ejecutarse elimina exclusivamente el periodo de prueba de septiembre y sus datos dependientes:
+  - movimientos/puntos/reconocimientos de prueba;
+  - solicitudes de revisión ligadas a esos movimientos;
+  - publicaciones/resultados del periodo de prueba si existieran;
+  - ajustes/bitácoras, tie-votes y logs ligados al periodo por cascada.
+- NO elimina:
+  - IDs 700002–700070;
+  - NIP, perfiles ni dispositivos;
+  - docentes confirmados;
+  - participación/autorización de Octubre 2026;
+  - movimientos o resultados de Octubre.
+- Prueba segura ejecutada el 19/09/2026: devolvió {ok:false, reason:'too_early'} y no borró nada.
+- Verificación posterior:
+  - periodo de prueba sigue existiendo;
+  - 69 IDs docentes siguen intactos;
+  - participación de Octubre permanece intacta.

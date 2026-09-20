@@ -559,6 +559,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=28').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=29').catch(()=>{});
 updateOfflineUI();
 checkDevice();

@@ -489,3 +489,32 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Se eliminó también la pregunta frecuente sobre el bloc por ser innecesaria.
 - La sección de celular se conserva: uso profesional/institucional para personal + posibilidad de registrar puntos después o desde casa.
 - La ubicación de captura de bitácoras se documenta como **App Docente > Mérito > Bitácoras**.
+
+
+## Mérito — anulación trazable de movimientos v8.23.28
+- La App Docente ahora permite anular movimientos erróneos desde Mérito > Movimientos.
+- La anulación NO borra físicamente el registro.
+- Requiere escribir un motivo de anulación.
+- Solo puede hacerse mientras el periodo siga abierto.
+- Al anular se conserva:
+  - movimiento original
+  - grupo
+  - puntos/reconocimientos
+  - personal que hizo el registro
+  - motivo original
+  - motivo de anulación
+  - fecha/hora de corrección
+  - administrador que realizó la anulación
+- El movimiento pasa a status=voided y deja de contar en:
+  - clasificación
+  - reconocimientos
+  - cierre mensual
+- Los periodos cerrados/publicados no admiten esta modificación.
+- Backend reforzado:
+  - teacher_merit_void_movement(uuid,text)
+  - teacher_merit_movements ahora devuelve period_status, corrected_at y datos de trazabilidad.
+- Frontend:
+  - merit-movements-v82328.js?v=82328
+  - App Docente v8.23.28
+  - caché app-docente-v8-23-28
+- No se creó ni anuló ningún movimiento real durante la verificación.

@@ -473,8 +473,72 @@ setInterval(()=>{if(navigator.onLine&&getQueue().length)syncPending();if(navigat
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&token)refreshTieVotes()});
 
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
+
+let movementReviewSelected='';
+function formatMeritMovementTime(v){
+ try{return new Date(v).toLocaleTimeString('es-MX',{hour:'2-digit',minute:'2-digit'})}catch(_){return ''}
+}
+async function loadTodayMovementsForReview(){
+ const box=$('#movementReviewList'),st=$('#movementReviewStatus');
+ movementReviewSelected='';
+ if(box)box.innerHTML='<p class="muted">Cargando movimientos de hoy…</p>';
+ if(st)st.textContent='';
+ if(!navigator.onLine){if(st)st.innerHTML='<span class="error">Necesitas internet para enviar una aclaración.</span>';return}
+ try{
+  const d=await rpc('merit_my_today_movements',{p_token:token});
+  if(!d?.ok)throw new Error(d?.reason||'No se pudieron consultar tus movimientos.');
+  const rows=Array.isArray(d.movements)?d.movements:[];
+  if(!rows.length){box.innerHTML='<p class="muted">No tienes movimientos válidos registrados hoy.</p>';return}
+  box.innerHTML=rows.map(m=>{
+   const pts=m.points===null||m.points===undefined?'Sin puntos':(Number(m.points)>0?'+'+m.points:String(m.points));
+   const crit=(Array.isArray(m.criteria)?m.criteria:[]).map(x=>criteriaNames[x]||x).join(', ');
+   const disabled=m.review_pending?'disabled':'';
+   return '<label class="criterion" style="display:block;margin:8px 0;padding:10px"><input class="movementReviewChoice" type="radio" name="movementReview" value="'+escapeHtml(m.id)+'" '+disabled+'> <b>Grupo '+escapeHtml(m.group_code)+'</b> · '+escapeHtml(pts)+' · '+escapeHtml(formatMeritMovementTime(m.captured_at||m.created_at))+
+    (m.reason?'<br><span class="muted">'+escapeHtml(m.reason)+'</span>':'')+
+    (crit?'<br><span class="muted">Reconocimientos: '+escapeHtml(crit)+'</span>':'')+
+    (m.review_pending?'<br><span class="success">✓ Ya enviaste una solicitud para este movimiento.</span>':'')+'</label>';
+  }).join('');
+  $('.movementReviewChoice').forEach(x=>x.onchange=()=>{movementReviewSelected=x.value});
+ }catch(e){if(box)box.innerHTML='';if(st)st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>'}
+}
+async function notifyAdminReviewRequest(requestId){
+ const r=await fetch(SUPABASE_URL+'/functions/v1/merit-push',{
+  method:'POST',
+  headers:{apikey:SUPABASE_KEY,'Content-Type':'application/json'},
+  body:JSON.stringify({event:'merit_correction_request',token,request_id:requestId})
+ });
+ if(!r.ok)throw new Error('No se pudo confirmar la notificación al administrador.');
+ return await r.json();
+}
+$('#reportMovementErrorBtn')?.addEventListener('click',async()=>{
+ if(!navigator.onLine){$('#movementReviewQuickStatus').innerHTML='<span class="error">Necesitas internet para reportar un error.</span>';return}
+ $('#movementReviewNote').value='';$('#movementReviewStatus').textContent='';
+ $('#movementReviewDialog').showModal();await loadTodayMovementsForReview();
+});
+$('#movementReviewCancel')?.addEventListener('click',()=>$('#movementReviewDialog').close());
+$('#movementReviewSend')?.addEventListener('click',async()=>{
+ const st=$('#movementReviewStatus'),btn=$('#movementReviewSend'),note=$('#movementReviewNote').value.trim();
+ if(!movementReviewSelected){st.innerHTML='<span class="error">Selecciona el movimiento que quieres reportar.</span>';return}
+ if(note.length<3){st.innerHTML='<span class="error">Explica brevemente qué ocurrió.</span>';return}
+ if(!confirm('¿Enviar esta solicitud al Comité?\n\nRecuerda: solo estás solicitando revisión. Los puntos no cambiarán hasta que el administrador la revise.'))return;
+ btn.disabled=true;st.textContent='Enviando solicitud…';
+ try{
+  const d=await rpc('merit_request_movement_review',{p_token:token,p_movement_id:movementReviewSelected,p_note:note});
+  if(!d?.ok){
+   const msgs={same_day_only:'Solo puedes solicitar revisión el mismo día del movimiento.',already_requested:'Ya existe una solicitud pendiente para ese movimiento.',note_required:'Explica brevemente qué ocurrió.',movement_not_valid:'Ese movimiento ya no está vigente.'};
+   throw new Error(msgs[d?.reason]||d?.reason||'No se pudo enviar la solicitud.');
+  }
+  let notified=true;try{await notifyAdminReviewRequest(d.request_id)}catch(_){notified=false}
+  st.innerHTML='<span class="success">✓ Solicitud enviada al Comité.'+(notified?' Se notificó al administrador.':' Quedó registrada aunque no se pudo confirmar la notificación push.')+'</span>';
+  $('#movementReviewQuickStatus').innerHTML='<span class="success">✓ Aclaración enviada para revisión.</span>';
+  await loadTodayMovementsForReview();
+  setTimeout(()=>$('#movementReviewDialog')?.close(),900);
+ }catch(e){st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>'}
+ finally{btn.disabled=false}
+});
+
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=21').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=22').catch(()=>{});
 updateOfflineUI();
 checkDevice();

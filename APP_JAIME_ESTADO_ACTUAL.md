@@ -518,3 +518,54 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - App Docente v8.23.28
   - caché app-docente-v8-23-28
 - No se creó ni anuló ningún movimiento real durante la verificación.
+
+
+## Mérito — solicitudes de revisión del mismo día v8.23.29
+- En Mérito Docentes se agregó “REPORTAR ERROR EN UN REGISTRO DE HOY”.
+- El docente puede solicitar revisión únicamente de movimientos:
+  - creados por él mismo;
+  - con status=valid;
+  - cuya fecha del movimiento sea HOY en America/Mexico_City.
+- La validación es de servidor; cambiar la fecha del dispositivo no permite reportar movimientos anteriores.
+- Flujo del docente:
+  1. abre “Reportar error en un registro de hoy”;
+  2. ve sus movimientos válidos del día;
+  3. selecciona el movimiento;
+  4. explica qué ocurrió;
+  5. envía al Comité.
+- La solicitud NO altera automáticamente puntos ni reconocimientos.
+- Solo puede existir una solicitud pendiente por movimiento.
+- Backend:
+  - tabla merit_movement_review_requests, RLS habilitado y acceso directo revocado;
+  - merit_my_today_movements(text);
+  - merit_request_movement_review(text,uuid,text);
+  - teacher_merit_review_requests(text);
+  - teacher_merit_resolve_review_request(uuid,text,text).
+- En App Docente se agregó Mérito > “⚠️ Aclaraciones”, con contador de pendientes.
+- Cada solicitud muestra:
+  - docente;
+  - fecha/hora;
+  - grupo;
+  - puntos;
+  - motivo original;
+  - reconocimientos;
+  - explicación del docente.
+- Acciones administrativas:
+  - “Anular movimiento”: conserva trazabilidad y deja de contabilizarlo.
+  - “No procede”: cierra la solicitud sin modificar el movimiento.
+- Si se intenta anular cuando el periodo ya no está abierto, el backend lo impide.
+- Al crear la solicitud se intenta enviar una notificación push a las suscripciones de App Docente:
+  - título: “Aclaración pendiente · Mérito”
+  - destino: Mérito > Aclaraciones.
+- merit-push actualizado a versión 3 para aceptar el evento merit_correction_request validado con token de Mérito y solicitud pendiente real.
+- App Docente:
+  - v8.23.29
+  - merit-corrections-v82329.js?v=82329
+  - caché app-docente-v8-23-29
+- Mérito Docentes:
+  - app.js?v=22
+  - caché merito-docentes-v1-13
+- Verificación:
+  - JavaScript nuevo pasa validación de sintaxis.
+  - token inválido en merit_my_today_movements devuelve unauthorized.
+  - no se crearon solicitudes reales durante las pruebas.

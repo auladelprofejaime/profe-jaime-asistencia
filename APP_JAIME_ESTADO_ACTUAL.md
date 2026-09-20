@@ -440,3 +440,52 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - merit-bitacora-v82326.js?v=82326
   - App Docente v8.23.26
   - caché app-docente-v8-23-26
+
+
+## Correcciones 20/09/2026 — Mérito v8.23.27 / Mérito Docentes v21
+- Se detectó y corrigió una falla real en merito-docentes/app.js:
+  - la línea de utilidades declaraba dos veces `$` en la misma sentencia;
+  - eso generaba SyntaxError y detenía toda la app;
+  - por eso el botón “INGRESAR Y ACTIVAR DISPOSITIVO” no respondía.
+- Corrección:
+  - `const $=... , $$=...`
+  - app.js?v=21
+  - service-worker.js?v=21
+  - caché Mérito Docentes `merito-docentes-v1-12`
+  - sintaxis JavaScript verificada correctamente después del cambio.
+- El registro 700001 sigue activo y sin alteración de su NIP/datos. El problema era de frontend, no de la cuenta.
+
+### App Docente v8.23.27
+- Se sustituyeron los hotfixes separados de periodos/bitácora por `merit-admin-v82327.js?v=82327`.
+- El módulo restaura explícitamente la sesión de profesor antes de consultar RPC de Mérito.
+- Reintenta carga de periodos al iniciar, recuperar foco y volver a primer plano.
+- Los periodos existentes en base siguen intactos:
+  - Prueba Consejo Técnico · 25 septiembre 2026
+  - Octubre 2026
+- Se agregó una pestaña visible propia en Mérito:
+  - **📋 Bitácoras**
+- En esa pestaña aparece:
+  - selector de periodo
+  - los 18 grupos
+  - puntos base
+  - campo para observaciones
+  - descuento automático
+  - final estimado
+  - botón Guardar revisión de las 18 bitácoras
+- La pestaña exige los 18 grupos, incluso 0 observaciones.
+- El cierre mensual sigue bloqueado hasta que la revisión mensual requerida esté completa.
+- Se mantienen fuera de la regla los periodos de prueba.
+- App Docente:
+  - v8.23.27
+  - caché `app-docente-v8-23-27`
+- Sintaxis verificada de:
+  - merit-admin-v82327.js
+  - service-worker.js
+  - merito-docentes/app.js
+  - merito-docentes/service-worker.js
+
+### Documento
+- La versión definitiva ya no menciona entrega/no entrega de bloc docente.
+- Se eliminó también la pregunta frecuente sobre el bloc por ser innecesaria.
+- La sección de celular se conserva: uso profesional/institucional para personal + posibilidad de registrar puntos después o desde casa.
+- La ubicación de captura de bitácoras se documenta como **App Docente > Mérito > Bitácoras**.

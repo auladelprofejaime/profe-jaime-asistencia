@@ -686,3 +686,22 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - periodo de prueba sigue existiendo;
   - 69 IDs docentes siguen intactos;
   - participación de Octubre permanece intacta.
+
+
+## Mérito — cierre mensual con fin de semana de captura
+- Flujo definitivo acordado:
+  - Viernes previo: termina la semana ordinaria del periodo.
+  - Sábado y domingo: los docentes todavía pueden cargar puntos y reconocimientos pendientes del periodo que cierra.
+  - Durante ese mismo fin de semana, Jaime/Comité revisa y captura las 18 bitácoras.
+  - Lunes: cierra la captura del periodo anterior; inicia el siguiente periodo; con puntos + bitácoras completos se detectan empates y se abre votación.
+  - Lunes a jueves: votación del personal autorizado.
+  - Viernes: cierre definitivo del periodo anterior.
+  - Lunes siguiente: publicación y anuncio oficial.
+- Los puntos, reconocimientos y observaciones desde el lunes de votación ya pertenecen al siguiente periodo.
+- Octubre 2026 quedó del 01/10/2026 al 25/10/2026.
+- Noviembre 2026 quedó del 26/10/2026 al 22/11/2026.
+- merit_register_movement ahora aplica un corte duro: después de ends_at ya no acepta sincronizaciones atrasadas del periodo anterior.
+- Mérito Docentes muestra mensaje period_capture_closed cuando corresponda.
+- Mérito Docentes v29, service worker cache merito-docentes-v1-20.
+- PDF actualizado con este flujo:
+  /mnt/data/Merito_Gabino_A_Palma_Proyecto_Definitivo_ACTUALIZADO_2026-09-19.pdf

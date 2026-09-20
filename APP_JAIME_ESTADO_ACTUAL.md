@@ -637,3 +637,25 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Si el docente desvinculó el dispositivo/no recordó sesión, sí deberá volver a ingresar con el mismo ID y NIP inicial.
 - App Docente v8.23.33, merit-staff-period-v82333.js?v=82333, caché app-docente-v8-23-33.
 - Mérito Docentes app.js?v=27, caché merito-docentes-v1-18.
+
+
+## Mérito — prueba ampliada de Comité y corte limpio de Octubre
+- Periodo de prueba actualizado:
+  - label: “Prueba Consejo Técnico · septiembre 2026”
+  - inicio: 2026-09-21
+  - fin: 2026-09-30
+  - status=open
+- Acceso del Comité confirmado:
+  - disponible desde 2026-09-21 06:00 America/Mexico_City;
+  - puede seguir capturando durante los últimos días de septiembre.
+- Folios no confirmados 700002–700070:
+  - no obtienen acceso general desde el 21;
+  - pueden hacer la prueba general únicamente el 25/09/2026.
+- Si un folio es confirmado por Jaime, pasa a acceso formal y puede seguir probando en el periodo de septiembre.
+- Octubre 2026 sigue siendo un periodo separado (2026-10-01 a 2026-10-23).
+- Los movimientos de la prueba de septiembre permanecen como historial, pero NO se trasladan a Octubre.
+- Octubre actualmente tiene 0 movimientos; la clasificación inicia en cero por separación de periodos.
+- merit_access_state_for_staff y merit_register_movement aplican estas reglas en servidor.
+- Mérito Docentes:
+  - app.js?v=28
+  - caché merito-docentes-v1-19

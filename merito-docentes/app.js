@@ -66,6 +66,7 @@ function friendlyReason(d){
   pin_change_required:'Antes de continuar, cambia tu NIP.',
   period_not_authorized:'No estás marcado como participante en este periodo.',
   period_capture_closed:'El periodo ya cerró para nuevas capturas. Los registros nuevos corresponden al siguiente periodo.',
+  school_recess:'Mérito está en pausa por receso escolar. La captura se reanuda al regresar a clases.',
   not_confirmed:'Tu participación todavía no ha sido confirmada para un periodo oficial.',
   trial_not_started:'El acceso del Comité inicia el lunes 21 de septiembre a las 6:00 a. m.',
   trial_day_only:'Los folios de prueba no confirmados solo pueden registrar durante el Consejo Técnico del 25 de septiembre.',
@@ -559,6 +560,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=29').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=30').catch(()=>{});
 updateOfflineUI();
 checkDevice();

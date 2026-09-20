@@ -66,6 +66,8 @@ function friendlyReason(d){
   pin_change_required:'Antes de continuar, cambia tu NIP.',
   period_not_authorized:'No estás marcado como participante en este periodo.',
   not_confirmed:'Tu participación todavía no ha sido confirmada para un periodo oficial.',
+  trial_not_started:'El acceso del Comité inicia el lunes 21 de septiembre a las 6:00 a. m.',
+  trial_day_only:'Los folios de prueba no confirmados solo pueden registrar durante el Consejo Técnico del 25 de septiembre.',
   invalid_capture_time:'El registro pendiente es demasiado antiguo para sincronizarse automáticamente.',
   duplicate_event_conflict:'No fue posible validar el identificador del registro.'
  };
@@ -556,6 +558,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=27').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=28').catch(()=>{});
 updateOfflineUI();
 checkDevice();

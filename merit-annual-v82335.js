@@ -22,6 +22,11 @@
         <p class="hint">Tramo final: del 24 de mayo al 20 de junio. Si existe empate anual, la votación se realiza del 21 al 24 de junio; el cierre queda disponible el 25 de junio. La publicación oficial es el 9 de julio.</p>
         <div id="meritAnnualFinalStatus35" class="message"></div>
         <div id="meritAnnualVote35"></div>
+        <div id="meritAnnualAdvisorBox35" class="hidden" style="margin-top:12px">
+          <label>Asesor del grupo campeón<input id="meritAnnualAdvisor35" placeholder="Nombre del asesor"></label>
+          <button id="meritAnnualAdvisorSave35" class="secondary" type="button">Guardar asesor del campeón</button>
+          <p id="meritAnnualAdvisorStatus35" class="hint"></p>
+        </div>
         <div class="actions" style="margin-top:10px">
           <button id="meritAnnualPrepare35" class="primary" type="button">Revisar / preparar cierre anual</button>
           <button id="meritAnnualVoteRefresh35" class="secondary" type="button">Actualizar votación</button>
@@ -31,6 +36,7 @@
       $('#meritAnnualPrepare35').onclick=prepareAnnual;
       $('#meritAnnualVoteRefresh35').onclick=loadAnnual;
       $('#meritAnnualPublish35').onclick=publishAnnual;
+      $('#meritAnnualAdvisorSave35').onclick=saveAdvisor;
     }
   }
   function renderRanking(rows,status){
@@ -70,7 +76,13 @@
       renderRanking(window.meritAnnualCache,d);
       const state=d.published?'Publicado':d.closed?'Cerrado':d.final_status==='frozen'?'En votación / cierre':'En acumulación';
       if(st)st.innerHTML='<b>Estado:</b> '+esc(state)+' · <b>Tramo final:</b> '+esc(d.final_starts_at||'')+' a '+esc(d.final_ends_at||'')+
-        (d.winner_group?'<br><span class="success">Campeón definido: Grupo '+esc(d.winner_group)+' · '+esc(d.annual_score)+' puntos.</span>':'');
+        (d.winner_group?'<br><span class="success">Campeón definido: Grupo '+esc(d.winner_group)+' · '+esc(d.annual_score)+' puntos.</span>'+
+          '<br><b>Grado:</b> '+esc(d.winner_grade||'—')+'º · <b>Beneficio al siguiente ciclo:</b> '+(d.benefit_transferable?'Sí, transferible.':'No; reconocimiento de clausura.')+
+          (d.advisor_name?'<br><b>Asesor reconocido:</b> '+esc(d.advisor_name):''):'');
+      const advisorBox=$('#meritAnnualAdvisorBox35');
+      if(advisorBox)advisorBox.classList.toggle('hidden',!d.closed);
+      const advisorInput=$('#meritAnnualAdvisor35');
+      if(advisorInput && d.advisor_name && document.activeElement!==advisorInput)advisorInput.value=d.advisor_name;
       if(d.final_period_id){
         try{renderVote(await rpc('teacher_merit_tie_vote_status',{p_period_id:d.final_period_id}))}
         catch(_){renderVote(null)}
@@ -127,6 +139,17 @@
       if(st)st.textContent='✓ Campeón anual definido y cierre aplicado.';
       await loadAnnual();
     }catch(e){if(st)st.textContent='No se pudo cerrar la votación anual: '+(e.message||e)}
+  }
+  async function saveAdvisor(){
+    const st=$('#meritAnnualAdvisorStatus35'),input=$('#meritAnnualAdvisor35');
+    const name=input?.value.trim()||'';
+    if(!name){if(st)st.textContent='Escribe el nombre del asesor del grupo campeón.';return}
+    try{
+      const d=await rpc('teacher_merit_set_annual_award_details',{p_cycle:cycle(),p_advisor_name:name});
+      if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
+      if(st)st.innerHTML='<span class="success">✓ Asesor guardado. '+(d.benefit_transferable?'El grupo conserva beneficio transferible al siguiente ciclo.':'El grupo recibe reconocimiento de clausura.')+'</span>';
+      await loadAnnual();
+    }catch(e){if(st)st.textContent='No se pudo guardar el asesor: '+(e.message||e)}
   }
   async function publishAnnual(){
     const st=$('#meritAnnualFinalStatus35');

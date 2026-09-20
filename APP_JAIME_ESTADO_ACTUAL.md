@@ -605,3 +605,20 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - App Docente v8.23.31, módulo merit-staff-period-v82331.js?v=82331, caché app-docente-v8-23-31.
 - Mérito Docentes v24, app.js?v=24, caché merito-docentes-v1-15.
 - Los accesos de prueba muestran “Acceso de prueba · Consejo Técnico” y no abren el flujo obligatorio de perfil/NIP hasta que sean confirmados formalmente.
+
+
+## Mérito — IDs reutilizables y acceso pendiente v26
+- Los IDs 700002–700070 no se eliminan ni cambian después del Consejo Técnico.
+- El mismo ID/NIP puede volver a utilizarse posteriormente para solicitar/confirmar participación en un periodo oficial.
+- El 25/09/2026, mientras esté abierto el periodo de prueba “Prueba Consejo Técnico · 25 septiembre 2026”, los accesos no confirmados pueden probar la captura.
+- Fuera del periodo de prueba, un ID no confirmado puede iniciar sesión, pero recibe access.mode=pending_confirmation y can_capture=false.
+- La app muestra una pantalla de espera:
+  “Tu participación está pendiente / Tu ID sigue vigente, pero todavía no tienes autorización para este periodo. Acércate con el Profr. Jaime para confirmar tu participación.”
+- El ID no se considera inválido ni se genera otro.
+- Al escanear ese mismo ID en App Docente y activarlo para un periodo oficial, teacher_merit_activate_staff_code_for_period confirma el folio y lo marca como participante del periodo seleccionado.
+- En su siguiente acceso, si el periodo está activo, la app continúa con alta formal (perfil/NIP/notificaciones) usando el mismo ID.
+- Función nueva: merit_access_state_for_staff(uuid), con modos trial, pending_confirmation, not_participating, official y no_open_period.
+- merit_login_device y merit_device_info ahora devuelven access y ya no rechazan un ID de prueba fuera del 25; lo dejan en espera de autorización.
+- Mérito Docentes:
+  - app.js?v=26
+  - caché merito-docentes-v1-17

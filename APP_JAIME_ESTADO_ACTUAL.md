@@ -844,7 +844,7 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 - Mérito Docentes:
   - styles.css actualizado;
   - theme color PWA cambiado a azul marino;
-  - caché merito-docentes-v1-23;
+  - caché merito-docentes-v1-24;
   - styles.css se carga con query v=32;
   - se conservaron flujos, botones, IDs y lógica existentes.
 - App Docente:

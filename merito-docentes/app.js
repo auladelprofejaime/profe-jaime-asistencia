@@ -9,7 +9,7 @@ const rememberedToken=localStorage.getItem(TOKEN_KEY)||'';
 const sessionToken=sessionStorage.getItem(TOKEN_KEY)||'';
 let token=rememberedToken||sessionToken||'';
 let rememberSession=!!rememberedToken;
-let staff=null,grade=null,group=null,points=null,syncing=false;
+let staff=null,accessState=null,grade=null,group=null,points=null,syncing=false;
 
 function sessionStore(){return rememberSession?localStorage:sessionStorage}
 function saveSessionToken(v){
@@ -149,7 +149,7 @@ async function checkDevice(){
    localStorage.removeItem(SETUP_CACHE_KEY);sessionStorage.removeItem(SETUP_CACHE_KEY);
    return showActivation();
   }
-  staff=d.staff;cacheSession(!!d.must_change_pin);showCapture();
+  staff=d.staff;accessState=d.access||null;cacheSession(!!d.must_change_pin);showCapture();
   if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(!!staff.is_placeholder),80);
   syncPending();
  }catch(e){
@@ -163,9 +163,22 @@ function mustCompleteFormalSetup(){return !!(cachedMustChange() && !(staff?.is_p
 function showActivation(){$('#activation').classList.remove('hidden');$('#capture').classList.add('hidden');updateOfflineUI()}
 function showCapture(){
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
- $('#staffName').textContent=staff?.display_name||(`ID ${staff?.staff_code||''}`);
- $('#staffRole').textContent=(staff?.is_placeholder&&!staff?.confirmed)?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
- checkSystemReady();updateOfflineUI();refreshTieVotes();setTimeout(ensureNotificationGate,120);
+ const pending=$('#accessPendingCard'),workspace=$('#captureWorkspace');
+ const mode=accessState?.mode||((staff?.is_placeholder&&!staff?.confirmed)?'pending_confirmation':'official');
+ const canCapture=accessState?.can_capture!==false;
+ if(!canCapture){
+   pending?.classList.remove('hidden');workspace?.classList.add('hidden');
+   $('#accessPendingTitle').textContent=mode==='not_participating'?'No tienes acceso a este periodo':'Tu participación está pendiente';
+   const period=accessState?.period_label?(' para '+accessState.period_label):'';
+   $('#accessPendingText').innerHTML=
+     'Tu ID <b>'+escapeHtml(staff?.staff_code||'')+'</b> sigue vigente, pero todavía no tienes autorización'+escapeHtml(period)+
+     '. Acércate con el <b>Profr. Jaime</b> para confirmar tu participación.';
+ }else{
+   pending?.classList.add('hidden');workspace?.classList.remove('hidden');
+   $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
+   $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
+   checkSystemReady();updateOfflineUI();refreshTieVotes();setTimeout(ensureNotificationGate,120);
+ }
 }
 
 function tieVoteLabel(issue){
@@ -304,7 +317,7 @@ $('#activateBtn').onclick=async()=>{
    const msgs={invalid_credentials:'ID o NIP incorrectos.',trial_expired:'Este ID de prueba ya venció. Consulta al administrador.',trial_not_open:'Este acceso de prueba solo está habilitado durante el Consejo Técnico del 25 de septiembre.'};
    throw new Error(msgs[d?.reason]||'No se pudo ingresar.');
   }
-  token=d.installation_token;staff=d.staff;
+  token=d.installation_token;staff=d.staff;accessState=d.access||null;
   rememberSession=$('#rememberSession')?.checked!==false;
   saveSessionToken(token);cacheSession(!!d.must_change_pin);
   $('#staffCode').value='';$('#activationCode').value='';showCapture();
@@ -543,6 +556,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=25').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=26').catch(()=>{});
 updateOfflineUI();
 checkDevice();

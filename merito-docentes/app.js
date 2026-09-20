@@ -62,6 +62,7 @@ function friendlyReason(d){
   unauthorized:'Este dispositivo ya no está autorizado.',
   staff_inactive:'Este acceso está inactivo.',
   trial_expired:'Este ID de prueba ya venció.',
+  trial_not_open:'Este acceso de prueba solo está habilitado durante el Consejo Técnico del 25 de septiembre.',
   pin_change_required:'Antes de continuar, cambia tu NIP.',
   period_not_authorized:'No estás marcado como participante en este periodo.',
   not_confirmed:'Tu participación todavía no ha sido confirmada para un periodo oficial.',
@@ -300,7 +301,7 @@ $('#activateBtn').onclick=async()=>{
  try{
   const d=await rpc('merit_login_device',{p_staff_code:staffCode,p_pin:pin});
   if(!d?.ok){
-   const msgs={invalid_credentials:'ID o NIP incorrectos.',trial_expired:'Este ID de prueba ya venció. Consulta al administrador.'};
+   const msgs={invalid_credentials:'ID o NIP incorrectos.',trial_expired:'Este ID de prueba ya venció. Consulta al administrador.',trial_not_open:'Este acceso de prueba solo está habilitado durante el Consejo Técnico del 25 de septiembre.'};
    throw new Error(msgs[d?.reason]||'No se pudo ingresar.');
   }
   token=d.installation_token;staff=d.staff;
@@ -542,6 +543,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=24').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=25').catch(()=>{});
 updateOfflineUI();
 checkDevice();

@@ -65,6 +65,7 @@ function friendlyReason(d){
   trial_not_open:'Este acceso de prueba solo está habilitado durante el Consejo Técnico del 25 de septiembre.',
   pin_change_required:'Antes de continuar, cambia tu NIP.',
   period_not_authorized:'No estás marcado como participante en este periodo.',
+  period_capture_closed:'El periodo ya cerró para nuevas capturas. Los registros nuevos corresponden al siguiente periodo.',
   not_confirmed:'Tu participación todavía no ha sido confirmada para un periodo oficial.',
   trial_not_started:'El acceso del Comité inicia el lunes 21 de septiembre a las 6:00 a. m.',
   trial_day_only:'Los folios de prueba no confirmados solo pueden registrar durante el Consejo Técnico del 25 de septiembre.',

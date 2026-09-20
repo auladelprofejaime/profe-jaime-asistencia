@@ -826,3 +826,30 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
   - cache app-docente-v8-23-36;
   - merit-annual-v82335.js se carga con query v82336 para forzar actualización.
 - No existe actualmente un catálogo previo de asesores por grupo; por eso el nombre se captura administrativamente y no se inventa.
+
+
+### Mérito Gabino A. Palma — identidad visual copa escolar 2026-09-20
+- Cambio exclusivamente visual; no se modificó Supabase ni lógica de negocio.
+- Alcance limitado a:
+  - Mérito Docentes.
+  - Módulo Mérito Gabino A. Palma dentro de App Docente.
+- No se modificó el diseño de Asistencia, Actividades, Evaluación, Libros, Diagnóstico ni otros módulos.
+- Se reutiliza el logo existente de Mérito Gabino A. Palma; no se creó ni sustituyó el logo.
+- Nueva línea visual:
+  - azul marino profundo;
+  - dorado;
+  - marfil/pergamino;
+  - laureles/destellos y estética de copa académica genérica;
+  - inspiración en competencia escolar ceremonial, sin referencias directas a franquicias.
+- Mérito Docentes:
+  - styles.css actualizado;
+  - theme color PWA cambiado a azul marino;
+  - caché merito-docentes-v1-23;
+  - styles.css se carga con query v=32;
+  - se conservaron flujos, botones, IDs y lógica existentes.
+- App Docente:
+  - versión visible v8.23.37;
+  - caché app-docente-v8-23-37;
+  - nuevo estilo encapsulado únicamente bajo #merit;
+  - logo, navegación, tarjetas, tablas, formularios y estados de Mérito usan la nueva identidad;
+  - los demás módulos conservan el diseño anterior.

@@ -66,12 +66,20 @@
 <div class="card">
 <button id="reviewBtn" class="primary full">REVISAR Y REGISTRAR</button>
 <p id="captureStatus"></p>
-<div id="lastRecord" class="hidden"><hr><b>Último registro realizado en este dispositivo</b><p id="lastRecordText"></p></div>
+<div id="lastRecord" class="hidden"><hr><b>Último registro realizado en este dispositivo</b><p id="lastRecordText"></p></div><hr><button id="reportMovementErrorBtn" class="secondary full" type="button">REPORTAR ERROR EN UN REGISTRO DE HOY</button><p class="muted">Solo puedes solicitar revisión el mismo día en que hiciste el movimiento.</p><p id="movementReviewQuickStatus"></p>
 </div>
 </section>
 </main>
 <dialog id="pinDialog"><div class="dialogbody"><h2 id="pinDialogTitle">Completa tu registro</h2><p id="pinDialogText" class="muted">Completa tus datos y cambia tu NIP.</p><div id="profileFields"><label>Nombre<input id="profileFirstName" autocomplete="given-name"></label><label>Primer apellido<input id="profileFirstSurname" autocomplete="family-name"></label><label>Asignatura<input id="profileSubject" autocomplete="organization-title"></label></div><label>NIP actual<input id="currentPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Nuevo NIP<input id="newPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Confirma nuevo NIP<input id="newPinConfirm" inputmode="numeric" maxlength="4" placeholder="0000"></label><button id="saveNewPin" class="primary full">GUARDAR</button><p id="pinChangeStatus"></p></div></dialog>
 <dialog id="confirmDialog"><div class="dialogbody"><h2>Confirmar registro</h2><div id="confirmSummary"></div><div class="actions"><button id="cancelConfirm" class="secondary">Regresar</button><button id="sendConfirm" class="primary">CONFIRMAR Y GUARDAR</button></div></div></dialog>
+<dialog id="movementReviewDialog"><div class="dialogbody">
+  <h2>Solicitar revisión de movimiento</h2>
+  <p class="muted">Selecciona el movimiento de hoy en el que te equivocaste. La solicitud llegará al Comité y no modifica los puntos hasta que sea revisada.</p>
+  <div id="movementReviewList"></div>
+  <label>¿Qué ocurrió?<textarea id="movementReviewNote" rows="3" maxlength="300" placeholder="Ej. Seleccioné el grupo equivocado"></textarea></label>
+  <div class="actions"><button id="movementReviewCancel" class="secondary" type="button">Cancelar</button><button id="movementReviewSend" class="primary" type="button">ENVIAR AL COMITÉ</button></div>
+  <p id="movementReviewStatus"></p>
+</div></dialog>
 <dialog id="notificationDialog"><div class="dialogbody">
   <div style="font-size:2rem">🔔</div>
   <h2>Activa las notificaciones</h2>
@@ -82,4 +90,4 @@
   <p id="notificationStatus"></p>
 </div></dialog>
 <footer class="app-brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</footer>
-<script src="app.js?v=21"></script></body></html>
+<script src="app.js?v=22"></script></body></html>

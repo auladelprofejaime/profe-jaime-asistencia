@@ -622,3 +622,18 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Mérito Docentes:
   - app.js?v=26
   - caché merito-docentes-v1-17
+
+
+## Mérito — activación formal desde folio y detección automática v8.23.33 / Docentes v27
+- En App Docente > Mérito > Docentes autorizados > Participación por periodo, los periodos de prueba quedan excluidos del selector de activación formal.
+- El selector de participación formal muestra solo periodos oficiales; actualmente Octubre 2026 es el primero disponible.
+- El 25/09, al escanear un folio 700002–700070 y pulsar Activar participación, se confirma el mismo ID y se marca como participante del periodo oficial seleccionado (Octubre), no del periodo de prueba.
+- No se genera otro ID ni otro NIP inicial.
+- Si el docente ya había iniciado sesión en el mismo dispositivo y mantiene la sesión recordada:
+  - no necesita volver a capturar ID/NIP;
+  - Mérito Docentes comprueba el estado al volver a primer plano y cada 30 s;
+  - al detectar la activación formal abre el flujo de perfil + cambio de NIP;
+  - después exige notificaciones.
+- Si el docente desvinculó el dispositivo/no recordó sesión, sí deberá volver a ingresar con el mismo ID y NIP inicial.
+- App Docente v8.23.33, merit-staff-period-v82333.js?v=82333, caché app-docente-v8-23-33.
+- Mérito Docentes app.js?v=27, caché merito-docentes-v1-18.

@@ -1,8 +1,8 @@
-const CACHE='app-docente-v8-23-34';
+const CACHE='app-docente-v8-23-35';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
- './','./index.html','./styles.css','./app-v82312.js?v=82312','./merit-schoolwide-fix-v82314.js?v=82314','./merit-staff-provision-v82332.js?v=82332','./merit-tie-vote-v82325.js?v=82325','./merit-admin-v82327.js?v=82327','./merit-movements-v82328.js?v=82328','./merit-corrections-v82329.js?v=82329','./merit-ranking-v82330.js?v=82330','./merit-staff-period-v82334.js?v=82334',
+ './','./index.html','./styles.css','./app-v82312.js?v=82312','./merit-schoolwide-fix-v82314.js?v=82314','./merit-staff-provision-v82332.js?v=82332','./merit-tie-vote-v82325.js?v=82325','./merit-admin-v82335.js?v=82335','./merit-movements-v82328.js?v=82328','./merit-corrections-v82329.js?v=82329','./merit-ranking-v82330.js?v=82330','./merit-staff-period-v82334.js?v=82334','./merit-annual-v82335.js?v=82335',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png','./logo-app-docente-v821.png',
  './shared/supabase-teacher.js?v=800'
 ];

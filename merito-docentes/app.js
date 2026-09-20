@@ -147,7 +147,7 @@ async function checkDevice(){
    return showActivation();
   }
   staff=d.staff;cacheSession(!!d.must_change_pin);showCapture();
-  if(d.must_change_pin)setTimeout(()=>openPinDialog(!!staff.is_placeholder),80);
+  if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(!!staff.is_placeholder),80);
   syncPending();
  }catch(e){
   staff=readCachedStaff();
@@ -156,11 +156,12 @@ async function checkDevice(){
  }
 }
 
+function mustCompleteFormalSetup(){return !!(cachedMustChange() && !(staff?.is_placeholder && !staff?.confirmed))}
 function showActivation(){$('#activation').classList.remove('hidden');$('#capture').classList.add('hidden');updateOfflineUI()}
 function showCapture(){
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
  $('#staffName').textContent=staff?.display_name||(`ID ${staff?.staff_code||''}`);
- $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
+ $('#staffRole').textContent=(staff?.is_placeholder&&!staff?.confirmed)?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
  checkSystemReady();updateOfflineUI();refreshTieVotes();setTimeout(ensureNotificationGate,120);
 }
 
@@ -304,7 +305,7 @@ $('#activateBtn').onclick=async()=>{
   rememberSession=$('#rememberSession')?.checked!==false;
   saveSessionToken(token);cacheSession(!!d.must_change_pin);
   $('#staffCode').value='';$('#activationCode').value='';showCapture();
-  if(d.must_change_pin)setTimeout(()=>openPinDialog(!!staff.is_placeholder,pin),80);
+  if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(!!staff.is_placeholder,pin),80);
   syncPending();
  }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
@@ -342,7 +343,7 @@ function selectedCriteria(){return $$('#criteria input:checked').map(x=>x.value)
 
 $('#reviewBtn').onclick=async()=>{
  $('#captureStatus').textContent='';
- if(cachedMustChange()){
+ if(mustCompleteFormalSetup()){
   $('#captureStatus').innerHTML='<span class="error">Antes de continuar, completa el cambio de NIP.</span>';
   if(navigator.onLine)openPinDialog(!!staff?.is_placeholder);
   return;
@@ -354,7 +355,7 @@ $('#reviewBtn').onclick=async()=>{
     clearSessionToken();token='';return showActivation();
    }
    staff=d.staff;cacheSession(!!d.must_change_pin);
-   if(d.must_change_pin){
+   if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed)){
     $('#captureStatus').innerHTML='<span class="error">Antes de continuar, cambia tu NIP.</span>';
     openPinDialog(!!staff.is_placeholder);return;
    }
@@ -539,6 +540,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=22').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=23').catch(()=>{});
 updateOfflineUI();
 checkDevice();

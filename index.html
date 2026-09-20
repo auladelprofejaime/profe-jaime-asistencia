@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.36</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.37</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -1113,7 +1113,127 @@
 
 <section id="merit" class="view">
 <style>
-#merit .merit-hero{display:flex;gap:16px;align-items:center;flex-wrap:wrap}#merit .merit-logo{width:110px;height:110px;object-fit:contain;border-radius:18px;background:#fff}#merit .merit-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:14px 0}#merit .merit-nav button{min-height:64px}#merit .merit-pane{display:none}#merit .merit-pane.active{display:block}#merit table{width:100%;border-collapse:collapse}#merit th,#merit td{padding:8px;border-bottom:1px solid #ddd;text-align:left;vertical-align:top}#merit .merit-stat{font-size:1.7rem;font-weight:800}#merit .merit-code{font-size:2rem;letter-spacing:.25em;font-weight:900;text-align:center;padding:12px}#merit .merit-filter{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}#merit .merit-filter button.active{font-weight:800;outline:2px solid currentColor}#merit .merit-brand-byline{font-size:.82rem;font-weight:800;opacity:.70;margin-top:4px}#merit .merit-brand-footer{text-align:center;margin:18px 0 6px;padding:14px 12px;border-top:1px solid rgba(0,0,0,.12);font-size:.84rem;font-weight:800;opacity:.72}@media(max-width:650px){#merit .merit-logo{width:82px;height:82px}#merit th,#merit td{font-size:.82rem;padding:6px}}
+#merit{
+  --merit-navy:#071a36;
+  --merit-navy-2:#0e2c55;
+  --merit-gold:#c9962d;
+  --merit-gold-2:#e3bb62;
+  --merit-ivory:#fffaf0;
+  --merit-parchment:#f6edd5;
+  --merit-line:#dac48d;
+  --merit-ink:#142039;
+  position:relative;
+  color:var(--merit-ink);
+  padding:4px 0 18px;
+}
+#merit:before{
+  content:"";
+  position:absolute;
+  inset:-12px -14px 0;
+  z-index:-1;
+  border-radius:22px;
+  background:
+    radial-gradient(circle at 10% 0%,rgba(201,150,45,.10),transparent 31%),
+    radial-gradient(circle at 90% 8%,rgba(7,26,54,.07),transparent 28%),
+    linear-gradient(180deg,#fffdf7,#f8f0dc);
+}
+#merit .card{
+  background:rgba(255,253,247,.98);
+  border:1px solid var(--merit-line);
+  box-shadow:0 10px 26px rgba(7,26,54,.09);
+}
+#merit h2,#merit h3{
+  color:var(--merit-navy);
+  font-family:Georgia,"Times New Roman",serif;
+}
+#merit .hint,#merit .message{color:#6e6658}
+#merit .merit-hero{
+  display:flex;gap:18px;align-items:center;flex-wrap:wrap;
+  overflow:hidden;position:relative;
+  color:#fff;
+  background:
+    linear-gradient(90deg,rgba(227,187,98,.12),transparent 22%,transparent 78%,rgba(227,187,98,.10)),
+    linear-gradient(135deg,var(--merit-navy),var(--merit-navy-2));
+  border:2px solid var(--merit-gold);
+}
+#merit .merit-hero:after{
+  content:"✦  COPA DE MÉRITO  ✦";
+  position:absolute;right:18px;bottom:12px;
+  color:var(--merit-gold-2);font-size:.68rem;letter-spacing:.16em;font-weight:900;opacity:.78
+}
+#merit .merit-hero h2{color:#fff;margin-bottom:6px}
+#merit .merit-hero .hint{color:#f2e7c7}
+#merit .merit-hero .eyebrow{color:var(--merit-gold-2);font-weight:950;letter-spacing:.16em}
+#merit .merit-logo{
+  width:116px;height:116px;object-fit:contain;border-radius:18px;
+  background:#fff;border:2px solid var(--merit-gold-2);
+  box-shadow:0 0 0 4px rgba(255,255,255,.08),0 12px 28px rgba(0,0,0,.16)
+}
+#merit .merit-nav{
+  display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin:14px 0
+}
+#merit .merit-nav button{
+  min-height:64px;
+  color:var(--merit-navy);
+  background:linear-gradient(180deg,#fffdf6,#efe2bd);
+  border:1px solid #d0b66f;
+  box-shadow:0 4px 12px rgba(7,26,54,.07);
+}
+#merit .merit-nav button.active{
+  color:#fff!important;
+  background:linear-gradient(180deg,#153b6d,var(--merit-navy))!important;
+  border-color:var(--merit-gold)!important;
+  box-shadow:0 0 0 2px rgba(201,150,45,.20)!important
+}
+#merit .merit-pane{display:none}
+#merit .merit-pane.active{display:block;position:relative}
+#merit .merit-pane.active:before{
+  content:"";position:absolute;left:20px;right:20px;top:0;height:2px;
+  background:linear-gradient(90deg,transparent,var(--merit-gold-2),transparent)
+}
+#merit .primary{
+  background:linear-gradient(180deg,#153b6d,var(--merit-navy));
+  border-color:#031126;color:#fff;box-shadow:0 4px 0 #031126
+}
+#merit .secondary{
+  background:linear-gradient(180deg,#fffaf0,#efe1ba);
+  border-color:#cfb36b;color:var(--merit-navy)
+}
+#merit input,#merit select,#merit textarea{
+  background:#fffef9;border-color:#cfbd8d;color:var(--merit-ink)
+}
+#merit input:focus,#merit select:focus,#merit textarea:focus{
+  outline:3px solid rgba(201,150,45,.20);border-color:var(--merit-gold)
+}
+#merit .badge{
+  background:#efe2b9;color:var(--merit-navy);
+  border:1px solid #d3b971
+}
+#merit .tablewrap{
+  border-color:var(--merit-line);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.8)
+}
+#merit table{width:100%;border-collapse:collapse}
+#merit th,#merit td{padding:9px;border-bottom:1px solid #e1d2ab;text-align:left;vertical-align:top}
+#merit th{
+  background:var(--merit-navy)!important;
+  color:#fff!important;
+  border-color:#30496a!important;
+}
+#merit tbody tr:nth-child(even) td{background:#fffaf0}
+#merit tbody tr:hover td{background:#f5ecd3}
+#merit .merit-stat{font-size:1.7rem;font-weight:800;color:var(--merit-navy)}
+#merit .merit-code{font-size:2rem;letter-spacing:.25em;font-weight:900;text-align:center;padding:12px;color:var(--merit-navy)}
+#merit .merit-filter{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0}
+#merit .merit-filter button.active{font-weight:800;outline:2px solid var(--merit-gold)}
+#merit .merit-brand-byline{font-size:.82rem;font-weight:800;color:#e4cf91;opacity:.92;margin-top:4px}
+#merit .merit-brand-footer{text-align:center;margin:18px 0 6px;padding:14px 12px;border-top:1px solid #cfb97a;color:#5e563f;font-size:.84rem;font-weight:800;opacity:.78}
+#merit #merit-staff>.card{background:linear-gradient(180deg,#fffdf7,#f6edd6)!important;border:1px solid var(--merit-line)}
+@media(max-width:650px){
+  #merit .merit-logo{width:84px;height:84px}
+  #merit th,#merit td{font-size:.82rem;padding:6px}
+  #merit .merit-hero:after{display:none}
+}
 </style>
 <div class="card merit-hero"><img class="merit-logo" src="logo-merito-gabino-a-palma.jpeg" alt="Mérito Gabino A. Palma"><div><span class="eyebrow">ADMINISTRACIÓN</span><h2>Mérito Gabino A. Palma</h2><p class="hint">Control mensual de los 18 grupos, movimientos auditables, reconocimientos y publicación semanal.</p><div class="merit-brand-byline">Una app de Aula del Profe Jaime</div></div></div>
 <div class="merit-nav">

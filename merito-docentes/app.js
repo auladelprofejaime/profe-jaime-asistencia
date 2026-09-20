@@ -63,6 +63,8 @@ function friendlyReason(d){
   staff_inactive:'Este acceso está inactivo.',
   trial_expired:'Este ID de prueba ya venció.',
   pin_change_required:'Antes de continuar, cambia tu NIP.',
+  period_not_authorized:'No estás marcado como participante en este periodo.',
+  not_confirmed:'Tu participación todavía no ha sido confirmada para un periodo oficial.',
   invalid_capture_time:'El registro pendiente es demasiado antiguo para sincronizarse automáticamente.',
   duplicate_event_conflict:'No fue posible validar el identificador del registro.'
  };
@@ -540,6 +542,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=23').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=24').catch(()=>{});
 updateOfflineUI();
 checkDevice();

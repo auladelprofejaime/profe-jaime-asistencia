@@ -170,13 +170,27 @@ function showCapture(){
  const pending=$('#accessPendingCard'),workspace=$('#captureWorkspace');
  const mode=accessState?.mode||((staff?.is_placeholder&&!staff?.confirmed)?'pending_confirmation':'official');
  const canCapture=accessState?.can_capture!==false;
- if(!canCapture){
+ if(!canCapture && mode==='annual_close'){
+   pending?.classList.add('hidden');workspace?.classList.remove('hidden');
+   $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
+   $('#staffRole').textContent='Cierre anual · solo votación';
+   [...workspace.children].forEach((el,idx)=>{
+     const keep=idx<3 || el.id==='tieVoteCard';
+     if(!keep)el.classList.add('hidden');
+   });
+   refreshTieVotes();updateOfflineUI();
+ }else if(!canCapture){
    pending?.classList.remove('hidden');workspace?.classList.add('hidden');
-   $('#accessPendingTitle').textContent=mode==='not_participating'?'No tienes acceso a este periodo':'Tu participación está pendiente';
-   const period=accessState?.period_label?(' para '+accessState.period_label):'';
-   $('#accessPendingText').innerHTML=
-     'Tu ID <b>'+escapeHtml(staff?.staff_code||'')+'</b> sigue vigente, pero todavía no tienes autorización'+escapeHtml(period)+
-     '. Acércate con el <b>Profr. Jaime</b> para confirmar tu participación.';
+   if(mode==='school_recess'){
+     $('#accessPendingTitle').textContent='Receso escolar';
+     $('#accessPendingText').textContent=accessState?.message||'Mérito está en pausa por receso escolar.';
+   }else{
+     $('#accessPendingTitle').textContent=mode==='not_participating'?'No tienes acceso a este periodo':'Tu participación está pendiente';
+     const period=accessState?.period_label?(' para '+accessState.period_label):'';
+     $('#accessPendingText').innerHTML=
+       'Tu ID <b>'+escapeHtml(staff?.staff_code||'')+'</b> sigue vigente, pero todavía no tienes autorización'+escapeHtml(period)+
+       '. Acércate con el <b>Profr. Jaime</b> para confirmar tu participación.';
+   }
  }else{
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
@@ -187,6 +201,7 @@ function showCapture(){
 
 function tieVoteLabel(issue){
  const labels={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
+ if(issue.issue_key==='annual')return 'Campeón anual';
  return issue.issue_type==='overall'?'Mérito del Mes':(labels[issue.criterion_code]||'Reconocimiento');
 }
 async function castTieVote(issueId,groupCode){
@@ -560,6 +575,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=30').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=31').catch(()=>{});
 updateOfflineUI();
 checkDevice();

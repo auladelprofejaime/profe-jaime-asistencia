@@ -398,3 +398,45 @@ Al crear este archivo, el HEAD observado de `main` fue:
     2. merit_vote_open
     3. merit_results_published
 - La pantalla obligatoria de permisos explica ahora los tres tipos de avisos.
+
+
+## Mérito — revisión mensual de bitácoras
+- App Docente v8.23.26 agrega una matriz de revisión mensual de las 18 bitácoras dentro de Cierre mensual.
+- Flujo:
+  1. Seleccionar periodo mensual.
+  2. Revisar físicamente las 18 bitácoras.
+  3. Capturar únicamente el número total de observaciones de cada grupo; incluso 0 debe escribirse.
+  4. La app calcula automáticamente el descuento.
+  5. Guardar revisión.
+  6. Solo entonces se permite cerrar el mes / abrir una votación por empate.
+- Escala oficial:
+  - 0–2 observaciones = 0
+  - 3–4 = -2
+  - 5–6 = -5
+  - 7–9 = -8
+  - 10 o más = -10
+- La matriz muestra: Grupo, Puntos, Observaciones del mes, Descuento, Final estimado.
+- Los descuentos de bitácora NO modifican los cortes semanales anteriores ni la clasificación en vivo; se aplican exclusivamente al resultado mensual final.
+- El cierre mensual guarda por grupo:
+  - base_score
+  - bitacora_observations
+  - bitacora_deduction
+  - monthly_score final
+  - monthly_rank final
+- El acumulado anual usa monthly_score, por lo que incorpora automáticamente el ajuste ya aplicado al cierre.
+- Nueva tabla: merit_monthly_bitacora_adjustments, con RLS y acceso directo revocado.
+- Nuevas RPC admin:
+  - teacher_merit_bitacora_matrix(uuid)
+  - teacher_merit_save_bitacora_matrix(uuid,jsonb)
+- teacher_merit_close_preview y teacher_merit_close_month calculan el puntaje final como puntos base + descuento de bitácora.
+- teacher_merit_open_tie_vote no puede abrir votación mientras falte la revisión de bitácoras.
+- Los 18 grupos deben quedar capturados para un periodo mensual real.
+- Los periodos de prueba de un solo día / con nombre iniciado por “Prueba” quedan exentos.
+- Verificado:
+  - Prueba Consejo Técnico 25/09/2026 -> bitácora no requerida.
+  - Octubre 2026 -> bitácora requerida.
+  - escala automática validada para 0,1,2,3,4,5,6,7,8,9,10 y 15 observaciones.
+- Frontend:
+  - merit-bitacora-v82326.js?v=82326
+  - App Docente v8.23.26
+  - caché app-docente-v8-23-26

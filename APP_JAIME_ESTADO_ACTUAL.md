@@ -705,3 +705,105 @@ Al crear este archivo, el HEAD observado de `main` fue:
 - Mérito Docentes v29, service worker cache merito-docentes-v1-20.
 - PDF actualizado con este flujo:
   /mnt/data/Merito_Gabino_A_Palma_Proyecto_Definitivo_ACTUALIZADO_2026-09-19.pdf
+
+
+## Mérito — calendario definitivo 2026-2027 y cierre anual (19-09-2026)
+### Periodos oficiales
+Los periodos oficiales quedaron encadenados sin huecos ni traslapes:
+- Octubre 2026: 01/10/2026–25/10/2026.
+- Noviembre 2026: 26/10/2026–22/11/2026.
+- Diciembre 2026 - Enero 2027: 23/11/2026–24/01/2027.
+  - pausa escolar de captura: 21/12/2026–06/01/2027.
+- Febrero 2027: 25/01/2027–21/02/2027.
+- Marzo - Abril 2027: 22/02/2027–25/04/2027.
+  - pausa escolar de captura: 22/03/2027–04/04/2027.
+- Mayo 2027: 26/04/2027–23/05/2027.
+- Tramo final - Acumulado anual 2026-2027: 24/05/2027–20/06/2027.
+Mayo es el último periodo con premiación mensual.
+
+### Flujo mensual
+- El periodo de captura permanece abierto hasta el domingo de corte para que el personal pueda cargar pendientes del fin de semana.
+- Durante ese fin de semana Jaime/Comité puede capturar la revisión de las 18 bitácoras.
+- El lunes siguiente inicia inmediatamente el periodo nuevo.
+- Si con puntos + bitácoras completos existe empate, se abre votación del personal autorizado de lunes a jueves.
+- El viernes se hace el cierre definitivo y el lunes siguiente se publica/anuncia.
+- Las nuevas conductas desde el lunes ya pertenecen al periodo nuevo.
+- El cierre duro de servidor impide sincronizar capturas atrasadas después del ends_at del periodo anterior.
+
+### Recesos oficiales
+- merit_current_period_status, merit_access_state_for_staff y merit_register_movement bloquean captura durante los recesos largos.
+- En esos días la cuenta del docente se conserva; Mérito Docentes muestra “Receso escolar”.
+- Los periodos Diciembre-Enero y Marzo-Abril continúan antes/después del receso, no se dividen en dos premiaciones.
+
+### Tramo final y campeón anual
+- No existe un ganador mensual de Junio ni categorías en la clausura.
+- Desde 24/05/2027 hasta 20/06/2027 los docentes siguen sumando/restando puntos; esos movimientos solo alimentan el acumulado anual.
+- El tramo final no requiere bitácora mensual y está excluido del módulo “Cierre mensual”.
+- teacher_merit_annual_ranking suma:
+  - resultados mensuales cerrados (ya con descuentos de bitácora);
+  - movimientos válidos del tramo final.
+- Si el primer lugar anual queda empatado:
+  - votación 21–24/06/2027;
+  - solo personal confirmado y participante del tramo final puede votar;
+  - si la votación vuelve a empatar, resuelve el Comité con nota de trazabilidad.
+- El cierre anual solo se habilita a partir del viernes 25/06/2027.
+- La publicación oficial del campeón anual 2026-2027 está bloqueada hasta el 09/07/2027.
+- Del 21/06 al 09/07 el personal participante puede entrar en modo annual_close para votar, pero no capturar puntos.
+- En la clausura del 09/07/2027 se reconoce únicamente:
+  - al grupo con mayor puntaje acumulado anual;
+  - al asesor del grupo campeón.
+- No hay ganadores por categoría en la clausura.
+- Distintivo: puede ser botón/pin circular con broche o reconocimiento impreso, según recursos.
+- Si el campeón anual es de 1.º o 2.º, conserva un beneficio transferible al siguiente ciclo:
+  - se entrega la relación de alumnos integrantes del grupo ganador;
+  - al inicio del nuevo ciclo, los docentes que reciban al grupo definen y comunican desde el primer día cuál será el beneficio.
+- Si el campeón es de 3.º, recibe reconocimiento de clausura sin beneficio transferible.
+
+### Backend anual
+Nueva tabla privada:
+- public.merit_annual_results
+- RLS enabled; acceso directo anon/auth revocado.
+
+RPCs:
+- teacher_merit_annual_status(text)
+- teacher_merit_open_annual_tie_vote(text)
+- teacher_merit_close_annual(text,text,text)
+- teacher_merit_close_annual_tie_vote(text,text,text)
+- teacher_merit_publish_annual_official(text)
+Los RPC administrativos exigen sesión/rol de administración; anon no tiene EXECUTE.
+
+### App Docente
+- versión visible: v8.23.35
+- cache: app-docente-v8-23-35
+- merit-admin-v82335.js:
+  - excluye “Tramo final” de Cierre mensual/Bitácoras.
+- merit-annual-v82335.js:
+  - tabla acumulada con puntaje mensual + tramo final + total;
+  - preparación de cierre anual;
+  - apertura/seguimiento/cierre de votación anual;
+  - resolución del Comité si persiste empate;
+  - publicación del campeón anual.
+- merit-staff-period-v82334.js mantiene selector del periodo oficial inmediato.
+- Sintaxis de merit-admin-v82335.js y merit-annual-v82335.js validada con new Function.
+- index y service worker verificados cargando los módulos v82335.
+
+### Mérito Docentes
+- app.js?v=31
+- cache: merito-docentes-v1-22
+- issue_key annual se presenta como “Campeón anual”.
+- Modo annual_close: captura oculta/bloqueada, votación disponible.
+- Modo school_recess: muestra pausa por receso, sin confundirla con falta de autorización.
+- Notificaciones hablan de “nuevo periodo” y “resultados oficiales”.
+
+### Verificaciones
+- Secuencia oficial Oct–Tramo final verificada: todos los periodos son contiguos, sin huecos ni solapamientos.
+- Existe exactamente un Tramo final: 24/05/2027–20/06/2027.
+- No existen movimientos futuros en los periodos reestructurados al momento del cambio.
+- No se ejecutó una votación/cierre anual real porque es un flujo futuro y hacerlo alteraría datos reales; se validaron funciones, permisos, fechas, restricciones y sintaxis.
+
+### PDF definitivo
+Archivo:
+- /mnt/data/Merito_Gabino_A_Palma_Proyecto_Definitivo_CICLO_2026-2027.pdf
+- 11 páginas.
+Incluye tabla de calendario, periodos consolidados por recesos, tramo final, cierre anual, reconocimiento al asesor, beneficio transferible y regla de clausura sin categorías.
+Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mostró cambios esperados únicamente en las secciones modificadas.

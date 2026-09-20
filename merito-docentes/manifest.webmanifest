@@ -3,8 +3,8 @@
   "short_name": "Mérito Docentes",
   "start_url": "./",
   "display": "standalone",
-  "background_color": "#fff9e8",
-  "theme_color": "#ffc800",
+  "background_color": "#fffaf0",
+  "theme_color": "#071a36",
   "icons": [
     {
       "src": "icon-192.png",

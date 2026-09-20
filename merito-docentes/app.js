@@ -4,7 +4,7 @@ const TOKEN_KEY='meritInstallationTokenV1';
 const STAFF_CACHE_KEY='meritStaffCacheV16';
 const SETUP_CACHE_KEY='meritMustChangePinV16';
 const QUEUE_KEY='meritOfflineQueueV16';
-const $=s=>document.querySelector(s), $=s=>[...document.querySelectorAll(s)];
+const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const rememberedToken=localStorage.getItem(TOKEN_KEY)||'';
 const sessionToken=sessionStorage.getItem(TOKEN_KEY)||'';
 let token=rememberedToken||sessionToken||'';
@@ -475,6 +475,6 @@ document.addEventListener('visibilitychange',()=>{if(document.visibilityState===
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=20').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=21').catch(()=>{});
 updateOfflineUI();
 checkDevice();

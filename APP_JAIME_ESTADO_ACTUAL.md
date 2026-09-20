@@ -807,3 +807,22 @@ Archivo:
 - 11 páginas.
 Incluye tabla de calendario, periodos consolidados por recesos, tramo final, cierre anual, reconocimiento al asesor, beneficio transferible y regla de clausura sin categorías.
 Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mostró cambios esperados únicamente en las secciones modificadas.
+
+
+### Complemento reconocimiento anual (asesor)
+- public.merit_annual_results incluye advisor_name.
+- RPC teacher_merit_set_annual_award_details(p_cycle,p_advisor_name):
+  - solo administración;
+  - solo después de cerrar el acumulado anual;
+  - guarda al asesor del grupo campeón;
+  - devuelve grado del campeón y si el beneficio es transferible (1.º/2.º sí; 3.º no).
+- teacher_merit_annual_status devuelve:
+  - winner_grade;
+  - advisor_name;
+  - benefit_transferable.
+- App Docente v8.23.36:
+  - permite capturar y guardar el nombre del asesor una vez definido el campeón;
+  - muestra automáticamente si el beneficio pasa al siguiente ciclo;
+  - cache app-docente-v8-23-36;
+  - merit-annual-v82335.js se carga con query v82336 para forzar actualización.
+- No existe actualmente un catálogo previo de asesores por grupo; por eso el nombre se captura administrativamente y no se inventa.

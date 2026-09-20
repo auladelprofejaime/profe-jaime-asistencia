@@ -583,3 +583,25 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - al recuperar internet intenta actualizar automáticamente.
 - Se suprime únicamente el popup viejo que empezaba con “No se pudo cargar la clasificación:”; otros avisos no se alteran.
 - No se modificaron movimientos, periodos ni resultados durante esta corrección.
+
+
+## Mérito — participación de personal por periodo v8.23.31
+- Los accesos de prueba 700002–700070 siguen siendo 69, activos, placeholder y no confirmados.
+- Durante el periodo de prueba del Consejo Técnico, un acceso no confirmado puede entrar y registrar movimientos de prueba sin completar perfil ni cambiar NIP.
+- En periodos oficiales, solo puede registrar movimientos el personal:
+  - confirmado;
+  - con perfil/NIP formal completado;
+  - marcado como participante en ese periodo.
+- Nueva tabla: merit_staff_period_participation, con RLS y acceso directo revocado.
+- Historial independiente por periodo: quitar participación en un mes no borra ni altera meses anteriores ni desactiva la cuenta global.
+- App Docente > Mérito > Docentes autorizados ahora incluye “Participación por periodo” con selector de periodo y estado Participa / No participa.
+- Al activar formalmente un folio desde esa sección, se asocia al periodo seleccionado.
+- Jaime 700001 quedó marcado como participante de Octubre 2026.
+- Backend:
+  - teacher_merit_staff_period_matrix(uuid)
+  - teacher_merit_set_staff_period_participation(uuid,uuid,boolean)
+  - teacher_merit_activate_staff_code_for_period(text,uuid)
+  - merit_register_movement aplica participación por periodo oficial y permite modo prueba en periodos de prueba.
+- App Docente v8.23.31, módulo merit-staff-period-v82331.js?v=82331, caché app-docente-v8-23-31.
+- Mérito Docentes v24, app.js?v=24, caché merito-docentes-v1-15.
+- Los accesos de prueba muestran “Acceso de prueba · Consejo Técnico” y no abren el flujo obligatorio de perfil/NIP hasta que sean confirmados formalmente.

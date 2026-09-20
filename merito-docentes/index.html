@@ -21,7 +21,7 @@
 <p id="activationStatus"></p>
 </section>
 
-<section id="capture" class="hidden">
+<section id="capture" class="hidden"><div id="accessPendingCard" class="card hidden" style="text-align:center;padding:22px"><div style="font-size:2rem">🔒</div><h2 id="accessPendingTitle">Acceso pendiente</h2><p id="accessPendingText"></p><p class="muted">Tu ID se conserva. Cuando confirmes tu participación con el Profr. Jaime, podrás seguir usando este mismo acceso.</p></div><div id="captureWorkspace">
 <div id="systemReadyCard" class="card statusbar"><div><span class="muted">Estado del sistema</span><h2 id="systemReadyTitle" style="margin:3px 0">Comprobando…</h2><span id="systemReadyDetail" class="badge">Conectando</span></div><button id="systemReadyRefresh" class="secondary" type="button">Comprobar</button></div>
 <div id="offlineCard" class="card statusbar"><div><span class="muted">Conexión y sincronización</span><h2 id="offlineTitle" style="margin:3px 0">Comprobando conexión…</h2><span id="offlineDetail" class="badge">0 pendientes</span></div><button id="offlineRetry" class="secondary" type="button">Sincronizar</button></div>
 <div class="card statusbar"><div><span class="muted">Dispositivo autorizado</span><h2 id="staffName" style="margin:3px 0"></h2><span id="staffRole" class="badge"></span></div><button id="forgetDevice" class="secondary">Desvincular</button></div>
@@ -68,7 +68,7 @@
 <p id="captureStatus"></p>
 <div id="lastRecord" class="hidden"><hr><b>Último registro realizado en este dispositivo</b><p id="lastRecordText"></p></div><hr><button id="reportMovementErrorBtn" class="secondary full" type="button">REPORTAR ERROR EN UN REGISTRO DE HOY</button><p class="muted">Solo puedes solicitar revisión el mismo día en que hiciste el movimiento.</p><p id="movementReviewQuickStatus"></p>
 </div>
-</section>
+</div></section>
 </main>
 <dialog id="pinDialog"><div class="dialogbody"><h2 id="pinDialogTitle">Completa tu registro</h2><p id="pinDialogText" class="muted">Completa tus datos y cambia tu NIP.</p><div id="profileFields"><label>Nombre<input id="profileFirstName" autocomplete="given-name"></label><label>Primer apellido<input id="profileFirstSurname" autocomplete="family-name"></label><label>Asignatura<input id="profileSubject" autocomplete="organization-title"></label></div><label>NIP actual<input id="currentPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Nuevo NIP<input id="newPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Confirma nuevo NIP<input id="newPinConfirm" inputmode="numeric" maxlength="4" placeholder="0000"></label><button id="saveNewPin" class="primary full">GUARDAR</button><p id="pinChangeStatus"></p></div></dialog>
 <dialog id="confirmDialog"><div class="dialogbody"><h2>Confirmar registro</h2><div id="confirmSummary"></div><div class="actions"><button id="cancelConfirm" class="secondary">Regresar</button><button id="sendConfirm" class="primary">CONFIRMAR Y GUARDAR</button></div></div></dialog>
@@ -90,4 +90,4 @@
   <p id="notificationStatus"></p>
 </div></dialog>
 <footer class="app-brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</footer>
-<script src="app.js?v=25"></script></body></html>
+<script src="app.js?v=26"></script></body></html>

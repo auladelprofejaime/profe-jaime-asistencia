@@ -569,3 +569,17 @@ Al crear este archivo, el HEAD observado de `main` fue:
   - JavaScript nuevo pasa validación de sintaxis.
   - token inválido en merit_my_today_movements devuelve unauthorized.
   - no se crearon solicitudes reales durante las pruebas.
+
+
+## Mérito — clasificación robusta v8.23.30
+- Se corrigió el flujo que mostraba el aviso genérico “Sin conexión y todavía no hay una copia local…” ante cualquier fallo al cargar la clasificación.
+- Nuevo módulo merit-ranking-v82330.js?v=82330.
+- App Docente v8.23.30; caché app-docente-v8-23-30.
+- La clasificación ahora:
+  - restaura/refresca explícitamente la sesión Supabase antes de consultar;
+  - distingue sin internet vs sesión/autorización vs error de consulta;
+  - guarda por periodo la última clasificación válida en localStorage;
+  - si realmente no hay conexión, muestra la última copia disponible;
+  - al recuperar internet intenta actualizar automáticamente.
+- Se suprime únicamente el popup viejo que empezaba con “No se pudo cargar la clasificación:”; otros avisos no se alteran.
+- No se modificaron movimientos, periodos ni resultados durante esta corrección.

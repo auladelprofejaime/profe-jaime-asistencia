@@ -247,12 +247,12 @@
       doc.setTextColor(20,20,20);doc.setFontSize(17);doc.setFont('helvetica','bold');
       doc.text(code,cardX+cardW-18,cardY+43,{align:'right'});
 
-      const bw=230,bh=30,bx=cardX+(cardW-bw)/2,by=cardY+96;
+      const bw=63,bh=16,bx=cardX+(cardW-bw)/2,by=cardY+103;
       drawCode39Pdf(doc,code,bx,by,bw,bh);
-      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(30,30,30);
-      doc.text(code,cardX+cardW/2,by+42,{align:'center'});
+      doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(30,30,30);
+      doc.text(code,cardX+cardW/2,by+25,{align:'center'});
 
-      const gap=18,boxW=(cardW-58-gap)/2,boxY=cardY+155,boxH=54;
+      const gap=18,boxW=(cardW-58-gap)/2,boxY=cardY+142,boxH=54;
       [['ID DOCENTE',code],['NIP INICIAL',pin]].forEach((v,j)=>{
         const xx=cardX+20+j*(boxW+gap);
         doc.setDrawColor(215,177,30);doc.roundedRect(xx,boxY,boxW,boxH,8,8,'S');
@@ -262,7 +262,7 @@
         doc.text(v[1],xx+boxW/2,boxY+41,{align:'center'});
       });
 
-      const noteX=cardX+20,noteY=cardY+230,noteW=cardW-40,noteH=59;
+      const noteX=cardX+20,noteY=cardY+217,noteW=cardW-40,noteH=59;
       doc.setFillColor(255,248,215);doc.roundedRect(noteX,noteY,noteW,noteH,8,8,'F');
       doc.setTextColor(25,25,25);doc.setFont('helvetica','bold');doc.setFontSize(8.5);
       doc.text('Acceso de prueba a Mérito Docentes.',noteX+12,noteY+19);

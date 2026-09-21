@@ -879,12 +879,12 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 
 
 ### App Docente — estabilidad Supabase + libros masivos (2026-09-21)
-- App Docente actualizada a v8.23.39.
+- App Docente actualizada inicialmente a v8.23.39 y estabilizada en v8.23.40.
 - Diagnóstico de conectividad:
   - proyecto Supabase xqeyyjakmeiaahecfdmc verificado como ACTIVE_HEALTHY;
   - una consulta SQL respondió correctamente durante la revisión;
   - la causa observada en la app era la lógica cliente: un solo timeout/fallo transitorio de una petición podía poner cloudOnline=false y el siguiente chequeo lo devolvía a true, generando el efecto visual de “se conecta y desconecta”.
-- Nuevo módulo connectivity-books-v82339.js:
+- Nuevo módulo connectivity-books-v82339.js (cargado con query v82340):
   - añade una comprobación real y ligera contra /auth/v1/settings;
   - usa timeout de 8 s;
   - no cambia a estado de reconexión visible por un solo fallo transitorio;
@@ -898,4 +898,8 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
   - antes de guardar mantiene la confirmación existente con cantidad de libros y monto correspondiente a editorial;
   - no se ejecutó la acción masiva durante pruebas, para no alterar estados reales.
 - No hubo cambios de esquema ni borrado de datos en Supabase.
-- Caché: app-docente-v8-23-39.
+- Caché final: app-docente-v8-23-40.
+
+- Corrección adicional v8.23.40:
+  - requireTeacherSession ya no provoca por sí sola el falso cambio visual/funcional a cloudOnline=false cada vez que se abre un módulo con sesión guardada;
+  - si la nube ya estaba confirmada, conserva el estado; si aún no estaba confirmada, dispara una comprobación breve en segundo plano.

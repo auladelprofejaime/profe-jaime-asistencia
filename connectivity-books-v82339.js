@@ -144,6 +144,29 @@
     console.warn('No se pudo instalar estabilizador de Supabase',e);
   }
 
+  // Evita que requireTeacherSession marque la nube como desconectada solo por
+  // restaurar una sesión local válida. El archivo principal usa local-first, pero
+  // no debe degradar cloudOnline cada vez que se abre un módulo.
+  try{
+    const baseRequireTeacherSession=requireTeacherSession;
+    requireTeacherSession=async function(){
+      let wasOnline=false;
+      try{wasOnline=!!cloudOnline}catch(_){}
+      const ok=await baseRequireTeacherSession();
+      if(ok&&navigator.onLine){
+        if(wasOnline){
+          try{cloudOnline=true;supabaseReady=true}catch(_){}
+          if(typeof updateConnectivityUi==='function')updateConnectivityUi();
+        }else{
+          scheduleRecoveryProbe(150);
+        }
+      }
+      return ok;
+    };
+  }catch(e){
+    console.warn('No se pudo estabilizar la validación de sesión',e);
+  }
+
   // Después de cualquier RPC, si hubo un fallo transitorio que dejó cloudOnline
   // en falso, se comprueba la conectividad real sin esperar un minuto completo.
   try{

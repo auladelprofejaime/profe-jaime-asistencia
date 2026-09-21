@@ -985,3 +985,47 @@ button.danger{
  .book-state-pill{grid-column:1/-1}
  .book-row-action{border-left:0;border-top:1px solid rgba(80,90,100,.13);padding:8px 11px}
 }
+
+
+/* v8.23.38 · Actividades · pendientes por alumno */
+.activity-pending-search .scan{margin-bottom:8px}
+.activity-pending-student{overflow:hidden}
+.activity-pending-head{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap}
+.activity-pending-head h2{margin:4px 0}
+.activity-pending-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px;margin:16px 0}
+.activity-pending-summary>div{padding:13px;border:1px solid var(--line);border-radius:14px;background:#fff;text-align:center}
+.activity-pending-summary b{display:block;font-size:28px;color:var(--r)}
+.activity-pending-summary span{display:block;margin-top:3px;font-size:12px;font-weight:850;color:var(--muted)}
+.activity-pending-summary .warn{background:#fff4d6;border-color:#e5bd52}
+.activity-pending-summary .warn b{color:#9a5a00}
+.activity-pending-summary .info{background:#eef6ff;border-color:#aac8ea}
+.activity-pending-summary .info b{color:#235b92}
+.activity-pending-block{margin-top:18px}
+.activity-pending-block h3{margin:0 0 9px}
+.activity-pending-list{display:flex;flex-direction:column;gap:8px}
+.activity-pending-row{display:grid;grid-template-columns:155px minmax(0,1fr);gap:12px;align-items:center;padding:12px 13px;border:1px solid var(--line);border-radius:13px;background:#fff}
+.activity-pending-state{display:flex;align-items:center;gap:8px;font-size:12px}
+.activity-pending-state>span{width:28px;height:28px;display:grid;place-items:center;border-radius:50%;font-weight:950;background:#eee}
+.activity-pending-copy strong{display:block}
+.activity-pending-copy small{display:block;margin-top:4px;color:var(--muted);line-height:1.35}
+.activity-pending-row.overdue{background:#fff1f1;border-color:#efb0b0}
+.activity-pending-row.overdue .activity-pending-state>span{background:#fee2e2;color:#991b1b}
+.activity-pending-row.today{background:#fff7da;border-color:#e6c562}
+.activity-pending-row.today .activity-pending-state>span{background:#fde9a6;color:#7a4a00}
+.activity-pending-row.future{background:#f7fbff;border-color:#bfd2e6}
+.activity-pending-row.future .activity-pending-state>span{background:#e4f0fb;color:#285c88}
+.activity-pending-row.pending .activity-pending-state>span{background:#f2ead5;color:#6d5b32}
+.activity-pending-row.numeric{background:#f4f7ff;border-color:#c6d1ef}
+.activity-pending-row.numeric .activity-pending-state>span{background:#e7ecfb;color:#354f91}
+.activity-pending-current{display:flex;gap:12px;align-items:flex-start;padding:15px;border:1px solid #86efac;border-radius:14px;background:#ecfdf5;color:#166534}
+.activity-pending-current>span{width:34px;height:34px;display:grid;place-items:center;border-radius:50%;background:#dcfce7;font-size:20px;font-weight:950}
+.activity-pending-current strong{font-size:18px}
+.activity-pending-current p{margin:3px 0 0;line-height:1.4}
+.activity-pending-empty{padding:20px;text-align:center;color:var(--muted)}
+@media(max-width:720px){
+ .activity-pending-summary{grid-template-columns:1fr 1fr}
+ .activity-pending-row{grid-template-columns:1fr}
+}
+@media(max-width:430px){
+ .activity-pending-summary{grid-template-columns:1fr}
+}

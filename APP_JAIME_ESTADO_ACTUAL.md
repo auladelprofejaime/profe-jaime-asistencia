@@ -876,3 +876,26 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 - No se modificó Supabase ni se borraron/cambiaron registros existentes; el módulo consulta las mismas actividades y activityRecords que ya usa la App Docente.
 - Nuevo archivo: activities-pending-v82338.js.
 - Caché: app-docente-v8-23-38.
+
+
+### App Docente — estabilidad Supabase + libros masivos (2026-09-21)
+- App Docente actualizada a v8.23.39.
+- Diagnóstico de conectividad:
+  - proyecto Supabase xqeyyjakmeiaahecfdmc verificado como ACTIVE_HEALTHY;
+  - una consulta SQL respondió correctamente durante la revisión;
+  - la causa observada en la app era la lógica cliente: un solo timeout/fallo transitorio de una petición podía poner cloudOnline=false y el siguiente chequeo lo devolvía a true, generando el efecto visual de “se conecta y desconecta”.
+- Nuevo módulo connectivity-books-v82339.js:
+  - añade una comprobación real y ligera contra /auth/v1/settings;
+  - usa timeout de 8 s;
+  - no cambia a estado de reconexión visible por un solo fallo transitorio;
+  - requiere fallos consecutivos antes de mostrar desconexión de Supabase cuando navigator.onLine sigue activo;
+  - programa recuperación rápida después de un fallo de RPC;
+  - conserva la cola offline y no borra datos.
+- Libros:
+  - en “Estado por alumno” se agregó botón “📦 Solicitar todos los liquidados”;
+  - toma únicamente alumnos con pago liquidado y sin estado solicitado/entregado/externo;
+  - usa el RPC existente teacher_book_mark_requested;
+  - antes de guardar mantiene la confirmación existente con cantidad de libros y monto correspondiente a editorial;
+  - no se ejecutó la acción masiva durante pruebas, para no alterar estados reales.
+- No hubo cambios de esquema ni borrado de datos en Supabase.
+- Caché: app-docente-v8-23-39.

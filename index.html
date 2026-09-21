@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.37</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.38</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -531,7 +531,7 @@
 </section>
 
 <section id="activities" class="view">
- <div class="subtabs"><button data-acttab="scan" class="sub active">Escáner</button><button data-acttab="grid" class="sub">Cuadrícula semanal</button><button data-acttab="manage" class="sub">Crear actividad</button></div>
+ <div class="subtabs"><button data-acttab="scan" class="sub active">Escáner</button><button data-acttab="pending" class="sub">Pendientes por alumno</button><button data-acttab="grid" class="sub">Cuadrícula semanal</button><button data-acttab="manage" class="sub">Crear actividad</button></div>
  <div id="act-scan" class="actpane active">
   <div class="card grid4">
    <label>Turno<select id="actShift"></select></label>
@@ -557,6 +557,17 @@
    <div class="actions"><button id="actMultiSave" type="button" class="primary">Registrar seleccionadas</button><button id="actMultiCancel" type="button" class="secondary">Cancelar</button></div>
   </div>
   <div class="actions"><button id="actClose" class="danger-outline">Finalizar y marcar faltantes ✕</button><button id="actReopen" class="secondary">Dejar pendientes</button></div>
+ </div>
+ <div id="act-pending" class="actpane">
+  <div class="card activity-pending-search">
+   <div class="section">
+    <div><h2>Revisar pendientes por alumno</h2><p class="hint">Escanea la credencial o escribe el ID. La app revisa todas las actividades registradas para su grupo, sin elegir semana.</p></div>
+   </div>
+   <div class="scan"><input id="activityPendingScan" inputmode="numeric" autocomplete="off" placeholder="ID del alumno"><button id="activityPendingSearch" class="primary" type="button">Consultar</button></div>
+   <p class="hint">Entrega: muestra pendientes y “No entregó”. Numérica: muestra aparte lo que todavía no tiene calificación registrada.</p>
+   <p id="activityPendingStatus" class="message"></p>
+  </div>
+  <div id="activityPendingResult"></div>
  </div>
  <div id="act-grid" class="actpane">
   <div class="card grid4"><label>Turno<select id="gridShift"></select></label><label>Grupo<select id="gridGroup"></select></label><label>Semana<select id="gridWeek"></select></label><label>Acción<button id="gridPdf" class="secondary">PDF por rango</button></label></div>
@@ -1435,7 +1446,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v82312.js?v=82312"></script><script src="merit-schoolwide-fix-v82314.js?v=82314"></script><script src="merit-staff-provision-v82332.js?v=82332"></script>
+<script src="./shared/supabase-teacher.js?v=800"></script><script src="app-v82312.js?v=82312"></script><script src="activities-pending-v82338.js?v=82338"></script><script src="merit-schoolwide-fix-v82314.js?v=82314"></script><script src="merit-staff-provision-v82332.js?v=82332"></script>
 <script src="merit-tie-vote-v82325.js?v=82325"></script><script src="merit-admin-v82335.js?v=82335"></script><script src="merit-movements-v82328.js?v=82328"></script><script src="merit-corrections-v82329.js?v=82329"></script><script src="merit-ranking-v82330.js?v=82330"></script><script src="merit-staff-period-v82334.js?v=82334"></script><script src="merit-annual-v82335.js?v=82336"></script>
 
 <dialog id="meritEditPeriodDialog">

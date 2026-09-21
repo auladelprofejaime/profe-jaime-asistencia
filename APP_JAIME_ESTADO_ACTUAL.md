@@ -853,3 +853,26 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
   - nuevo estilo encapsulado únicamente bajo #merit;
   - logo, navegación, tarjetas, tablas, formularios y estados de Mérito usan la nueva identidad;
   - los demás módulos conservan el diseño anterior.
+
+
+### App Docente — Actividades · Pendientes por alumno (2026-09-21)
+- App Docente actualizada a v8.23.38.
+- Se agregó una nueva pestaña dentro de Actividades: “Pendientes por alumno”.
+- Flujo:
+  - escanear o escribir el ID del alumno;
+  - no requiere seleccionar turno, grupo ni semana;
+  - identifica al alumno y revisa todas las actividades registradas para su turno/grupo;
+  - muestra total de actividades, completadas/calificadas, pendientes de entrega y actividades numéricas sin calificación.
+- Actividades de entrega:
+  - “Entregado” no aparece como pendiente;
+  - “No entregó” aparece explícitamente;
+  - sin registro se clasifica según fecha de entrega: pendiente, entrega hoy, por entregar o fecha vencida.
+- Actividades numéricas:
+  - si tienen calificación de 0 a 10 se consideran calificadas;
+  - si no tienen calificación aparecen en una sección separada como “Sin calificación registrada”;
+  - la app aclara que esto no significa automáticamente que el alumno no haya entregado.
+- Si el alumno no tiene pendientes ni actividades numéricas sin calificar, aparece “Al corriente”.
+- Se puede hacer una nueva consulta inmediatamente después de cada escaneo.
+- No se modificó Supabase ni se borraron/cambiaron registros existentes; el módulo consulta las mismas actividades y activityRecords que ya usa la App Docente.
+- Nuevo archivo: activities-pending-v82338.js.
+- Caché: app-docente-v8-23-38.

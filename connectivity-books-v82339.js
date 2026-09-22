@@ -245,6 +245,95 @@
     });
   }
 
+
+  // v8.23.43 · protección contra 429 en Pagos de libros
+  // Nunca dejar la pantalla vacía si Supabase limita temporalmente las consultas.
+  try{
+    const baseLoadBookPayments=loadBookPayments;
+    let bookPaymentsLoading=false;
+    let lastBookPaymentsAttempt=0;
+
+    loadBookPayments=async function(){
+      const now=Date.now();
+      if(bookPaymentsLoading){
+        const cached=offlineRpcGet('teacher_book_payment_dashboard',{})||bookPayDashboard;
+        if(cached?.students){
+          bookPayDashboard=cached;
+          renderEditorialFinance();
+          const rows=cached.students||[];
+          const groups=[...new Set(rows.map(x=>String(x.group_name||'')).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+          const g=$('#payGroup');
+          if(g){
+            const old=g.value;
+            g.innerHTML=groups.map(x=>`<option value="${safe(x)}">${safe(x)}</option>`).join('');
+            if(groups.includes(old))g.value=old;
+          }
+          fillBookPaymentStudents();
+          renderBookPaymentRoster();
+        }
+        return;
+      }
+
+      // Evita dobles cargas casi simultáneas al abrir/cambiar de sección.
+      if(now-lastBookPaymentsAttempt<1200){
+        const cached=offlineRpcGet('teacher_book_payment_dashboard',{})||bookPayDashboard;
+        if(cached?.students){
+          bookPayDashboard=cached;
+          renderEditorialFinance();
+          fillBookPaymentStudents();
+          renderBookPaymentRoster();
+        }
+        return;
+      }
+
+      bookPaymentsLoading=true;
+      lastBookPaymentsAttempt=now;
+
+      // Mostrar primero la copia local, sin esperar a la nube.
+      const cached=offlineRpcGet('teacher_book_payment_dashboard',{})||bookPayDashboard;
+      if(cached?.students){
+        bookPayDashboard=cached;
+        renderEditorialFinance();
+        const rows=cached.students||[];
+        const groups=[...new Set(rows.map(x=>String(x.group_name||'')).filter(Boolean))].sort((a,b)=>a.localeCompare(b,undefined,{numeric:true}));
+        const g=$('#payGroup');
+        if(g){
+          const old=g.value;
+          g.innerHTML=groups.map(x=>`<option value="${safe(x)}">${safe(x)}</option>`).join('');
+          if(groups.includes(old))g.value=old;
+        }
+        fillBookPaymentStudents();
+        renderBookPaymentRoster();
+      }
+
+      try{
+        await baseLoadBookPayments();
+      }catch(e){
+        const msg=String(e?.message||e||'');
+        const fallback=offlineRpcGet('teacher_book_payment_dashboard',{})||bookPayDashboard;
+        if(fallback?.students){
+          bookPayDashboard=fallback;
+          renderEditorialFinance();
+          fillBookPaymentStudents();
+          renderBookPaymentRoster();
+          const box=$('#payRoster');
+          if(box && /429|too many requests|rate limit/i.test(msg)){
+            const note=document.createElement('div');
+            note.className='message warn';
+            note.innerHTML='Supabase está limitando temporalmente las consultas. Se muestra la última copia guardada; tus pagos siguen registrados.';
+            box.prepend(note);
+          }
+        }else{
+          throw e;
+        }
+      }finally{
+        bookPaymentsLoading=false;
+      }
+    };
+  }catch(e){
+    console.warn('No se pudo instalar protección 429 de pagos',e);
+  }
+
   if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',()=>{
     bindBulkBookRequest();
     if(navigator.onLine)setTimeout(()=>stableProbe({force:true}).catch(()=>{}),500);

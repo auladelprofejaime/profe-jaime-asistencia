@@ -28,31 +28,32 @@
         }
       }
 
-      // Elimina todos los registros de ambas copias para reconstruir solo entregas válidas.
+      // Limpieza estrictamente LOCAL. No usar del()/put() porque esas funciones
+      // también sincronizan cada cambio con Supabase y podrían provocar una ráfaga de requests.
       for(const r of related){
-        if(r?.key) await del('activityRecords',r.key);
+        if(r?.key) await req(store('activityRecords','readwrite').delete(r.key));
       }
 
       // Reconstruye solo los "sí entregó" sobre la actividad que se conserva.
       for(const [sid,r] of delivered){
         const key=`${KEEP_ID}|${sid}`;
-        await put('activityRecords',{
+        await req(store('activityRecords','readwrite').put({
           key,
           activityId:KEEP_ID,
           studentId:sid,
           status:'yes',
           timestamp:r.timestamp||new Date().toISOString()
-        });
+        }));
       }
 
       // Asegura que quede una sola actividad y con el nombre correcto.
-      if(dup) await del('activities',DUP_ID);
+      if(dup) await req(store('activities','readwrite').delete(DUP_ID));
       if(keep){
         keep.name='Historieta variantes lingüísticas';
         keep.group='25';
         keep.shift='Matutino';
         keep.updated=new Date().toISOString();
-        await put('activities',keep);
+        await req(store('activities','readwrite').put(keep));
       }
 
       localStorage.setItem(CLEAN_KEY,'1');

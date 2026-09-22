@@ -1,8 +1,8 @@
-const CACHE='app-docente-v8-23-41';
+const CACHE='app-docente-v8-23-42';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
- './','./index.html','./styles.css','./app-v82312.js?v=82312','./activities-pending-v82338.js?v=82338','./activities-individual-pdf-v82341.js?v=82341','./connectivity-books-v82339.js?v=82340','./merit-schoolwide-fix-v82314.js?v=82314','./merit-staff-provision-v82332.js?v=82332','./merit-tie-vote-v82325.js?v=82325','./merit-admin-v82335.js?v=82335','./merit-movements-v82328.js?v=82328','./merit-corrections-v82329.js?v=82329','./merit-ranking-v82330.js?v=82330','./merit-staff-period-v82334.js?v=82334','./merit-annual-v82335.js?v=82336',
+ './','./index.html','./styles.css','./app-v82312.js?v=82312','./activities-pending-v82338.js?v=82338','./activities-individual-pdf-v82341.js?v=82341','./cleanup-historieta-grupo25-v82342.js?v=82342','./connectivity-books-v82339.js?v=82340','./merit-schoolwide-fix-v82314.js?v=82314','./merit-staff-provision-v82332.js?v=82332','./merit-tie-vote-v82325.js?v=82325','./merit-admin-v82335.js?v=82335','./merit-movements-v82328.js?v=82328','./merit-corrections-v82329.js?v=82329','./merit-ranking-v82330.js?v=82330','./merit-staff-period-v82334.js?v=82334','./merit-annual-v82335.js?v=82336',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png','./logo-app-docente-v821.png',
  './shared/supabase-teacher.js?v=800'
 ];

@@ -154,8 +154,15 @@ async function checkDevice(){
    localStorage.removeItem(SETUP_CACHE_KEY);sessionStorage.removeItem(SETUP_CACHE_KEY);
    return showActivation();
   }
-  staff=d.staff;accessState=d.access||null;cacheSession(!!d.must_change_pin);showCapture();
-  if(needsProfileSetup() || (d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed)))setTimeout(()=>openPinDialog(needsProfileSetup()),80);
+  staff=d.staff;accessState=d.access||null;cacheSession(!!d.must_change_pin);
+  if(needsProfileSetup()){
+    $('#activation').classList.add('hidden');
+    $('#capture').classList.add('hidden');
+    openPinDialog(true);
+    return;
+  }
+  showCapture();
+  if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(false),80);
   syncPending();
  }catch(e){
   staff=readCachedStaff();
@@ -340,8 +347,15 @@ $('#activateBtn').onclick=async()=>{
   token=d.installation_token;staff=d.staff;accessState=d.access||null;
   rememberSession=$('#rememberSession')?.checked!==false;
   saveSessionToken(token);cacheSession(!!d.must_change_pin);
-  $('#staffCode').value='';$('#activationCode').value='';showCapture();
-  if(needsProfileSetup() || (d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed)))setTimeout(()=>openPinDialog(needsProfileSetup(),pin),80);
+  $('#staffCode').value='';$('#activationCode').value='';
+  if(needsProfileSetup()){
+    $('#activation').classList.add('hidden');
+    $('#capture').classList.add('hidden');
+    openPinDialog(true,pin);
+    return;
+  }
+  showCapture();
+  if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(false,pin),80);
   syncPending();
  }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
@@ -479,9 +493,14 @@ $('#saveNewPin').onclick=async()=>{
   if(needsProfile){
    staff.display_name=d.display_name||staff.display_name;staff.subject_area=d.subject_area||staff.subject_area;staff.is_placeholder=false;
   }
-  cacheSession(false);showCapture();
-  st.innerHTML='<span class="success">✓ NIP actualizado correctamente.</span>';
-  setTimeout(()=>{ $('#pinDialog').close(); setTimeout(ensureNotificationGate,120); },650);
+  cacheSession(false);
+  st.innerHTML='<span class="success">✓ Datos guardados correctamente.</span>';
+  setTimeout(()=>{
+    $('#pinDialog').close();
+    showCapture();
+    setTimeout(ensureNotificationGate,120);
+    syncPending();
+  },450);
  }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
 

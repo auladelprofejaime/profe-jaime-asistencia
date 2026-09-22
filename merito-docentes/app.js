@@ -11,7 +11,6 @@ let token=rememberedToken||sessionToken||'';
 let rememberSession=!!rememberedToken;
 let staff=null,accessState=null,grade=null,group=null,points=null,syncing=false;
 function needsProfileSetup(){return !!(staff?.is_placeholder&&staff?.confirmed)}
-function needsProfileSetup(){return !!(staff?.is_placeholder&&staff?.confirmed)}
 
 function sessionStore(){return rememberSession?localStorage:sessionStorage}
 function saveSessionToken(v){

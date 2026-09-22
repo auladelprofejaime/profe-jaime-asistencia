@@ -903,3 +903,20 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 - Corrección adicional v8.23.40:
   - requireTeacherSession ya no provoca por sí sola el falso cambio visual/funcional a cloudOnline=false cada vez que se abre un módulo con sesión guardada;
   - si la nube ya estaba confirmada, conserva el estado; si aún no estaba confirmada, dispara una comprobación breve en segundo plano.
+
+
+### Mérito Docentes — acceso previo al alta formal corregido (2026-09-22)
+- Se corrigió la regla de la prueba de septiembre para que los folios no confirmados puedan entrar y usar Mérito Docentes desde el inicio de la prueba (21/09/2026 06:00) hasta el cierre del periodo de prueba.
+- Antes, los folios no confirmados solo podían capturar el 25/09; eso provocaba la pantalla “Tu participación está pendiente” aunque el objetivo era que primero conocieran/probaran la app.
+- El folio 700003 se verificó sin modificar sus datos:
+  - confirmed_at sigue null;
+  - is_placeholder=true;
+  - access.mode=trial;
+  - can_capture=true;
+  - formal_activation_pending=true.
+- El alta formal sigue separada de la prueba:
+  - al escanear/activar el ID desde App Docente, se marca confirmed_at y must_change_pin=true;
+  - el mismo dispositivo/sesión detecta el cambio al volver a primer plano o en la comprobación periódica;
+  - entonces solicita nombre, primer apellido, asignatura y cambio de NIP;
+  - antes de la activación formal no pide esos datos.
+- No se borraron movimientos, dispositivos, IDs, NIP ni datos de personal.

@@ -71,7 +71,7 @@
           if(typeof cloudLastOk!=='undefined')cloudLastOk=Date.now();
         }catch(_){}
         if(typeof updateConnectivityUi==='function')updateConnectivityUi();
-        try{if(typeof flushOfflineRpcQueue==='function')flushOfflineRpcQueue().catch(()=>{})}catch(_){}
+        try{if(typeof flushOfflineRpcQueue==='function'&&Date.now()>=Number(window.__supabaseRateLimitedUntil||0))flushOfflineRpcQueue().catch(()=>{})}catch(_){}
         return true;
       }
 
@@ -245,6 +245,24 @@
     });
   }
 
+
+
+  // v8.23.44 · tratar Supabase 429 como interrupción temporal y usar cola local.
+  // Esto hace que un cobro no se pierda ni se bloquee cuando Supabase limita requests.
+  try{
+    const baseConnectivityError=connectivityError;
+    connectivityError=function(e){
+      const msg=String(e?.message||e||'').toLowerCase();
+      const limited=/\b429\b|too many requests|rate limit|rate_limit|quota exceeded/.test(msg);
+      if(limited){
+        window.__supabaseRateLimitedUntil=Date.now()+90000;
+        return true;
+      }
+      return baseConnectivityError(e);
+    };
+  }catch(e){
+    console.warn('No se pudo instalar manejo de Supabase 429',e);
+  }
 
   // v8.23.43 · protección contra 429 en Pagos de libros
   // Nunca dejar la pantalla vacía si Supabase limita temporalmente las consultas.

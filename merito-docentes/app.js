@@ -10,6 +10,7 @@ const sessionToken=sessionStorage.getItem(TOKEN_KEY)||'';
 let token=rememberedToken||sessionToken||'';
 let rememberSession=!!rememberedToken;
 let staff=null,accessState=null,grade=null,group=null,points=null,syncing=false;
+function needsProfileSetup(){return !!(staff?.is_placeholder&&staff?.confirmed)}
 
 function sessionStore(){return rememberSession?localStorage:sessionStorage}
 function saveSessionToken(v){
@@ -154,7 +155,7 @@ async function checkDevice(){
    return showActivation();
   }
   staff=d.staff;accessState=d.access||null;cacheSession(!!d.must_change_pin);showCapture();
-  if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(!!staff.is_placeholder),80);
+  if(needsProfileSetup() || (d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed)))setTimeout(()=>openPinDialog(needsProfileSetup()),80);
   syncPending();
  }catch(e){
   staff=readCachedStaff();
@@ -163,7 +164,7 @@ async function checkDevice(){
  }
 }
 
-function mustCompleteFormalSetup(){return !!(cachedMustChange() && !(staff?.is_placeholder && !staff?.confirmed))}
+function mustCompleteFormalSetup(){return !!(needsProfileSetup() || (cachedMustChange() && !(staff?.is_placeholder && !staff?.confirmed)))}
 function showActivation(){$('#activation').classList.remove('hidden');$('#capture').classList.add('hidden');updateOfflineUI()}
 function showCapture(){
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
@@ -340,7 +341,7 @@ $('#activateBtn').onclick=async()=>{
   rememberSession=$('#rememberSession')?.checked!==false;
   saveSessionToken(token);cacheSession(!!d.must_change_pin);
   $('#staffCode').value='';$('#activationCode').value='';showCapture();
-  if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(!!staff.is_placeholder,pin),80);
+  if(needsProfileSetup() || (d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed)))setTimeout(()=>openPinDialog(needsProfileSetup(),pin),80);
   syncPending();
  }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
@@ -390,9 +391,9 @@ $('#reviewBtn').onclick=async()=>{
     clearSessionToken();token='';return showActivation();
    }
    staff=d.staff;cacheSession(!!d.must_change_pin);
-   if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed)){
-    $('#captureStatus').innerHTML='<span class="error">Antes de continuar, cambia tu NIP.</span>';
-    openPinDialog(!!staff.is_placeholder);return;
+   if(needsProfileSetup() || (d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))){
+    $('#captureStatus').innerHTML='<span class="error">Antes de continuar, completa tu registro y cambia tu NIP.</span>';
+    openPinDialog(needsProfileSetup());return;
    }
   }catch(e){updateOfflineUI()}
  }

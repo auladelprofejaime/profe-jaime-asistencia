@@ -1,14 +1,18 @@
 (function(){
 const URL="https://xqeyyjakmeiaahecfdmc.supabase.co",KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA",SESSION_KEY='profeJaimeSupabaseTeacherSession';
-let session=null,refreshPromise=null;
+let session=null,refreshPromise=null,authRefreshBlockedUntil=0;
 const SESSION_CHANNEL='profeJaimeSupabaseTeacherSessionChannel';
 let sessionChannel=null;
 try{
   sessionChannel=new BroadcastChannel(SESSION_CHANNEL);
   sessionChannel.onmessage=e=>{
     const incoming=e?.data?.session;
+    if(Number(e?.data?.auth_pause_until||0)>Date.now()){
+      authRefreshBlockedUntil=Math.max(authRefreshBlockedUntil,Number(e.data.auth_pause_until));
+    }
     if(incoming?.access_token&&incoming?.refresh_token){
       session=incoming;
+      authRefreshBlockedUntil=0;
       try{
         const remember=!!localStorage.getItem(SESSION_KEY);
         if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify(session));
@@ -55,6 +59,9 @@ async function parse(r){let t=await r.text(),d=null;try{d=t?JSON.parse(t):null}c
 async function refresh(){
  if(refreshPromise)return refreshPromise;
  if(!session?.refresh_token)return null;
+ if(Date.now()<authRefreshBlockedUntil){
+   throw new Error('Sesión de Supabase temporalmente bloqueada para evitar reintentos. Inicia sesión nuevamente una sola vez.');
+ }
 
  const doRefresh=async()=>{
    // Antes de usar el refresh token, releer lo guardado: otra pestaña pudo renovarlo ya.
@@ -80,7 +87,23 @@ async function refresh(){
      headers:{apikey:KEY,'Content-Type':'application/json'},
      body:JSON.stringify({refresh_token:refreshToken})
    });
-   const next=await parse(r);
+   if(!r.ok){
+     let raw='',data=null;
+     try{raw=await r.text();data=raw?JSON.parse(raw):null}catch(_){data=null}
+     const code=String(data?.error_code||data?.code||data?.error||'');
+     if(r.status===429||code==='over_request_rate_limit'){
+       authRefreshBlockedUntil=Date.now()+60000;
+       try{sessionChannel?.postMessage({auth_pause_until:authRefreshBlockedUntil})}catch(_){}
+       throw new Error('Supabase está limitando temporalmente la renovación de sesión. Espera un minuto o inicia sesión nuevamente.');
+     }
+     if(r.status===400&&(code==='refresh_token_already_used'||/already used/i.test(raw))){
+       authRefreshBlockedUntil=Date.now()+5*60*1000;
+       try{sessionChannel?.postMessage({auth_pause_until:authRefreshBlockedUntil})}catch(_){}
+       throw new Error('La sesión de Supabase necesita renovarse. Inicia sesión nuevamente una sola vez.');
+     }
+     throw new Error(data?.message||data?.error_description||data?.hint||('Supabase '+r.status));
+   }
+   const next=await r.json();
    session=next;session.saved_at=Date.now();
    const remember=!!localStorage.getItem(SESSION_KEY);
    if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify(session));
@@ -119,8 +142,9 @@ async function token(){
  }catch(_){}
 
  const exp=(session.expires_at?session.expires_at*1000:(session.saved_at||0)+(session.expires_in||3600)*1000);
- // Margen menor para evitar que muchas pestañas despierten demasiado pronto.
- if(Date.now()>exp-30000)await refresh();
+ // No renovar de forma preventiva: usar el access token hasta que realmente venza.
+ // Esto evita que varias pestañas despierten a la vez antes de tiempo.
+ if(Date.now()>exp)await refresh();
  return session?.access_token||null;
 }
 async function login(email,password,remember=true){

@@ -1,6 +1,22 @@
 (function(){
 const URL="https://xqeyyjakmeiaahecfdmc.supabase.co",KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA",SESSION_KEY='profeJaimeSupabaseTeacherSession';
 let session=null,refreshPromise=null;
+const SESSION_CHANNEL='profeJaimeSupabaseTeacherSessionChannel';
+let sessionChannel=null;
+try{
+  sessionChannel=new BroadcastChannel(SESSION_CHANNEL);
+  sessionChannel.onmessage=e=>{
+    const incoming=e?.data?.session;
+    if(incoming?.access_token&&incoming?.refresh_token){
+      session=incoming;
+      try{
+        const remember=!!localStorage.getItem(SESSION_KEY);
+        if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+        else sessionStorage.setItem(SESSION_KEY,JSON.stringify(session));
+      }catch(_){}
+    }
+  };
+}catch(_){}
 let apiActive=0,apiLastStart=0,apiCooldownUntil=0;
 const apiQueue=[];
 const API_MAX_CONCURRENT=2,API_MIN_GAP=180;
@@ -39,16 +55,50 @@ async function parse(r){let t=await r.text(),d=null;try{d=t?JSON.parse(t):null}c
 async function refresh(){
  if(refreshPromise)return refreshPromise;
  if(!session?.refresh_token)return null;
- const refreshToken=session.refresh_token;
+
+ const doRefresh=async()=>{
+   // Antes de usar el refresh token, releer lo guardado: otra pestaña pudo renovarlo ya.
+   let stored=null;
+   try{stored=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}catch(_){}
+   const now=Date.now();
+   if(stored?.access_token&&stored?.refresh_token){
+     const storedExp=(stored.expires_at?stored.expires_at*1000:(stored.saved_at||0)+(stored.expires_in||3600)*1000);
+     if(storedExp>now+120000){
+       session=stored;
+       return session;
+     }
+     if(session?.refresh_token&&stored.refresh_token!==session.refresh_token){
+       session=stored;
+       return session;
+     }
+   }
+
+   const refreshToken=session?.refresh_token;
+   if(!refreshToken)return null;
+   const r=await fetch(URL+'/auth/v1/token?grant_type=refresh_token',{
+     method:'POST',
+     headers:{apikey:KEY,'Content-Type':'application/json'},
+     body:JSON.stringify({refresh_token:refreshToken})
+   });
+   const next=await parse(r);
+   session=next;session.saved_at=Date.now();
+   const remember=!!localStorage.getItem(SESSION_KEY);
+   if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+   else sessionStorage.setItem(SESSION_KEY,JSON.stringify(session));
+   try{sessionChannel?.postMessage({session})}catch(_){}
+   return session;
+ };
+
  refreshPromise=(async()=>{
    try{
-     const r=await fetch(URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:refreshToken})});
-     const next=await parse(r);
-     session=next;session.saved_at=Date.now();
-     const remember=!!localStorage.getItem(SESSION_KEY);
-     if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify(session));
-     else sessionStorage.setItem(SESSION_KEY,JSON.stringify(session));
-     return session;
+     // Web Locks serializa la renovación entre pestañas/ventanas del mismo navegador.
+     if(navigator?.locks?.request){
+       return await navigator.locks.request('profe-jaime-supabase-refresh',{mode:'exclusive'},doRefresh);
+     }
+
+     // Respaldo si Web Locks no existe: espera breve y vuelve a leer almacenamiento.
+     await new Promise(r=>setTimeout(r,120+Math.random()*180));
+     return await doRefresh();
    }finally{
      refreshPromise=null;
    }
@@ -56,10 +106,21 @@ async function refresh(){
  return refreshPromise;
 }
 async function token(){
- if(!session){try{session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{}}
+ if(!session){try{session=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}catch{}}
  if(!session)return null;
+
+ // Siempre tomar la sesión más nueva del almacenamiento antes de decidir renovar.
+ try{
+   const stored=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null');
+   if(stored?.access_token&&stored?.refresh_token){
+     const currentSaved=Number(session?.saved_at||0),storedSaved=Number(stored.saved_at||0);
+     if(storedSaved>currentSaved)session=stored;
+   }
+ }catch(_){}
+
  const exp=(session.expires_at?session.expires_at*1000:(session.saved_at||0)+(session.expires_in||3600)*1000);
- if(Date.now()>exp-60000)await refresh();
+ // Margen menor para evitar que muchas pestañas despierten demasiado pronto.
+ if(Date.now()>exp-30000)await refresh();
  return session?.access_token||null;
 }
 async function login(email,password,remember=true){

@@ -1,6 +1,39 @@
 (function(){
 const URL="https://xqeyyjakmeiaahecfdmc.supabase.co",KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA",SESSION_KEY='profeJaimeSupabaseTeacherSession';
 let session=null,refreshPromise=null;
+let apiActive=0,apiLastStart=0,apiCooldownUntil=0;
+const apiQueue=[];
+const API_MAX_CONCURRENT=2,API_MIN_GAP=180;
+
+function apiSleep(ms){return new Promise(r=>setTimeout(r,ms))}
+function apiPump(){
+ if(!apiQueue.length||apiActive>=API_MAX_CONCURRENT)return;
+ const now=Date.now();
+ const wait=Math.max(0,apiCooldownUntil-now,API_MIN_GAP-(now-apiLastStart));
+ if(wait>0){setTimeout(apiPump,wait);return}
+ const job=apiQueue.shift();apiActive++;apiLastStart=Date.now();
+ Promise.resolve().then(job.task).then(job.resolve,job.reject).finally(()=>{apiActive--;apiPump()});
+ if(apiActive<API_MAX_CONCURRENT)setTimeout(apiPump,API_MIN_GAP);
+}
+function apiSchedule(task){
+ return new Promise((resolve,reject)=>{apiQueue.push({task,resolve,reject});apiPump()});
+}
+function apiCooldown(ms=2500){
+ apiCooldownUntil=Math.max(apiCooldownUntil,Date.now()+ms);
+}
+async function apiFetch(factory,{retry429=true}={}){
+ return apiSchedule(async()=>{
+   let r=await factory();
+   if(r?.status===429&&retry429){
+     const retryAfter=Number(r.headers?.get?.('retry-after')||0);
+     const wait=retryAfter>0?retryAfter*1000:2500;
+     apiCooldown(wait);
+     await apiSleep(wait);
+     r=await factory();
+   }
+   return r;
+ });
+}
 function headers(token,extra={}){return {apikey:KEY,Authorization:`Bearer ${token||KEY}`,...extra}}
 async function parse(r){let t=await r.text(),d=null;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(d?.message||d?.error_description||d?.hint||`Supabase ${r.status}`);return d}
 async function refresh(){
@@ -42,7 +75,7 @@ async function rest(path,{method='GET',body,prefer,onConflict}={}){
  let p=path;if(onConflict)p+=(p.includes('?')?'&':'?')+'on_conflict='+encodeURIComponent(onConflict);
  const doFetch=async(tokenValue)=>{
    const h=headers(tokenValue,body!==undefined?{'Content-Type':'application/json'}:{});if(prefer)h.Prefer=prefer;
-   return fetch(URL+'/rest/v1/'+p,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});
+   return apiFetch(()=>fetch(URL+'/rest/v1/'+p,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)}));
  };
  let r=await doFetch(t);
  if(r.status===401){
@@ -56,10 +89,10 @@ async function rpc(name,args={}){return rest('rpc/'+name,{method:'POST',body:arg
 async function upsert(table,rows,onConflict){if(!Array.isArray(rows))rows=[rows];if(!rows.length)return;return rest(table,{method:'POST',body:rows,prefer:'resolution=merge-duplicates,return=minimal',onConflict})}
 async function select(table,query=''){return rest(table+(query?('?'+query):''))}
 async function remove(table,query){return rest(table+'?'+query,{method:'DELETE',prefer:'return=minimal'})}
-async function uploadMaterial(path,data,mime='application/octet-stream'){const t=await token();if(!t)throw new Error('Sin sesión de profesor');const r=await fetch(URL+'/storage/v1/object/materials/'+path.split('/').map(encodeURIComponent).join('/'),{method:'POST',headers:headers(t,{'Content-Type':mime,'x-upsert':'true'}),body:data});return parse(r)}
+async function uploadMaterial(path,data,mime='application/octet-stream'){const t=await token();if(!t)throw new Error('Sin sesión de profesor');const r=await apiFetch(()=>fetch(URL+'/storage/v1/object/materials/'+path.split('/').map(encodeURIComponent).join('/'),{method:'POST',headers:headers(t,{'Content-Type':mime,'x-upsert':'true'}),body:data}));return parse(r)}
 async function edge(name,body={}){
  const t=await token();if(!t)throw new Error('Sin sesión de profesor');
- const r=await fetch(URL+'/functions/v1/'+name,{method:'POST',headers:headers(t,{'Content-Type':'application/json'}),body:JSON.stringify(body)});
+ const r=await apiFetch(()=>fetch(URL+'/functions/v1/'+name,{method:'POST',headers:headers(t,{'Content-Type':'application/json'}),body:JSON.stringify(body)}));
  return parse(r);
 }
 window.ProfeSupabase={URL,KEY,login,logout,restore,token,rest,rpc,upsert,select,remove,uploadMaterial,edge,get session(){return session}};

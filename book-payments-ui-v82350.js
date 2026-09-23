@@ -256,12 +256,41 @@
 
   window.addEventListener('load',()=>{
     setTimeout(()=>rebuildPayGroupSelector(document.querySelector('#payGroup')?.value||''),500);
+
     const g=document.querySelector('#payGroup');
     if(g){
       g.addEventListener('change',()=>{
         try{fillBookPaymentStudents?.();renderBookPaymentRoster?.()}catch(_){}
         const card=document.querySelector('#payStudentCard');
         if(card)card.innerHTML='<div class="empty">Selecciona o escanea un alumno.</div>';
+      });
+    }
+
+    // Sustituye el selector para retirar listeners antiguos del comprobante previo.
+    const oldSel=document.querySelector('#payStudent');
+    if(oldSel){
+      const sel=oldSel.cloneNode(true);
+      oldSel.replaceWith(sel);
+      sel.addEventListener('change',()=>{
+        const id=sel.value;
+        if(!id)return;
+        const scan=document.querySelector('#payScan');if(scan)scan.value=String(id);
+        openShareableReceipt(id).catch(e=>alert('No se pudo abrir el comprobante: '+(e?.message||e)));
+      });
+    }
+
+    const findBtn=document.querySelector('#payFind');
+    if(findBtn?.parentElement&&!document.querySelector('#payReceiptImageBtn')){
+      const receiptBtn=document.createElement('button');
+      receiptBtn.id='payReceiptImageBtn';
+      receiptBtn.type='button';
+      receiptBtn.className='secondary';
+      receiptBtn.textContent='🧾 Recibo / imagen';
+      findBtn.parentElement.appendChild(receiptBtn);
+      receiptBtn.addEventListener('click',()=>{
+        const id=document.querySelector('#payStudent')?.value||String(document.querySelector('#payScan')?.value||'').trim();
+        if(!id){alert('Selecciona primero un alumno.');return}
+        openShareableReceipt(id).catch(e=>alert('No se pudo abrir el comprobante: '+(e?.message||e)));
       });
     }
   });

@@ -253,7 +253,7 @@ async function queueRemoteMirror(n,v){
  if(n==='students'){await window.ProfeSupabase.upsert('students',remoteStudent(v),'id');return}
  if(n==='attendance'){await window.ProfeSupabase.upsert('attendance',remoteAttendance(v),'student_id,attendance_date');return}
  if(n==='activities'){await window.ProfeSupabase.upsert('activities',remoteActivity(v),'id');return}
- if(n==='activityRecords'){await window.ProfeSupabase.upsert('activity_records',remoteActivityRecord(v),'activity_id,student_id');return}
+ if(n==='activityRecords'){await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:[remoteActivityRecord(v)]});return}
  if(n==='methodologies'){await window.ProfeSupabase.upsert('methodologies',remoteMethodology(v),'id');return}
  if(n==='availability'){await window.ProfeSupabase.upsert('availability',remoteAvailability(v),'id');return}
  if(n==='notices'){await window.ProfeSupabase.upsert('notices',remoteNotice(v),'id');return}
@@ -321,7 +321,13 @@ async function syncAllToSupabase(){
    if(ac.length)await upsertInChunks('activities',ac.map(remoteActivity),'id',40);
 
    const ar=await all('activityRecords');
-   if(ar.length)await upsertInChunks('activity_records',ar.map(remoteActivityRecord),'activity_id,student_id',40);
+   if(ar.length){
+     const rows=ar.map(remoteActivityRecord);
+     for(let i=0;i<rows.length;i+=40){
+       await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:rows.slice(i,i+40)});
+       await new Promise(resolve=>setTimeout(resolve,0));
+     }
+   }
 
    const me=await all('methodologies');
    if(me.length)await upsertInChunks('methodologies',me.map(remoteMethodology),'id',40);

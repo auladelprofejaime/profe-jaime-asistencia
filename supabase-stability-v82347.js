@@ -64,6 +64,27 @@
     probeSupabaseConnection=stableConnectionProbe;
   }catch(e){console.warn('Monitor estable Supabase',e)}
 
+
+  // 4) Un 429 en pagos se encola localmente sin declarar caída global.
+  try{
+    const rpcBefore429Payment=window.ProfeSupabase?.rpc?.bind(window.ProfeSupabase);
+    if(rpcBefore429Payment&&!window.ProfeSupabase.__payment429StableWrapped){
+      window.ProfeSupabase.rpc=async function(name,args={}){
+        try{return await rpcBefore429Payment(name,args)}
+        catch(e){
+          const msg=String(e?.message||e||'').toLowerCase();
+          const limited=/\b429\b|too many requests|rate limit|rate_limit|quota exceeded/.test(msg);
+          if(limited&&name==='teacher_book_payment_record'){
+            window.__supabaseRateLimitedUntil=Math.max(Number(window.__supabaseRateLimitedUntil||0),Date.now()+90000);
+            if(typeof offlineEnqueueRpc==='function')offlineEnqueueRpc(name,args);
+            if(typeof offlineSyntheticResult==='function')return offlineSyntheticResult(name,args);
+          }
+          throw e
+        }
+      };
+      window.ProfeSupabase.__payment429StableWrapped=true;
+    }
+  }catch(e){console.warn('Cola estable de pagos 429',e)}
   window.addEventListener('online',()=>{confirmedFailures=0;stableConnectionProbe({force:true}).catch(()=>{})});
   window.addEventListener('offline',()=>{confirmedFailures=0;try{cloudOnline=false}catch(_){};updateConnectivityUi()});
   clearInterval(window.__profeSupabaseProbeTimer);

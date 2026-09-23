@@ -1,12 +1,26 @@
 (function(){
 const URL="https://xqeyyjakmeiaahecfdmc.supabase.co",KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA",SESSION_KEY='profeJaimeSupabaseTeacherSession';
-let session=null;
+let session=null,refreshPromise=null;
 function headers(token,extra={}){return {apikey:KEY,Authorization:`Bearer ${token||KEY}`,...extra}}
 async function parse(r){let t=await r.text(),d=null;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(d?.message||d?.error_description||d?.hint||`Supabase ${r.status}`);return d}
 async function refresh(){
+ if(refreshPromise)return refreshPromise;
  if(!session?.refresh_token)return null;
- const r=await fetch(URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:session.refresh_token})});
- session=await parse(r);session.saved_at=Date.now();localStorage.setItem(SESSION_KEY,JSON.stringify(session));return session;
+ const refreshToken=session.refresh_token;
+ refreshPromise=(async()=>{
+   try{
+     const r=await fetch(URL+'/auth/v1/token?grant_type=refresh_token',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({refresh_token:refreshToken})});
+     const next=await parse(r);
+     session=next;session.saved_at=Date.now();
+     const remember=!!localStorage.getItem(SESSION_KEY);
+     if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+     else sessionStorage.setItem(SESSION_KEY,JSON.stringify(session));
+     return session;
+   }finally{
+     refreshPromise=null;
+   }
+ })();
+ return refreshPromise;
 }
 async function token(){
  if(!session){try{session=JSON.parse(localStorage.getItem(SESSION_KEY)||'null')}catch{}}
@@ -24,10 +38,19 @@ async function login(email,password,remember=true){
 function restore(){try{session=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}catch{session=null}return session}
 async function logout(){const t=await token();if(t){try{await fetch(URL+'/auth/v1/logout',{method:'POST',headers:headers(t)})}catch{}}session=null;localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY)}
 async function rest(path,{method='GET',body,prefer,onConflict}={}){
- const t=await token();if(!t)throw new Error('Inicia sesión de profesor para sincronizar.');
+ let t=await token();if(!t)throw new Error('Inicia sesión de profesor para sincronizar.');
  let p=path;if(onConflict)p+=(p.includes('?')?'&':'?')+'on_conflict='+encodeURIComponent(onConflict);
- const h=headers(t,body!==undefined?{'Content-Type':'application/json'}:{});if(prefer)h.Prefer=prefer;
- const r=await fetch(URL+'/rest/v1/'+p,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});return parse(r);
+ const doFetch=async(tokenValue)=>{
+   const h=headers(tokenValue,body!==undefined?{'Content-Type':'application/json'}:{});if(prefer)h.Prefer=prefer;
+   return fetch(URL+'/rest/v1/'+p,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});
+ };
+ let r=await doFetch(t);
+ if(r.status===401){
+   await refresh();
+   t=session?.access_token||null;
+   if(t)r=await doFetch(t);
+ }
+ return parse(r);
 }
 async function rpc(name,args={}){return rest('rpc/'+name,{method:'POST',body:args})}
 async function upsert(table,rows,onConflict){if(!Array.isArray(rows))rows=[rows];if(!rows.length)return;return rest(table,{method:'POST',body:rows,prefer:'resolution=merge-duplicates,return=minimal',onConflict})}

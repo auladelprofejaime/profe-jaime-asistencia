@@ -70,6 +70,14 @@
         || (typeof bookPayDashboard!=='undefined'?bookPayDashboard:null);
       if(cached?.students){
         bookPayDashboard=cached;
+        try{
+          bookFulfillmentDashboard={ok:true,students:(cached.students||[]).map(r=>({
+            ...r,
+            payment_status:r.status,
+            fulfillment_status:r.fulfillment_status||null
+          }))};
+          fillBookGroupSelects?.();
+        }catch(_){}
         renderEditorialFinance?.();
         fillBookPaymentStudents?.();
         renderBookPaymentRoster?.();
@@ -82,6 +90,14 @@
         const out=await fn('teacher_book_payment_dashboard',{});
         if(!out?.ok)throw new Error(out?.reason||'No se pudo cargar pagos');
         bookPayDashboard=out;lastPayDashboardAt=Date.now();
+        try{
+          bookFulfillmentDashboard={ok:true,students:(out.students||[]).map(r=>({
+            ...r,
+            payment_status:r.status,
+            fulfillment_status:r.fulfillment_status||null
+          }))};
+          fillBookGroupSelects?.();
+        }catch(_){};
         try{offlineRpcSet?.('teacher_book_payment_dashboard',{},out)}catch(_){}
         renderEditorialFinance?.();
         const rows=out.students||[];

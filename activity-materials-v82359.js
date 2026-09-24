@@ -253,39 +253,86 @@
   }
 
   async function generateCombinedMaterialPdf(mats,roster){
-    const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)return alert('No se pudo cargar el generador PDF.');
-    const rows=[];
+    const jsPDF=window.jspdf?.jsPDF;
+    if(!jsPDF)return alert('No se pudo cargar el generador PDF.');
+
     const complianceDate=mDate();
     const absentSet=await absentStudentIds(complianceDate,mGroup());
     const [cy,cm,cd]=complianceDate.split('-');
     const complianceLabel=cd&&cm&&cy?cd+'/'+cm+'/'+cy:complianceDate;
+
+    // Una fila por alumno; cada material ocupa su propia columna.
+    const materialRecords={};
     for(const mat of mats){
-      const rec=mRecord(complianceDate,mGroup(),mat),st=rec.statuses||{};
-      roster.forEach(s=>{
-        const v=effectiveMaterialStatus(st[String(s.id)],s.id,absentSet);
-        if(v==='no')rows.push([complianceLabel,mat,String(s.number||'—'),s.name||'','No trajo']);
-        else if(v==='absent')rows.push([complianceLabel,mat,String(s.number||'—'),s.name||'','No asistió']);
-      });
+      materialRecords[mat]=mRecord(complianceDate,mGroup(),mat).statuses||{};
     }
-    if(!rows.length)return alert('No hay alumnos con faltante de material ni ausencias en los materiales seleccionados.');
-    const doc=new jsPDF({unit:'mm',format:'letter'});
-    pdfHeader(doc,'Alumnos sin material','ESPAÑOL');
+
+    const rows=roster.map(s=>{
+      const sid=String(s.id);
+      const base=[complianceLabel,String(s.number||'—'),s.name||''];
+      const states=mats.map(mat=>{
+        const raw=materialRecords[mat]?.[sid]||'pending';
+        const v=effectiveMaterialStatus(raw,sid,absentSet);
+        if(v==='yes')return 'Sí trajo';
+        if(v==='no')return 'No trajo';
+        if(v==='absent')return 'No asistió';
+        return 'Sin registrar';
+      });
+      return [...base,...states];
+    });
+
+    const doc=new jsPDF({
+      unit:'mm',
+      format:'letter',
+      orientation:mats.length>=3?'landscape':'portrait'
+    });
+
+    pdfHeader(doc,'Control de material','ESPAÑOL');
     doc.setFontSize(10);doc.setTextColor(40,40,40);
-    const [y,m,d]=mDate().split('-');
     doc.text('Grupo: '+mGroup(),14,36);
-    doc.text('Fecha de cumplimiento: '+(d&&m&&y?d+'/'+m+'/'+y:mDate()),14,42);
+    doc.text('Fecha de cumplimiento: '+complianceLabel,14,42);
     doc.text('Materiales revisados: '+mats.join(', '),14,48);
+
+    const head=[['Fecha','No. de lista','Alumno(a)',...mats]];
+    const pageWidth=doc.internal.pageSize.getWidth();
+    const fixed=28+22+70;
+    const available=Math.max(25,pageWidth-28-fixed);
+    const materialWidth=Math.max(24,Math.min(42,available/Math.max(1,mats.length)));
+    const columnStyles={
+      0:{cellWidth:28},
+      1:{cellWidth:22,halign:'center'},
+      2:{cellWidth:70}
+    };
+    mats.forEach((_,idx)=>{
+      columnStyles[idx+3]={cellWidth:materialWidth,halign:'center'};
+    });
+
     doc.autoTable({
       startY:55,
-      head:[['Cumplimiento','Material','No.','Alumno(a)','Estado']],
+      head,
       body:rows,
-      styles:{fontSize:9,cellPadding:2.4,lineColor:[220,220,220],lineWidth:.15},
-      headStyles:{fillColor:[245,196,0],textColor:[33,27,18]},
-      columnStyles:{0:{cellWidth:30},1:{cellWidth:44},2:{cellWidth:14},3:{cellWidth:72},4:{cellWidth:28}}
+      styles:{
+        fontSize:mats.length>=4?7.5:8.5,
+        cellPadding:2,
+        lineColor:[220,220,220],
+        lineWidth:.15,
+        valign:'middle',
+        overflow:'linebreak'
+      },
+      headStyles:{fillColor:[245,196,0],textColor:[33,27,18],halign:'center'},
+      columnStyles,
+      didParseCell:data=>{
+        if(data.section!=='body'||data.column.index<3)return;
+        const value=String(data.cell.raw||'');
+        if(value==='No trajo')data.cell.styles.fontStyle='bold';
+        if(value==='No asistió')data.cell.styles.textColor=[100,100,100];
+        if(value==='Sin registrar')data.cell.styles.textColor=[150,100,0];
+      }
     });
+
     pdfFooter(doc);
-    const file='Sin_material_'+mGroup()+'_'+mDate()+'.pdf';
-    printContent('Alumnos sin material','',pdfBlob(doc),file);
+    const file='Control_material_'+mGroup()+'_'+mDate()+'.pdf';
+    printContent('Control de material','',pdfBlob(doc),file);
   }
 
   function materialMode(){return document.querySelector('#actMaterialMode')?.value||'with_activity'}

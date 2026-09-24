@@ -59,6 +59,22 @@ async function parse(r){let t=await r.text(),d=null;try{d=t?JSON.parse(t):null}c
 async function refresh(){
  if(refreshPromise)return refreshPromise;
  if(!session?.refresh_token)return null;
+
+ // Antes de respetar un bloqueo anterior, comprobar si otra pestaña
+ // ya dejó una sesión nueva y válida en almacenamiento.
+ try{
+   const stored=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null');
+   if(stored?.access_token&&stored?.refresh_token){
+     const storedExp=(stored.expires_at?stored.expires_at*1000:(stored.saved_at||0)+(stored.expires_in||3600)*1000);
+     const currentSaved=Number(session?.saved_at||0),storedSaved=Number(stored.saved_at||0);
+     if(storedExp>Date.now()+30000 && (storedSaved>currentSaved || stored.refresh_token!==session.refresh_token)){
+       session=stored;
+       authRefreshBlockedUntil=0;
+       return session;
+     }
+   }
+ }catch(_){}
+
  if(Date.now()<authRefreshBlockedUntil){
    throw new Error('Sesión de Supabase temporalmente bloqueada para evitar reintentos. Inicia sesión nuevamente una sola vez.');
  }
@@ -150,10 +166,27 @@ async function token(){
 async function login(email,password,remember=true){
  const r=await fetch(URL+'/auth/v1/token?grant_type=password',{method:'POST',headers:{apikey:KEY,'Content-Type':'application/json'},body:JSON.stringify({email,password})});
  session=await parse(r);session.saved_at=Date.now();
- if(remember)localStorage.setItem(SESSION_KEY,JSON.stringify(session));else sessionStorage.setItem(SESSION_KEY,JSON.stringify(session));
+ authRefreshBlockedUntil=0;
+ if(remember){
+   localStorage.setItem(SESSION_KEY,JSON.stringify(session));
+   sessionStorage.removeItem(SESSION_KEY);
+ }else{
+   sessionStorage.setItem(SESSION_KEY,JSON.stringify(session));
+   localStorage.removeItem(SESSION_KEY);
+ }
+ try{sessionChannel?.postMessage({session})}catch(_){}
  return session;
 }
-function restore(){try{session=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}catch{session=null}return session}
+function restore(){
+ try{
+   session=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null');
+   if(session?.access_token){
+     const exp=(session.expires_at?session.expires_at*1000:(session.saved_at||0)+(session.expires_in||3600)*1000);
+     if(exp>Date.now()+30000)authRefreshBlockedUntil=0;
+   }
+ }catch{session=null}
+ return session
+}
 async function logout(){const t=await token();if(t){try{await fetch(URL+'/auth/v1/logout',{method:'POST',headers:headers(t)})}catch{}}session=null;localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY)}
 async function rest(path,{method='GET',body,prefer,onConflict}={}){
  let t=await token();if(!t)throw new Error('Inicia sesión de profesor para sincronizar.');

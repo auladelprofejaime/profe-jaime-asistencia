@@ -139,21 +139,18 @@
     if(!mats.length)return alert('Selecciona al menos un material para esta ronda.');
     const roster=await materialRoster();
     const absentSet=await absentStudentIds();
-    const opts=mats.map(m=>'<option value="'+safe(m)+'">'+safe(m)+'</option>').join('');
+
     showDialog('Control de material',
       '<div class="card grid4">'+
         '<label>Fecha de cumplimiento<input id="materialReviewDate" type="date" value="'+safe(mDate())+'" disabled></label>'+
         '<label>Grupo<input value="'+safe(mGroup())+'" disabled></label>'+
       '</div>'+
       '<div class="card">'+
-        '<div class="section"><div><h3>Materiales del reporte</h3><p class="hint">Selecciona uno o varios materiales para revisar y generar el PDF.</p></div>'+
+        '<div class="section"><div><h3>Materiales del reporte</h3><p class="hint">Cada material se registra por separado para cada alumno.</p></div>'+
         '<div class="actions"><button id="materialReportAll" class="secondary" type="button">Seleccionar todos</button><button id="materialReportNone" class="secondary" type="button">Quitar todos</button></div></div>'+
         '<div id="materialReportChoices" class="activity-multi-choices">'+
           mats.map(m=>'<label class="activity-multi-choice"><input type="checkbox" data-material-report value="'+safe(m)+'" checked><span><b>'+safe(m)+'</b></span></label>').join('')+
         '</div>'+
-      '</div>'+
-      '<div class="card grid4">'+
-        '<label>Material para revisar<select id="materialReviewSelect">'+opts+'</select></label>'+
       '</div>'+
       '<div class="actions">'+
         '<button id="materialFinalizeNo" class="danger-outline" type="button">Finalizar · faltantes = No trajo</button>'+
@@ -161,65 +158,88 @@
         '<button id="materialMissingPdf2" class="primary" type="button">PDF de faltantes</button>'+
       '</div>'+
       '<div id="materialReviewSummary" class="stats" style="margin:12px 0"></div>'+
-      '<div id="materialReviewList" class="list"></div>'
+      '<div id="materialReviewMatrix" class="tablewrap"></div>'
     );
 
+    const selectedReportMaterials=()=>[...document.querySelectorAll('[data-material-report]:checked')].map(x=>x.value);
+
     const render=()=>{
-      const mat=document.querySelector('#materialReviewSelect')?.value||mats[0];
-      const rec=mRecord(mDate(),mGroup(),mat),st=rec.statuses||{};
-      const effective=s=>effectiveMaterialStatus(st[String(s.id)],s.id,absentSet);
-      const yes=roster.filter(s=>effective(s)==='yes').length;
-      const no=roster.filter(s=>effective(s)==='no').length;
-      const absent=roster.filter(s=>effective(s)==='absent').length;
-      const pend=Math.max(0,roster.length-yes-no-absent);
-      document.querySelector('#materialReviewSummary').innerHTML=
-        '<div class="stat"><b>'+yes+'</b><span>Trajeron</span></div>'+
-        '<div class="stat"><b>'+no+'</b><span>No trajeron</span></div>'+
-        '<div class="stat"><b>'+absent+'</b><span>No asistieron</span></div>'+
-        '<div class="stat"><b>'+pend+'</b><span>Sin marcar</span></div>';
-      document.querySelector('#materialReviewList').innerHTML=roster.map(s=>{
-        const v=effective(s);
-        if(v==='absent'){
-          return '<div class="row"><div><strong>'+safe(studentListDisplayName(s))+'</strong><small>Lista '+safe(s.number||'—')+' · <b>No asistió</b></small></div>'+
-            '<div class="rowactions"><button type="button" class="secondary" disabled>Ausencia registrada</button></div></div>';
-        }
-        return '<div class="row"><div><strong>'+safe(studentListDisplayName(s))+'</strong><small>Lista '+safe(s.number||'—')+'</small></div>'+
-          '<div class="rowactions"><button type="button" class="'+(v==='yes'?'primary':'secondary')+'" data-mreview-yes="'+safe(s.id)+'">✓ Trajo</button>'+
-          '<button type="button" class="'+(v==='no'?'danger':'secondary')+'" data-mreview-no="'+safe(s.id)+'">✕ No trajo</button></div></div>';
+      let yes=0,no=0,absent=0,pending=0;
+      const head=mats.map(m=>'<th>'+safe(m)+'</th>').join('');
+      const body=roster.map(s=>{
+        const sid=String(s.id);
+        const isAbsent=absentSet.has(sid);
+        const cells=mats.map(mat=>{
+          const rec=mRecord(mDate(),mGroup(),mat),raw=rec.statuses?.[sid]||'pending';
+          const v=effectiveMaterialStatus(raw,sid,absentSet);
+          if(v==='yes')yes++;
+          else if(v==='no')no++;
+          else if(v==='absent')absent++;
+          else pending++;
+
+          if(isAbsent){
+            return '<td class="mark"><span class="hint">No asistió</span></td>';
+          }
+          return '<td class="mark">'+
+            '<div class="rowactions" style="justify-content:center;gap:6px;flex-wrap:wrap">'+
+              '<button type="button" class="'+(v==='yes'?'primary':'secondary')+'" data-mm-yes="'+safe(sid)+'" data-mm-mat="'+safe(mat)+'">✓ Trajo</button>'+
+              '<button type="button" class="'+(v==='no'?'danger':'secondary')+'" data-mm-no="'+safe(sid)+'" data-mm-mat="'+safe(mat)+'">✕ No trajo</button>'+
+            '</div>'+
+          '</td>';
+        }).join('');
+        return '<tr><td class="num">'+safe(s.number||'—')+'</td><td class="name">'+safe(studentListDisplayName(s))+(isAbsent?'<br><small><b>No asistió</b></small>':'')+'</td>'+cells+'</tr>';
       }).join('');
-      document.querySelectorAll('[data-mreview-yes]').forEach(b=>b.onclick=async()=>{await markMaterialsForStudent(b.dataset.mreviewYes,[mat],true);render()});
-      document.querySelectorAll('[data-mreview-no]').forEach(b=>b.onclick=async()=>{await markMaterialsForStudent(b.dataset.mreviewNo,[mat],false);render()});
+
+      document.querySelector('#materialReviewSummary').innerHTML=
+        '<div class="stat"><b>'+yes+'</b><span>Trajo</span></div>'+
+        '<div class="stat"><b>'+no+'</b><span>No trajo</span></div>'+
+        '<div class="stat"><b>'+absent+'</b><span>No asistió</span></div>'+
+        '<div class="stat"><b>'+pending+'</b><span>Sin marcar</span></div>';
+
+      document.querySelector('#materialReviewMatrix').innerHTML=
+        '<table class="matrix"><thead><tr><th class="num">#</th><th class="name">Alumno</th>'+head+'</tr></thead><tbody>'+body+'</tbody></table>';
+
+      document.querySelectorAll('[data-mm-yes]').forEach(b=>b.onclick=async()=>{
+        await markMaterialsForStudent(b.dataset.mmYes,[b.dataset.mmMat],true);
+        render();
+      });
+      document.querySelectorAll('[data-mm-no]').forEach(b=>b.onclick=async()=>{
+        await markMaterialsForStudent(b.dataset.mmNo,[b.dataset.mmMat],false);
+        render();
+      });
     };
 
-    const selectedReportMaterials=()=>[...document.querySelectorAll('[data-material-report]:checked')].map(x=>x.value);
     const finalizeAs=async(brought)=>{
       const chosen=selectedReportMaterials();
       if(!chosen.length)return alert('Selecciona al menos un material.');
       const label=brought?'Sí trajo':'No trajo';
-      if(!confirm('Los alumnos que sigan sin marca quedarán como “'+label+'” en los materiales seleccionados. Quienes tengan Falta en asistencia quedarán como “No asistió” y no se contarán como incumplimiento. Las marcas existentes no se cambiarán. ¿Continuar?'))return;
+      if(!confirm('Los alumnos que sigan sin marca quedarán como “'+label+'” únicamente en los materiales seleccionados. Quienes tengan Falta quedarán como “No asistió”. Las marcas existentes no se cambiarán. ¿Continuar?'))return;
+
       const all=mStore();
       for(const mat of chosen){
         const key=mKey(mDate(),mGroup(),mat),rec=all[key]||{statuses:{}};
         rec.date=mDate();rec.group=mGroup();rec.material=mat;rec.statuses=rec.statuses||{};
         roster.forEach(s=>{
           const sid=String(s.id);
-          if(absentSet.has(sid)){
-            rec.statuses[sid]='absent';
-          }else if(!rec.statuses[sid]){
-            rec.statuses[sid]=brought?'yes':'no';
-          }
+          if(absentSet.has(sid))rec.statuses[sid]='absent';
+          else if(!rec.statuses[sid])rec.statuses[sid]=brought?'yes':'no';
         });
-        rec.updated_at=new Date().toISOString();all[key]=rec;
+        rec.updated_at=new Date().toISOString();
+        all[key]=rec;
       }
       mSave(all);
+
       try{
         await window.ProfeSupabase.rpc('teacher_activity_material_finalize_as',{
-          p_date:mDate(),p_group_name:mGroup(),p_material_names:chosen,p_brought:!!brought
+          p_date:mDate(),
+          p_group_name:mGroup(),
+          p_material_names:chosen,
+          p_brought:!!brought
         });
       }catch(e){console.warn('Finalización de material pendiente de nube',e)}
       render();
     };
-    document.querySelector('#materialReviewSelect').onchange=render;
+
     document.querySelector('#materialReportAll').onclick=()=>document.querySelectorAll('[data-material-report]').forEach(x=>x.checked=true);
     document.querySelector('#materialReportNone').onclick=()=>document.querySelectorAll('[data-material-report]').forEach(x=>x.checked=false);
     document.querySelector('#materialFinalizeNo').onclick=()=>finalizeAs(false);

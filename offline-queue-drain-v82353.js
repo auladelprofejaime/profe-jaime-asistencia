@@ -12,6 +12,10 @@
     return /\b429\b|too many requests|rate limit|límite temporal/i.test(String(e?.message||e||''));
   }
 
+  function isTemporaryAuth(e){
+    return /sesión de supabase temporalmente bloqueada|sesion de supabase temporalmente bloqueada|refresh_token|refresh token|already used|inicia sesión nuevamente|inicia sesion nuevamente/i.test(String(e?.message||e||''));
+  }
+
   function isConnectivity(e){
     try{return typeof connectivityError==='function'&&connectivityError(e)}catch(_){return false}
   }
@@ -60,6 +64,14 @@
             try{cloudOnline=true;supabaseReady=true}catch(_){}
             updateConnectivityUi?.();
             queueDelay(8000);
+            return;
+          }
+
+          if(isTemporaryAuth(e)){
+            // Mantener intacto el pendiente y esperar; no rotarlo ni bombardear el refresh.
+            offlineQueueSet(q);
+            updateConnectivityUi?.();
+            queueDelay(60000);
             return;
           }
 

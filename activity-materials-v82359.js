@@ -20,7 +20,9 @@
     return raw||'pending';
   }
   function selectedMaterials(){
-    const vals=[...document.querySelectorAll('#actMaterialChoices input[type="checkbox"]:checked')].map(x=>x.value);
+    const vals=[...document.querySelectorAll('#actMaterialChoices input[type="checkbox"]:checked')]
+      .map(x=>x.value)
+      .filter(v=>v!=='__CUSTOM__');
     const custom=(document.querySelector('#actMaterialCustom')?.value||'').trim();
     if(document.querySelector('#actMaterialCustomCheck')?.checked&&custom)vals.push(custom);
     return [...new Set(vals.map(x=>x.trim()).filter(Boolean))];
@@ -326,7 +328,7 @@
         '<label class="activity-multi-choice"><input type="checkbox" value="Cuaderno de dictados"><span><b>Cuaderno de dictados</b></span></label>'+
         '<label class="activity-multi-choice"><input type="checkbox" value="Cuaderno de apuntes"><span><b>Cuaderno de apuntes</b></span></label>'+
         '<label class="activity-multi-choice"><input type="checkbox" value="Libro de Español"><span><b>Libro de Español</b></span></label>'+
-        '<label class="activity-multi-choice"><input id="actMaterialCustomCheck" type="checkbox" value="__CUSTOM__"><span><b>Otro material</b><input id="actMaterialCustom" type="text" maxlength="80" placeholder="Ej. mapa, investigación, hojas de color" style="margin-top:6px"></span></label>'+
+        '<label class="activity-multi-choice material-custom-choice"><input id="actMaterialCustomCheck" type="checkbox" value="__CUSTOM__"><span style="display:block;min-width:0;flex:1"><b>Otro material</b><input id="actMaterialCustom" type="text" maxlength="80" placeholder="Ej. mapa, investigación, hojas de color" style="display:block;width:100%;min-width:260px;box-sizing:border-box;margin-top:8px;padding:11px 12px;border:1px solid #c9c9c9;border-radius:10px;font-size:16px;background:#fff;color:#211b12"></span></label>'+
       '</div>'+
       '<p id="actMaterialRoundSummary" class="hint">Sin control de material en esta ronda.</p>';
     anchor.insertAdjacentElement('afterend',panel);
@@ -338,7 +340,11 @@
     restoreMaterialSelection();
     document.querySelectorAll('#actMaterialChoices input[type="checkbox"]').forEach(x=>x.addEventListener('change',saveMaterialSelection));
     document.querySelector('#actMaterialCustom').addEventListener('change',saveMaterialSelection);
-    document.querySelector('#actMaterialCustom').addEventListener('input',updateMaterialRoundSummary);
+    document.querySelector('#actMaterialCustom').addEventListener('input',e=>{
+      const cb=document.querySelector('#actMaterialCustomCheck');
+      if(cb&&String(e.target.value||'').trim())cb.checked=true;
+      saveMaterialSelection();
+    });
     document.querySelector('#actMaterialMode').addEventListener('change',e=>{
       try{localStorage.setItem('profeJaimeActivityMaterialModeV1',e.target.value)}catch(_){}
       syncMaterialOnlyUi();

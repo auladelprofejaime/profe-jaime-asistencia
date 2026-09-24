@@ -208,6 +208,46 @@
     printContent('Alumnos sin material','',pdfBlob(doc),file);
   }
 
+  function materialMode(){return document.querySelector('#actMaterialMode')?.value||'with_activity'}
+
+  async function registerOnlyMaterial(){
+    const mats=selectedMaterials();
+    if(!mats.length)return status('act','warning','Selecciona material','Marca al menos un material para esta ronda.');
+    const input=document.querySelector('#actScan');
+    const sid=norm(input?.value||'');
+    if(input){input.value='';input.focus()}
+    if(!sid)return;
+    const st=await studentForSelectedGroup(sid,document.querySelector('#actShift')?.value,document.querySelector('#actGroup')?.value);
+    if(!st){
+      const raw=await req(store('students').get(sid));
+      return raw?status('act','warning','Otro grupo',`${raw.name||sid}: ${raw.shift}, ${raw.group}`):status('act','warning','ID no encontrado',sid);
+    }
+    await markMaterialsForStudent(st.id,mats,true);
+    status('act','success','MATERIAL REGISTRADO',`${st.name||sid} · ${mats.join(' · ')}`);
+  }
+
+  function syncMaterialOnlyUi(){
+    const only=materialMode()==='only_material';
+    const btn=document.querySelector('#actRegister');
+    if(btn)btn.textContent=only?'Registrar material':(activityScanMode()==='multi'?'Escanear alumno':'Registrar entrega');
+    const single=document.querySelector('#actSinglePicker'),multi=document.querySelector('#actMultiPicker'),stats=document.querySelector('#actSingleStats');
+    if(only){
+      single?.classList.add('hidden');
+      multi?.classList.add('hidden');
+      stats?.classList.add('hidden');
+      document.querySelector('#actMultiConfirm')?.classList.add('hidden');
+      status('act','neutral','Escanea para registrar material','No se modificará ninguna actividad.');
+    }else{
+      setActivityScanMode().catch(()=>{});
+    }
+  }
+
+  const priorRegisterByMode=registerActivityByMode;
+  registerActivityByMode=async function(){
+    if(materialMode()==='only_material')return registerOnlyMaterial();
+    return priorRegisterByMode();
+  };
+
   function installActivityMaterialUI(){
     document.querySelector('#materialControlCard')?.remove();
 
@@ -217,9 +257,12 @@
     panel.id='actMaterialPanel';panel.className='card';
     panel.innerHTML=
       '<div class="section"><div><h2>📎 Material para esta ronda</h2>'+
-      '<p class="hint">Selecciona uno o varios. Al registrar la entrega del alumno, también quedará marcado que sí trajo estos materiales.</p></div>'+
+      '<p class="hint">Puedes registrarlo junto con actividades o usar el escáner únicamente para material.</p></div>'+
       '<button id="actMaterialReviewBtn" class="secondary" type="button">Revisar / PDF</button></div>'+
-      '<div class="grid4"><label>Fecha del control<input id="actMaterialDate" type="date"></label></div>'+
+      '<div class="grid4">'+
+        '<label>Fecha del control<input id="actMaterialDate" type="date"></label>'+
+        '<label>Modo de registro<select id="actMaterialMode"><option value="with_activity">Junto con actividades</option><option value="only_material">Solo material</option></select></label>'+
+      '</div>'+
       '<div id="actMaterialChoices" class="activity-multi-choices">'+
         '<label class="activity-multi-choice"><input type="checkbox" value="Gafete"><span><b>Gafete</b></span></label>'+
         '<label class="activity-multi-choice"><input type="checkbox" value="Cuaderno de dictados"><span><b>Cuaderno de dictados</b></span></label>'+
@@ -230,11 +273,20 @@
       '<p id="actMaterialRoundSummary" class="hint">Sin control de material en esta ronda.</p>';
     anchor.insertAdjacentElement('afterend',panel);
     document.querySelector('#actMaterialDate').value=today();
+    try{
+      const savedMode=localStorage.getItem('profeJaimeActivityMaterialModeV1')||'with_activity';
+      document.querySelector('#actMaterialMode').value=savedMode;
+    }catch(_){}
     restoreMaterialSelection();
     document.querySelectorAll('#actMaterialChoices input[type="checkbox"]').forEach(x=>x.addEventListener('change',saveMaterialSelection));
     document.querySelector('#actMaterialCustom').addEventListener('change',saveMaterialSelection);
     document.querySelector('#actMaterialCustom').addEventListener('input',updateMaterialRoundSummary);
+    document.querySelector('#actMaterialMode').addEventListener('change',e=>{
+      try{localStorage.setItem('profeJaimeActivityMaterialModeV1',e.target.value)}catch(_){}
+      syncMaterialOnlyUi();
+    });
     document.querySelector('#actMaterialReviewBtn').onclick=()=>openMaterialReview().catch(e=>alert('No se pudo abrir el control: '+(e?.message||e)));
+    syncMaterialOnlyUi();
   }
 
   window.addEventListener('load',()=>setTimeout(async()=>{

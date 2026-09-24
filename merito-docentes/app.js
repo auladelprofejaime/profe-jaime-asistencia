@@ -4,6 +4,7 @@ const TOKEN_KEY='meritInstallationTokenV1';
 const STAFF_CACHE_KEY='meritStaffCacheV16';
 const SETUP_CACHE_KEY='meritMustChangePinV16';
 const QUEUE_KEY='meritOfflineQueueV16';
+const NOTIFICATION_SKIP_KEY='meritNotificationsSkippedV1';
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const rememberedToken=localStorage.getItem(TOKEN_KEY)||'';
 const sessionToken=sessionStorage.getItem(TOKEN_KEY)||'';
@@ -282,6 +283,7 @@ async function registerMeritPushSubscription(){
 }
 async function ensureNotificationGate(){
  if(!token||!staff||staff.is_placeholder||cachedMustChange())return;
+ try{if(localStorage.getItem(NOTIFICATION_SKIP_KEY)==='1'||sessionStorage.getItem(NOTIFICATION_SKIP_KEY)==='1')return}catch(_){}
  const dlg=$('#notificationDialog'),st=$('#notificationStatus'),help=$('#notificationHelp');
  if(!dlg)return;
  if(!('serviceWorker' in navigator)||!('PushManager' in window)||!('Notification' in window)){
@@ -520,6 +522,10 @@ async function checkSystemReady(){
  }catch(e){title.textContent='No se pudo comprobar';detail.textContent=e.message||String(e)}
  finally{if(btn)btn.disabled=false}
 }
+$('#notificationLaterBtn')?.addEventListener('click',()=>{
+ try{localStorage.setItem(NOTIFICATION_SKIP_KEY,'1')}catch(_){try{sessionStorage.setItem(NOTIFICATION_SKIP_KEY,'1')}catch(__){}}
+ $('#notificationDialog')?.close();
+});
 $('#systemReadyRefresh')?.addEventListener('click',checkSystemReady);
 $('#offlineRetry')?.addEventListener('click',syncPending);
 

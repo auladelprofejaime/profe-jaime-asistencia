@@ -129,11 +129,24 @@
     const opts=mats.map(m=>'<option value="'+safe(m)+'">'+safe(m)+'</option>').join('');
     showDialog('Control de material',
       '<div class="card grid4">'+
-        '<label>Fecha<input id="materialReviewDate" type="date" value="'+safe(mDate())+'" disabled></label>'+
+        '<label>Fecha de cumplimiento<input id="materialReviewDate" type="date" value="'+safe(mDate())+'" disabled></label>'+
         '<label>Grupo<input value="'+safe(mGroup())+'" disabled></label>'+
-        '<label>Material<select id="materialReviewSelect">'+opts+'</select></label>'+
       '</div>'+
-      '<div class="actions"><button id="materialFinalize" class="danger-outline" type="button">Finalizar · faltantes = No trajo</button><button id="materialMissingPdf2" class="primary" type="button">PDF de faltantes</button></div>'+
+      '<div class="card">'+
+        '<div class="section"><div><h3>Materiales del reporte</h3><p class="hint">Selecciona uno o varios materiales para revisar y generar el PDF.</p></div>'+
+        '<div class="actions"><button id="materialReportAll" class="secondary" type="button">Seleccionar todos</button><button id="materialReportNone" class="secondary" type="button">Quitar todos</button></div></div>'+
+        '<div id="materialReportChoices" class="activity-multi-choices">'+
+          mats.map(m=>'<label class="activity-multi-choice"><input type="checkbox" data-material-report value="'+safe(m)+'" checked><span><b>'+safe(m)+'</b></span></label>').join('')+
+        '</div>'+
+      '</div>'+
+      '<div class="card grid4">'+
+        '<label>Material para revisar<select id="materialReviewSelect">'+opts+'</select></label>'+
+      '</div>'+
+      '<div class="actions">'+
+        '<button id="materialFinalizeNo" class="danger-outline" type="button">Finalizar · faltantes = No trajo</button>'+
+        '<button id="materialFinalizeYes" class="secondary" type="button">Finalizar · faltantes = Sí trajo</button>'+
+        '<button id="materialMissingPdf2" class="primary" type="button">PDF de faltantes</button>'+
+      '</div>'+
       '<div id="materialReviewSummary" class="stats" style="margin:12px 0"></div>'+
       '<div id="materialReviewList" class="list"></div>'
     );
@@ -158,34 +171,49 @@
       document.querySelectorAll('[data-mreview-no]').forEach(b=>b.onclick=async()=>{await markMaterialsForStudent(b.dataset.mreviewNo,[mat],false);render()});
     };
 
-    document.querySelector('#materialReviewSelect').onchange=render;
-    document.querySelector('#materialFinalize').onclick=async()=>{
-      if(!confirm('Los alumnos sin marca quedarán como “No trajo” en todos los materiales seleccionados. ¿Continuar?'))return;
+    const selectedReportMaterials=()=>[...document.querySelectorAll('[data-material-report]:checked')].map(x=>x.value);
+    const finalizeAs=async(brought)=>{
+      const chosen=selectedReportMaterials();
+      if(!chosen.length)return alert('Selecciona al menos un material.');
+      const label=brought?'Sí trajo':'No trajo';
+      if(!confirm('Los alumnos que sigan sin marca quedarán como “'+label+'” en los materiales seleccionados. Las marcas existentes no se cambiarán. ¿Continuar?'))return;
       const all=mStore();
-      for(const mat of mats){
+      for(const mat of chosen){
         const key=mKey(mDate(),mGroup(),mat),rec=all[key]||{statuses:{}};
         rec.date=mDate();rec.group=mGroup();rec.material=mat;rec.statuses=rec.statuses||{};
-        roster.forEach(s=>{if(!rec.statuses[String(s.id)])rec.statuses[String(s.id)]='no'});
+        roster.forEach(s=>{if(!rec.statuses[String(s.id)])rec.statuses[String(s.id)]=brought?'yes':'no'});
         rec.updated_at=new Date().toISOString();all[key]=rec;
       }
       mSave(all);
       try{
-        await window.ProfeSupabase.rpc('teacher_activity_material_finalize',{
-          p_date:mDate(),p_group_name:mGroup(),p_material_names:mats
+        await window.ProfeSupabase.rpc('teacher_activity_material_finalize_as',{
+          p_date:mDate(),p_group_name:mGroup(),p_material_names:chosen,p_brought:!!brought
         });
       }catch(e){console.warn('Finalización de material pendiente de nube',e)}
       render();
     };
-    document.querySelector('#materialMissingPdf2').onclick=()=>generateCombinedMaterialPdf(mats,roster);
+    document.querySelector('#materialReviewSelect').onchange=render;
+    document.querySelector('#materialReportAll').onclick=()=>document.querySelectorAll('[data-material-report]').forEach(x=>x.checked=true);
+    document.querySelector('#materialReportNone').onclick=()=>document.querySelectorAll('[data-material-report]').forEach(x=>x.checked=false);
+    document.querySelector('#materialFinalizeNo').onclick=()=>finalizeAs(false);
+    document.querySelector('#materialFinalizeYes').onclick=()=>finalizeAs(true);
+    document.querySelector('#materialMissingPdf2').onclick=()=>{
+      const chosen=selectedReportMaterials();
+      if(!chosen.length)return alert('Selecciona al menos un material para el reporte.');
+      generateCombinedMaterialPdf(chosen,roster);
+    };
     render();
   }
 
   function generateCombinedMaterialPdf(mats,roster){
     const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)return alert('No se pudo cargar el generador PDF.');
     const rows=[];
+    const complianceDate=mDate();
+    const [cy,cm,cd]=complianceDate.split('-');
+    const complianceLabel=cd&&cm&&cy?cd+'/'+cm+'/'+cy:complianceDate;
     for(const mat of mats){
-      const rec=mRecord(mDate(),mGroup(),mat),st=rec.statuses||{};
-      roster.forEach(s=>{if(st[String(s.id)]==='no')rows.push([mat,String(s.number||'—'),s.name||''])});
+      const rec=mRecord(complianceDate,mGroup(),mat),st=rec.statuses||{};
+      roster.forEach(s=>{if(st[String(s.id)]==='no')rows.push([complianceLabel,mat,String(s.number||'—'),s.name||''])});
     }
     if(!rows.length)return alert('No hay alumnos marcados como “No trajo” en los materiales seleccionados.');
     const doc=new jsPDF({unit:'mm',format:'letter'});
@@ -193,15 +221,15 @@
     doc.setFontSize(10);doc.setTextColor(40,40,40);
     const [y,m,d]=mDate().split('-');
     doc.text('Grupo: '+mGroup(),14,36);
-    doc.text('Fecha: '+(d&&m&&y?d+'/'+m+'/'+y:mDate()),14,42);
+    doc.text('Fecha de cumplimiento: '+(d&&m&&y?d+'/'+m+'/'+y:mDate()),14,42);
     doc.text('Materiales revisados: '+mats.join(', '),14,48);
     doc.autoTable({
       startY:55,
-      head:[['Material','No.','Alumno(a)']],
+      head:[['Cumplimiento','Material','No.','Alumno(a)']],
       body:rows,
       styles:{fontSize:9,cellPadding:2.4,lineColor:[220,220,220],lineWidth:.15},
       headStyles:{fillColor:[245,196,0],textColor:[33,27,18]},
-      columnStyles:{0:{cellWidth:58},1:{cellWidth:18},2:{cellWidth:105}}
+      columnStyles:{0:{cellWidth:34},1:{cellWidth:52},2:{cellWidth:16},3:{cellWidth:82}}
     });
     pdfFooter(doc);
     const file='Sin_material_'+mGroup()+'_'+mDate()+'.pdf';
@@ -260,7 +288,7 @@
       '<p class="hint">Puedes registrarlo junto con actividades o usar el escáner únicamente para material.</p></div>'+
       '<button id="actMaterialReviewBtn" class="secondary" type="button">Revisar / PDF</button></div>'+
       '<div class="grid4">'+
-        '<label>Fecha del control<input id="actMaterialDate" type="date"></label>'+
+        '<label>Fecha de cumplimiento<input id="actMaterialDate" type="date"></label>'+
         '<label>Modo de registro<select id="actMaterialMode"><option value="with_activity">Junto con actividades</option><option value="only_material">Solo material</option></select></label>'+
       '</div>'+
       '<div id="actMaterialChoices" class="activity-multi-choices">'+

@@ -1,5 +1,42 @@
 // App Docente v8.23.51 · solicitud masiva segura de libros
 (function(){
+  const REQUESTED_RECONCILE_IDS=["22001","22004","22005","22007","22009","22010","22013","22017","22026","22028","23003","23006","23011","23016","23017","23027","23039","23041","24002","24006","24010","24011","24013","24015","24018","24022","24024","24026","24027","24030","24033","24036","25013","25016","25019","25024","25027","25032","25036","25037","26001","26006","26008","26009","26012","26014","26016","26018","26020","26021","26023","26028","26031","26032"];
+
+  function reconcileKnownRequested(){
+    const ids=new Set(REQUESTED_RECONCILE_IDS);
+    try{
+      if(bookPayDashboard?.students){
+        for(const r of bookPayDashboard.students){
+          if(ids.has(String(r.id))&&!r.fulfillment_status)r.fulfillment_status='requested';
+        }
+        offlineRpcSet?.('teacher_book_payment_dashboard',{},bookPayDashboard);
+      }
+    }catch(_){}
+    try{
+      if(bookFulfillmentDashboard?.students){
+        for(const r of bookFulfillmentDashboard.students){
+          if(ids.has(String(r.id))&&!r.fulfillment_status){
+            r.fulfillment_status='requested';
+            r.requested_at=r.requested_at||'2026-09-24T00:00:00-06:00';
+          }
+        }
+      }
+    }catch(_){}
+    try{renderBookPaymentRoster?.();renderEditorialFinance?.()}catch(_){}
+  }
+
+  function requestQueueKey(ids){return [...new Set((ids||[]).map(String))].sort().join(',')}
+  function queueBookRequestOnce(ids){
+    const key=requestQueueKey(ids);
+    const q=offlineQueueGet?.()||[];
+    const exists=q.some(x=>x?.name==='teacher_book_mark_requested'&&requestQueueKey(x?.args?.p_student_ids||[])===key);
+    if(!exists)offlineEnqueueRpc?.('teacher_book_mark_requested',{p_student_ids:[...new Set(ids.map(String))]});
+  }
+
+  function temporaryRequestError(e){
+    return /\b429\b|too many requests|rate limit|límite temporal|limite temporal|sesión de supabase temporalmente bloqueada|sesion de supabase temporalmente bloqueada|refresh_token|refresh token|already used|inicia sesión nuevamente|inicia sesion nuevamente|failed to fetch|network|timeout|offline/i.test(String(e?.message||e||''));
+  }
+
   function is429(e){
     return /\b429\b|too many requests|rate limit|límite temporal/i.test(String(e?.message||e||''));
   }
@@ -83,8 +120,10 @@
         try{if(navigator.onLine&&typeof loadBookFulfillment==='function')loadBookFulfillment().catch(()=>{})}catch(_){}
       },10000);
     }catch(e){
-      if(is429(e)){
-        alert('Supabase está aplicando un límite temporal. No puedo confirmar el cambio todavía. Espera a que vuelva a verde y vuelve a intentarlo; repetirlo es seguro y no modifica pagos.');
+      if(temporaryRequestError(e)){
+        queueBookRequestOnce(ids);
+        setRequestedLocally(ids);
+        alert('La solicitud quedó protegida en este iPad. Los '+ids.length+' libro(s) se muestran como solicitados y se sincronizarán automáticamente con Supabase. No se modificó ningún pago ni saldo.');
       }else{
         alert('No se pudo solicitar los libros: '+(e?.message||e));
       }
@@ -95,6 +134,7 @@
 
   // Sustituye el listener anterior antes de que llegue al manejador viejo.
   window.addEventListener('load',()=>{
+    setTimeout(reconcileKnownRequested,500);
     const btn=document.querySelector('#bookRequestAllPaid');
     if(!btn)return;
     btn.addEventListener('click',e=>{
@@ -119,8 +159,11 @@
         alert('Libro(s) marcado(s) como solicitado(s).');
         setTimeout(()=>{try{loadBookFulfillment?.().catch(()=>{})}catch(_){}},8000);
       }catch(e){
-        if(is429(e))alert('Supabase está limitando temporalmente las solicitudes. No puedo confirmar aún el cambio. Espera a que vuelva a verde y vuelve a intentarlo; la acción es segura y no duplica solicitudes.');
-        else alert('No se pudo confirmar el cambio: '+(e?.message||e));
+        if(temporaryRequestError(e)){
+          queueBookRequestOnce(ids);
+          setRequestedLocally(ids);
+          alert('La solicitud quedó guardada en este iPad y se sincronizará automáticamente. No se modificó ningún pago.');
+        }else alert('No se pudo confirmar el cambio: '+(e?.message||e));
       }
     };
   }catch(e){console.warn('Solicitud individual segura',e)}

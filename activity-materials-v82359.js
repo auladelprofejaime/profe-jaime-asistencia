@@ -194,7 +194,7 @@
       const chosen=selectedReportMaterials();
       if(!chosen.length)return alert('Selecciona al menos un material.');
       const label=brought?'Sí trajo':'No trajo';
-      if(!confirm('Los alumnos que sigan sin marca quedarán como “'+label+'” en los materiales seleccionados. Las marcas existentes no se cambiarán. ¿Continuar?'))return;
+      if(!confirm('Los alumnos que sigan sin marca quedarán como “'+label+'” en los materiales seleccionados. Quienes tengan Falta en asistencia quedarán como “No asistió” y no se contarán como incumplimiento. Las marcas existentes no se cambiarán. ¿Continuar?'))return;
       const all=mStore();
       for(const mat of chosen){
         const key=mKey(mDate(),mGroup(),mat),rec=all[key]||{statuses:{}};

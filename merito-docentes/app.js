@@ -10,7 +10,7 @@ const sessionToken=sessionStorage.getItem(TOKEN_KEY)||'';
 let token=rememberedToken||sessionToken||'';
 let rememberSession=!!rememberedToken;
 let staff=null,accessState=null,grade=null,group=null,points=null,syncing=false;
-function needsProfileSetup(){return !!(staff?.is_placeholder&&staff?.confirmed)}
+function needsProfileSetup(){return !!staff?.is_placeholder}
 
 function sessionStore(){return rememberSession?localStorage:sessionStorage}
 function saveSessionToken(v){
@@ -162,7 +162,7 @@ async function checkDevice(){
     return;
   }
   showCapture();
-  if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(false),80);
+  if(d.must_change_pin && !staff?.is_placeholder)setTimeout(()=>openPinDialog(false),80);
   syncPending();
  }catch(e){
   staff=readCachedStaff();
@@ -171,7 +171,7 @@ async function checkDevice(){
  }
 }
 
-function mustCompleteFormalSetup(){return !!(needsProfileSetup() || (cachedMustChange() && !(staff?.is_placeholder && !staff?.confirmed)))}
+function mustCompleteFormalSetup(){return !!(needsProfileSetup() || cachedMustChange())}
 function showActivation(){$('#activation').classList.remove('hidden');$('#capture').classList.add('hidden');updateOfflineUI()}
 function showCapture(){
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
@@ -355,7 +355,7 @@ $('#activateBtn').onclick=async()=>{
     return;
   }
   showCapture();
-  if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(false,pin),80);
+  if(d.must_change_pin && !staff?.is_placeholder)setTimeout(()=>openPinDialog(false,pin),80);
   syncPending();
  }catch(e){st.innerHTML=`<span class="error">${e.message||e}</span>`}
 };
@@ -405,7 +405,7 @@ $('#reviewBtn').onclick=async()=>{
     clearSessionToken();token='';return showActivation();
    }
    staff=d.staff;cacheSession(!!d.must_change_pin);
-   if(needsProfileSetup() || (d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))){
+   if(needsProfileSetup() || d.must_change_pin){
     $('#captureStatus').innerHTML='<span class="error">Antes de continuar, completa tu registro y cambia tu NIP.</span>';
     openPinDialog(needsProfileSetup());return;
    }

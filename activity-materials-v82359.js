@@ -9,6 +9,16 @@
   function mGroup(){return document.querySelector('#actGroup')?.value||''}
   function mKey(date,group,mat){return date+'|'+group+'|'+String(mat||'').toLowerCase()}
   function mRecord(date,group,mat){return mStore()[mKey(date,group,mat)]||{statuses:{}}}
+  async function absentStudentIds(date=mDate(),group=mGroup()){
+    try{
+      const rows=(await all('attendance')).filter(a=>a.date===date&&sameGroup(a.group,group)&&a.status==='Falta');
+      return new Set(rows.map(a=>String(a.studentId)));
+    }catch(_){return new Set()}
+  }
+  function effectiveMaterialStatus(raw,studentId,absentSet){
+    if(absentSet?.has(String(studentId)))return 'absent';
+    return raw||'pending';
+  }
   function selectedMaterials(){
     const vals=[...document.querySelectorAll('#actMaterialChoices input[type="checkbox"]:checked')].map(x=>x.value);
     const custom=(document.querySelector('#actMaterialCustom')?.value||'').trim();
@@ -126,6 +136,7 @@
     const mats=selectedMaterials();
     if(!mats.length)return alert('Selecciona al menos un material para esta ronda.');
     const roster=await materialRoster();
+    const absentSet=await absentStudentIds();
     const opts=mats.map(m=>'<option value="'+safe(m)+'">'+safe(m)+'</option>').join('');
     showDialog('Control de material',
       '<div class="card grid4">'+
@@ -154,15 +165,22 @@
     const render=()=>{
       const mat=document.querySelector('#materialReviewSelect')?.value||mats[0];
       const rec=mRecord(mDate(),mGroup(),mat),st=rec.statuses||{};
-      const yes=roster.filter(s=>st[String(s.id)]==='yes').length;
-      const no=roster.filter(s=>st[String(s.id)]==='no').length;
-      const pend=roster.length-yes-no;
+      const effective=s=>effectiveMaterialStatus(st[String(s.id)],s.id,absentSet);
+      const yes=roster.filter(s=>effective(s)==='yes').length;
+      const no=roster.filter(s=>effective(s)==='no').length;
+      const absent=roster.filter(s=>effective(s)==='absent').length;
+      const pend=Math.max(0,roster.length-yes-no-absent);
       document.querySelector('#materialReviewSummary').innerHTML=
         '<div class="stat"><b>'+yes+'</b><span>Trajeron</span></div>'+
         '<div class="stat"><b>'+no+'</b><span>No trajeron</span></div>'+
+        '<div class="stat"><b>'+absent+'</b><span>No asistieron</span></div>'+
         '<div class="stat"><b>'+pend+'</b><span>Sin marcar</span></div>';
       document.querySelector('#materialReviewList').innerHTML=roster.map(s=>{
-        const v=st[String(s.id)]||'pending';
+        const v=effective(s);
+        if(v==='absent'){
+          return '<div class="row"><div><strong>'+safe(studentListDisplayName(s))+'</strong><small>Lista '+safe(s.number||'—')+' · <b>No asistió</b></small></div>'+
+            '<div class="rowactions"><button type="button" class="secondary" disabled>Ausencia registrada</button></div></div>';
+        }
         return '<div class="row"><div><strong>'+safe(studentListDisplayName(s))+'</strong><small>Lista '+safe(s.number||'—')+'</small></div>'+
           '<div class="rowactions"><button type="button" class="'+(v==='yes'?'primary':'secondary')+'" data-mreview-yes="'+safe(s.id)+'">✓ Trajo</button>'+
           '<button type="button" class="'+(v==='no'?'danger':'secondary')+'" data-mreview-no="'+safe(s.id)+'">✕ No trajo</button></div></div>';
@@ -181,7 +199,14 @@
       for(const mat of chosen){
         const key=mKey(mDate(),mGroup(),mat),rec=all[key]||{statuses:{}};
         rec.date=mDate();rec.group=mGroup();rec.material=mat;rec.statuses=rec.statuses||{};
-        roster.forEach(s=>{if(!rec.statuses[String(s.id)])rec.statuses[String(s.id)]=brought?'yes':'no'});
+        roster.forEach(s=>{
+          const sid=String(s.id);
+          if(absentSet.has(sid)){
+            rec.statuses[sid]='absent';
+          }else if(!rec.statuses[sid]){
+            rec.statuses[sid]=brought?'yes':'no';
+          }
+        });
         rec.updated_at=new Date().toISOString();all[key]=rec;
       }
       mSave(all);
@@ -200,22 +225,27 @@
     document.querySelector('#materialMissingPdf2').onclick=()=>{
       const chosen=selectedReportMaterials();
       if(!chosen.length)return alert('Selecciona al menos un material para el reporte.');
-      generateCombinedMaterialPdf(chosen,roster);
+      generateCombinedMaterialPdf(chosen,roster).catch(e=>alert('No se pudo generar el PDF: '+(e?.message||e)));
     };
     render();
   }
 
-  function generateCombinedMaterialPdf(mats,roster){
+  async function generateCombinedMaterialPdf(mats,roster){
     const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)return alert('No se pudo cargar el generador PDF.');
     const rows=[];
     const complianceDate=mDate();
+    const absentSet=await absentStudentIds(complianceDate,mGroup());
     const [cy,cm,cd]=complianceDate.split('-');
     const complianceLabel=cd&&cm&&cy?cd+'/'+cm+'/'+cy:complianceDate;
     for(const mat of mats){
       const rec=mRecord(complianceDate,mGroup(),mat),st=rec.statuses||{};
-      roster.forEach(s=>{if(st[String(s.id)]==='no')rows.push([complianceLabel,mat,String(s.number||'—'),s.name||''])});
+      roster.forEach(s=>{
+        const v=effectiveMaterialStatus(st[String(s.id)],s.id,absentSet);
+        if(v==='no')rows.push([complianceLabel,mat,String(s.number||'—'),s.name||'','No trajo']);
+        else if(v==='absent')rows.push([complianceLabel,mat,String(s.number||'—'),s.name||'','No asistió']);
+      });
     }
-    if(!rows.length)return alert('No hay alumnos marcados como “No trajo” en los materiales seleccionados.');
+    if(!rows.length)return alert('No hay alumnos con faltante de material ni ausencias en los materiales seleccionados.');
     const doc=new jsPDF({unit:'mm',format:'letter'});
     pdfHeader(doc,'Alumnos sin material','ESPAÑOL');
     doc.setFontSize(10);doc.setTextColor(40,40,40);
@@ -225,11 +255,11 @@
     doc.text('Materiales revisados: '+mats.join(', '),14,48);
     doc.autoTable({
       startY:55,
-      head:[['Cumplimiento','Material','No.','Alumno(a)']],
+      head:[['Cumplimiento','Material','No.','Alumno(a)','Estado']],
       body:rows,
       styles:{fontSize:9,cellPadding:2.4,lineColor:[220,220,220],lineWidth:.15},
       headStyles:{fillColor:[245,196,0],textColor:[33,27,18]},
-      columnStyles:{0:{cellWidth:34},1:{cellWidth:52},2:{cellWidth:16},3:{cellWidth:82}}
+      columnStyles:{0:{cellWidth:30},1:{cellWidth:44},2:{cellWidth:14},3:{cellWidth:72},4:{cellWidth:28}}
     });
     pdfFooter(doc);
     const file='Sin_material_'+mGroup()+'_'+mDate()+'.pdf';

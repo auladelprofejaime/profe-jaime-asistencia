@@ -120,7 +120,8 @@
           '<div><b>'+repairable.length+'</b><span>Entregas por corregir en Alumno</span></div>'+
           '<div><b>'+audit.reverse.length+'</b><span>Diferencias inversas</span></div>'+
         '</div>'+
-        '<p class="hint">Esta auditoría es solo de lectura. La App Docente se toma como referencia y no se modificará ningún registro.</p>'+
+        '<p class="hint">La App Docente es la fuente de verdad. Solo se corrigen diferencias donde Docente dice “Entregada” y Alumno no. Nunca se cambia a Entregada algo que en Docente figure como “No entregada”.</p>'+
+        (audit.autoFixed?'<p class="success"><b>✓ '+audit.autoFixed+' entrega'+(audit.autoFixed===1?'':'s')+' corregida'+(audit.autoFixed===1?'':'s')+' automáticamente en la App de Estudiantes.</b></p>':'')+
       '</div>'+
       '<div class="actions">'+
         '<button id="deliveryAuditRefresh" class="secondary" type="button">Volver a revisar</button>'+
@@ -134,15 +135,45 @@
 
   }
 
+  async function promoteTeacherDelivered(audit){
+    const rows=(audit?.repairable||[]).map(r=>({
+      activity_id:r.activityId,
+      student_id:r.studentId,
+      delivery_date:r.localTimestamp||new Date().toISOString()
+    }));
+    if(!rows.length)return 0;
+
+    let updated=0;
+    for(let i=0;i<rows.length;i+=60){
+      const out=await window.ProfeSupabase.rpc('teacher_activity_promote_delivered',{p_rows:rows.slice(i,i+60)});
+      if(!out?.ok)throw new Error(out?.reason||'No se pudo corregir un bloque.');
+      updated+=Number(out.updated||0);
+    }
+    return updated;
+  }
+
   async function runDeliveryAudit(){
     const btn=document.querySelector('#deliveryAuditBtn');
     const old=btn?.textContent;
     try{
-      if(btn){btn.disabled=true;btn.textContent='Auditando…'}
-      const audit=await buildDeliveryAudit();
+      if(btn){btn.disabled=true;btn.textContent='Comparando…'}
+      let audit=await buildDeliveryAudit();
+
+      // App Docente es la fuente de verdad. Solo se corrige:
+      // Docente=Entregada -> Alumno/Supabase=No entregada o sin registro.
+      // Nunca se promueve un registro que en Docente esté como No entregada.
+      const toFix=audit.repairable.length;
+      if(toFix){
+        if(btn)btn.textContent='Corrigiendo '+toFix+'…';
+        const updated=await promoteTeacherDelivered(audit);
+        audit=await buildDeliveryAudit();
+        audit.autoFixed=updated;
+      }else{
+        audit.autoFixed=0;
+      }
       renderAuditDialog(audit);
     }catch(e){
-      alert('No se pudo completar la auditoría: '+(e?.message||e));
+      alert('No se pudo completar la comparación: '+(e?.message||e));
     }finally{
       if(btn){btn.disabled=false;btn.textContent=old||'🔎 Auditar entregas'}
     }

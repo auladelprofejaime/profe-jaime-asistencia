@@ -76,7 +76,7 @@ async function refresh(){
  }catch(_){}
 
  if(Date.now()<authRefreshBlockedUntil){
-   throw new Error('Sesión de Supabase temporalmente bloqueada para evitar reintentos. Inicia sesión nuevamente una sola vez.');
+   throw new Error('La sesión de sincronización venció. Tus registros pendientes siguen protegidos en este dispositivo. Inicia sesión nuevamente una sola vez para continuar la sincronización.');
  }
 
  const doRefresh=async()=>{
@@ -110,12 +110,12 @@ async function refresh(){
      if(r.status===429||code==='over_request_rate_limit'){
        authRefreshBlockedUntil=Date.now()+60000;
        try{sessionChannel?.postMessage({auth_pause_until:authRefreshBlockedUntil})}catch(_){}
-       throw new Error('Supabase está limitando temporalmente la renovación de sesión. Espera un minuto o inicia sesión nuevamente.');
+       throw new Error('La renovación de la sesión está en espera temporal. Tus registros siguen protegidos en este dispositivo y la app continuará intentando después.');
      }
      if(r.status===400&&(code==='refresh_token_already_used'||/already used/i.test(raw))){
        authRefreshBlockedUntil=Date.now()+5*60*1000;
        try{sessionChannel?.postMessage({auth_pause_until:authRefreshBlockedUntil})}catch(_){}
-       throw new Error('La sesión de Supabase necesita renovarse. Inicia sesión nuevamente una sola vez.');
+       throw new Error('La sesión de sincronización venció. Tus registros pendientes siguen protegidos en este dispositivo. Inicia sesión nuevamente una sola vez para continuar la sincronización.');
      }
      throw new Error(data?.message||data?.error_description||data?.hint||('Supabase '+r.status));
    }

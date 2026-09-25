@@ -347,7 +347,13 @@ $('#activateBtn').onclick=async()=>{
    throw new Error(msgs[d?.reason]||'No se pudo ingresar.');
   }
   token=d.installation_token;staff=d.staff;accessState=d.access||null;
-  rememberSession=$('#rememberSession')?.checked!==false;
+  // Cada inicio con ID/NIP sustituye por completo cualquier docente anterior.
+  localStorage.removeItem(TOKEN_KEY);sessionStorage.removeItem(TOKEN_KEY);
+  localStorage.removeItem(STAFF_CACHE_KEY);sessionStorage.removeItem(STAFF_CACHE_KEY);
+  localStorage.removeItem(SETUP_CACHE_KEY);sessionStorage.removeItem(SETUP_CACHE_KEY);
+  // Un folio provisional NO se recuerda entre aperturas. Solo después de la
+  // autorización formal del Profr. Jaime puede mantenerse la sesión.
+  rememberSession=!!($('#rememberSession')?.checked!==false && staff?.confirmed===true && staff?.is_placeholder===false);
   saveSessionToken(token);cacheSession(!!d.must_change_pin);
   $('#staffCode').value='';$('#activationCode').value='';
   if(needsProfileSetup()){

@@ -5101,7 +5101,7 @@ $('#reportsExportBackup').onclick=exportBackup;
 $('#openDeleteRecords').onclick=openDeleteRecordsDialog;
 $('#materialSource').onchange=updateMaterialSourceUI;updateMaterialSourceUI();
 $$('.meritNav').forEach(b=>b.onclick=()=>meritPane(b.dataset.meritPane));
- $('#meritPeriodForm').onsubmit=saveMeritPeriod;$('#meritStaffForm').onsubmit=addMeritStaff;
+ $('#meritPeriodForm').onsubmit=saveMeritPeriod;if($('#meritStaffForm'))$('#meritStaffForm').onsubmit=addMeritStaff;
  $('#meritRefreshRanking').onclick=loadMeritRanking;$('#meritRefreshMovements').onclick=loadMeritMovements;$('#meritRefreshStaff').onclick=loadMeritStaff;
  $('#meritRankingPeriod').onchange=loadMeritRanking;$('#meritMovementPeriod').onchange=loadMeritMovements;$('#meritWeeklyPeriod').onchange=meritWeeklyPreview;
  $$('.meritGrade').forEach(b=>b.onclick=()=>{meritGradeFilter=b.dataset.grade;$$('.meritGrade').forEach(x=>x.classList.toggle('active',x===b));renderMeritRanking()});

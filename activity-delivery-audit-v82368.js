@@ -120,11 +120,10 @@
           '<div><b>'+repairable.length+'</b><span>Entregas por corregir en Alumno</span></div>'+
           '<div><b>'+audit.reverse.length+'</b><span>Diferencias inversas</span></div>'+
         '</div>'+
-        '<p class="hint">Solo se corregirán casos donde este iPad dice “Entregada” y Supabase dice “No entregada” o no tiene registro.</p>'+
+        '<p class="hint">Esta auditoría es solo de lectura. La App Docente se toma como referencia y no se modificará ningún registro.</p>'+
       '</div>'+
       '<div class="actions">'+
         '<button id="deliveryAuditRefresh" class="secondary" type="button">Volver a revisar</button>'+
-        '<button id="deliveryAuditRepair" class="primary" type="button" '+(repairable.length?'':'disabled')+'>Corregir '+repairable.length+' entrega'+(repairable.length===1?'':'s')+' en Alumno</button>'+
         '<button id="deliveryAuditClose" class="secondary" type="button">Cerrar</button>'+
       '</div>'+
       (mismatch.length?body:'<div class="card"><div class="empty">✓ Todo coincide entre este iPad y Supabase.</div></div>')
@@ -132,7 +131,7 @@
 
     document.querySelector('#deliveryAuditClose')?.addEventListener('click',()=>document.querySelector('#dialog')?.close());
     document.querySelector('#deliveryAuditRefresh')?.addEventListener('click',()=>runDeliveryAudit());
-    document.querySelector('#deliveryAuditRepair')?.addEventListener('click',()=>repairDeliveryAudit());
+
   }
 
   async function runDeliveryAudit(){
@@ -149,7 +148,7 @@
     }
   }
 
-  async function repairDeliveryAudit(){
+  async function __repairDeliveryAuditDisabled(){
     const audit=lastAudit;
     if(!audit?.repairable?.length)return alert('No hay entregas por corregir.');
 

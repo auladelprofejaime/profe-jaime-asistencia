@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.72</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.73</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -1256,7 +1256,7 @@
 <div class="section"><div><h2>Docentes autorizados</h2><p class="hint">Activa únicamente a quienes acepten participar. Los folios no escaneados permanecen inactivos.</p></div><div class="actions"><button id="meritPrintTeacherFolios" class="secondary" type="button">📄 Generar PDF · 69 accesos</button><button id="meritRefreshStaff" class="secondary" type="button">Actualizar</button></div></div>
 
 <div class="card" style="margin:12px 0;background:#fffaf0">
-  <div class="section"><div><h3 style="margin:0">Escanear ID docente</h3><p class="hint">Escanea el código de barras numérico 700002…700070. Si el docente acepta participar, escribe sus datos y confírmalo.</p></div><div id="meritTeacherFolioSummary" class="badge">Cargando IDs…</div></div>
+  <div class="section"><div><h3 style="margin:0">Escanear ID docente</h3><p class="hint">Escanea el código de barras numérico 700002…700070. Si el docente acepta participar, activa su ID. El docente completará sus propios datos en Mérito Docentes.</p></div><div id="meritTeacherFolioSummary" class="badge">Cargando IDs…</div></div>
   <div class="formgrid">
     <label>ID / escáner<input id="meritTeacherFolioScan" inputmode="numeric" autocomplete="off" placeholder="700002"></label>
     <div class="actions" style="align-items:end"><button id="meritTeacherFolioFind" class="primary" type="button">Buscar folio</button></div>
@@ -1270,7 +1270,6 @@
   </div>
 </div>
 
-<form id="meritStaffForm" class="formgrid"><label>Nombre<input id="meritStaffName" required></label><label>Tipo<select id="meritStaffRole"><option value="docente">Docente</option><option value="direccion">Dirección</option><option value="subdireccion">Subdirección</option><option value="prefectura">Prefectura</option><option value="otro">Otro</option></select></label><label>Asignatura / función<input id="meritStaffSubject"></label><div class="actions"><button class="primary" type="submit">Agregar personal manualmente</button></div></form>
 <div id="meritActivationBox" class="hidden"><p class="hint">NIP temporal:</p><div id="meritActivationCode" class="merit-code"></div><p class="hint">El NIP ya viene impreso en su hoja. Al confirmar al docente, deberá cambiarlo por uno personal.</p></div>
 <div id="meritStaffList" class="tablewrap"></div>
 </div>

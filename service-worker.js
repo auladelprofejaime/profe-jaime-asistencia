@@ -1,4 +1,4 @@
-const CACHE='app-docente-v8-23-72';
+const CACHE='app-docente-v8-23-73';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[

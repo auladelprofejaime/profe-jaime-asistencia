@@ -50,10 +50,12 @@ function offlineQueueSet(q){try{localStorage.setItem(OFFLINE_RPC_QUEUE_KEY,JSON.
 function offlineQueueCount(){return offlineQueueGet().length}
 function offlineMutation(name){
  const n=String(name||'');
- if(n.startsWith('teacher_get_'))return false;
- if(/(_list|_status|_history|_dashboard|_preview|_result|_ranking)$/.test(n))return false;
- if(['teacher_schedule_list','teacher_merit_periods','teacher_merit_staff','teacher_book_payment_student','teacher_appointment_slots_for_student','teacher_whatsapp_group_config_list','teacher_whatsapp_group_confirmation_list','teacher_cellphone_history','teacher_reto_3a_status','teacher_birthday_benefit_list','teacher_birthday_benefit_status','teacher_portal_status','teacher_merit_close_preview','teacher_merit_monthly_result','teacher_merit_annual_ranking'].includes(n))return false;
- return n.startsWith('teacher_')||n.startsWith('register_');
+ // v8.23.71: el modo offline de App Docente queda limitado a Libros y Mérito.
+ // El resto de módulos ya no acumula operaciones en la cola local.
+ if(n.startsWith('teacher_book_'))return !/(_list|_status|_history|_dashboard|_preview|_result|_ranking)$/.test(n);
+ if(n.startsWith('teacher_merit_'))return !/(_list|_status|_history|_dashboard|_preview|_result|_ranking)$/.test(n);
+ if(n.startsWith('merit_'))return true;
+ return false;
 }
 function offlineSensitiveServerAction(name){return /pin|portal_access|activation_code|push_subscription|register_push/.test(name)}
 function connectivityError(e){const t=String(e?.message||e||'').toLowerCase();return !navigator.onLine||/failed to fetch|load failed|network|timeout|timed out|connection|offline|fetch/.test(t)}

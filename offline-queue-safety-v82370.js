@@ -4,7 +4,15 @@
   function qset(q){try{if(typeof offlineQueueSet==='function')offlineQueueSet(q)}catch(_){}}
   function allowedOfflineItem(item){
     const n=String(item?.name||'');
-    return n.startsWith('teacher_book_') || n.startsWith('teacher_merit_') || n.startsWith('merit_');
+    return new Set([
+      'teacher_book_payment_record',
+      'teacher_book_payment_record_safe',
+      'teacher_book_payment_record_offline',
+      'teacher_book_payment_void',
+      'teacher_book_mark_requested',
+      'teacher_book_mark_delivered',
+      'teacher_book_editorial_payment_record'
+    ]).has(n);
   }
 
   function purgeLegacyOfflineQueue(){

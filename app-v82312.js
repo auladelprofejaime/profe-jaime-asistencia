@@ -60,8 +60,16 @@ function offlineQueueGet(){
    const raw=JSON.parse(localStorage.getItem(OFFLINE_RPC_QUEUE_KEY)||'[]');
    if(!Array.isArray(raw))return [];
    // La cola de App Docente SOLO conserva escrituras reales de Libros.
-   // Elimina consultas y reintentos heredados de otros módulos al leerla.
-   const clean=raw.filter(x=>offlineAllowedRpc(x?.name));
+   // Además elimina duplicados exactos generados por reintentos antiguos.
+   const clean=[];
+   const seen=new Set();
+   for(const x of raw){
+     if(!offlineAllowedRpc(x?.name))continue;
+     const key=String(x?.name||'')+'|'+stableJson(x?.args||{});
+     if(seen.has(key))continue;
+     seen.add(key);
+     clean.push(x);
+   }
    if(clean.length!==raw.length)offlineQueueSet(clean);
    return clean;
  }catch(_){return []}
@@ -215,11 +223,11 @@ window.addEventListener('online',async()=>{
    if(!window.ProfeSupabase){
      // La dependencia pudo fallar al abrir sin señal. Al volver internet, recargarla sin bloquear la interfaz.
      const sc=document.createElement('script');sc.src='./shared/supabase-teacher.js?v=800';
-     sc.onload=async()=>{installOfflineRpcLayer();try{if(window.ProfeSupabase?.restore?.()){await window.ProfeSupabase.token();supabaseReady=true;await flushOfflineRpcQueue();await syncAllToSupabase();await refreshHomeScheduleData(true);cloudOnline=true;updateConnectivityUi()}}catch(_){}};
+     sc.onload=async()=>{installOfflineRpcLayer();try{if(window.ProfeSupabase?.restore?.()){await window.ProfeSupabase.token();supabaseReady=true;cloudOnline=true;await flushOfflineRpcQueue();await refreshHomeScheduleData(true);updateConnectivityUi()}}catch(_){}};
      document.head.appendChild(sc);return;
    }
    installOfflineRpcLayer();
-   if(window.ProfeSupabase?.restore?.()){await window.ProfeSupabase.token();supabaseReady=true;await flushOfflineRpcQueue();await syncAllToSupabase();await refreshHomeScheduleData(true);updateConnectivityUi()}
+   if(window.ProfeSupabase?.restore?.()){await window.ProfeSupabase.token();supabaseReady=true;cloudOnline=true;await flushOfflineRpcQueue();await refreshHomeScheduleData(true);updateConnectivityUi()}
  }catch(e){cloudOnline=false;updateConnectivityUi()}
 });
 function supaState(text,ok=true){let el=$('#supabaseSyncState');if(el){el.textContent=text;el.className=ok?'sync-ok':'sync-bad'}}
@@ -247,7 +255,14 @@ async function requireTeacherSession(){
 async function teacherLogin(){
  let email=norm($('#teacherLoginEmail').value),password=$('#teacherLoginPassword').value,error=$('#teacherLoginError');error.textContent='';
  if(!email||!password){error.textContent='Escribe correo y contraseña.';return}
- try{await window.ProfeSupabase.login(email,password,$('#teacherRemember').checked);supabaseReady=true;$('#teacherLoginGate').classList.add('hidden');supaState('Conectado. Sincroniza tus datos actuales.');await syncAllToSupabase()}catch(e){error.textContent='No fue posible iniciar sesión: '+(e.message||e)}
+ try{
+   await window.ProfeSupabase.login(email,password,$('#teacherRemember').checked);
+   supabaseReady=true;cloudOnline=true;
+   $('#teacherLoginGate').classList.add('hidden');
+   supaState('Conectado a Supabase.');
+   await flushOfflineRpcQueue();
+   updateConnectivityUi();
+ }catch(e){error.textContent='No fue posible iniciar sesión: '+(e.message||e)}
 }
 async function teacherLogout(){await window.ProfeSupabase.logout();supabaseReady=false;$('#teacherLoginGate').classList.remove('hidden');supaState('Sesión cerrada.',false)}
 function remoteStudent(s){return {id:String(s.id),name:s.name||String(s.id),shift:s.shift||'',group_name:s.group||'',list_number:Number(s.number)||null,birth_day:Number(s.birthDay)||null,birth_month:Number(s.birthMonth)||null,observations:s.observations||null,incidents:s.incidents||null,active:s.active!==false,inactive_at:s.inactiveAt||null,inactive_reason:s.inactiveReason||null}}

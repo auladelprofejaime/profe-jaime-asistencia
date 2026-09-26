@@ -2,6 +2,19 @@
 (function(){
   function qget(){try{return typeof offlineQueueGet==='function'?offlineQueueGet():[]}catch(_){return []}}
   function qset(q){try{if(typeof offlineQueueSet==='function')offlineQueueSet(q)}catch(_){}}
+  function allowedOfflineItem(item){
+    const n=String(item?.name||'');
+    return n.startsWith('teacher_book_') || n.startsWith('teacher_merit_') || n.startsWith('merit_');
+  }
+
+  function purgeLegacyOfflineQueue(){
+    const q=qget();
+    if(!Array.isArray(q)||!q.length)return {before:0,after:0,removed:0};
+    const keep=q.filter(allowedOfflineItem);
+    if(keep.length!==q.length)qset(keep);
+    try{updateConnectivityUi?.()}catch(_){}
+    return {before:q.length,after:keep.length,removed:q.length-keep.length};
+  }
   function mkid(){return crypto?.randomUUID?.()||('q_'+Date.now()+'_'+Math.random().toString(36).slice(2))}
   function rowTime(r){
     const v=r?.delivery_date||r?.data?.timestamp||r?.data?.deliveryDate||r?.timestamp||r?.updated_at||'';
@@ -81,8 +94,9 @@
   }
 
   function compactOfflineQueue(){
+    const purged=purgeLegacyOfflineQueue();
     const q=qget();
-    if(!Array.isArray(q)||q.length<2)return {before:q?.length||0,after:q?.length||0};
+    if(!Array.isArray(q)||q.length<2)return {before:purged.before||q?.length||0,after:q?.length||0,removed:purged.removed||0};
 
     const activity=[],material=[],bookReq=[],keep=[];
     for(const item of q){
@@ -101,11 +115,17 @@
 
     qset(compacted);
     try{updateConnectivityUi?.()}catch(_){}
-    return {before:q.length,after:compacted.length};
+    return {before:Math.max(purged.before||0,q.length),after:compacted.length,removed:purged.removed||0};
   }
 
-  // Compactar una vez al cargar, sin borrar pagos ni operaciones no reconocidas.
-  window.addEventListener('load',()=>setTimeout(()=>compactOfflineQueue(),500));
+  // Al cargar, eliminar cola heredada de módulos que ya no usan offline.
+  // Se conservan únicamente Pagos de libros y Mérito.
+  window.addEventListener('load',()=>setTimeout(()=>{
+    const r=compactOfflineQueue();
+    if(r.removed>0){
+      try{supaState?.('🟢 Cola saneada · '+r.removed+' reintento'+(r.removed===1?'':'s')+' antiguo'+(r.removed===1?'':'s')+' eliminado'+(r.removed===1?'':'s')+'. '+r.after+' pendiente'+(r.after===1?'':'s')+' real'+(r.after===1?'':'es')+'.')}catch(_){}
+    }
+  },500));
 
   // Cada nueva alta compacta únicamente las operaciones seguras.
   try{
@@ -155,7 +175,7 @@
       try{cloudOnline=true;supabaseReady=true}catch(_){}
       if(typeof supaState==='function'){
         const savedCount=Math.max(0,result.before-result.after);
-        supaState('Sincronizando '+pending+' pendiente'+(pending===1?'':'s')+(savedCount?' · '+savedCount+' duplicado'+(savedCount===1?'':'s')+' de estado compactado'+(savedCount===1?'':'s'):'')+'…');
+        supaState('Sincronizando '+pending+' pendiente'+(pending===1?'':'s')+(savedCount?' · '+savedCount+' reintento'+(savedCount===1?'':'s')+' viejo'+(savedCount===1?'':'s')+' descartado'+(savedCount===1?'':'s'):'')+'…');
       }
 
       if(typeof flushOfflineRpcQueue==='function')await flushOfflineRpcQueue();
@@ -171,4 +191,5 @@
   },900));
 
   window.compactOfflineQueueSafely=compactOfflineQueue;
+  window.purgeLegacyOfflineQueue=purgeLegacyOfflineQueue;
 })();

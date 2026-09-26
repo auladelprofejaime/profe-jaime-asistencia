@@ -1,0 +1,118 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#071a36">
+<title>Mérito Gabino A. Palma · Administración</title>
+<link rel="manifest" href="./manifest.webmanifest?v=1">
+<link rel="stylesheet" href="../styles.css?v=82380">
+<style>
+body{background:#f5f0e5}
+main{max-width:1180px;margin:0 auto;padding:14px}
+.topbar{position:sticky;top:0;z-index:20}
+.admin-actions{margin-left:auto;display:flex;gap:8px;align-items:center}
+#merit{--merit-navy:#071a36;--merit-navy-2:#0e2c55;--merit-gold:#c9962d;--merit-gold-2:#e3bb62;--merit-ivory:#fffaf0;--merit-parchment:#f6edd5;--merit-line:#dac48d;--merit-ink:#142039;color:var(--merit-ink)}
+#merit .card{background:rgba(255,253,247,.98);border:1px solid var(--merit-line);box-shadow:0 10px 26px rgba(7,26,54,.09)}
+#merit h2,#merit h3{color:var(--merit-navy);font-family:Georgia,"Times New Roman",serif}
+#merit .hint,#merit .message{color:#6e6658}
+#merit .merit-hero{display:flex;gap:18px;align-items:center;flex-wrap:wrap;overflow:hidden;position:relative;color:#fff;background:linear-gradient(135deg,var(--merit-navy),var(--merit-navy-2));border:2px solid var(--merit-gold)}
+#merit .merit-hero h2{color:#fff;margin-bottom:6px}
+#merit .merit-hero .hint{color:#f2e7c7}
+#merit .eyebrow{color:var(--merit-gold-2);font-weight:950;letter-spacing:.16em}
+#merit .merit-logo{width:112px;height:112px;object-fit:contain;border-radius:18px;background:#fff;border:2px solid var(--merit-gold-2)}
+#merit .merit-nav{display:grid;grid-template-columns:repeat(auto-fit,minmax(165px,1fr));gap:10px;margin:14px 0}
+#merit .merit-nav button{min-height:58px;color:var(--merit-navy);background:linear-gradient(180deg,#fffdf6,#efe2bd);border:1px solid #d0b66f}
+#merit .merit-nav button.active{color:#fff!important;background:linear-gradient(180deg,#153b6d,var(--merit-navy))!important;border-color:var(--merit-gold)!important}
+#merit .merit-pane{display:none}
+#merit .merit-pane.active{display:block}
+#merit .primary{background:linear-gradient(180deg,#153b6d,var(--merit-navy));border-color:#031126;color:#fff}
+#merit .secondary{background:linear-gradient(180deg,#fffaf0,#efe1ba);border-color:#cfb36b;color:var(--merit-navy)}
+#merit table{width:100%;border-collapse:collapse}
+#merit th,#merit td{padding:9px;border-bottom:1px solid #e1d2ab;text-align:left;vertical-align:top}
+#merit th{background:var(--merit-navy)!important;color:#fff!important}
+#merit .merit-code{font-size:2rem;letter-spacing:.25em;font-weight:900;text-align:center;padding:12px;color:var(--merit-navy)}
+.login-gate{position:fixed;inset:0;z-index:100;background:#071a36;display:grid;place-items:center;padding:20px}
+.login-card{width:min(440px,100%);background:#fff;border-radius:22px;padding:24px;box-shadow:0 20px 80px #0007}
+.login-card img{width:90px;height:90px;object-fit:contain;display:block;margin:0 auto 12px}
+.login-card label{display:block;margin:10px 0}
+.login-card input{width:100%;box-sizing:border-box}
+.brand-footer{text-align:center;padding:18px;color:#6e6658;font-weight:800}
+@media(max-width:650px){main{padding:8px}#merit .merit-logo{width:82px;height:82px}#merit th,#merit td{font-size:.8rem;padding:6px}.admin-actions{width:100%;justify-content:flex-end}}
+</style>
+</head>
+<body>
+<div id="loginGate" class="login-gate">
+ <div class="login-card">
+  <img src="../logo-merito-gabino-a-palma.jpeg" alt="Mérito Gabino A. Palma">
+  <h2>Administración de Mérito</h2>
+  <p class="hint">Panel independiente de App Docente. Utiliza la misma base de Mérito sin mover ni duplicar registros.</p>
+  <label>Correo<input id="loginEmail" type="email" autocomplete="username"></label>
+  <label>Contraseña<input id="loginPassword" type="password" autocomplete="current-password"></label>
+  <label><input id="rememberLogin" type="checkbox" checked> Recordar sesión en esta app</label>
+  <button id="loginBtn" class="primary" type="button">Iniciar sesión</button>
+  <p id="loginStatus" class="message"></p>
+ </div>
+</div>
+
+<div id="appShell" class="hidden">
+<header class="topbar">
+ <img class="avatar-mini" src="../logo-merito-gabino-a-palma.jpeg" alt="">
+ <div><h1>Mérito Gabino A. Palma</h1><p>Administración independiente · v1.0</p></div>
+ <div class="admin-actions"><button id="logoutBtn" class="mini" type="button">Cerrar sesión</button></div>
+</header>
+<main>
+<section id="merit">
+<div class="card merit-hero"><img class="merit-logo" src="../logo-merito-gabino-a-palma.jpeg" alt="Mérito Gabino A. Palma"><div><span class="eyebrow">ADMINISTRACIÓN</span><h2>Mérito Gabino A. Palma</h2><p class="hint">Control mensual de los 18 grupos, movimientos auditables, reconocimientos y publicación semanal.</p></div></div>
+<div class="merit-nav">
+<button class="secondary meritNav active" data-merit-pane="ranking">🏆 Clasificación</button>
+<button class="secondary meritNav" data-merit-pane="movements">🧾 Movimientos</button>
+<button class="secondary meritNav" data-merit-pane="staff">👥 Docentes</button>
+<button class="secondary meritNav" data-merit-pane="weekly">📣 Publicación semanal</button>
+<button class="secondary meritNav" data-merit-pane="monthly">📅 Cierre mensual</button>
+<button class="secondary meritNav" data-merit-pane="annual">📊 Acumulado anual</button>
+<button class="secondary meritNav" data-merit-pane="config">⚙️ Configuración</button>
+</div>
+
+<div id="merit-ranking" class="merit-pane active card"><div class="section"><div><h2>Clasificación general de la escuela</h2><p class="hint">Los 18 grupos compiten en una sola clasificación.</p></div><button id="meritRefreshRanking" class="secondary">Actualizar</button></div><label>Periodo<select id="meritRankingPeriod"></select></label><div id="meritRankingTable" class="tablewrap"></div></div>
+
+<div id="merit-movements" class="merit-pane card"><div class="section"><div><h2>Movimientos</h2><p class="hint">Las anulaciones conservan trazabilidad.</p></div><button id="meritRefreshMovements" class="secondary">Actualizar</button></div><label>Periodo<select id="meritMovementPeriod"></select></label><div id="meritMovementsTable" class="tablewrap"></div></div>
+
+<div id="merit-staff" class="merit-pane card">
+ <div class="section"><div><h2>Docentes autorizados</h2><p class="hint">Los docentes ya confirmados permanecen exactamente en la misma base.</p></div><div class="actions"><button id="meritPrintTeacherFolios" class="secondary" type="button">📄 Generar PDF · 69 accesos</button><button id="meritRefreshStaff" class="secondary" type="button">Actualizar</button></div></div>
+ <div class="card" style="margin:12px 0;background:#fffaf0">
+  <div class="section"><div><h3 style="margin:0">Escanear ID docente</h3><p class="hint">Escanea el código 700002…700070 y activa únicamente a quien aceptó participar.</p></div><div id="meritTeacherFolioSummary" class="badge">Cargando IDs…</div></div>
+  <div class="formgrid"><label>ID / escáner<input id="meritTeacherFolioScan" inputmode="numeric" autocomplete="off" placeholder="700002"></label><div class="actions" style="align-items:end"><button id="meritTeacherFolioFind" class="primary" type="button">Buscar folio</button></div></div>
+  <div id="meritTeacherFolioResult" class="hidden" style="margin-top:12px"><div class="formgrid"><label>ID<input id="meritTeacherFolioCode" readonly></label></div><div class="actions"><button id="meritTeacherFolioActivate" class="primary" type="button">✓ Activar participación</button><button id="meritTeacherFolioCancel" class="secondary" type="button">Cancelar</button></div><p id="meritTeacherFolioStatus" class="message"></p></div>
+ </div>
+ <div id="meritActivationBox" class="hidden"><p class="hint">NIP temporal:</p><div id="meritActivationCode" class="merit-code"></div></div>
+ <div id="meritStaffList" class="tablewrap"></div>
+</div>
+
+<div id="merit-weekly" class="merit-pane card"><h2>Publicación semanal</h2><label>Periodo<select id="meritWeeklyPeriod"></select></label><label>Mensaje público opcional<textarea id="meritWeeklyMessage" rows="3"></textarea></label><div class="actions"><button id="meritPreviewWeekly" class="secondary">Vista previa</button><button id="meritPublishWeekly" class="primary">Publicar avance semanal</button><button id="meritFreezePublic" class="secondary">Congelar portal</button><button id="meritProcessPublic" class="secondary">Resultados en proceso</button><button id="meritOpenPublic" class="secondary">Reabrir publicación</button></div><p id="meritWeeklyStatus" class="message"></p><div id="meritWeeklyPreview" class="tablewrap"></div></div>
+
+<div id="merit-monthly" class="merit-pane card"><div class="section"><div><h2>Cierre mensual</h2><p class="hint">Revisa el resultado antes de cerrar.</p></div></div><label>Periodo<select id="meritMonthlyPeriod"></select></label><div class="actions"><button id="meritMonthlyPreviewBtn" class="secondary" onclick="loadMeritMonthlyPreview()">Vista previa del cierre</button><button id="meritMonthlyCloseBtn" class="primary" onclick="closeMeritMonth()">Cerrar mes</button><button id="meritMonthlyPublishBtn" class="secondary" onclick="publishMeritMonth()">Publicar resultado oficial</button></div><p id="meritMonthlyStatus" class="message"></p><div id="meritMonthlyPreview" class="tablewrap"></div><div id="meritTieResolutions"></div><div id="meritMonthlyResult"></div></div>
+
+<div id="merit-annual" class="merit-pane card"><div class="section"><div><h2>Acumulado anual</h2><p class="hint">Suma únicamente los meses cerrados.</p></div><button id="meritAnnualRefresh" class="secondary" onclick="loadMeritAnnualRanking()">Actualizar</button></div><label>Ciclo escolar<input id="meritAnnualCycle" value="2026-2027"></label><div id="meritAnnualTable" class="tablewrap"></div></div>
+
+<div id="merit-config" class="merit-pane card"><h2>Configuración</h2><form id="meritPeriodForm" class="formgrid"><label>Ciclo escolar<input id="meritSchoolYear" value="2026-2027" required></label><label>Mes<select id="meritMonthNumber"><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option></select></label><label>Nombre del periodo<input id="meritPeriodLabel" required></label><label>Inicio<input id="meritPeriodStart" type="date" required></label><label>Fin<input id="meritPeriodEnd" type="date" required></label><div class="actions"><button class="primary" type="submit">Guardar y abrir periodo</button></div></form><p id="meritConfigStatus" class="message"></p><div id="meritPeriodsList" class="tablewrap"></div></div>
+<div class="brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</div>
+</section>
+</main>
+</div>
+
+<dialog id="meritEditPeriodDialog"><div class="dialogbody"><h2>Editar periodo</h2><input id="meritEditPeriodId" type="hidden"><label>Ciclo escolar<input id="meritEditPeriodCycle" readonly></label><label>Mes<input id="meritEditPeriodMonth" readonly></label><label>Nombre<input id="meritEditPeriodLabel"></label><label>Inicio<input id="meritEditPeriodStart" type="date"></label><label>Fin<input id="meritEditPeriodEnd" type="date"></label><div class="actions"><button id="meritCancelEditPeriod" class="secondary" type="button">Cancelar</button><button id="meritSaveEditPeriod" class="primary" type="button">Guardar cambios</button></div><p id="meritEditPeriodStatus" class="message"></p></div></dialog>
+<dialog id="meritEditStaffDialog"><div class="dialogbody"><h2>Editar personal autorizado</h2><input id="meritEditStaffId" type="hidden"><label>Nombre<input id="meritEditStaffName"></label><label>Tipo<select id="meritEditStaffRole"><option value="docente">Docente</option><option value="direccion">Dirección</option><option value="subdireccion">Subdirección</option><option value="prefectura">Prefectura</option><option value="otro">Otro</option></select></label><label>Asignatura / función<input id="meritEditStaffSubject"></label><div class="actions"><button id="meritCancelEditStaff" class="secondary" type="button">Cancelar</button><button id="meritSaveEditStaff" class="primary" type="button">Guardar cambios</button></div><p id="meritEditStaffStatus" class="message"></p></div></dialog>
+
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="./supabase-admin.js?v=1"></script>
+<script src="./app.js?v=1"></script>
+<script src="../merit-movements-v82328.js?v=82328"></script>
+<script src="../merit-corrections-v82329.js?v=82329"></script>
+<script src="../merit-ranking-v82330.js?v=82330"></script>
+<script src="./merit-staff-provision.js?v=1"></script>
+<script src="../merit-staff-period-v82334.js?v=82334"></script>
+<script src="../merit-tie-vote-v82325.js?v=82325"></script>
+<script src="../merit-admin-v82335.js?v=82335"></script>
+<script src="../merit-annual-v82335.js?v=82335"></script>
+</body></html>

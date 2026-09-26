@@ -227,7 +227,7 @@
     const pageW=612,pageH=792,half=396,margin=24,cardX=24,cardW=564,cardH=348;
     let logo=null;
     const meritDocentesQr='data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAKQAAACkAQAAAAAxzrjsAAABiElEQVR4nNWXMYotSQwEQ8Pzs27w7n+sd4OsE8QaPcbCLgMDMv5vp2gZiVBHpbJH/vvcr/8pwp9RnZlz5p473DvMzFnQxWgaahKSaLqiSyICNE3Ihu4LgJOD4/R4fqvwk+5tzslten6t8NN8QxOIujTfcSD/KlzIZ6NfVZICzfO6w4MhBANpYYkzSpvvEwwb/Y6M89DF5xRyuuAPWNIkFkiz1O8XlHN770PFZ8qGP7zIyAxAPhkcN3wS2wdgI6ElO5xBJa1tRbKmm2iTQixd8TOkNo1NGpAVHl6Qc3u8AS7PueIP1Rp4Voau9IuYpI81xOLKd3tRPvAu73qZ9HRnDtBnu0lD1vi1MdWGSht2ODPFJNLkG7kl/1U1tm1kaV8o8FxhSpZ4+ILRcij07ce74pPjOOEW4M3nEHb2hWoIPJ5jVub7YiDXS05Lz/mtwk95xxBtNO7cixdMOHhPD3CHu5e2C+8euVOapVxNoqJtIDv8fs+3j/mIS/kB4Un/7ZPPXPGd+cv+s/4BrlRM55srItIAAAAASUVORK5CYII=';
-    try{logo=await imageToDataUrl(new URL('../logo-merito-gabino-a-palma.jpeg',location.href).href)}catch(_){}
+    try{logo=await imageToDataUrl(new URL('./icon-192.png',location.href).href)}catch(_){}
 
     function card(item,slot){
       const y0=pageH-half*(slot+1),cardY=y0+24;
@@ -235,7 +235,7 @@
       doc.setDrawColor(215,177,30);doc.setLineWidth(1.4);
       doc.roundedRect(cardX,cardY,cardW,cardH,12,12,'S');
 
-      if(logo)doc.addImage(logo,'JPEG',cardX+18,cardY+18,54,54,undefined,'FAST');
+      if(logo)doc.addImage(logo,'PNG',cardX+18,cardY+18,54,54,undefined,'FAST');
       const tx=cardX+(logo?84:22);
       doc.setTextColor(128,104,0);doc.setFont('helvetica','bold');doc.setFontSize(9);
       doc.text('MÉRITO GABINO A. PALMA',tx,cardY+31);

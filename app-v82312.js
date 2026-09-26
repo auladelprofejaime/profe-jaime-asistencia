@@ -50,17 +50,17 @@ function offlineQueueSet(q){try{localStorage.setItem(OFFLINE_RPC_QUEUE_KEY,JSON.
 function offlineQueueCount(){return offlineQueueGet().length}
 function offlineMutation(name){
  const n=String(name||'');
- // v8.23.77: la cola offline de App Docente queda SOLO para movimientos
- // críticos de libros. Mérito Docentes conserva su propia cola separada.
- return new Set([
+ // v8.23.77: la cola offline general de App Docente queda restringida
+ // exclusivamente a operaciones reales de Libros.
+ // Mérito Docentes usa su propia cola independiente.
+ return [
    'teacher_book_payment_record',
    'teacher_book_payment_record_safe',
-   'teacher_book_payment_record_offline',
    'teacher_book_payment_void',
    'teacher_book_mark_requested',
    'teacher_book_mark_delivered',
    'teacher_book_editorial_payment_record'
- ]).has(n);
+ ].includes(n);
 }
 function offlineSensitiveServerAction(name){return /pin|portal_access|activation_code|push_subscription|register_push/.test(name)}
 function connectivityError(e){const t=String(e?.message||e||'').toLowerCase();return !navigator.onLine||/failed to fetch|load failed|network|timeout|timed out|connection|offline|fetch/.test(t)}

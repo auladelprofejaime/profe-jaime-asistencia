@@ -1,8 +1,8 @@
-const CACHE='app-docente-v8-23-81';
+const CACHE='app-docente-v8-23-82';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
- './','./index.html','./styles.css','./app-v82312.js?v=82381','./activities-pending-v82338.js?v=82338','./activities-individual-pdf-v82341.js?v=82341','./cleanup-historieta-grupo25-v82342.js?v=82343','./connectivity-books-v82339.js?v=82344','./book-money-transfer-fix-v82345.js?v=82345','./birthday-benefits-fix-v82346.js?v=82346','./supabase-stability-v82347.js?v=82347','./book-payments-stability-v82348.js?v=82348','./book-payments-ui-v82350.js?v=82350','./book-request-safe-v82351.js?v=82366','./book-transfer-pending-v82352.js?v=82352','./offline-queue-drain-v82353.js?v=82366','./offline-queue-safety-v82370.js?v=82378','./activity-materials-v82359.js?v=82367','./activity-delivery-audit-v82368.js?v=82375','./book-payment-auth-fallback-v82365.js?v=82365',
+ './','./index.html','./styles.css','./app-v82312.js?v=82382','./activities-pending-v82338.js?v=82338','./activities-individual-pdf-v82341.js?v=82341','./cleanup-historieta-grupo25-v82342.js?v=82343','./connectivity-books-v82339.js?v=82344','./book-money-transfer-fix-v82345.js?v=82345','./birthday-benefits-fix-v82346.js?v=82346','./supabase-stability-v82347.js?v=82347','./book-payments-stability-v82348.js?v=82348','./book-payments-ui-v82350.js?v=82350','./book-request-safe-v82351.js?v=82366','./book-transfer-pending-v82352.js?v=82352','./offline-queue-drain-v82353.js?v=82366','./offline-queue-safety-v82370.js?v=82378','./activity-materials-v82359.js?v=82367','./activity-delivery-audit-v82368.js?v=82375','./book-payment-auth-fallback-v82365.js?v=82365',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png','./logo-app-docente-v821.png',
  './shared/supabase-teacher.js?v=806'
 ];

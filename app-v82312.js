@@ -45,29 +45,38 @@ function stableJson(value){
 function offlineRpcKey(name,args={}){return OFFLINE_RPC_CACHE_PREFIX+name+':'+stableJson(args||{})}
 function offlineRpcGet(name,args={}){try{const v=localStorage.getItem(offlineRpcKey(name,args));return v?JSON.parse(v):null}catch(_){return null}}
 function offlineRpcSet(name,args,value){try{localStorage.setItem(offlineRpcKey(name,args),JSON.stringify(value))}catch(_){}}
-function offlineQueueGet(){try{return JSON.parse(localStorage.getItem(OFFLINE_RPC_QUEUE_KEY)||'[]')}catch(_){return []}}
-function offlineQueueSet(q){try{localStorage.setItem(OFFLINE_RPC_QUEUE_KEY,JSON.stringify(q))}catch(_){}}
-function offlineQueueCount(){return offlineQueueGet().length}
-function offlineMutation(name){
- const n=String(name||'');
- // v8.23.77: la cola offline general de App Docente queda restringida
- // exclusivamente a operaciones reales de Libros.
- // Mérito Docentes usa su propia cola independiente.
- return [
-   'teacher_book_payment_record',
-   'teacher_book_payment_record_safe',
-   'teacher_book_payment_void',
-   'teacher_book_mark_requested',
-   'teacher_book_mark_delivered',
-   'teacher_book_editorial_payment_record'
- ].includes(n);
+const OFFLINE_ALLOWED_RPC=new Set([
+ 'teacher_book_payment_record',
+ 'teacher_book_payment_record_safe',
+ 'teacher_book_payment_void',
+ 'teacher_book_mark_requested',
+ 'teacher_book_mark_delivered',
+ 'teacher_book_editorial_payment_record'
+]);
+function offlineAllowedRpc(name){return OFFLINE_ALLOWED_RPC.has(String(name||''))}
+function offlineQueueSet(q){try{localStorage.setItem(OFFLINE_RPC_QUEUE_KEY,JSON.stringify(Array.isArray(q)?q:[]))}catch(_){}}
+function offlineQueueGet(){
+ try{
+   const raw=JSON.parse(localStorage.getItem(OFFLINE_RPC_QUEUE_KEY)||'[]');
+   if(!Array.isArray(raw))return [];
+   // La cola de App Docente SOLO conserva escrituras reales de Libros.
+   // Elimina consultas y reintentos heredados de otros módulos al leerla.
+   const clean=raw.filter(x=>offlineAllowedRpc(x?.name));
+   if(clean.length!==raw.length)offlineQueueSet(clean);
+   return clean;
+ }catch(_){return []}
 }
+function offlineQueueCount(){return offlineQueueGet().length}
+function offlineMutation(name){return offlineAllowedRpc(name)}
 function offlineSensitiveServerAction(name){return /pin|portal_access|activation_code|push_subscription|register_push/.test(name)}
 function connectivityError(e){const t=String(e?.message||e||'').toLowerCase();return !navigator.onLine||/failed to fetch|load failed|network|timeout|timed out|connection|offline|fetch/.test(t)}
 function offlineEnqueueRpc(name,args={}){
+ // Protección de memoria: ninguna consulta ni módulo académico entra a esta cola.
+ if(!offlineAllowedRpc(name))return null;
  const q=offlineQueueGet();
  const id=(crypto?.randomUUID?.()||('q_'+Date.now()+'_'+Math.random().toString(36).slice(2)));
- q.push({id,name,args:args||{},created_at:new Date().toISOString()});offlineQueueSet(q);updateConnectivityUi();return id;
+ q.push({id,name,args:args||{},created_at:new Date().toISOString()});
+ offlineQueueSet(q);updateConnectivityUi();return id;
 }
 function bookPaymentLocalApplyRecord(args={}){
  const sid=String(args.p_student_id||''); const amount=Number(args.p_amount||0);

@@ -175,7 +175,7 @@ async function boot(){
  };
  if(await requireSession()){$("#loginGate").classList.add("hidden");$("#appShell").classList.remove("hidden");await startData()}
  else{$("#loginGate").classList.remove("hidden");$("#appShell").classList.add("hidden")}
- if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js?v=1").catch(()=>{});
+ if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js?v=3").catch(()=>{});
 }
 async function startData(){
  await loadMeritPeriods();

@@ -14,6 +14,25 @@
     ].includes(n);
   }
 
+  function purgeLegacyRpcCache(){
+    let removed=0;
+    try{
+      const prefix='ProfeJaimeRpcCacheV1:';
+      const keepPrefixes=[
+        prefix+'teacher_book_payment_dashboard:',
+        prefix+'teacher_book_payment_student:',
+        prefix+'teacher_book_fulfillment_dashboard:'
+      ];
+      const keys=[];
+      for(let i=0;i<localStorage.length;i++){
+        const k=localStorage.key(i);
+        if(k&&k.startsWith(prefix)&&!keepPrefixes.some(p=>k.startsWith(p)))keys.push(k);
+      }
+      for(const k of keys){localStorage.removeItem(k);removed++;}
+    }catch(_){}
+    return removed;
+  }
+
   function purgeLegacyOfflineQueue(){
     const q=qget();
     if(!Array.isArray(q)||!q.length)return {before:0,after:0,removed:0};
@@ -128,9 +147,10 @@
   // Al cargar, eliminar cola heredada de módulos que ya no usan offline.
   // Se conservan únicamente Pagos de libros y Mérito.
   window.addEventListener('load',()=>setTimeout(()=>{
+    const cacheRemoved=purgeLegacyRpcCache();
     const r=compactOfflineQueue();
-    if(r.removed>0){
-      try{supaState?.('🟢 Cola saneada · '+r.removed+' reintento'+(r.removed===1?'':'s')+' antiguo'+(r.removed===1?'':'s')+' eliminado'+(r.removed===1?'':'s')+'. '+r.after+' pendiente'+(r.after===1?'':'s')+' real'+(r.after===1?'':'es')+'.')}catch(_){}
+    if(r.removed>0||cacheRemoved>0){
+      try{supaState?.('🟢 Almacenamiento saneado · '+r.removed+' pendiente'+(r.removed===1?'':'s')+' viejo'+(r.removed===1?'':'s')+' eliminado'+(r.removed===1?'':'s')+' · '+cacheRemoved+' caché'+(cacheRemoved===1?'':'s')+' antigua'+(cacheRemoved===1?'':'s')+' eliminada'+(cacheRemoved===1?'':'s')+' · '+r.after+' pendiente'+(r.after===1?'':'s')+' real'+(r.after===1?'':'es')+'.')}catch(_){}
     }
   },500));
 
@@ -199,4 +219,5 @@
 
   window.compactOfflineQueueSafely=compactOfflineQueue;
   window.purgeLegacyOfflineQueue=purgeLegacyOfflineQueue;
+  window.purgeLegacyRpcCache=purgeLegacyRpcCache;
 })();

@@ -103,7 +103,11 @@ document.addEventListener('visibilitychange',async()=>{
  if(document.visibilityState==='visible'&&currentToken&&bundle){
    try{
      const fresh=await portalGetBundle(currentToken);
-     if(fresh?.ok)bundle=fresh;
+     if(fresh?.ok){
+       bundle=fresh;
+       normalizePortalMethodologies();
+       renderAll();
+     }
      await refreshPortalContentNow();
    }catch(e){console.warn('Actualización al volver a la app',e);}
  }
@@ -967,3 +971,31 @@ async function openWhatsApp(){
 }
 
 init();
+
+let familyLiveRefreshTimer=null;
+function startFamilyLiveRefresh(){
+ if(familyLiveRefreshTimer)clearInterval(familyLiveRefreshTimer);
+ familyLiveRefreshTimer=setInterval(async()=>{
+   if(!currentToken||!bundle||document.hidden)return;
+   try{
+     const fresh=await portalGetBundle(currentToken);
+     if(fresh?.ok){
+       bundle=fresh;
+       normalizePortalMethodologies();
+       renderAll();
+     }
+   }catch(e){console.warn('Actualización automática de App Padres',e);}
+ },20000);
+}
+window.addEventListener('focus',async()=>{
+ if(!currentToken||!bundle)return;
+ try{
+   const fresh=await portalGetBundle(currentToken);
+   if(fresh?.ok){
+     bundle=fresh;
+     normalizePortalMethodologies();
+     renderAll();
+   }
+ }catch(e){console.warn('Actualización al enfocar App Padres',e);}
+});
+setTimeout(startFamilyLiveRefresh,1200);

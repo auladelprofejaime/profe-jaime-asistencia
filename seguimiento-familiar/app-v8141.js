@@ -145,6 +145,7 @@ async function refreshFamilyBundleNow(){
  const fresh=await portalGetBundle(currentToken);
  if(fresh?.ok){
    bundle=fresh;
+   normalizePortalMethodologies();
    renderAll();
    return true;
  }
@@ -777,6 +778,7 @@ async function load(){
  $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
  renderAll();
  startFamilyPolling();
+ startFamilyActivityRealtime().catch(e=>console.warn('Realtime App Padres',e));
  await updateContact();
  updateFamilyPushStatus();
  if(Notification.permission==='granted')syncFamilyPushSubscription().catch(()=>{});
@@ -999,3 +1001,58 @@ window.addEventListener('focus',async()=>{
  }catch(e){console.warn('Actualización al enfocar App Padres',e);}
 });
 setTimeout(startFamilyLiveRefresh,1200);
+
+
+let familyRealtimeClient=null;
+let familyActivityChannel=null;
+let familyRealtimeRefreshBusy=false;
+
+async function portalTokenHash(token){
+ const bytes=new TextEncoder().encode(String(token||''));
+ const digest=await crypto.subtle.digest('SHA-256',bytes);
+ return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function refreshFamilyActivitiesRealtime(){
+ if(familyRealtimeRefreshBusy||!currentToken)return;
+ familyRealtimeRefreshBusy=true;
+ try{
+   const fresh=await portalGetBundle(currentToken);
+   if(fresh?.ok){
+     bundle=fresh;
+     normalizePortalMethodologies();
+     renderAll();
+   }
+ }catch(e){
+   console.warn('No se pudo aplicar actualización inmediata en App Padres',e);
+ }finally{
+   familyRealtimeRefreshBusy=false;
+ }
+}
+
+async function startFamilyActivityRealtime(){
+ if(!currentToken||!window.supabase?.createClient||!crypto?.subtle)return false;
+ try{
+   if(familyActivityChannel&&familyRealtimeClient){
+     await familyRealtimeClient.removeChannel(familyActivityChannel).catch(()=>{});
+     familyActivityChannel=null;
+   }
+   const hash=await portalTokenHash(currentToken);
+   familyRealtimeClient=familyRealtimeClient||window.supabase.createClient(
+     SUPABASE_URL,
+     SUPABASE_PUBLISHABLE_KEY,
+     {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}
+   );
+   familyActivityChannel=familyRealtimeClient
+     .channel('portal:'+hash,{config:{private:false}})
+     .on('broadcast',{event:'activity_changed'},()=>{refreshFamilyActivitiesRealtime()})
+     .subscribe((status,err)=>{
+       if(status==='SUBSCRIBED')console.info('App Padres · actividades en tiempo real activas');
+       else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Realtime App Padres',status,err||'');
+     });
+   return true;
+ }catch(e){
+   console.warn('No se pudo iniciar Realtime en App Padres',e);
+   return false;
+ }
+}

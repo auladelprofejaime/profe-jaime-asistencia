@@ -3,8 +3,45 @@ const DB='ProfeJaimeAsistenciaDB',VER=4;
 const subjects=['Artes','Inglés','Español','Matemáticas','Formación Cívica y Ética','Formación Humana','Química','Educación Física','Historia'];
 const states=['white','green','yellow','red'];
 const stateText={white:'⚪ Sin información',green:'🟢 Al corriente',yellow:'🟡 Requiere atención',red:'🔴 Atención urgente'};let db,deferredPrompt;const LOCAL_BACKUP_KEY='ProfeJaimeControlEscolar_backup_interno';const $=s=>document.querySelector(s),$$=s=>[...document.querySelectorAll(s)];const norm=v=>String(v??'').trim(),low=v=>norm(v).toLowerCase(),today=()=>new Date().toISOString().slice(0,10),safe=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));const req=r=>new Promise((ok,no)=>{r.onsuccess=()=>ok(r.result);r.onerror=()=>no(r.error)});function store(n,m='readonly'){if(!db)throw new Error('La base de datos todavía no está abierta. Cierra y vuelve a abrir la app.');return db.transaction(n,m).objectStore(n)}const all=n=>req(store(n).getAll());
-const put=async(n,v)=>{let out=await req(store(n,'readwrite').put(v));if(window.ProfeSupabase)queueRemoteMirror(n,v).catch(e=>console.warn('Supabase mirror',n,e));return out};
-const del=async(n,k)=>{let out=await req(store(n,'readwrite').delete(k));if(window.ProfeSupabase)queueRemoteDelete(n,k).catch(e=>console.warn('Supabase delete',n,e));return out};
+let activitySyncWarningAt=0;
+function activitySyncWarning(e){
+  console.warn('Activity sync',e);
+  const now=Date.now();
+  if(now-activitySyncWarningAt>5000){
+    activitySyncWarningAt=now;
+    try{supaState('Actividad guardada en App Docente, pero aún no se reflejó en Alumno/Padres. Revisa conexión y pulsa Sincronizar ahora.',false)}catch(_){}
+  }
+}
+const put=async(n,v)=>{
+  let out=await req(store(n,'readwrite').put(v));
+  if(window.ProfeSupabase){
+    if(n==='activityRecords'){
+      if(!supabaseReady){activitySyncWarning(new Error('Supabase no está listo'))}
+      else{
+        try{await queueRemoteMirror(n,v)}
+        catch(e){activitySyncWarning(e)}
+      }
+    }else{
+      queueRemoteMirror(n,v).catch(e=>console.warn('Supabase mirror',n,e));
+    }
+  }
+  return out;
+};
+const del=async(n,k)=>{
+  let out=await req(store(n,'readwrite').delete(k));
+  if(window.ProfeSupabase){
+    if(n==='activityRecords'){
+      if(!supabaseReady){activitySyncWarning(new Error('Supabase no está listo'))}
+      else{
+        try{await queueRemoteDelete(n,k)}
+        catch(e){activitySyncWarning(e)}
+      }
+    }else{
+      queueRemoteDelete(n,k).catch(e=>console.warn('Supabase delete',n,e));
+    }
+  }
+  return out;
+};
 const clear=n=>req(store(n,'readwrite').clear());
 
 const CHAT_SCHOOL_WEEK_ANCHOR='2026-08-31';
@@ -296,6 +333,15 @@ async function queueRemoteMirror(n,v){
 }
 async function queueRemoteDelete(n,k){
  if(!supabaseReady)return;
+ if(n==='activityRecords'){
+   const parts=String(k||'').split('|');
+   const activityId=parts.shift()||'';
+   const studentId=parts.join('|')||'';
+   if(activityId&&studentId){
+     await window.ProfeSupabase.rpc('teacher_activity_record_clear',{p_activity_id:activityId,p_student_id:studentId});
+   }
+   return;
+ }
  const map={students:['students','id'],activities:['activities','id'],methodologies:['methodologies','id'],notices:['notices','id'],materials:['materials','id'],studyTopics:['study_topics','id']};
  if(map[n])await window.ProfeSupabase.remove(map[n][0],`${map[n][1]}=eq.${encodeURIComponent(k)}`);
 }

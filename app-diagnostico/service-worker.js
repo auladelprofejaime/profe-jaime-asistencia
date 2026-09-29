@@ -1,5 +1,5 @@
-const CACHE="diagnostico-v0135";
-const ASSETS=["./","index.html","styles.css","app-v0134.js","lectura-pendientes-v0135.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-original.jpg"];
+const CACHE="diagnostico-v0136";
+const ASSETS=["./","index.html","styles.css","app-v0134.js","lectura-pendientes-v0135.js","lectura-segundos-excel-v0136.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-original.jpg"];
 
 self.addEventListener("install",event=>{
   event.waitUntil(
@@ -21,7 +21,7 @@ self.addEventListener("fetch",event=>{
   const shell=url.pathname.endsWith("/")||
               url.pathname.endsWith("/index.html")||
               url.pathname.endsWith("/app-v0134.js")||
-              url.pathname.endsWith("/lectura-pendientes-v0135.js");
+              url.pathname.endsWith("/lectura-pendientes-v0135.js")||\n              url.pathname.endsWith("/lectura-segundos-excel-v0136.js");
   if(shell){
     event.respondWith(
       fetch(event.request,{cache:"no-store"}).catch(()=>caches.match(event.request))

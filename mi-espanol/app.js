@@ -593,7 +593,7 @@ async function load(){
  bundle=await portalGetBundle(currentToken);if(!bundle?.ok)return;await refreshStudentNotices();
  processStudentChanges(bundle);
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
- renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderStudentNotifBadge();await enforceStudentSchedule();await showBirthdayGreetingIfNeeded();startStudentPolling();if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
+ renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderStudentNotifBadge();await enforceStudentSchedule();await showBirthdayGreetingIfNeeded();startStudentPolling();startStudentActivityRealtime().catch(e=>console.warn('Realtime App Estudiante',e));if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
 }
 function currentGrade(){
  const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
@@ -806,3 +806,53 @@ async function sendMessage(){
 }
 window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){const t=(e.data.target==='chat'?'home':(e.data.target||'home'));$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id===t));if(t==='chat')refreshStudentPortal().catch(()=>{})}});
 init();
+
+
+let studentRealtimeClient=null;
+let studentActivityChannel=null;
+let studentRealtimeRefreshBusy=false;
+
+async function studentPortalTokenHash(token){
+ const bytes=new TextEncoder().encode(String(token||''));
+ const digest=await crypto.subtle.digest('SHA-256',bytes);
+ return [...new Uint8Array(digest)].map(b=>b.toString(16).padStart(2,'0')).join('');
+}
+
+async function refreshStudentActivitiesRealtime(){
+ if(studentRealtimeRefreshBusy||!currentToken)return;
+ studentRealtimeRefreshBusy=true;
+ try{
+   await refreshStudentPortal();
+ }catch(e){
+   console.warn('No se pudo aplicar actualización inmediata en App Estudiante',e);
+ }finally{
+   studentRealtimeRefreshBusy=false;
+ }
+}
+
+async function startStudentActivityRealtime(){
+ if(!currentToken||!window.supabase?.createClient||!crypto?.subtle)return false;
+ try{
+   if(studentActivityChannel&&studentRealtimeClient){
+     await studentRealtimeClient.removeChannel(studentActivityChannel).catch(()=>{});
+     studentActivityChannel=null;
+   }
+   const hash=await studentPortalTokenHash(currentToken);
+   studentRealtimeClient=studentRealtimeClient||window.supabase.createClient(
+     SUPABASE_URL,
+     SUPABASE_PUBLISHABLE_KEY,
+     {auth:{persistSession:false,autoRefreshToken:false,detectSessionInUrl:false}}
+   );
+   studentActivityChannel=studentRealtimeClient
+     .channel('portal:'+hash,{config:{private:false}})
+     .on('broadcast',{event:'activity_changed'},()=>{refreshStudentActivitiesRealtime()})
+     .subscribe((status,err)=>{
+       if(status==='SUBSCRIBED')console.info('App Estudiante · actividades en tiempo real activas');
+       else if(status==='CHANNEL_ERROR'||status==='TIMED_OUT')console.warn('Realtime App Estudiante',status,err||'');
+     });
+   return true;
+ }catch(e){
+   console.warn('No se pudo iniciar Realtime en App Estudiante',e);
+   return false;
+ }
+}

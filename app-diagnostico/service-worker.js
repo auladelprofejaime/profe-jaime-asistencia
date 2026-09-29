@@ -21,7 +21,8 @@ self.addEventListener("fetch",event=>{
   const shell=url.pathname.endsWith("/")||
               url.pathname.endsWith("/index.html")||
               url.pathname.endsWith("/app-v0134.js")||
-              url.pathname.endsWith("/lectura-pendientes-v0135.js")||\n              url.pathname.endsWith("/lectura-segundos-excel-v0136.js");
+              url.pathname.endsWith("/lectura-pendientes-v0135.js")||
+              url.pathname.endsWith("/lectura-segundos-excel-v0136.js");
   if(shell){
     event.respondWith(
       fetch(event.request,{cache:"no-store"}).catch(()=>caches.match(event.request))

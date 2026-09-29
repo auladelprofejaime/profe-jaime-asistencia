@@ -89,7 +89,7 @@ function setView(id){$$('.view').forEach(v=>v.classList.toggle('active',v.id===i
 async function openFamilyPushTarget(target){
  if(target==='reports'){await openPortalView('reports');return}
  if(target==='diagnostic'){await openPortalView('diagnostic');return}
- if(target==='activities'){setView('activities');return}
+ if(target==='activities'){await openPortalView('activities');return}
  if(target==='materials'){setView('materials');return}
  if(target==='notices'){setView('notices');return}
  if(target==='grades'){setView('grades');return}
@@ -135,6 +135,26 @@ function mergeFreshPortalContent(raw){
  }
  if(Array.isArray(raw.reports)) bundle.reports=raw.reports;
 }
+let familyPollTimer=null;
+async function refreshFamilyBundleNow(){
+ if(!currentToken)return false;
+ const fresh=await portalGetBundle(currentToken);
+ if(fresh?.ok){
+   bundle=fresh;
+   renderAll();
+   return true;
+ }
+ return false;
+}
+function startFamilyPolling(){
+ if(familyPollTimer)clearInterval(familyPollTimer);
+ familyPollTimer=setInterval(()=>{
+   if(document.visibilityState==='visible'&&currentToken&&bundle){
+     refreshFamilyBundleNow().catch(()=>{});
+   }
+ },20000);
+}
+
 async function refreshPortalContentNow(){
  const raw=await rawPortalBundle();
  if(raw?.ok){
@@ -161,7 +181,7 @@ async function openPortalView(id){
    return;
  }
 
- if((id==='reports'||id==='notices'||id==='home')&&currentToken){
+ if((id==='reports'||id==='notices'||id==='home'||id==='activities'||id==='grades'||id==='materials')&&currentToken){
    try{
      const fresh=await portalGetBundle(currentToken);
      if(fresh?.ok)bundle=fresh;
@@ -752,6 +772,7 @@ async function load(){
  if(raw?.ok)mergeFreshPortalContent(raw);
  $('#familyHello').textContent=`Familia de ${bundle.student.name||'alumno'}`;
  renderAll();
+ startFamilyPolling();
  await updateContact();
  updateFamilyPushStatus();
  if(Notification.permission==='granted')syncFamilyPushSubscription().catch(()=>{});

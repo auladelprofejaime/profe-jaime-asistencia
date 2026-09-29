@@ -2354,5 +2354,5 @@ $("#logoutBtn").onclick=()=>{localStorage.removeItem("diagnosticTeacherToken");a
 $("#backGroupsBtn").onclick=()=>openPeriod(activePeriod);
 $("#backStudentsBtn").onclick=()=>openGroup(activeGroup);
 
-if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js").catch(()=>{});
+if("serviceWorker" in navigator)navigator.serviceWorker.register("service-worker.js?v=0136").catch(()=>{});
 boot();

@@ -32,7 +32,11 @@ async function refreshStudentNotices(){
 }
 async function openStudentView(id){
  if(id==='chat')id='home';
- if((id==='home'||id==='notices')&&currentToken)await refreshStudentNotices();
+ if(id==='activities'&&currentToken){
+   try{await refreshStudentPortal()}catch(e){console.warn('Actualización de actividades',e)}
+ }else if((id==='home'||id==='notices')&&currentToken){
+   await refreshStudentNotices();
+ }
  if(await enforceStudentSchedule())return;
  setView(id);
 }
@@ -81,7 +85,7 @@ function startStudentScheduleWatch(){
  studentScheduleTimer=setInterval(()=>enforceStudentSchedule().catch(()=>{}),60000);
 }
 window.addEventListener('focus',()=>enforceStudentSchedule().catch(()=>{}));
-document.addEventListener('visibilitychange',()=>{if(!document.hidden)enforceStudentSchedule().catch(()=>{})});
+document.addEventListener('visibilitychange',()=>{if(!document.hidden){enforceStudentSchedule().catch(()=>{});if(currentToken&&bundle)refreshStudentPortal().catch(()=>{})}});
 
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=899';
 let currentId='',bundle=null,currentToken='';

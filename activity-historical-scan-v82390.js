@@ -53,22 +53,24 @@
 
   async function buildGlobalMissing(){
     if(!window.ProfeSupabase)throw new Error('No hay conexión con Supabase.');
-    const [acts,sts,local,cloud]=await Promise.all([all('activities'),students(),all('activityRecords'),cloudAudit()]);
-    const activityList=(acts||[]).filter(a=>inRange(a)&&isDelivery(a));
-    const localKeys=new Set((local||[]).map(r=>key(r.activityId||r.activity_id,r.studentId||r.student_id)));
-    const cloudKeys=new Set((cloud||[]).map(r=>key(r.activity_id,r.student_id)));
+    const out=await window.ProfeSupabase.rpc('teacher_activity_fill_missing_no',{
+      p_from:START_DATE,
+      p_to:todayLocal(),
+      p_apply:false
+    });
+    if(!out?.ok)throw new Error(out?.error||out?.reason||'No se pudo revisar el cierre global.');
+    const groups=out.groups||{};
     const missing=[];
-    for(const a of activityList){
-      const roster=(sts||[]).filter(s=>sameShift(s.shift,a.shift)&&sameGroup(s.group,a.group));
-      for(const st of roster){
-        const k=key(a.id,st.id);
-        if(localKeys.has(k)||cloudKeys.has(k))continue;
-        missing.push({activity:a,student:st});
-      }
-    }
-    return {missing,activityCount:activityList.length,studentCount:new Set(missing.map(x=>String(x.student.id))).size};
+    Object.entries(groups).forEach(([group,count])=>{
+      for(let i=0;i<Number(count||0);i++)missing.push({group});
+    });
+    return {
+      missing,
+      count:Number(out.count||0),
+      groups,
+      studentCount:null
+    };
   }
-
   async function openGlobalMissingDialog(){
     showDialog('Marcar faltantes como No entregado',
       '<div class="card"><p class="eyebrow">31 DE AGOSTO A HOY</p><h3>Buscando registros faltantes…</h3><p class="hint">Solo se revisan actividades de entrega. No se modifica ningún registro que ya exista.</p></div>');
@@ -76,20 +78,16 @@
       const data=await buildGlobalMissing();
       const body=$q('#dialogBody');
       if(!body)return;
-      if(!data.missing.length){
+      if(!data.count){
         body.innerHTML='<div class="card"><div class="empty">✓ No hay alumnos sin registro en actividades de entrega desde el 31 de agosto.</div></div><div class="actions"><button id="globalNoClose" class="secondary">Cerrar</button></div>';
         $q('#globalNoClose').onclick=()=>$q('#dialog')?.close();
         return;
       }
-      const byGroup={};
-      for(const x of data.missing){
-        const g=String(x.activity.group||'Sin grupo');
-        byGroup[g]=(byGroup[g]||0)+1;
-      }
+      const byGroup=data.groups||{};
       body.innerHTML=
         '<div class="card">'+
           '<p class="eyebrow">CIERRE GLOBAL</p>'+
-          '<h3>'+data.missing.length+' registros faltantes</h3>'+
+          '<h3>'+data.count+' registros faltantes</h3>'+
           '<p>Se marcarán como <b>No entregado</b> únicamente los espacios que no tienen ningún registro, desde el <b>31 de agosto de 2026</b> hasta hoy.</p>'+
           '<p class="hint"><b>No se sobrescribe</b> ningún verde, rojo, calificación ni registro existente. Actividades numéricas quedan fuera.</p>'+
           '<p class="hint">'+Object.entries(byGroup).map(([g,n])=>'Grupo '+esc2(g)+': <b>'+n+'</b>').join(' · ')+'</p>'+
@@ -98,23 +96,28 @@
       $q('#globalNoCancel').onclick=()=>$q('#dialog')?.close();
       $q('#globalNoApply').onclick=async()=>{
         const btn=$q('#globalNoApply'),old=btn.textContent;
-        if(!confirm('Se crearán '+data.missing.length+' registros como “No entregado”. Solo en espacios actualmente sin registro. ¿Continuar?'))return;
+        if(!confirm('Se crearán '+data.count+' registros como “No entregado”. Solo en espacios actualmente sin registro. ¿Continuar?'))return;
         try{
           btn.disabled=true;btn.textContent='Guardando…';
-          const now=new Date().toISOString();
-          const localRows=data.missing.map(x=>({
-            key:key(x.activity.id,x.student.id),
-            activityId:String(x.activity.id),
-            studentId:String(x.student.id),
+          const out=await window.ProfeSupabase.rpc('teacher_activity_fill_missing_no',{
+            p_from:START_DATE,
+            p_to:todayLocal(),
+            p_apply:true
+          });
+          if(!out?.ok)throw new Error(out?.error||out?.reason||'No se pudo completar el cierre global.');
+          const rows=Array.isArray(out.rows)?out.rows:[];
+          const localRows=rows.map(r=>({
+            key:key(r.activity_id,r.student_id),
+            activityId:String(r.activity_id),
+            studentId:String(r.student_id),
             status:'no',
-            timestamp:now
+            timestamp:r.delivery_date||new Date().toISOString()
           }));
-          await batchMerge(localRows.map(localRecToRemote));
           await localWrite(localRows);
           if(typeof renderActivityGrid==='function')await renderActivityGrid();
           if(typeof refreshActivityStats==='function')await refreshActivityStats();
           btn.textContent='✓ Listo';
-          alert('Listo. Se marcaron '+localRows.length+' registros faltantes como “No entregado”. Los cambios quedaron confirmados en Supabase.');
+          alert('Listo. Se marcaron '+rows.length+' registros faltantes como “No entregado”. Los cambios quedaron confirmados en Supabase.');
           $q('#dialog')?.close();
         }catch(e){
           alert('No se completó el cierre: '+(e?.message||e));
@@ -143,19 +146,33 @@
 
   async function lookupHistoricalStudent(){
     const input=$q('#historicalScanId'),status=$q('#historicalScanStatus'),box=$q('#historicalScanResult');
-    const sid=String(input?.value||'').trim();
+    const sid=String(input?.value||historicalStudent?.id||'').trim();
     if(!sid)return;
     if(status)status.textContent='Buscando actividades…';
     try{
       const st=await req(store('students').get(sid));
       if(!st||st.active===false||String(st.id)==='00001')throw new Error('No encontré un alumno activo con ese ID.');
-      const [acts,local,cloud]=await Promise.all([all('activities'),all('activityRecords'),cloudAudit()]);
+      const out=await window.ProfeSupabase.rpc('teacher_activity_history_student',{
+        p_student_id:sid,
+        p_from:START_DATE,
+        p_to:todayLocal()
+      });
+      if(!Array.isArray(out))throw new Error(out?.error||'No se pudieron consultar las actividades.');
+      if(out[0]?.error)throw new Error(out[0].error);
+
       historicalStudent=st;
-      historicalActivities=(acts||[])
-        .filter(a=>inRange(a)&&isDelivery(a)&&sameShift(a.shift,st.shift)&&sameGroup(a.group,st.group))
-        .sort((a,b)=>String(a.date||'').localeCompare(String(b.date||''))||String(a.name||'').localeCompare(String(b.name||''),'es'));
-      const lmap=new Map((local||[]).filter(r=>String(r.studentId)===sid).map(r=>[String(r.activityId),r]));
-      historicalCloudMap=new Map((cloud||[]).filter(r=>String(r.student_id)===sid).map(r=>[String(r.activity_id),r]));
+      historicalActivities=out.map(r=>({
+        id:r.activity_id,
+        name:r.title,
+        date:r.activity_date,
+        dueDate:r.due_date,
+        group:r.group_name,
+        shift:r.shift,
+        evaluationMode:r.evaluation_type||'delivery',
+        delivered:r.delivered,
+        deliveryDate:r.delivery_date
+      }));
+      historicalCloudMap=new Map(out.map(r=>[String(r.activity_id),r]));
 
       if(status)status.textContent='';
       if(!historicalActivities.length){
@@ -168,10 +185,9 @@
           '<div class="actions"><button id="historicalSelectPending" class="secondary" type="button">Seleccionar todas pendientes/no entregadas</button><button id="historicalClearSelection" class="secondary" type="button">Quitar selección</button></div></div>'+
           '<div class="activity-multi-student-choices">'+
           historicalActivities.map(a=>{
-            const lr=lmap.get(String(a.id));
             const cr=historicalCloudMap.get(String(a.id));
-            const delivered=lr?.status==='yes'||cr?.delivered===true;
-            const noDelivered=lr?.status==='no'||cr?.delivered===false;
+            const delivered=cr?.delivered===true;
+            const noDelivered=cr?.delivered===false;
             const state=delivered?'Ya entregada':noDelivered?'No entregada':'Sin registro';
             return '<label class="activity-multi-student-choice '+(delivered?'already':'')+'">'+
               '<input type="checkbox" data-historical-aid="'+esc2(a.id)+'" '+(delivered?'checked disabled':'')+'>'+

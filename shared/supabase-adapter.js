@@ -8,7 +8,7 @@ async function request(path,{method='GET',body,token,headers={}}={}){
     ...headers
   };
   if(body!==undefined)h['Content-Type']='application/json';
-  const r=await fetch(SUPABASE_URL+path,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)});
+  const r=await fetch(SUPABASE_URL+path,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body),cache:'no-store'});
   const text=await r.text();
   let data=null;try{data=text?JSON.parse(text):null}catch{data=text}
   if(!r.ok)throw new Error(data?.message||data?.error_description||data?.hint||`Supabase ${r.status}`);

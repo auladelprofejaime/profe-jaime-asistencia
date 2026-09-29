@@ -115,8 +115,8 @@
     setTimeout(()=>URL.revokeObjectURL(url),1500);
   }
 
-  async function exportVespertinoExcel(group=null){
-    const btn=event?.currentTarget;
+  async function exportVespertinoExcel(group=null,ev=null){
+    const btn=ev?.currentTarget||null;
     const old=btn?.textContent;
     try{
       if(btn){btn.disabled=true;btn.textContent='Preparando Excel…'}
@@ -136,7 +136,7 @@
       const btn=document.createElement('button');
       btn.id='exportLecturaExcelAll';btn.type='button';btn.className='secondary';
       btn.textContent='⬇ Excel tiempos vespertino';
-      btn.addEventListener('click',e=>{window.event=e;exportVespertinoExcel(null)});
+      btn.addEventListener('click',e=>exportVespertinoExcel(null,e));
       actions.appendChild(btn);
     }
 
@@ -146,9 +146,8 @@
       btn.id='exportLecturaExcelGroup';btn.type='button';btn.className='secondary';
       btn.textContent='⬇ Excel de este grupo';
       btn.addEventListener('click',e=>{
-        window.event=e;
         const g=document.querySelector('#lecturaTimerGroup')?.value||null;
-        exportVespertinoExcel(g);
+        exportVespertinoExcel(g,e);
       });
       controls.appendChild(btn);
     }

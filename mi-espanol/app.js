@@ -84,7 +84,10 @@ function startStudentScheduleWatch(){
  if(studentScheduleTimer)clearInterval(studentScheduleTimer);
  studentScheduleTimer=setInterval(()=>enforceStudentSchedule().catch(()=>{}),60000);
 }
-window.addEventListener('focus',()=>enforceStudentSchedule().catch(()=>{}));
+window.addEventListener('focus',()=>{
+ enforceStudentSchedule().catch(()=>{});
+ if(currentToken)refreshStudentPortal().catch(()=>{}); // focus-sync
+});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){enforceStudentSchedule().catch(()=>{});if(currentToken&&bundle)refreshStudentPortal().catch(()=>{})}});
 
 import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=899';

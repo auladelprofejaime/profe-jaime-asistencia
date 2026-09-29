@@ -174,6 +174,21 @@
         delete rec.score;
         await put('activityRecords',rec);
         current.records.set(k,rec);
+
+        if(next==='yes'){
+          try{
+            const act=current.activities.find(x=>String(x.id)===String(aid));
+            if(act && typeof sameShift==='function' && sameShift(act.shift,'Matutino') && window.ProfeSupabase){
+              await window.ProfeSupabase.edge('send-push',{
+                event:'activity_update',
+                student_id:String(sid),
+                title:act.name||'Actividad',
+                message:`${act.name||'Actividad'} · Estado: Entregada`,
+                status:'yes'
+              });
+            }
+          }catch(e){console.warn('Notificación de actividad entregada',e)}
+        }
       }
       cell.classList.remove('yes','no','pending');
       cell.classList.add(next);

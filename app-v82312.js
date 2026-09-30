@@ -13,33 +13,56 @@ function activitySyncWarning(e){
   }
 }
 const put=async(n,v)=>{
-  let out=await req(store(n,'readwrite').put(v));
-  if(window.ProfeSupabase){
-    if(n==='activityRecords'){
-      if(!supabaseReady){activitySyncWarning(new Error('Supabase no está listo'))}
-      else{
-        try{await queueRemoteMirror(n,v)}
-        catch(e){activitySyncWarning(e)}
+  // Actividades y sus registros son datos familiares en tiempo real:
+  // el servidor confirma PRIMERO. Nunca mostrar como guardado algo que sólo quedó en el iPad.
+  if(n==='activities'||n==='activityRecords'){
+    if(!window.ProfeSupabase||!supabaseReady){
+      const e=new Error('Sin conexión confirmada con el servidor. El cambio NO se guardó.');
+      activitySyncWarning(e);
+      throw e;
+    }
+    try{
+      // Si se registra una entrega de una actividad que por una falla anterior sólo existe localmente,
+      // primero crea/repara esa actividad en Supabase para evitar la llave foránea.
+      if(n==='activityRecords'){
+        const aid=String(v.activityId||String(v.key||'').split('|')[0]||'');
+        if(aid){
+          const localActivity=await req(store('activities').get(aid));
+          if(localActivity)await queueRemoteMirror('activities',localActivity);
+        }
       }
-    }else{
-      queueRemoteMirror(n,v).catch(e=>console.warn('Supabase mirror',n,e));
+      await queueRemoteMirror(n,v);
+      return await req(store(n,'readwrite').put(v));
+    }catch(e){
+      activitySyncWarning(e);
+      try{supaState('❌ No se guardó el cambio de Actividades. El servidor no lo confirmó. Intenta de nuevo.',false)}catch(_){}
+      throw e;
     }
   }
+
+  let out=await req(store(n,'readwrite').put(v));
+  if(window.ProfeSupabase)queueRemoteMirror(n,v).catch(e=>console.warn('Supabase mirror',n,e));
   return out;
 };
 const del=async(n,k)=>{
-  let out=await req(store(n,'readwrite').delete(k));
-  if(window.ProfeSupabase){
-    if(n==='activityRecords'){
-      if(!supabaseReady){activitySyncWarning(new Error('Supabase no está listo'))}
-      else{
-        try{await queueRemoteDelete(n,k)}
-        catch(e){activitySyncWarning(e)}
-      }
-    }else{
-      queueRemoteDelete(n,k).catch(e=>console.warn('Supabase delete',n,e));
+  if(n==='activities'||n==='activityRecords'){
+    if(!window.ProfeSupabase||!supabaseReady){
+      const e=new Error('Sin conexión confirmada con el servidor. El cambio NO se eliminó.');
+      activitySyncWarning(e);
+      throw e;
+    }
+    try{
+      await queueRemoteDelete(n,k);
+      return await req(store(n,'readwrite').delete(k));
+    }catch(e){
+      activitySyncWarning(e);
+      try{supaState('❌ No se eliminó el registro. El servidor no lo confirmó. Intenta de nuevo.',false)}catch(_){}
+      throw e;
     }
   }
+
+  let out=await req(store(n,'readwrite').delete(k));
+  if(window.ProfeSupabase)queueRemoteDelete(n,k).catch(e=>console.warn('Supabase delete',n,e));
   return out;
 };
 const clear=n=>req(store(n,'readwrite').clear());

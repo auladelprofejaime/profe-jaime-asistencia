@@ -616,11 +616,8 @@ function activityState(a,r){
  if(mode==='numeric'&&typeof r?.score==='number')return {label:'Entregada',cls:'green'};
  if(r?.status==='yes')return {label:'Entregada',cls:'green'};
  if(r?.status==='no')return {label:'No entregada',cls:'red'};
- if(a.dueDate){
-   const today=new Date();today.setHours(0,0,0,0);
-   const due=new Date(a.dueDate+'T23:59:59');
-   if(due<today)return {label:'Vencida',cls:'red'};
- }
+ // La ausencia de un registro NO significa "No entregada" ni "Vencida".
+ // Solo App Docente puede establecer esos estados académicos.
  return {label:'Pendiente',cls:'yellow'};
 }
 function renderActivities(){

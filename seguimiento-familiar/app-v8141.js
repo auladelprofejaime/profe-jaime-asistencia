@@ -795,8 +795,7 @@ function familyActivityState(a,r){
  if(mode==='numeric'&&typeof r?.score==='number')return {label:'Entregada',cls:'ok'};
  if(r?.status==='yes')return {label:'Entregada',cls:'ok'};
  if(r?.status==='no')return {label:'No entregada',cls:'bad'};
- // Sin registro explícito de Docente no se infiere incumplimiento.
- return {label:'Pendiente',cls:'warn'};
+ return {label:'No entregada',cls:'bad'};
 }
 
 function normalizePortalMethodologies(){

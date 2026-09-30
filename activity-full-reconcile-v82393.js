@@ -246,8 +246,15 @@
   window.reconcileAllActivities=reconcileActivities;
   window.addEventListener('online',()=>setTimeout(automatic,1200));
   window.addEventListener('focus',()=>setTimeout(automatic,800));
-  window.addEventListener('load',()=>{
+  function bootReconcile(){
     setTimeout(installButton,700);
-    setTimeout(automatic,2500);
-  },{once:true});
+    setTimeout(automatic,1200);
+  }
+  // En una PWA actualizada el script puede evaluarse cuando "load" ya ocurrió.
+  // Arrancar inmediatamente en ese caso; si aún está cargando, esperar DOMContentLoaded.
+  if(document.readyState==='loading'){
+    document.addEventListener('DOMContentLoaded',bootReconcile,{once:true});
+  }else{
+    bootReconcile();
+  }
 })();

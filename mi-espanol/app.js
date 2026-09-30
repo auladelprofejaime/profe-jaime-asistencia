@@ -616,9 +616,7 @@ function activityState(a,r){
  if(mode==='numeric'&&typeof r?.score==='number')return {label:'Entregada',cls:'green'};
  if(r?.status==='yes')return {label:'Entregada',cls:'green'};
  if(r?.status==='no')return {label:'No entregada',cls:'red'};
- // La ausencia de un registro NO significa "No entregada" ni "Vencida".
- // Solo App Docente puede establecer esos estados académicos.
- return {label:'Pendiente',cls:'yellow'};
+ return {label:'No entregada',cls:'red'};
 }
 function renderActivities(){
  let map=recordMap();

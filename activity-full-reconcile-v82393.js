@@ -1,6 +1,6 @@
 // App Docente v8.23.93 · conciliación real de Actividades iPad ↔ Supabase
 (function(){
-  const GROUPS=new Set(['21','22','23','24','25','26']);
+  const GROUPS=new Set(['22','23','24','25','26']);
   const FROM='2026-08-31';
   let running=false;
   let lastResult=null;
@@ -248,6 +248,12 @@
   window.reconcileAllActivities=reconcileActivities;
   window.addEventListener('online',()=>setTimeout(automatic,1200));
   window.addEventListener('focus',()=>setTimeout(automatic,800));
+  document.addEventListener('visibilitychange',()=>{
+    if(document.visibilityState==='visible')setTimeout(automatic,800);
+  });
+  // Verificación periódica: si una escritura histórica quedó local, se vuelve a
+  // publicar sin que el profesor tenga que pulsar ningún botón.
+  setInterval(()=>{if(document.visibilityState==='visible')automatic();},20000);
   function bootReconcile(){
     setTimeout(installButton,700);
     setTimeout(automatic,1200);

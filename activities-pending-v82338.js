@@ -67,6 +67,7 @@
         .sort((a,b)=>String(a.dueDate||a.date||'').localeCompare(String(b.dueDate||b.date||''))||String(a.name||'').localeCompare(String(b.name||''),'es',{sensitivity:'base'}));
       const recordMap=new Map(records.map(r=>[String(r.activityId)+'|'+String(r.studentId),r]));
 
+      window.__pendingStudent={id,student};
       const deliveryPending=[];
       const numericUngraded=[];
       let completed=0;
@@ -112,7 +113,7 @@
             '<div class="activity-pending-copy"><strong>'+esc(activity.name||'Actividad')+'</strong>'+
             '<small>'+esc(activity.type||'Actividad')+' · Asignada '+esc(fmtDate(activity.date))+' · Entrega '+esc(fmtDate(activity.dueDate))+'</small></div></div>';
         }).join('');
-        deliveryHtml+='</div></div>';
+        deliveryHtml+='</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button id="activityPendingSelectAll" class="secondary" type="button">Seleccionar todas</button><button id="activityPendingDeliverSelected" type="button">Registrar seleccionadas como entregadas</button></div><p class="hint">Marca únicamente las actividades que el alumno está entregando en este momento y confirma una sola vez.</p></div>';
       }
 
       let numericHtml='';
@@ -145,6 +146,18 @@
         status.className=noIssues?'message good':'message';
         status.textContent=noIssues?'✓ Alumno al corriente.':'Consulta lista: '+pendingCount+' pendiente'+(pendingCount===1?'':'s')+' de entrega y '+ungradedCount+' sin calificación.';
       }
+      byId('activityPendingSelectAll')?.addEventListener('click',()=>{document.querySelectorAll('.activity-pending-check').forEach(x=>x.checked=true)});
+      byId('activityPendingDeliverSelected')?.addEventListener('click',async()=>{
+        const selected=[...document.querySelectorAll('.activity-pending-check:checked')].map(x=>x.dataset.activityId).filter(Boolean);
+        if(!selected.length){if(status){status.className='message bad';status.textContent='Selecciona al menos una actividad.'}return;}
+        const btn=byId('activityPendingDeliverSelected'); if(btn)btn.disabled=true;
+        try{
+          const stamp=new Date().toISOString();
+          for(const activityId of selected){await put('activityRecords',{key:activityId+'|'+id,activityId,studentId:id,status:'yes',timestamp:stamp,deliveryDate:stamp});}
+          if(status){status.className='message good';status.textContent='✓ '+selected.length+' actividad'+(selected.length===1?'':'es')+' registrada'+(selected.length===1?'':'s')+' como entregada'+(selected.length===1?'':'s')+'.';}
+          if(input){input.value=id;await lookupPendingActivities();}
+        }catch(e){console.error('Entrega múltiple desde pendientes:',e);if(status){status.className='message bad';status.textContent='No se completó el registro: '+(e?.message||e)}}finally{if(btn)btn.disabled=false;}
+      });
       byId('activityPendingClear')?.addEventListener('click',()=>{
         if(box)box.innerHTML='';
         if(status){status.className='message';status.textContent=''}

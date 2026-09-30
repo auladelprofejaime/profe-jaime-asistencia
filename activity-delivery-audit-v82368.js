@@ -49,7 +49,7 @@
       let state='match';
       if(local&&localDelivered&&!cloudDelivered)state='local_yes_cloud_no';
       else if(local&&localStatus==='no'&&cloudDelivered)state='local_no_cloud_yes';
-      else if(local&&!cloud)state=localDelivered?'local_yes_cloud_missing':'local_only';
+      else if(local&&!cloud)state=localDelivered?'local_yes_cloud_missing':(localStatus==='no'?'local_no_cloud_missing':'local_placeholder');
       else if(!local&&cloud)state='cloud_only';
 
       rows.push({
@@ -76,14 +76,20 @@
     const repairable=rows.filter(r=>r.state==='local_yes_cloud_no'||r.state==='local_yes_cloud_missing');
     const reverse=rows.filter(r=>r.state==='local_no_cloud_yes');
     const matches=rows.filter(r=>r.state==='match');
+    const meaningfulLocal=(localRecords||[]).filter(r=>{
+      const s=String(r?.status||'').toLowerCase();
+      return s==='yes'||s==='no'||(typeof r?.score==='number'&&Number.isFinite(r.score));
+    });
 
-    return {rows,repairable,reverse,matches,cloudCount:(cloudRows||[]).length,localCount:(localRecords||[]).length};
+    return {rows,repairable,reverse,matches,cloudCount:(cloudRows||[]).length,localCount:meaningfulLocal.length,rawLocalCount:(localRecords||[]).length};
   }
 
   function stateLabel(r){
     if(r.state==='local_yes_cloud_no')return 'Docente: Entregada · Alumno: No entregada';
     if(r.state==='local_yes_cloud_missing')return 'Docente: Entregada · Alumno: Sin registro';
     if(r.state==='local_no_cloud_yes')return 'Docente: No entregada · Alumno: Entregada';
+    if(r.state==='local_no_cloud_missing')return 'Docente: No entregada · sin registro en Supabase';
+    if(r.state==='local_placeholder')return 'Registro local auxiliar · no requiere sincronización';
     if(r.state==='local_only')return 'Solo existe en este iPad';
     if(r.state==='cloud_only')return 'Solo existe en Supabase';
     return 'Coincide';
@@ -91,7 +97,7 @@
 
   function renderAuditDialog(audit){
     lastAudit=audit;
-    const mismatch=audit.rows.filter(r=>r.state!=='match');
+    const mismatch=audit.rows.filter(r=>r.state!=='match'&&r.state!=='local_placeholder');
     const repairable=audit.repairable;
 
     const grouped={};

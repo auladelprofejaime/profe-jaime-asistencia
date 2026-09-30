@@ -108,10 +108,11 @@
         deliveryHtml='<div class="activity-pending-block"><h3>Pendientes de entrega</h3><div class="activity-pending-list">';
         deliveryHtml+=deliveryPending.map(item=>{
           const activity=item.activity,state=item.state;
-          return '<div class="activity-pending-row '+state.tone+'">'+
+          return '<label class="activity-pending-row '+state.tone+'" style="cursor:pointer;user-select:none">'+
+            '<input class="activity-pending-check" type="checkbox" data-activity-id="'+esc(activity.id)+'" style="width:24px;height:24px;min-width:24px;accent-color:currentColor">'+
             '<div class="activity-pending-state"><span>'+state.icon+'</span><b>'+esc(state.label)+'</b></div>'+
             '<div class="activity-pending-copy"><strong>'+esc(activity.name||'Actividad')+'</strong>'+
-            '<small>'+esc(activity.type||'Actividad')+' · Asignada '+esc(fmtDate(activity.date))+' · Entrega '+esc(fmtDate(activity.dueDate))+'</small></div></div>';
+            '<small>'+esc(activity.type||'Actividad')+' · Asignada '+esc(fmtDate(activity.date))+' · Entrega '+esc(fmtDate(activity.dueDate))+'</small></div></label>';
         }).join('');
         deliveryHtml+='</div><div style="display:flex;gap:10px;flex-wrap:wrap;margin-top:12px"><button id="activityPendingSelectAll" class="secondary" type="button">Seleccionar todas</button><button id="activityPendingDeliverSelected" type="button">Registrar seleccionadas como entregadas</button></div><p class="hint">Marca únicamente las actividades que el alumno está entregando en este momento y confirma una sola vez.</p></div>';
       }

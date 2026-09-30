@@ -10,7 +10,9 @@
     const g=String(a?.group||a?.group_name||'').trim();
     const sh=String(a?.shift||'').trim().toLowerCase();
     const d=String(a?.date||a?.activity_date||'');
-    return GROUPS.has(g)&&sh==='matutino'&&d>=FROM;
+    // En versiones históricas el turno podía quedar vacío aunque la actividad
+    // perteneciera a los grupos matutinos 21–26. El grupo es la fuente fiable.
+    return GROUPS.has(g)&&(sh===''||sh==='matutino')&&d>=FROM;
   }
   function recKey(aid,sid){return String(aid)+'|'+String(sid)}
   function deliveredOfLocal(r){
@@ -23,7 +25,7 @@
     return {
       id:String(a.id),
       group_name:String(a.group||''),
-      shift:String(a.shift||''),
+      shift:'Matutino',
       title:a.name||'Actividad',
       activity_date:a.date||null,
       due_date:a.dueDate||null,

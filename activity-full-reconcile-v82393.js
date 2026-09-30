@@ -84,15 +84,15 @@
       await window.ProfeSupabase.upsert('activities',rows.slice(i,i+30).map(remoteActivityRow),'id');
     }
   }
-  async function insertOnlyMissingRecords(rows,remoteRows){
-    const remoteKeys=new Set((remoteRows||[]).map(r=>recKey(r.activity_id,r.student_id)));
-    const missing=(rows||[]).filter(r=>!remoteKeys.has(recKey(r.activityId,r.studentId)));
-    for(let i=0;i<missing.length;i+=50){
-      const block=missing.slice(i,i+50).map(remoteRecordRow);
-      const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:block});
-      if(out?.ok===false)throw new Error(out?.error||out?.reason||'No se pudo confirmar un bloque de registros faltantes.');
+  async function restoreTeacherTruth(rows){
+    let restored=0;
+    for(let i=0;i<(rows||[]).length;i+=50){
+      const block=rows.slice(i,i+50).map(remoteRecordRow);
+      const out=await window.ProfeSupabase.rpc('teacher_activity_records_restore_from_ipad',{p_rows:block});
+      if(out?.ok===false)throw new Error(out?.error||out?.reason||'No se pudo restaurar un bloque de registros.');
+      restored+=Number(out?.restored||0);
     }
-    return missing.length;
+    return restored;
   }
 
   async function reconcileActivities({manual=false}={}){
@@ -144,10 +144,10 @@
       // 1. El iPad docente es la fuente histórica para recuperar lo que nunca subió.
       // Primero actividades; después registros, respetando llaves foráneas.
       await upsertActivities(localActs);
-      // Recuperación segura: leer primero Supabase y subir únicamente llaves que
-      // NO existen allí. Nunca sobrescribir un registro académico ya guardado.
-      const beforeRemoteRecs=await fetchRemoteRecords();
-      const uploadedMissing=await insertOnlyMissingRecords(localRecs,beforeRemoteRecs);
+      // Recuperación histórica autoritativa: para registros explícitos del iPad
+      // (sí/no/calificación), Docente manda. Esto corrige también estados remotos
+      // antiguos equivocados, no sólo registros ausentes.
+      const uploadedMissing=await restoreTeacherTruth(localRecs);
 
       // 2. Verificación real posterior contra Supabase.
       const [remoteActs,remoteRecs]=await Promise.all([fetchRemoteActivities(),fetchRemoteRecords()]);

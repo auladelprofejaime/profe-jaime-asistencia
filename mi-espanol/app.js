@@ -90,7 +90,7 @@ window.addEventListener('focus',()=>{
 });
 document.addEventListener('visibilitychange',()=>{if(!document.hidden){enforceStudentSchedule().catch(()=>{});if(currentToken&&bundle)refreshStudentPortal().catch(()=>{})}});
 
-import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=899';
+import {SUPABASE_URL,SUPABASE_PUBLISHABLE_KEY,portalLogin,changePortalPin,portalLogout,portalGetBundle,portalSendMessage,registerPortalPush,sendPortalPushEvent,WEB_PUSH_VAPID_PUBLIC_KEY} from '../shared/supabase-adapter.js?v=900';
 let currentId='',bundle=null,currentToken='';
 let studentSWRegistration=null;
 

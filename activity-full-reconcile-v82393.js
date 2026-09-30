@@ -137,11 +137,12 @@
         if(ld!==rd || ls!==rs)recordMismatches.push({key:k,reason:'different'});
       }
 
+      const remoteRelevantActivities=remoteActs.filter(r=>GROUPS.has(String(r.group_name||''))&&String(r.activity_date||'')>=FROM).length;
       lastResult={
         ok:missingActivities.length===0&&recordMismatches.length===0,
         localActivities:localActs.length,
         localRecords:localRecs.length,
-        remoteActivities:remoteActs.filter(r=>GROUPS.has(String(r.group_name||''))&&String(r.activity_date||'')>=FROM).length,
+        remoteActivities:remoteRelevantActivities,
         missingActivities:missingActivities.length,
         recordMismatches:recordMismatches.length,
         verifiedAt:new Date().toISOString()
@@ -186,10 +187,15 @@
       btn.disabled=true;btn.textContent='Verificando…';
       const r=await reconcileActivities({manual:true});
       btn.disabled=false;btn.textContent=old;
-      if(r?.ok)alert('Verificación completa: Actividades de App Docente y Supabase coinciden.');
-      else if(r?.authRequired)alert('Supabase necesita volver a iniciar sesión. No se borró información.');
-      else if(r?.error)alert('No se pudo completar la verificación: '+r.error);
-      else alert('La verificación terminó, pero aún quedan '+Number(r?.missingActivities||0)+' actividad(es) y '+Number(r?.recordMismatches||0)+' registro(s) por conciliar.');
+      if(r?.ok){
+        alert('Verificación completa. Coinciden '+Number(r.localActivities||0)+' actividades y '+Number(r.localRecords||0)+' registros reales entre App Docente y Supabase. No quedan diferencias por reparar.');
+      }else if(r?.authRequired){
+        alert('Supabase necesita volver a iniciar sesión. No se borró información.');
+      }else if(r?.error){
+        alert('No se pudo completar la verificación: '+r.error);
+      }else{
+        alert('La verificación terminó, pero aún quedan '+Number(r?.missingActivities||0)+' actividad(es) y '+Number(r?.recordMismatches||0)+' registro(s) por conciliar.');
+      }
     });
     target.appendChild(btn);
   }

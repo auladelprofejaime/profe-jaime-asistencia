@@ -1,4 +1,4 @@
-const CACHE='app-padres-v8-14-5-twostate1';
+const CACHE='app-padres-v8-14-5-pdftruth2';
 const FILES=['./','./index.html','./styles.css','./app-v8141.js','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','./citas.html','./celular.html','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{

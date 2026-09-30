@@ -20,7 +20,7 @@
     }catch(_){}
   }
   async function merge(activityId,studentId,{status,score}={}){
-    if(!window.ProfeSupabase||!activityId||!studentId)return;
+    if(!window.ProfeSupabase||!activityId||!studentId)throw new Error('Supabase no está disponible.');
     const row={
       activity_id:String(activityId),
       student_id:String(studentId),
@@ -37,10 +37,10 @@
       }
     };
     const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:[row]});
-    if(out?.ok===false)throw new Error(out?.error||'No se confirmó la actualización.');
+    if(out?.ok===false||Number(out?.merged||0)!==1)throw new Error(out?.error||'Supabase no confirmó el registro.');
   }
   async function clear(activityId,studentId){
-    if(!window.ProfeSupabase||!activityId||!studentId)return;
+    if(!window.ProfeSupabase||!activityId||!studentId)throw new Error('Supabase no está disponible.');
     const out=await window.ProfeSupabase.rpc('teacher_activity_record_clear',{
       p_activity_id:String(activityId),
       p_student_id:String(studentId)
@@ -56,7 +56,7 @@
       const current=weekly.classList.contains('yes')?'yes':weekly.classList.contains('no')?'no':'blank';
       const next=current==='blank'?'yes':current==='yes'?'no':'blank';
       (next==='blank'?clear(activityId,studentId):merge(activityId,studentId,{status:next}))
-        .catch(e=>warn('El cambio quedó en el iPad, pero no llegó al servidor. Intenta nuevamente con internet. '+(e?.message||e)));
+        .catch(e=>warn('NO GUARDADO. El servidor no confirmó el cambio. '+(e?.message||e)));
       return;
     }
 
@@ -66,7 +66,7 @@
       const current=range.classList.contains('yes')?'yes':range.classList.contains('no')?'no':'pending';
       const next=current==='pending'?'yes':current==='yes'?'no':'pending';
       (next==='pending'?clear(activityId,studentId):merge(activityId,studentId,{status:next}))
-        .catch(e=>warn('El cambio quedó en el iPad, pero no llegó al servidor. Intenta nuevamente con internet. '+(e?.message||e)));
+        .catch(e=>warn('NO GUARDADO. El servidor no confirmó el cambio. '+(e?.message||e)));
     }
   },true);
 
@@ -76,7 +76,7 @@
       const {activityId,studentId}=ids(weekly.dataset.score);
       const raw=String(weekly.value||'').trim();
       const task=raw===''?clear(activityId,studentId):merge(activityId,studentId,{score:Number(raw)});
-      task.catch(e=>warn('La calificación no pudo confirmarse en el servidor. '+(e?.message||e)));
+      task.catch(e=>warn('NO GUARDADA. El servidor no confirmó la calificación. '+(e?.message||e)));
       return;
     }
     const range=event.target.closest?.('[data-range-score]');

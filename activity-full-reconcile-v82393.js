@@ -1,0 +1,196 @@
+// App Docente v8.23.93 · conciliación real de Actividades iPad ↔ Supabase
+(function(){
+  const GROUPS=new Set(['22','23','24','25','26']);
+  const FROM='2026-08-31';
+  let running=false;
+  let lastResult=null;
+  let retryTimer=null;
+
+  function relevantActivity(a){
+    const g=String(a?.group||a?.group_name||'').trim();
+    const sh=String(a?.shift||'').trim().toLowerCase();
+    const d=String(a?.date||a?.activity_date||'');
+    return GROUPS.has(g)&&sh==='matutino'&&d>=FROM;
+  }
+  function recKey(aid,sid){return String(aid)+'|'+String(sid)}
+  function deliveredOfLocal(r){
+    if(r?.status==='yes')return true;
+    if(r?.status==='no')return false;
+    return null;
+  }
+  function numOrNull(v){return typeof v==='number'&&Number.isFinite(v)?v:null}
+  function remoteActivityRow(a){
+    return {
+      id:String(a.id),
+      group_name:String(a.group||''),
+      shift:String(a.shift||''),
+      title:a.name||'Actividad',
+      activity_date:a.date||null,
+      due_date:a.dueDate||null,
+      evaluation_type:a.evaluationMode||'delivery',
+      max_score:10,
+      visible_to_students:true,
+      closed:!!a.closed,
+      data:a
+    };
+  }
+  function remoteRecordRow(r){
+    return {
+      activity_id:String(r.activityId||String(r.key||'').split('|')[0]),
+      student_id:String(r.studentId||String(r.key||'').split('|')[1]),
+      delivered:deliveredOfLocal(r),
+      score:numOrNull(r.score),
+      delivery_date:r.timestamp||r.deliveryDate||new Date().toISOString(),
+      observations:r.observations||null,
+      data:r
+    };
+  }
+  function setState(msg,ok=false){
+    try{supaState(msg,ok)}catch(_){}
+  }
+  async function waitReady(maxMs=25000){
+    const start=Date.now();
+    while(Date.now()-start<maxMs){
+      try{
+        if(window.ProfeSupabase && typeof all==='function' && typeof supabaseReady!=='undefined' && supabaseReady)return true;
+      }catch(_){}
+      await new Promise(r=>setTimeout(r,750));
+    }
+    return false;
+  }
+  async function fetchRemoteActivities(){
+    const rows=[];
+    for(const g of GROUPS){
+      const part=await window.ProfeSupabase.select(
+        'activities',
+        'select=id,title,group_name,shift,activity_date,due_date,evaluation_type,visible_to_students,closed&group_name=eq.'+encodeURIComponent(g)+'&shift=eq.Matutino'
+      );
+      if(Array.isArray(part))rows.push(...part);
+    }
+    return rows;
+  }
+  async function fetchRemoteRecords(){
+    const out=await window.ProfeSupabase.rpc('teacher_activity_records_audit',{p_group_name:null});
+    if(Array.isArray(out))return out;
+    if(out?.error)throw new Error(out.error);
+    return out||[];
+  }
+  async function upsertActivities(rows){
+    for(let i=0;i<rows.length;i+=30){
+      await window.ProfeSupabase.upsert('activities',rows.slice(i,i+30).map(remoteActivityRow),'id');
+    }
+  }
+  async function upsertRecords(rows){
+    for(let i=0;i<rows.length;i+=50){
+      const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{
+        p_rows:rows.slice(i,i+50).map(remoteRecordRow)
+      });
+      if(out?.ok===false)throw new Error(out?.error||out?.reason||'No se pudo confirmar un bloque de entregas.');
+    }
+  }
+
+  async function reconcileActivities({manual=false}={}){
+    if(running)return lastResult;
+    running=true;
+    try{
+      const ready=await waitReady();
+      if(!ready)throw new Error('Supabase todavía no está listo.');
+
+      if(manual)setState('🔄 Verificando Actividades con Supabase…');
+
+      const [localActsAll,localRecsAll]=await Promise.all([all('activities'),all('activityRecords')]);
+      const localActs=(localActsAll||[]).filter(relevantActivity);
+      const localIds=new Set(localActs.map(a=>String(a.id)));
+      const localRecs=(localRecsAll||[]).filter(r=>localIds.has(String(r.activityId||'')));
+
+      // 1. El iPad docente es la fuente histórica para recuperar lo que nunca subió.
+      // Primero actividades; después registros, respetando llaves foráneas.
+      await upsertActivities(localActs);
+      await upsertRecords(localRecs);
+
+      // 2. Verificación real posterior contra Supabase.
+      const [remoteActs,remoteRecs]=await Promise.all([fetchRemoteActivities(),fetchRemoteRecords()]);
+      const remoteActIds=new Set((remoteActs||[]).filter(r=>{
+        const d=String(r.activity_date||'');
+        return d>=FROM && GROUPS.has(String(r.group_name||''));
+      }).map(r=>String(r.id)));
+
+      const missingActivities=localActs.filter(a=>!remoteActIds.has(String(a.id)));
+
+      const remoteMap=new Map((remoteRecs||[]).map(r=>[recKey(r.activity_id,r.student_id),r]));
+      const recordMismatches=[];
+      for(const lr of localRecs){
+        const k=recKey(lr.activityId,lr.studentId);
+        const rr=remoteMap.get(k);
+        if(!rr){recordMismatches.push({key:k,reason:'missing'});continue}
+        const ld=deliveredOfLocal(lr);
+        const rd=rr.delivered===true?true:rr.delivered===false?false:null;
+        const ls=numOrNull(lr.score);
+        const rs=numOrNull(rr.score);
+        if(ld!==rd || ls!==rs)recordMismatches.push({key:k,reason:'different'});
+      }
+
+      lastResult={
+        ok:missingActivities.length===0&&recordMismatches.length===0,
+        localActivities:localActs.length,
+        localRecords:localRecs.length,
+        remoteActivities:remoteActs.filter(r=>GROUPS.has(String(r.group_name||''))&&String(r.activity_date||'')>=FROM).length,
+        missingActivities:missingActivities.length,
+        recordMismatches:recordMismatches.length,
+        verifiedAt:new Date().toISOString()
+      };
+
+      if(lastResult.ok){
+        setState('✅ Actividades verificadas · App Docente y Supabase coinciden',true);
+      }else{
+        setState('⚠️ Actividades NO coinciden · '+missingActivities.length+' actividades y '+recordMismatches.length+' registros pendientes',false);
+      }
+      window.__activityReconcileResult=lastResult;
+      return lastResult;
+    }catch(e){
+      lastResult={ok:false,error:String(e?.message||e),verifiedAt:new Date().toISOString()};
+      setState('⚠️ No se pudo verificar Actividades: '+(e?.message||e),false);
+      window.__activityReconcileResult=lastResult;
+      return lastResult;
+    }finally{
+      running=false;
+    }
+  }
+
+  function installButton(){
+    if(document.querySelector('#activityFullReconcileBtn'))return;
+    const section=document.querySelector('#activities .section');
+    const target=section?.querySelector('.actions')||section;
+    if(!target)return;
+    const btn=document.createElement('button');
+    btn.id='activityFullReconcileBtn';
+    btn.type='button';
+    btn.className='primary';
+    btn.textContent='🔄 Verificar y reparar apps';
+    btn.addEventListener('click',async()=>{
+      const old=btn.textContent;
+      btn.disabled=true;btn.textContent='Verificando…';
+      const r=await reconcileActivities({manual:true});
+      btn.disabled=false;btn.textContent=old;
+      if(r?.ok)alert('Verificación completa: Actividades de App Docente y Supabase coinciden.');
+      else alert('La verificación detectó diferencias. Revisa el indicador superior y vuelve a intentarlo con conexión estable.');
+    });
+    target.appendChild(btn);
+  }
+
+  async function automatic(){
+    const r=await reconcileActivities({manual:false});
+    if(!r?.ok){
+      clearTimeout(retryTimer);
+      retryTimer=setTimeout(()=>reconcileActivities({manual:false}),5000);
+    }
+  }
+
+  window.reconcileAllActivities=reconcileActivities;
+  window.addEventListener('online',()=>setTimeout(automatic,1200));
+  window.addEventListener('focus',()=>setTimeout(automatic,800));
+  window.addEventListener('load',()=>{
+    setTimeout(installButton,700);
+    setTimeout(automatic,2500);
+  },{once:true});
+})();

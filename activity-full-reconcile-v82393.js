@@ -107,10 +107,14 @@
       const [localActsAll,localRecsAll]=await Promise.all([all('activities'),all('activityRecords')]);
       const localActs=(localActsAll||[]).filter(relevantActivity);
       const localIds=new Set(localActs.map(a=>String(a.id)));
-      // Solo sincronizar registros que representan una decisión real del docente.
-      // Los placeholders locales sin yes/no ni calificación no son entregas y no
-      // deben convertirse en miles de filas remotas.
-      const localRecs=(localRecsAll||[]).filter(r=>localIds.has(String(r.activityId||''))&&comparableLocal(r));
+      // Acepta tanto el formato IndexedDB (activityId/studentId) como el formato
+      // normalizado (activity_id/student_id). Así no se pierden registros históricos.
+      const normalizedLocalRecs=(localRecsAll||[]).map(r=>({
+        ...r,
+        activityId:String(r.activityId||r.activity_id||String(r.key||'').split('|')[0]||''),
+        studentId:String(r.studentId||r.student_id||String(r.key||'').split('|')[1]||'')
+      }));
+      const localRecs=normalizedLocalRecs.filter(r=>localIds.has(String(r.activityId||''))&&comparableLocal(r));
 
       // 1. El iPad docente es la fuente histórica para recuperar lo que nunca subió.
       // Primero actividades; después registros, respetando llaves foráneas.

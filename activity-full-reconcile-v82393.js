@@ -118,7 +118,7 @@
       // Recuperación segura: leer primero Supabase y subir únicamente llaves que
       // NO existen allí. Nunca sobrescribir un registro académico ya guardado.
       const beforeRemoteRecs=await fetchRemoteRecords();
-      await insertOnlyMissingRecords(localRecs,beforeRemoteRecs);
+      const uploadedMissing=await insertOnlyMissingRecords(localRecs,beforeRemoteRecs);
 
       // 2. Verificación real posterior contra Supabase.
       const [remoteActs,remoteRecs]=await Promise.all([fetchRemoteActivities(),fetchRemoteRecords()]);
@@ -150,11 +150,12 @@
         remoteActivities:remoteRelevantActivities,
         missingActivities:missingActivities.length,
         recordMismatches:recordMismatches.length,
+        uploadedMissing:Number(uploadedMissing||0),
         verifiedAt:new Date().toISOString()
       };
 
       if(lastResult.ok){
-        setState('✅ Actividades verificadas · App Docente y Supabase coinciden',true);
+        setState('✅ Actividades verificadas · '+Number(uploadedMissing||0)+' registros faltantes enviados · App Docente y Supabase coinciden',true);
       }else{
         setState('⚠️ Actividades NO coinciden · '+missingActivities.length+' actividades y '+recordMismatches.length+' registros pendientes',false);
       }

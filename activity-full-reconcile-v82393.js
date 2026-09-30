@@ -251,9 +251,9 @@
   document.addEventListener('visibilitychange',()=>{
     if(document.visibilityState==='visible')setTimeout(automatic,800);
   });
-  // Verificación periódica: si una escritura histórica quedó local, se vuelve a
-  // publicar sin que el profesor tenga que pulsar ningún botón.
-  setInterval(()=>{if(document.visibilityState==='visible')automatic();},20000);
+  // La escritura de actividades ya es server-first. No ejecutar una restauración
+  // masiva cada 20 s mientras el profesor captura: esa tarea histórica saturaba
+  // la red y podía frenar el escáner. La conciliación queda en arranque/foco/online.
   function bootReconcile(){
     setTimeout(installButton,700);
     setTimeout(automatic,1200);

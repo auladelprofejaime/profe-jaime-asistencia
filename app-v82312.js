@@ -1508,6 +1508,13 @@ async function showWeeklyReportOptions(){
  $('#publishWeeklyParents').onclick=async()=>{let ids=selected();if(!ids.length)return alert('Selecciona al menos una actividad.');let r=range(),t=title();if(!confirm('Se publicará un reporte individual para cada familia del grupo seleccionado y se enviará una notificación. ¿Continuar?'))return;$('#dialog').close();await publishWeeklyReportsToParents(ids,t,r.from,r.to)};
 }
 
+async function syncReportTruthToPortals(shift,group,acts,records){
+ if(!supabaseReady||!window.ProfeSupabase)return;
+ for(const a of acts)await window.ProfeSupabase.upsert('activities',remoteActivity(a),'id');
+ const ids=new Set(acts.map(a=>String(a.id)));
+ const rows=records.filter(r=>ids.has(String(r.activityId||r.activity_id||String(r.key||'').split('|')[0])));
+ for(let i=0;i<rows.length;i+=40)await window.ProfeSupabase.rpc('teacher_activity_records_restore_from_ipad',{p_rows:rows.slice(i,i+40).map(remoteActivityRecord)});
+}
 function weeklyReportData(selectedIds=null,fromDate=null,toDate=null){
  return (async()=>{
    const shift=$('#gridShift').value,group=$('#gridGroup').value;
@@ -1515,6 +1522,7 @@ function weeklyReportData(selectedIds=null,fromDate=null,toDate=null){
    let acts=(fromDate&&toDate)?await reportRangeActivities(fromDate,toDate):await currentWeekActivities();
    if(Array.isArray(selectedIds))acts=acts.filter(a=>selectedIds.includes(a.id));
    const records=await all('activityRecords');
+   await syncReportTruthToPortals(shift,group,acts,records);
    const map=new Map(records.map(x=>[x.key,x]));
    const week=(fromDate&&toDate)?reportRangeLabel(fromDate,toDate):$('#gridWeek').value;
    return {shift,group,week,students:allStudents,acts,map,fromDate,toDate};

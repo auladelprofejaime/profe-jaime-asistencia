@@ -33,7 +33,7 @@
         if(!window.ProfeSupabase)throw new Error('NO GUARDADO: sin conexión con Supabase.');
         const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:[recordRow(value)]});
         if(out?.ok===false||Number(out?.merged||0)!==1)throw new Error(out?.error||out?.reason||'Supabase no confirmó el registro.');
-        await notifyActivityDelivered(value);
+        notifyActivityDelivered(value).catch(e=>console.error('Push actividad entregada',e));
       }
       return originalPut(store,value);
     };

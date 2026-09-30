@@ -154,6 +154,24 @@
     }
   }
 
+  async function serverMerge(aid,sid,{status,score}={}){
+    if(!window.ProfeSupabase)throw new Error('Sin conexión con Supabase.');
+    const now=new Date().toISOString();
+    const row={activity_id:String(aid),student_id:String(sid),
+      delivered:status==='yes'?true:status==='no'?false:null,
+      score:typeof score==='number'?score:null,delivery_date:now,
+      data:{key:key(aid,sid),activityId:String(aid),studentId:String(sid),
+        ...(status?{status}:{}),...(typeof score==='number'?{score}:{}),timestamp:now}};
+    const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:[row]});
+    if(out?.ok===false||Number(out?.merged||0)!==1)throw new Error(out?.error||'Supabase no confirmó el cambio.');
+    return now;
+  }
+  async function serverClear(aid,sid){
+    if(!window.ProfeSupabase)throw new Error('Sin conexión con Supabase.');
+    const out=await window.ProfeSupabase.rpc('teacher_activity_record_clear',{p_activity_id:String(aid),p_student_id:String(sid)});
+    if(out?.ok===false)throw new Error(out?.error||'Supabase no confirmó el cambio.');
+  }
+
   async function saveDelivery(cell){
     if(cell.dataset.saving==='1')return;
     const aid=cell.dataset.aid,sid=cell.dataset.sid,k=key(aid,sid);
@@ -162,72 +180,56 @@
     const next=oldState==='pending'?'yes':oldState==='yes'?'no':'pending';
     cell.dataset.saving='1';
     try{
-      if(next==='pending'){
-        if(old){
-          if(typeof del!=='function')throw new Error('No está disponible la función para dejar pendiente.');
-          await del('activityRecords',old.key||k);
-          current.records.delete(k);
-        }
-      }else{
-        if(typeof put!=='function')throw new Error('No está disponible la función para guardar.');
-        const rec={...(old||{}),key:k,activityId:aid,studentId:sid,status:next,timestamp:new Date().toISOString()};
+      // SERVIDOR PRIMERO. El iPad solo refleja lo que Supabase confirmó.
+      if(next==='pending') await serverClear(aid,sid);
+      else {
+        const stamp=await serverMerge(aid,sid,{status:next});
+        const rec={...(old||{}),key:k,activityId:aid,studentId:sid,status:next,timestamp:stamp};
         delete rec.score;
+        if(typeof put!=='function')throw new Error('No está disponible la caché local.');
         await put('activityRecords',rec);
         current.records.set(k,rec);
-
-        if(next==='yes'){
-          try{
-            const act=current.activities.find(x=>String(x.id)===String(aid));
-            if(act && typeof sameShift==='function' && sameShift(act.shift,'Matutino') && window.ProfeSupabase){
-              await window.ProfeSupabase.edge('send-push',{
-                event:'activity_update',
-                student_id:String(sid),
-                title:act.name||'Actividad',
-                message:`${act.name||'Actividad'} · Estado: Entregada`,
-                status:'yes'
-              });
-            }
-          }catch(e){console.warn('Notificación de actividad entregada',e)}
-        }
       }
-      cell.classList.remove('yes','no','pending');
-      cell.classList.add(next);
+      if(next==='pending'){
+        if(old&&typeof del==='function')await del('activityRecords',old.key||k);
+        current.records.delete(k);
+      }
+      cell.classList.remove('yes','no','pending');cell.classList.add(next);
       cell.textContent=next==='pending'?'○':'●';
       cell.title=next==='yes'?'Entregó':next==='no'?'No entregó':'Pendiente';
+      if(next==='yes'){
+        try{const act=current.activities.find(x=>String(x.id)===String(aid));
+          if(act&&typeof sameShift==='function'&&sameShift(act.shift,'Matutino')&&window.ProfeSupabase)
+            await window.ProfeSupabase.edge('send-push',{event:'activity_update',student_id:String(sid),title:act.name||'Actividad',message:`${act.name||'Actividad'} · Estado: Entregada`,status:'yes'});
+        }catch(e){console.warn('Notificación de actividad entregada',e)}
+      }
     }catch(e){
-      alert('No se pudo actualizar esta entrega: '+(e?.message||e));
+      alert('NO GUARDADO. No se cambió el registro porque Supabase no lo confirmó: '+(e?.message||e));
     }finally{delete cell.dataset.saving}
   }
 
   async function saveScore(input){
     if(input.dataset.saving==='1')return;
     const aid=input.dataset.aid,sid=input.dataset.sid,k=key(aid,sid);
-    const old=current.records.get(k)||null;
-    const raw=String(input.value||'').trim();
-    if(raw!==''){
-      const n=Number(raw);
-      if(!Number.isFinite(n)||n<0||n>10){alert('La calificación debe estar entre 0 y 10.');input.value=(old&&typeof old.score==='number')?old.score:'';return}
-    }
+    const old=current.records.get(k)||null,raw=String(input.value||'').trim();
+    if(raw!==''){const n=Number(raw);if(!Number.isFinite(n)||n<0||n>10){alert('La calificación debe estar entre 0 y 10.');input.value=(old&&typeof old.score==='number')?old.score:'';return}}
     input.dataset.saving='1';
     try{
       if(raw===''){
-        if(old){
-          if(typeof del!=='function')throw new Error('No está disponible la función para borrar la calificación.');
-          await del('activityRecords',old.key||k);
-          current.records.delete(k);
-        }
+        await serverClear(aid,sid);
+        if(old&&typeof del==='function')await del('activityRecords',old.key||k);
+        current.records.delete(k);
       }else{
-        if(typeof put!=='function')throw new Error('No está disponible la función para guardar.');
-        const rec={...(old||{}),key:k,activityId:aid,studentId:sid,score:Number(raw),timestamp:new Date().toISOString()};
+        const n=Number(raw),stamp=await serverMerge(aid,sid,{score:n});
+        const rec={...(old||{}),key:k,activityId:aid,studentId:sid,score:n,timestamp:stamp};
         delete rec.status;
-        await put('activityRecords',rec);
-        current.records.set(k,rec);
+        if(typeof put!=='function')throw new Error('No está disponible la caché local.');
+        await put('activityRecords',rec);current.records.set(k,rec);
       }
-      input.style.outline='2px solid #52a66a';
-      setTimeout(()=>{input.style.outline=''},700);
+      input.style.outline='2px solid #52a66a';setTimeout(()=>{input.style.outline=''},700);
     }catch(e){
-      alert('No se pudo actualizar la calificación: '+(e?.message||e));
       input.value=(old&&typeof old.score==='number')?old.score:'';
+      alert('NO GUARDADA. No se cambió la calificación porque Supabase no la confirmó: '+(e?.message||e));
     }finally{delete input.dataset.saving}
   }
 

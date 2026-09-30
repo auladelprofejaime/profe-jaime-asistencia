@@ -84,13 +84,15 @@
       await window.ProfeSupabase.upsert('activities',rows.slice(i,i+30).map(remoteActivityRow),'id');
     }
   }
-  async function upsertRecords(rows){
-    for(let i=0;i<rows.length;i+=50){
-      const block=rows.slice(i,i+50).map(remoteRecordRow);
+  async function insertOnlyMissingRecords(rows,remoteRows){
+    const remoteKeys=new Set((remoteRows||[]).map(r=>recKey(r.activity_id,r.student_id)));
+    const missing=(rows||[]).filter(r=>!remoteKeys.has(recKey(r.activityId,r.studentId)));
+    for(let i=0;i<missing.length;i+=50){
+      const block=missing.slice(i,i+50).map(remoteRecordRow);
       const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:block});
-      if(out?.ok===false)throw new Error(out?.error||out?.reason||'No se pudo confirmar un bloque de entregas.');
-      if(Number(out?.merged||0)!==block.length)throw new Error('Supabase confirmó '+Number(out?.merged||0)+' de '+block.length+' registros. Se detuvo para no declarar una sincronización incompleta como correcta.');
+      if(out?.ok===false)throw new Error(out?.error||out?.reason||'No se pudo confirmar un bloque de registros faltantes.');
     }
+    return missing.length;
   }
 
   async function reconcileActivities({manual=false}={}){
@@ -113,7 +115,10 @@
       // 1. El iPad docente es la fuente histórica para recuperar lo que nunca subió.
       // Primero actividades; después registros, respetando llaves foráneas.
       await upsertActivities(localActs);
-      await upsertRecords(localRecs);
+      // Recuperación segura: leer primero Supabase y subir únicamente llaves que
+      // NO existen allí. Nunca sobrescribir un registro académico ya guardado.
+      const beforeRemoteRecs=await fetchRemoteRecords();
+      await insertOnlyMissingRecords(localRecs,beforeRemoteRecs);
 
       // 2. Verificación real posterior contra Supabase.
       const [remoteActs,remoteRecs]=await Promise.all([fetchRemoteActivities(),fetchRemoteRecords()]);

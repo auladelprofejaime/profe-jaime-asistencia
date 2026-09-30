@@ -1,6 +1,6 @@
 // App Docente v8.23.93 · conciliación real de Actividades iPad ↔ Supabase
 (function(){
-  const GROUPS=new Set(['22','23','24','25','26']);
+  const GROUPS=new Set(['21','22','23','24','25','26']);
   const FROM='2026-08-31';
   let running=false;
   let lastResult=null;
@@ -86,10 +86,10 @@
   }
   async function upsertRecords(rows){
     for(let i=0;i<rows.length;i+=50){
-      const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{
-        p_rows:rows.slice(i,i+50).map(remoteRecordRow)
-      });
+      const block=rows.slice(i,i+50).map(remoteRecordRow);
+      const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:block});
       if(out?.ok===false)throw new Error(out?.error||out?.reason||'No se pudo confirmar un bloque de entregas.');
+      if(Number(out?.merged||0)!==block.length)throw new Error('Supabase confirmó '+Number(out?.merged||0)+' de '+block.length+' registros. Se detuvo para no declarar una sincronización incompleta como correcta.');
     }
   }
 

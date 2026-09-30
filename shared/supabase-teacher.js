@@ -113,9 +113,28 @@ async function refresh(){
        throw new Error('La renovación de la sesión está en espera temporal. Tus registros siguen protegidos en este dispositivo y la app continuará intentando después.');
      }
      if(r.status===400&&(code==='refresh_token_already_used'||/already used/i.test(raw))){
-       authRefreshBlockedUntil=Date.now()+5*60*1000;
-       try{sessionChannel?.postMessage({auth_pause_until:authRefreshBlockedUntil})}catch(_){}
-       throw new Error('La sesión de sincronización venció. Tus registros pendientes siguen protegidos en este dispositivo. Inicia sesión nuevamente una sola vez para continuar la sincronización.');
+       // Otro contexto pudo renovar el token primero. Espera un instante y adopta
+       // la sesión más nueva antes de declarar la sesión vencida.
+       await apiSleep(700);
+       let latest=null;
+       try{latest=JSON.parse(localStorage.getItem(SESSION_KEY)||sessionStorage.getItem(SESSION_KEY)||'null')}catch(_){}
+       if(latest?.access_token&&latest?.refresh_token){
+         const latestExp=(latest.expires_at?latest.expires_at*1000:(latest.saved_at||0)+(latest.expires_in||3600)*1000);
+         const latestSaved=Number(latest.saved_at||0),currentSaved=Number(session?.saved_at||0);
+         if(latestExp>Date.now()+30000&&(latestSaved>currentSaved||latest.refresh_token!==refreshToken)){
+           session=latest;
+           authRefreshBlockedUntil=0;
+           return session;
+         }
+       }
+       // El refresh token realmente ya no sirve. Se limpia SOLO la sesión de
+       // Supabase para forzar un inicio de sesión limpio; no se toca ningún
+       // registro, respaldo ni cola local de la App Docente.
+       session=null;
+       authRefreshBlockedUntil=0;
+       try{localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY)}catch(_){}
+       try{sessionChannel?.postMessage({session:null,auth_required:true})}catch(_){}
+       throw new Error('La sesión de Supabase venció. Inicia sesión nuevamente para reconectar. Tus datos de la App Docente no se borraron.');
      }
      throw new Error(data?.message||data?.error_description||data?.hint||('Supabase '+r.status));
    }

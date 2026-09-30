@@ -180,19 +180,18 @@
     const next=oldState==='pending'?'yes':oldState==='yes'?'no':'pending';
     cell.dataset.saving='1';
     try{
-      // SERVIDOR PRIMERO. El iPad solo refleja lo que Supabase confirmó.
-      if(next==='pending') await serverClear(aid,sid);
-      else {
-        const stamp=await serverMerge(aid,sid,{status:next});
-        const rec={...(old||{}),key:k,activityId:aid,studentId:sid,status:next,timestamp:stamp};
-        delete rec.score;
-        if(typeof put!=='function')throw new Error('No está disponible la caché local.');
-        await put('activityRecords',rec);
-        current.records.set(k,rec);
-      }
+      // Una sola ruta: put/del están protegidos por la guardia global,
+      // que confirma Supabase antes de modificar la caché local.
       if(next==='pending'){
         if(old&&typeof del==='function')await del('activityRecords',old.key||k);
         current.records.delete(k);
+      }else{
+        const stamp=new Date().toISOString();
+        const rec={...(old||{}),key:k,activityId:aid,studentId:sid,status:next,timestamp:stamp};
+        delete rec.score;
+        if(typeof put!=='function')throw new Error('No está disponible el guardado.');
+        await put('activityRecords',rec);
+        current.records.set(k,rec);
       }
       cell.classList.remove('yes','no','pending');cell.classList.add(next);
       cell.textContent=next==='pending'?'○':'●';
@@ -216,14 +215,13 @@
     input.dataset.saving='1';
     try{
       if(raw===''){
-        await serverClear(aid,sid);
         if(old&&typeof del==='function')await del('activityRecords',old.key||k);
         current.records.delete(k);
       }else{
-        const n=Number(raw),stamp=await serverMerge(aid,sid,{score:n});
+        const n=Number(raw),stamp=new Date().toISOString();
         const rec={...(old||{}),key:k,activityId:aid,studentId:sid,score:n,timestamp:stamp};
         delete rec.status;
-        if(typeof put!=='function')throw new Error('No está disponible la caché local.');
+        if(typeof put!=='function')throw new Error('No está disponible el guardado.');
         await put('activityRecords',rec);current.records.set(k,rec);
       }
       input.style.outline='2px solid #52a66a';setTimeout(()=>{input.style.outline=''},700);

@@ -148,8 +148,15 @@
       window.__activityReconcileResult=lastResult;
       return lastResult;
     }catch(e){
-      lastResult={ok:false,error:String(e?.message||e),verifiedAt:new Date().toISOString()};
-      setState('⚠️ No se pudo verificar Actividades: '+(e?.message||e),false);
+      const msg=String(e?.message||e);
+      const authExpired=/sesión de supabase venció|sesion de supabase vencio|sesión de sincronización venció|sesion de sincronizacion vencio|inicia sesión nuevamente|inicia sesion nuevamente/i.test(msg);
+      lastResult={ok:false,error:msg,authRequired:authExpired,verifiedAt:new Date().toISOString()};
+      if(authExpired){
+        document.querySelector('#teacherLoginGate')?.classList.remove('hidden');
+        setState('🔐 Supabase necesita volver a iniciar sesión. No se borró información; inicia sesión una vez para continuar la verificación.',false);
+      }else{
+        setState('⚠️ No se pudo verificar Actividades: '+msg,false);
+      }
       window.__activityReconcileResult=lastResult;
       return lastResult;
     }finally{

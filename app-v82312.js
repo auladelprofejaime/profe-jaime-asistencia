@@ -1201,13 +1201,26 @@ async function createActivity(e){
  }else{
    const createdAt=new Date().toISOString();
    for(const group of selectedGroups){
-     await put('activities',{
+     const newActivity={
        ...base,
        id:crypto.randomUUID(),
        group,
        order:Date.now(),
        created:createdAt
-     });
+     };
+     await put('activities',newActivity);
+     if(newMode==='delivery'){
+       const groupStudents=(await students()).filter(s=>sameShift(s.shift,shift)&&sameGroup(s.group,group));
+       for(const student of groupStudents){
+         await put('activityRecords',{
+           key:newActivity.id+'|'+student.id,
+           activityId:newActivity.id,
+           studentId:student.id,
+           status:'no',
+           timestamp:createdAt
+         });
+       }
+     }
    }
    groupsForPush=[...selectedGroups];
  }

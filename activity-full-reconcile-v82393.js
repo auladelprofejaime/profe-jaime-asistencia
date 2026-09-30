@@ -115,6 +115,31 @@
         studentId:String(r.studentId||r.student_id||String(r.key||'').split('|')[1]||'')
       }));
       const localRecs=normalizedLocalRecs.filter(r=>localIds.has(String(r.activityId||''))&&comparableLocal(r));
+      // Compatibilidad histórica: versiones antiguas podían conservar estados dentro
+      // de la propia actividad sin crear activityRecords. Recuperar SOLO estados
+      // explícitos almacenados; nunca convertir ausencia en "No entregada".
+      const existingLocalKeys=new Set(localRecs.map(r=>recKey(r.activityId,r.studentId)));
+      for(const a of localActs){
+        const d=a?.data||a||{};
+        const bags=[d.records,d.activityRecords,d.deliveryRecords,d.deliveries,d.studentRecords,d.statusByStudent,d.deliveryByStudent];
+        for(const bag of bags){
+          if(!bag)continue;
+          const entries=Array.isArray(bag)
+            ? bag.map(v=>[String(v?.studentId||v?.student_id||v?.id||''),v])
+            : Object.entries(bag);
+          for(const [sid,v] of entries){
+            if(!sid)continue;
+            let status=null,score=null;
+            if(v===true||String(v).toLowerCase()==='yes'||String(v?.status||'').toLowerCase()==='yes')status='yes';
+            else if(v===false||String(v).toLowerCase()==='no'||String(v?.status||'').toLowerCase()==='no')status='no';
+            if(typeof v?.score==='number'&&Number.isFinite(v.score))score=v.score;
+            if(status===null&&score===null)continue;
+            const k=recKey(a.id,sid); if(existingLocalKeys.has(k))continue;
+            localRecs.push({key:k,activityId:String(a.id),studentId:String(sid),status,score,timestamp:v?.timestamp||v?.deliveryDate||v?.delivery_date||a?.updated||a?.created||new Date().toISOString()});
+            existingLocalKeys.add(k);
+          }
+        }
+      }
 
       // 1. El iPad docente es la fuente histórica para recuperar lo que nunca subió.
       // Primero actividades; después registros, respetando llaves foráneas.

@@ -84,6 +84,21 @@ body.whatsapp-onboarding-lock{overflow:hidden}
 <script>
 document.addEventListener('click',e=>{const a=e.target.closest('#openAppointments');if(a){location.href='./citas.html';return}const c=e.target.closest('#openCellphone');if(c){location.href='./celular.html';return}});
 if('serviceWorker' in navigator){
- window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=8144',{scope:'./'}).catch(console.warn));
+ window.addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js?v=8145',{scope:'./'}).catch(console.warn));
 }
-</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script><script type="module" src="app-v8141.js?v=8144"></script></body></html>
+</script><script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script><script type="module" src="app-v8141.js?v=8145"></script><script id="parent-auto-update-v8145">
+if('serviceWorker' in navigator){
+  let reloading=false;
+  navigator.serviceWorker.addEventListener('controllerchange',()=>{
+    if(reloading)return;
+    reloading=true;
+    location.reload();
+  });
+  window.addEventListener('load',async()=>{
+    try{
+      const reg=await navigator.serviceWorker.getRegistration('./');
+      if(reg)await reg.update();
+    }catch(e){console.warn('Actualización automática App Padres',e)}
+  });
+}
+</script></body></html>

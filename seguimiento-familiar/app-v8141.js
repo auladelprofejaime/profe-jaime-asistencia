@@ -795,11 +795,7 @@ function familyActivityState(a,r){
  if(mode==='numeric'&&typeof r?.score==='number')return {label:'Entregada',cls:'ok'};
  if(r?.status==='yes')return {label:'Entregada',cls:'ok'};
  if(r?.status==='no')return {label:'No entregada',cls:'bad'};
- if(a.dueDate){
-   const today=new Date();today.setHours(0,0,0,0);
-   const due=new Date(a.dueDate+'T23:59:59');
-   if(due<today)return {label:'Vencida',cls:'bad'};
- }
+ // Sin registro explícito de Docente no se infiere incumplimiento.
  return {label:'Pendiente',cls:'warn'};
 }
 

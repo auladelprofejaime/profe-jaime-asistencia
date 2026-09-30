@@ -147,9 +147,21 @@
         status.className=noIssues?'message good':'message';
         status.textContent=noIssues?'✓ Alumno al corriente.':'Consulta lista: '+pendingCount+' pendiente'+(pendingCount===1?'':'s')+' de entrega y '+ungradedCount+' sin calificación.';
       }
-      byId('activityPendingSelectAll')?.addEventListener('click',()=>{document.querySelectorAll('.activity-pending-check').forEach(x=>x.checked=true)});
+      const pendingChecks=[...box.querySelectorAll('.activity-pending-check')];
+      const deliverBtn=byId('activityPendingDeliverSelected');
+      const refreshDeliverButton=()=>{
+        const n=pendingChecks.filter(x=>x.checked).length;
+        if(deliverBtn){deliverBtn.disabled=n===0;deliverBtn.textContent=n?('Registrar '+n+' seleccionada'+(n===1?'':'s')+' como entregada'+(n===1?'':'s')):'Registrar seleccionadas como entregadas';}
+      };
+      pendingChecks.forEach(ch=>ch.addEventListener('change',refreshDeliverButton));
+      byId('activityPendingSelectAll')?.addEventListener('click',()=>{
+        const allSelected=pendingChecks.length&&pendingChecks.every(x=>x.checked);
+        pendingChecks.forEach(x=>x.checked=!allSelected);
+        refreshDeliverButton();
+      });
+      refreshDeliverButton();
       byId('activityPendingDeliverSelected')?.addEventListener('click',async()=>{
-        const selected=[...document.querySelectorAll('.activity-pending-check:checked')].map(x=>x.dataset.activityId).filter(Boolean);
+        const selected=pendingChecks.filter(x=>x.checked).map(x=>x.dataset.activityId).filter(Boolean);
         if(!selected.length){if(status){status.className='message bad';status.textContent='Selecciona al menos una actividad.'}return;}
         const btn=byId('activityPendingDeliverSelected'); if(btn)btn.disabled=true;
         try{

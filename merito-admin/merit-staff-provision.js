@@ -303,6 +303,35 @@
     finally{if(btn){btn.disabled=false;btn.textContent=old||'Generar PDF · 69 accesos'}}
   }
 
+  async function printActiveTeachersPdf(){
+    const btn=$m('#meritPrintActiveTeachers'),old=btn?.textContent;
+    if(btn){btn.disabled=true;btn.textContent='Generando PDF…'}
+    try{
+      const rows=await rpc('teacher_merit_staff',{});
+      const active=(Array.isArray(rows)?rows:[]).filter(x=>x.active===true).sort((a,b)=>String(a.display_name||'').localeCompare(String(b.display_name||''),'es',{sensitivity:'base'}));
+      if(!active.length)throw new Error('No hay cuentas activas.');
+      const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)throw new Error('El generador PDF no está disponible.');
+      const doc=new jsPDF({orientation:'portrait',unit:'pt',format:'letter'});
+      const W=612,M=42;let y=48;
+      doc.setFont('helvetica','bold');doc.setFontSize(17);doc.text('Mérito Gabino A. Palma',M,y);y+=22;
+      doc.setFontSize(13);doc.text('Docentes con cuenta activa',M,y);y+=18;
+      doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(90);doc.text('Generado '+new Date().toLocaleString('es-MX'),M,y);y+=22;
+      const header=()=>{doc.setTextColor(30);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('ID',M,y);doc.text('Nombre',M+75,y);doc.text('Tipo / función',M+330,y);doc.line(M,y+5,W-M,y+5);y+=19;};
+      header();
+      doc.setFont('helvetica','normal');doc.setFontSize(9);
+      for(const st of active){
+        if(y>742){doc.addPage();y=48;header();doc.setFont('helvetica','normal');}
+        const code=String(st.staff_code||'—');
+        const name=String(st.display_name||'Pendiente de completar datos');
+        const role=[st.role_type||st.role||'Docente',st.subject||st.function||''].filter(Boolean).join(' · ');
+        doc.text(code,M,y);doc.text(doc.splitTextToSize(name,235)[0],M+75,y);doc.text(doc.splitTextToSize(role,190)[0],M+330,y);y+=17;
+      }
+      y+=8;doc.setFont('helvetica','bold');doc.text('Total de cuentas activas: '+active.length,M,y);
+      const blob=doc.output('blob');openMeritPdfViewer(blob,'Merito_Docentes_Cuentas_Activas.pdf');
+    }catch(e){alert('No se pudo generar el PDF: '+(e.message||e))}
+    finally{if(btn){btn.disabled=false;btn.textContent=old||'PDF · cuentas activas'}}
+  }
+
   function resetFolioForm(){
     $m('#meritTeacherFolioResult')?.classList.add('hidden');
     if($m('#meritTeacherFolioScan'))$m('#meritTeacherFolioScan').value='';
@@ -314,6 +343,7 @@
     $m('#meritTeacherFolioActivate')?.addEventListener('click',activateTeacherFolio);
     $m('#meritTeacherFolioCancel')?.addEventListener('click',resetFolioForm);
     $m('#meritPrintTeacherFolios')?.addEventListener('click',printTeacherFolios);
+    $m('#meritPrintActiveTeachers')?.addEventListener('click',printActiveTeachersPdf);
     $m('#meritTeacherFolioScan')?.addEventListener('keydown',e=>{if(e.key==='Enter'){e.preventDefault();findTeacherFolio()}});
     document.querySelectorAll('.meritNav[data-merit-pane="staff"]').forEach(b=>b.addEventListener('click',()=>setTimeout(()=>{refreshTeacherFolioSummary();loadAndDecorateStaff();$m('#meritTeacherFolioScan')?.focus()},120)));
     const list=$m('#meritStaffList');

@@ -45,6 +45,10 @@
       data:r
     };
   }
+  function comparableLocal(r){
+    const status=String(r?.status||'').toLowerCase();
+    return status==='yes'||status==='no'||numOrNull(r?.score)!==null;
+  }
   function setState(msg,ok=false){
     try{supaState(msg,ok)}catch(_){}
   }
@@ -101,7 +105,10 @@
       const [localActsAll,localRecsAll]=await Promise.all([all('activities'),all('activityRecords')]);
       const localActs=(localActsAll||[]).filter(relevantActivity);
       const localIds=new Set(localActs.map(a=>String(a.id)));
-      const localRecs=(localRecsAll||[]).filter(r=>localIds.has(String(r.activityId||'')));
+      // Solo sincronizar registros que representan una decisión real del docente.
+      // Los placeholders locales sin yes/no ni calificación no son entregas y no
+      // deben convertirse en miles de filas remotas.
+      const localRecs=(localRecsAll||[]).filter(r=>localIds.has(String(r.activityId||''))&&comparableLocal(r));
 
       // 1. El iPad docente es la fuente histórica para recuperar lo que nunca subió.
       // Primero actividades; después registros, respetando llaves foráneas.
@@ -180,7 +187,9 @@
       const r=await reconcileActivities({manual:true});
       btn.disabled=false;btn.textContent=old;
       if(r?.ok)alert('Verificación completa: Actividades de App Docente y Supabase coinciden.');
-      else alert('La verificación detectó diferencias. Revisa el indicador superior y vuelve a intentarlo con conexión estable.');
+      else if(r?.authRequired)alert('Supabase necesita volver a iniciar sesión. No se borró información.');
+      else if(r?.error)alert('No se pudo completar la verificación: '+r.error);
+      else alert('La verificación terminó, pero aún quedan '+Number(r?.missingActivities||0)+' actividad(es) y '+Number(r?.recordMismatches||0)+' registro(s) por conciliar.');
     });
     target.appendChild(btn);
   }

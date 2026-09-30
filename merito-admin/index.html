@@ -81,7 +81,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 <div id="merit-movements" class="merit-pane card"><div class="section"><div><h2>Movimientos</h2><p class="hint">Las anulaciones conservan trazabilidad.</p></div><button id="meritRefreshMovements" class="secondary">Actualizar</button></div><label>Periodo<select id="meritMovementPeriod"></select></label><div id="meritMovementsTable" class="tablewrap"></div></div>
 
 <div id="merit-staff" class="merit-pane card">
- <div class="section"><div><h2>Docentes autorizados</h2><p class="hint">Los docentes ya confirmados permanecen exactamente en la misma base.</p></div><div class="actions"><button id="meritPrintTeacherFolios" class="secondary" type="button">📄 Generar PDF · 69 accesos</button><button id="meritRefreshStaff" class="secondary" type="button">Actualizar</button></div></div>
+ <div class="section"><div><h2>Docentes autorizados</h2><p class="hint">Los docentes ya confirmados permanecen exactamente en la misma base.</p></div><div class="actions"><button id="meritPrintTeacherFolios" class="secondary" type="button">📄 Generar PDF · 69 accesos</button><button id="meritPrintActiveTeachers" class="secondary" type="button">📋 PDF · cuentas activas</button><button id="meritRefreshStaff" class="secondary" type="button">Actualizar</button></div></div>
  <div class="card" style="margin:12px 0;background:#fffaf0">
   <div class="section"><div><h3 style="margin:0">Escanear ID docente</h3><p class="hint">Escanea el código 700002…700070 y activa únicamente a quien aceptó participar.</p></div><div id="meritTeacherFolioSummary" class="badge">Cargando IDs…</div></div>
   <div class="formgrid"><label>ID / escáner<input id="meritTeacherFolioScan" inputmode="numeric" autocomplete="off" placeholder="700002"></label><div class="actions" style="align-items:end"><button id="meritTeacherFolioFind" class="primary" type="button">Buscar folio</button></div></div>
@@ -112,7 +112,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 <script src="./merit-movements.js?v=2"></script>
 <script src="./merit-corrections.js?v=2"></script>
 <script src="./merit-ranking.js?v=2"></script>
-<script src="./merit-staff-provision.js?v=2"></script>
+<script src="./merit-staff-provision.js?v=3"></script>
 <script src="./merit-staff-period.js?v=2"></script>
 <script src="./merit-tie-vote.js?v=2"></script>
 <script src="./merit-admin.js?v=2"></script>

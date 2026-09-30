@@ -7,6 +7,25 @@
   }
   async function merge(activityId,studentId,payload){
     if(!window.ProfeSupabase) throw new Error('Supabase no está disponible.');
+    // Repara primero la actividad si por una falla anterior sólo existe en este iPad.
+    try{
+      const a=await req(store('activities').get(String(activityId)));
+      if(a){
+        await window.ProfeSupabase.upsert('activities',{
+          id:String(a.id),
+          group_name:a.group||'',
+          shift:a.shift||'',
+          title:a.name||'Actividad',
+          activity_date:a.date||null,
+          due_date:a.dueDate||null,
+          evaluation_type:a.evaluationMode||'delivery',
+          max_score:10,
+          visible_to_students:true,
+          closed:!!a.closed,
+          data:a
+        },'id');
+      }
+    }catch(e){console.warn('No se pudo confirmar la actividad antes del registro',e)}
     const now=new Date().toISOString();
     const row={
       activity_id:String(activityId),

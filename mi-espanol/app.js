@@ -616,7 +616,7 @@ function activityState(a,r){
  if(mode==='numeric'&&typeof r?.score==='number')return {label:'Entregada',cls:'green'};
  if(r?.status==='yes')return {label:'Entregada',cls:'green'};
  if(r?.status==='no')return {label:'No entregada',cls:'red'};
- return {label:'No entregada',cls:'red'};
+ return {label:'Pendiente',cls:'yellow'};
 }
 function renderActivities(){
  let map=recordMap();

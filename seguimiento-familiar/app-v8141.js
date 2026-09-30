@@ -189,7 +189,11 @@ async function openPortalView(id){
  if((id==='reports'||id==='notices'||id==='home'||id==='activities'||id==='grades'||id==='materials')&&currentToken){
    try{
      const fresh=await portalGetBundle(currentToken);
-     if(fresh?.ok)bundle=fresh;
+     if(fresh?.ok){
+       bundle=fresh;
+       normalizePortalMethodologies();
+       renderAll();
+     }
      await refreshPortalContentNow();
    }catch(e){console.warn('No se pudo actualizar el contenido del portal',e);}
  }

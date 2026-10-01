@@ -209,9 +209,49 @@ function showCapture(){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
-   checkSystemReady();updateOfflineUI();refreshTieVotes();setTimeout(ensureNotificationGate,120);
+   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit();setTimeout(ensureNotificationGate,120);
  }
 }
+
+
+let meritBenefitData=null;
+async function loadMonthlyBenefit(){
+ if(!token||!navigator.onLine||!staff?.confirmed||staff?.is_placeholder)return;
+ try{
+  const d=await rpc('merit_my_benefit',{p_token:token});
+  if(!d?.ok||!d.period)return;
+  meritBenefitData=d;
+  const card=$('#benefitCard'),saved=$('#benefitSavedText'),btn=$('#benefitOpenBtn');
+  card?.classList.remove('hidden');
+  $('#benefitCardText').textContent='Indica el beneficio que darás al grupo ganador durante '+d.period.label+'.';
+  if(d.benefit){saved.textContent='✓ Registrado: '+d.benefit;btn.textContent='EDITAR MI BENEFICIO';}
+  else{saved.textContent='';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},500);}
+ }catch(_){}
+}
+function openBenefitDialog(){
+ if(!meritBenefitData?.period)return;
+ $('#benefitDialogTitle').textContent='🎁 Beneficio · '+meritBenefitData.period.label;
+ $('#benefitInput').value=meritBenefitData.benefit||'';
+ $('#benefitStatus').textContent='';
+ $('#benefitDialog').showModal();
+}
+$('#benefitOpenBtn')?.addEventListener('click',openBenefitDialog);
+$('#benefitCancelBtn')?.addEventListener('click',()=>$('#benefitDialog').close());
+$('#benefitSaveBtn')?.addEventListener('click',async()=>{
+ const st=$('#benefitStatus'),btn=$('#benefitSaveBtn'),benefit=$('#benefitInput').value.trim();
+ if(benefit.length<3){st.innerHTML='<span class="error">Escribe el beneficio que ofrecerás.</span>';return}
+ btn.disabled=true;st.textContent='Guardando…';
+ try{
+  const d=await rpc('merit_save_my_benefit',{p_token:token,p_benefit:benefit});
+  if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
+  meritBenefitData.benefit=d.benefit;
+  $('#benefitSavedText').textContent='✓ Registrado: '+d.benefit;
+  $('#benefitOpenBtn').textContent='EDITAR MI BENEFICIO';
+  st.innerHTML='<span class="success">✓ Beneficio guardado. El Profr. Jaime ya puede verlo en Administración.</span>';
+  setTimeout(()=>$('#benefitDialog').close(),900);
+ }catch(e){st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>'}
+ finally{btn.disabled=false}
+});
 
 function tieVoteLabel(issue){
  const labels={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};

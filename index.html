@@ -1560,6 +1560,10 @@
    const activityId=crypto.randomUUID();
    const a={id:activityId,shift,group:gs[0],groups:gs,name,date,dueDate,week,type,evaluationMode,closed:false,order:Date.now(),created:createdAt};
    await put('activities',a);
+   if(window.ProfeSupabase){
+    const linked=await window.ProfeSupabase.rpc('teacher_activity_groups_set',{p_activity_id:activityId,p_groups:gs});
+    if(linked?.ok===false)throw new Error('No se pudieron asociar los grupos.');
+   }
    if(evaluationMode==='delivery'){
     for(const st of (sts||[]).filter(s=>sameS(s.shift,shift)&&gs.some(g=>same(s.group||s.group_name,g)))){
      await put('activityRecords',{key:activityId+'|'+st.id,activityId,studentId:st.id,status:'no',timestamp:createdAt});

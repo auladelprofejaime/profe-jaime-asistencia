@@ -1529,4 +1529,50 @@
 
 
 
-<script src="supabase-reconnect-v82395.js?v=82396"></script></body></html>
+<script src="supabase-reconnect-v82395.js?v=82396"></script><script id="activity-create-repair-20261001">
+(function(){
+ const q=s=>document.querySelector(s), v=s=>(q(s)?.value||'').trim();
+ const norm=x=>String(x??'').trim().toLowerCase().replace(/[^0-9a-záéíóúüñ]/gi,'');
+ const same=(a,b)=>{try{return typeof sameGroup==='function'?sameGroup(a,b):norm(a)===norm(b)}catch(_){return norm(a)===norm(b)}};
+ const sameS=(a,b)=>{try{return typeof sameShift==='function'?sameShift(a,b):norm(a)===norm(b)}catch(_){return norm(a)===norm(b)}};
+ function groups(){
+  const box=q('#newActGroupChoices');
+  const a=box?[...box.querySelectorAll('input:checked')].map(x=>String(x.value||x.dataset.group||'').trim()).filter(Boolean):[];
+  if(a.length)return [...new Set(a)];
+  const b=box?[...box.querySelectorAll('.selected[data-group]')].map(x=>String(x.dataset.group||'').trim()).filter(Boolean):[];
+  if(b.length)return [...new Set(b)];
+  return v('#newActGroup')?[v('#newActGroup')]:[];
+ }
+ document.addEventListener('submit',async e=>{
+  if(e.target?.id!=='activityForm')return;
+  e.preventDefault();e.stopImmediatePropagation();
+  const btn=q('#saveActivityBtn');
+  try{
+   if(typeof put!=='function')throw new Error('La aplicación necesita recargarse con internet antes de guardar.');
+   const gs=groups(); if(!gs.length)throw new Error('Selecciona al menos un grupo.');
+   const shift=v('#newActShift'),name=v('#newActName'),date=v('#newActDate'),dueDate=v('#newActDueDate'),week=v('#newActWeek');
+   const type=v('#newActType')||'Actividad',evaluationMode=v('#newActEvaluation')||'delivery';
+   if(!shift||!name||!date||!dueDate)throw new Error('Completa turno, nombre y fechas.');
+   if(v('#editActivityId'))throw new Error('Este ajuste es solo para crear actividades nuevas; no se modificó nada.');
+   if(btn){btn.disabled=true;btn.textContent='Guardando…'}
+   const sts=typeof students==='function'?await students():(typeof all==='function'?await all('students'):[]);
+   const createdAt=new Date().toISOString();
+   for(const group of gs){
+    const a={id:crypto.randomUUID(),shift,group,name,date,dueDate,week,type,evaluationMode,closed:false,order:Date.now(),created:createdAt};
+    await put('activities',a);
+    if(evaluationMode==='delivery'){
+     for(const st of (sts||[]).filter(s=>sameS(s.shift,shift)&&same(s.group||s.group_name,group))){
+      await put('activityRecords',{key:a.id+'|'+st.id,activityId:a.id,studentId:st.id,status:'no',timestamp:createdAt});
+     }
+    }
+   }
+   e.target.reset();
+   if(typeof renderActivities==='function')await renderActivities();
+   if(typeof renderActivityGrid==='function')await renderActivityGrid();
+   alert('Actividad creada correctamente.');
+  }catch(err){console.error(err);alert('No se pudo crear la actividad: '+(err?.message||err))}
+  finally{if(btn){btn.disabled=false;btn.textContent='Guardar actividad'}}
+ },true);
+})();
+</script>
+</body></html>

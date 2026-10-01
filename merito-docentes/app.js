@@ -150,10 +150,11 @@ async function checkDevice(){
  try{
   const d=await rpc('merit_device_info',{p_token:token});
   if(!d?.ok){
+   const invite=['trial_expired','not_confirmed','unauthorized'].includes(d?.reason);
    clearSessionToken();token='';
    localStorage.removeItem(STAFF_CACHE_KEY);sessionStorage.removeItem(STAFF_CACHE_KEY);
    localStorage.removeItem(SETUP_CACHE_KEY);sessionStorage.removeItem(SETUP_CACHE_KEY);
-   return showActivation();
+   return showActivation(invite);
   }
   staff=d.staff;accessState=d.access||null;cacheSession(!!d.must_change_pin);
   if(needsProfileSetup()){
@@ -173,7 +174,11 @@ async function checkDevice(){
 }
 
 function mustCompleteFormalSetup(){return !!(needsProfileSetup() || (cachedMustChange() && !(staff?.is_placeholder && !staff?.confirmed)))}
-function showActivation(){$('#activation').classList.remove('hidden');$('#capture').classList.add('hidden');updateOfflineUI()}
+function showActivation(invite=false){
+ $('#activation').classList.remove('hidden');$('#capture').classList.add('hidden');updateOfflineUI();
+ const st=$('#activationStatus');
+ if(invite&&st)st.innerHTML='<div style="margin-top:14px;padding:18px;border:2px solid #c9962d;border-radius:18px;background:linear-gradient(135deg,#fff7d8,#fffdf5);color:#071a36;text-align:center;box-shadow:0 8px 22px rgba(7,26,54,.12)"><div style="font-size:2.2rem">🏆✨</div><div style="font-size:1.12rem;font-weight:900;margin:5px 0">¿Quieres participar en Mérito Gabino A. Palma?</div><div style="line-height:1.45">¡Nos dará mucho gusto contar contigo! Acércate o escríbele al <b>Profr. Jaime</b> para que te dé acceso.</div></div>';
+}
 function showCapture(){
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
  const pending=$('#accessPendingCard'),workspace=$('#captureWorkspace');
@@ -343,7 +348,8 @@ $('#activateBtn').onclick=async()=>{
  try{
   const d=await rpc('merit_login_device',{p_staff_code:staffCode,p_pin:pin});
   if(!d?.ok){
-   const msgs={invalid_credentials:'ID o NIP incorrectos.',trial_expired:'Este ID de prueba ya venció. Consulta al administrador.',trial_not_open:'Este acceso de prueba solo está habilitado durante el Consejo Técnico del 25 de septiembre.'};
+   if(d?.reason==='trial_expired'||d?.reason==='not_confirmed'){showActivation(true);return;}
+   const msgs={invalid_credentials:'ID o NIP incorrectos.',trial_not_open:'Este acceso de prueba solo está habilitado durante el Consejo Técnico del 25 de septiembre.'};
    throw new Error(msgs[d?.reason]||'No se pudo ingresar.');
   }
   token=d.installation_token;staff=d.staff;accessState=d.access||null;

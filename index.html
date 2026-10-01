@@ -1557,13 +1557,12 @@
    if(btn){btn.disabled=true;btn.textContent='Guardando…'}
    const sts=typeof students==='function'?await students():(typeof all==='function'?await all('students'):[]);
    const createdAt=new Date().toISOString();
-   for(const group of gs){
-    const a={id:crypto.randomUUID(),shift,group,name,date,dueDate,week,type,evaluationMode,closed:false,order:Date.now(),created:createdAt};
-    await put('activities',a);
-    if(evaluationMode==='delivery'){
-     for(const st of (sts||[]).filter(s=>sameS(s.shift,shift)&&same(s.group||s.group_name,group))){
-      await put('activityRecords',{key:a.id+'|'+st.id,activityId:a.id,studentId:st.id,status:'no',timestamp:createdAt});
-     }
+   const activityId=crypto.randomUUID();
+   const a={id:activityId,shift,group:gs[0],groups:gs,name,date,dueDate,week,type,evaluationMode,closed:false,order:Date.now(),created:createdAt};
+   await put('activities',a);
+   if(evaluationMode==='delivery'){
+    for(const st of (sts||[]).filter(s=>sameS(s.shift,shift)&&gs.some(g=>same(s.group||s.group_name,g)))){
+     await put('activityRecords',{key:activityId+'|'+st.id,activityId,studentId:st.id,status:'no',timestamp:createdAt});
     }
    }
    e.target.reset();

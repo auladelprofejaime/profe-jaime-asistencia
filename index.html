@@ -1578,11 +1578,19 @@
  },true);
 })();
 
-// Reparación 2026-10-01: eliminar actividad en servidor + local, sin duplicar el guardado.
+// Reparación 2026-10-01: captura cualquier control Eliminar dentro de una fila/tarjeta de actividad.
 document.addEventListener('click',async e=>{
- const el=e.target.closest('[data-action="delete-activity"],[data-delete-activity],.delete-activity');
+ const el=e.target.closest('button,a,[role="button"]');
  if(!el)return;
- const id=String(el.dataset.activityId||el.dataset.deleteActivity||el.closest('[data-activity-id]')?.dataset.activityId||'').trim();
+ const label=(el.textContent||el.getAttribute('aria-label')||el.title||'').trim().toLowerCase();
+ if(!label.includes('eliminar') && !label.includes('borrar'))return;
+ const row=el.closest('[data-activity-id],[data-id],tr,.activity-row,.activity-card,.card');
+ let id=String(el.dataset.activityId||el.dataset.id||row?.dataset.activityId||row?.dataset.id||'').trim();
+ if(!id){
+  const oc=el.getAttribute('onclick')||'';
+  const m=oc.match(/[0-9a-f]{8}-[0-9a-f-]{27,36}/i);
+  if(m)id=m[0];
+ }
  if(!id)return;
  e.preventDefault();e.stopImmediatePropagation();
  if(!confirm('¿Eliminar esta actividad?'))return;
@@ -1592,10 +1600,10 @@ document.addEventListener('click',async e=>{
   if(out?.ok===false)throw new Error(out?.error||'Supabase no confirmó la eliminación.');
   if(typeof window.__activityOriginalDel==='function')await window.__activityOriginalDel('activities',id);
   else if(typeof del==='function')await del('activities',id);
+  row?.remove();
   if(typeof renderActivities==='function')await renderActivities();
   if(typeof renderActivityGrid==='function')await renderActivityGrid();
  }catch(err){console.error(err);alert('No se pudo eliminar: '+(err?.message||err))}
 },true);
-
 </script>
 </body></html>

@@ -38,7 +38,12 @@
       return originalPut(store,value);
     };
     window.del=async function(store,id){
-      if(store==='activityRecords'){
+      if(store==='activities'){
+        if(!id)throw new Error('NO ELIMINADO: actividad inválida.');
+        if(!window.ProfeSupabase)throw new Error('NO ELIMINADO: sin conexión con Supabase.');
+        const out=await window.ProfeSupabase.rpc('teacher_activity_delete',{p_activity_id:String(id)});
+        if(out?.ok===false)throw new Error(out?.error||out?.reason||'Supabase no confirmó la eliminación.');
+      }else if(store==='activityRecords'){
         const parts=String(id||'').split('|');
         if(parts.length<2||!parts[0]||!parts[1])throw new Error('NO GUARDADO: llave de actividad inválida.');
         if(!window.ProfeSupabase)throw new Error('NO GUARDADO: sin conexión con Supabase.');

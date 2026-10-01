@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.97</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.23.100</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -1529,7 +1529,40 @@
 
 
 
-<script src="supabase-reconnect-v82395.js?v=82396"></script><script id="activity-create-repair-20261001">
+<script src="supabase-reconnect-v82395.js?v=82396"></script><script id="force-update-app-20261001">
+(function(){
+ const btn=document.getElementById('updateAppBtn');
+ if(!btn)return;
+ btn.addEventListener('click',async function(e){
+   e.preventDefault();e.stopImmediatePropagation();
+   const original=btn.textContent;
+   btn.disabled=true;btn.textContent='Actualizando…';
+   try{
+     if('serviceWorker' in navigator){
+       const regs=await navigator.serviceWorker.getRegistrations();
+       for(const reg of regs){
+         const scope=new URL(reg.scope);
+         if(scope.origin===location.origin && location.pathname.startsWith(scope.pathname)){
+           try{await reg.update()}catch(_){}
+         }
+       }
+     }
+     if('caches' in window){
+       const keys=await caches.keys();
+       await Promise.all(keys.filter(k=>k.startsWith('app-docente-')).map(k=>caches.delete(k)));
+     }
+     const u=new URL(location.href);
+     u.searchParams.set('app_update',Date.now().toString());
+     location.replace(u.toString());
+   }catch(err){
+     console.error(err);
+     btn.disabled=false;btn.textContent=original;
+     alert('No se pudo actualizar automáticamente. Revisa la conexión e inténtalo otra vez.');
+   }
+ },true);
+})();
+</script>
+<script id="activity-create-repair-20261001">
 (function(){
  const q=s=>document.querySelector(s), v=s=>(q(s)?.value||'').trim();
  const norm=x=>String(x??'').trim().toLowerCase().replace(/[^0-9a-záéíóúüñ]/gi,'');

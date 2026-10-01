@@ -1580,12 +1580,12 @@
 
 // Reparación 2026-10-01: captura cualquier control Eliminar dentro de una fila/tarjeta de actividad.
 document.addEventListener('click',async e=>{
- const el=e.target.closest('button,a,[role="button"]');
+ const el=e.target.closest('[data-actdel],button,a,[role="button"]');
  if(!el)return;
  const label=(el.textContent||el.getAttribute('aria-label')||el.title||'').trim().toLowerCase();
- if(!label.includes('eliminar') && !label.includes('borrar'))return;
+ if(!el.dataset.actdel && !label.includes('eliminar') && !label.includes('borrar'))return;
  const row=el.closest('[data-activity-id],[data-id],tr,.activity-row,.activity-card,.card');
- let id=String(el.dataset.activityId||el.dataset.id||row?.dataset.activityId||row?.dataset.id||'').trim();
+ let id=String(el.dataset.actdel||el.dataset.activityId||el.dataset.id||row?.dataset.activityId||row?.dataset.id||'').trim();
  if(!id){
   const oc=el.getAttribute('onclick')||'';
   const m=oc.match(/[0-9a-f]{8}-[0-9a-f-]{27,36}/i);

@@ -86,6 +86,32 @@
       await window.ProfeSupabase.upsert('activities',rows.slice(i,i+30).map(remoteActivityRow),'id');
     }
   }
+  async function syncSeptemberExamFromServer(){
+    const remote=await fetchRemoteActivities();
+    const exams=(remote||[]).filter(r=>
+      GROUPS.has(String(r.group_name||'')) &&
+      String(r.title||'').trim().toLowerCase()==='examen mensual (septiembre)'
+    );
+    for(const row of exams){
+      const data=(row.data&&typeof row.data==='object')?row.data:{};
+      const local={
+        ...data,
+        id:String(row.id),
+        shift:'Matutino',
+        group:String(row.group_name||data.group||''),
+        groups:[String(row.group_name||data.group||'')],
+        name:'Examen mensual (septiembre)',
+        date:row.activity_date||data.date||'2026-10-01',
+        dueDate:row.due_date||data.dueDate||row.activity_date||'2026-10-01',
+        week:data.week||'28 sep–2 oct',
+        type:'Examen',
+        evaluationMode:'numeric',
+        closed:!!row.closed
+      };
+      await put('activities',local);
+    }
+    return exams.length;
+  }
   async function restoreTeacherTruth(rows){
     let restored=0;
     for(let i=0;i<(rows||[]).length;i+=50){
@@ -106,6 +132,10 @@
 
       if(manual)setState('🔄 Verificando Actividades con Supabase…');
 
+      // El examen mensual de septiembre es server-first: se descarga antes de
+      // conciliar para que una copia vieja del iPad no vuelva a convertirlo en
+      // actividad de entrega ni oculte un grupo que sí existe en Supabase.
+      await syncSeptemberExamFromServer();
       const [localActsAll,localRecsAll]=await Promise.all([all('activities'),all('activityRecords')]);
       const localActs=(localActsAll||[]).filter(relevantActivity);
       const localIds=new Set(localActs.map(a=>String(a.id)));

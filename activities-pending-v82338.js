@@ -74,7 +74,7 @@
 
       for(const activity of assigned){
         const record=recordMap.get(String(activity.id)+'|'+id);
-        const mode=activity.evaluationMode||'delivery';
+        const mode=activity.evaluationMode||activity.evaluation_type||'delivery';
         if(mode==='numeric'){
           const hasScore=record&&typeof record.score==='number'&&Number.isFinite(record.score);
           if(hasScore){completed++;continue}
@@ -100,7 +100,7 @@
       summary+='<div><b>'+total+'</b><span>Actividades registradas</span></div>';
       summary+='<div><b>'+completed+'</b><span>Completadas / calificadas</span></div>';
       summary+='<div class="'+(pendingCount?'warn':'')+'"><b>'+pendingCount+'</b><span>Pendientes de entrega</span></div>';
-      summary+='<div class="'+(ungradedCount?'info':'')+'"><b>'+ungradedCount+'</b><span>Sin calificación</span></div>';
+      summary+='<div class="'+(ungradedCount?'info':'')+'"><b>'+ungradedCount+'</b><span>Pendientes de calificación</span></div>';
       summary+='</div>';
 
       let deliveryHtml='';
@@ -119,12 +119,12 @@
 
       let numericHtml='';
       if(ungradedCount){
-        numericHtml='<div class="activity-pending-block"><h3>Actividades numéricas sin calificación registrada</h3>'+
+        numericHtml='<div class="activity-pending-block"><h3>Pendientes de calificación</h3>'+
           '<p class="hint">Esto no significa automáticamente que el alumno no entregó; indica que todavía no existe una calificación numérica guardada.</p>'+
           '<div class="activity-pending-list">';
         numericHtml+=numericUngraded.map(item=>{
           const activity=item.activity;
-          return '<div class="activity-pending-row numeric"><div class="activity-pending-state"><span>—</span><b>Sin calificar</b></div>'+
+          return '<div class="activity-pending-row numeric"><div class="activity-pending-state"><span>—</span><b>Pendiente de calificación</b></div>'+
             '<div class="activity-pending-copy"><strong>'+esc(activity.name||'Actividad')+'</strong>'+
             '<small>'+esc(activity.type||'Actividad')+' · Asignada '+esc(fmtDate(activity.date))+' · Entrega '+esc(fmtDate(activity.dueDate))+'</small></div></div>';
         }).join('');

@@ -17,7 +17,7 @@ function fillSelect(id,rows){
 async function loadMeritPeriods(){
  const rows=await rpc("teacher_merit_periods",{});
  meritPeriodsCache=Array.isArray(rows)?rows:[];
- ["meritRankingPeriod","meritMovementPeriod","meritWeeklyPeriod","meritMonthlyPeriod"].forEach(id=>fillSelect(id,meritPeriodsCache));
+ ["meritRankingPeriod","meritMovementPeriod","meritWeeklyPeriod","meritMonthlyPeriod","meritBenefitsPeriod"].forEach(id=>fillSelect(id,meritPeriodsCache));
  renderPeriodList(meritPeriodsCache);
  return meritPeriodsCache;
 }
@@ -115,6 +115,23 @@ async function saveStaffEdit(){
  }catch(e){st.textContent="No se pudo guardar: "+(e.message||e)}
 }
 
+
+async function loadMeritBenefits(){
+ const box=$("#meritBenefitsTable"),sum=$("#meritBenefitsSummary"),period=$("#meritBenefitsPeriod")?.value;
+ if(!box||!period)return;
+ box.innerHTML='<p class="hint">Cargando beneficios…</p>';
+ try{
+  const rows=await rpc("teacher_merit_benefits",{p_period_id:period});
+  const data=Array.isArray(rows)?rows:[];
+  const done=data.filter(x=>x.benefit).length;
+  if(sum)sum.textContent=done+" de "+data.length+" participantes han registrado su beneficio";
+  box.innerHTML='<table><thead><tr><th>Docente</th><th>Asignatura / función</th><th>Beneficio</th><th>Actualizado</th></tr></thead><tbody>'+
+   data.map(x=>'<tr><td><b>'+esc(x.display_name||"")+'</b><div class="hint">ID '+esc(x.staff_code||"")+'</div></td><td>'+esc(x.subject_area||"—")+'</td><td>'+(x.benefit?'<b>'+esc(x.benefit)+'</b>':'<span class="hint">Pendiente</span>')+'</td><td>'+esc(x.updated_at?new Date(x.updated_at).toLocaleString("es-MX"):"—")+'</td></tr>').join("")+
+   '</tbody></table>';
+ }catch(e){box.innerHTML='<p class="message">No se pudieron cargar los beneficios: '+esc(e.message||e)+'</p>'}
+}
+window.loadMeritBenefits=loadMeritBenefits;
+
 async function meritWeeklyPreview(){
  const id=$("#meritWeeklyPeriod").value,box=$("#meritWeeklyPreview"),st=$("#meritWeeklyStatus");
  if(!id)return;
@@ -161,6 +178,8 @@ async function boot(){
  $$(".meritNav").forEach(b=>b.onclick=()=>meritPane(b.dataset.meritPane));
  $("#meritPeriodForm").onsubmit=saveMeritPeriod;
  $("#meritRefreshStaff").onclick=loadMeritStaff;
+ $("#meritRefreshBenefits").onclick=loadMeritBenefits;
+ $("#meritBenefitsPeriod").onchange=loadMeritBenefits;
  $("#meritPreviewWeekly").onclick=meritWeeklyPreview;
  $("#meritPublishWeekly").onclick=publishWeekly;
  $("#meritFreezePublic").onclick=()=>setPublicState("frozen");
@@ -179,6 +198,6 @@ async function boot(){
 }
 async function startData(){
  await loadMeritPeriods();
- await Promise.allSettled([loadMeritStaff(),window.loadMeritRanking?.(),window.loadMeritMovements?.()]);
+ await Promise.allSettled([loadMeritStaff(),loadMeritBenefits(),window.loadMeritRanking?.(),window.loadMeritMovements?.()]);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();

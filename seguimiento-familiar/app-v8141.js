@@ -796,6 +796,11 @@ function portalDate(v){
 }
 function familyActivityState(a,r){
  const mode=a.evaluationMode||'delivery';
+ const isSeptemberExam=String(a?.name||'').trim().toLowerCase()==='examen mensual (septiembre)';
+ if(isSeptemberExam&&mode==='numeric'){
+   if(typeof r?.score==='number')return {label:'Calificada',cls:'ok'};
+   return {label:'Pendiente de calificación',cls:'warn'};
+ }
  if(mode==='numeric'&&typeof r?.score==='number')return {label:'Entregada',cls:'ok'};
  if(r?.status==='yes')return {label:'Entregada',cls:'ok'};
  if(r?.status==='no')return {label:'No entregada',cls:'bad'};

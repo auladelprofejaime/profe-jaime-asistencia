@@ -1577,5 +1577,25 @@
   finally{if(btn){btn.disabled=false;btn.textContent='Guardar actividad'}}
  },true);
 })();
+
+// Reparación 2026-10-01: eliminar actividad en servidor + local, sin duplicar el guardado.
+document.addEventListener('click',async e=>{
+ const el=e.target.closest('[data-action="delete-activity"],[data-delete-activity],.delete-activity');
+ if(!el)return;
+ const id=String(el.dataset.activityId||el.dataset.deleteActivity||el.closest('[data-activity-id]')?.dataset.activityId||'').trim();
+ if(!id)return;
+ e.preventDefault();e.stopImmediatePropagation();
+ if(!confirm('¿Eliminar esta actividad?'))return;
+ try{
+  if(!window.ProfeSupabase)throw new Error('Sin conexión con Supabase.');
+  const out=await window.ProfeSupabase.rpc('teacher_activity_delete',{p_activity_id:id});
+  if(out?.ok===false)throw new Error(out?.error||'Supabase no confirmó la eliminación.');
+  if(typeof window.__activityOriginalDel==='function')await window.__activityOriginalDel('activities',id);
+  else if(typeof del==='function')await del('activities',id);
+  if(typeof renderActivities==='function')await renderActivities();
+  if(typeof renderActivityGrid==='function')await renderActivityGrid();
+ }catch(err){console.error(err);alert('No se pudo eliminar: '+(err?.message||err))}
+},true);
+
 </script>
 </body></html>

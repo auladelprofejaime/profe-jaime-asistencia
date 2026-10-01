@@ -1611,32 +1611,51 @@
  },true);
 })();
 
-// Reparación 2026-10-01: captura cualquier control Eliminar dentro de una fila/tarjeta de actividad.
+// Reparación 2026-10-01: eliminar actividad desde la tarjeta visible y verificar servidor + iPad.
 document.addEventListener('click',async e=>{
  const el=e.target.closest('[data-actdel],button,a,[role="button"]');
  if(!el)return;
  const label=(el.textContent||el.getAttribute('aria-label')||el.title||'').trim().toLowerCase();
  if(!el.dataset.actdel && !label.includes('eliminar') && !label.includes('borrar'))return;
- const row=el.closest('[data-activity-id],[data-id],tr,.activity-row,.activity-card,.card');
+ const row=el.closest('[data-activity-id],[data-id],tr,.activity-row,.activity-card,.card,.list-item');
  let id=String(el.dataset.actdel||el.dataset.activityId||el.dataset.id||row?.dataset.activityId||row?.dataset.id||'').trim();
- if(!id){
-  const oc=el.getAttribute('onclick')||'';
-  const m=oc.match(/[0-9a-f]{8}-[0-9a-f-]{27,36}/i);
-  if(m)id=m[0];
+
+ // Si la tarjeta no expone el ID, resolverlo por los datos visibles contra IndexedDB.
+ if(!id && typeof all==='function'){
+   const txt=String(row?.innerText||'');
+   const acts=await all('activities');
+   const candidates=(acts||[]).filter(a=>{
+     const name=String(a?.name||a?.title||'').trim();
+     const group=String(a?.group||a?.group_name||'').trim();
+     return name && txt.includes(name) && (!group || txt.includes('· '+group+' ·') || txt.includes(' '+group+' '));
+   });
+   if(candidates.length===1)id=String(candidates[0].id||'');
  }
  if(!id)return;
  e.preventDefault();e.stopImmediatePropagation();
  if(!confirm('¿Eliminar esta actividad?'))return;
+ el.disabled=true;
  try{
-  if(!window.ProfeSupabase)throw new Error('Sin conexión con Supabase.');
-  const out=await window.ProfeSupabase.rpc('teacher_activity_delete',{p_activity_id:id});
-  if(out?.ok===false)throw new Error(out?.error||'Supabase no confirmó la eliminación.');
-  if(typeof window.__activityOriginalDel==='function')await window.__activityOriginalDel('activities',id);
-  else if(typeof del==='function')await del('activities',id);
-  row?.remove();
-  if(typeof renderActivities==='function')await renderActivities();
-  if(typeof renderActivityGrid==='function')await renderActivityGrid();
- }catch(err){console.error(err);alert('No se pudo eliminar: '+(err?.message||err))}
+   if(!window.ProfeSupabase)throw new Error('Sin conexión con Supabase.');
+   const out=await window.ProfeSupabase.rpc('teacher_activity_delete',{p_activity_id:id});
+   if(out?.ok===false)throw new Error(out?.error||out?.reason||'Supabase no confirmó la eliminación.');
+
+   // Borrar SOLO local: no volver a invocar window.del porque la guardia llamaría otra vez al RPC.
+   if(typeof window.__activityOriginalDel==='function')await window.__activityOriginalDel('activities',id);
+   else if(typeof del==='function')await del('activities',id);
+
+   // Verificación remota: no declarar éxito si todavía existe.
+   const check=await window.ProfeSupabase.select('activities','select=id&id=eq.'+encodeURIComponent(id));
+   if(Array.isArray(check)&&check.length)throw new Error('El servidor todavía conserva la actividad.');
+
+   row?.remove();
+   if(typeof renderActivities==='function')await renderActivities();
+   if(typeof renderActivityGrid==='function')await renderActivityGrid();
+ }catch(err){
+   console.error(err);
+   alert('No se pudo eliminar: '+(err?.message||err));
+   if(typeof renderActivities==='function')await renderActivities();
+ }finally{el.disabled=false}
 },true);
 </script>
 </body></html>

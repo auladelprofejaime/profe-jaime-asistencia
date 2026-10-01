@@ -70,6 +70,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 <button class="secondary meritNav active" data-merit-pane="ranking">🏆 Clasificación</button>
 <button class="secondary meritNav" data-merit-pane="movements">🧾 Movimientos</button>
 <button class="secondary meritNav" data-merit-pane="staff">👥 Docentes</button>
+<button class="secondary meritNav" data-merit-pane="benefits">🎁 Beneficios</button>
 <button class="secondary meritNav" data-merit-pane="weekly">📣 Publicación semanal</button>
 <button class="secondary meritNav" data-merit-pane="monthly">📅 Cierre mensual</button>
 <button class="secondary meritNav" data-merit-pane="annual">📊 Acumulado anual</button>
@@ -91,6 +92,8 @@ main{max-width:1180px;margin:0 auto;padding:14px}
  <div id="meritStaffList" class="tablewrap"></div>
 </div>
 
+<div id="merit-benefits" class="merit-pane card"><div class="section"><div><h2>🎁 Beneficios del mes</h2><p class="hint">Consulta qué beneficio ofrecerá cada docente al grupo ganador.</p></div><button id="meritRefreshBenefits" class="secondary" type="button">Actualizar</button></div><label>Periodo<select id="meritBenefitsPeriod"></select></label><div id="meritBenefitsSummary" class="badge" style="margin:10px 0"></div><div id="meritBenefitsTable" class="tablewrap"></div></div>
+
 <div id="merit-weekly" class="merit-pane card"><h2>Publicación semanal</h2><label>Periodo<select id="meritWeeklyPeriod"></select></label><label>Mensaje público opcional<textarea id="meritWeeklyMessage" rows="3"></textarea></label><div class="actions"><button id="meritPreviewWeekly" class="secondary">Vista previa</button><button id="meritPublishWeekly" class="primary">Publicar avance semanal</button><button id="meritFreezePublic" class="secondary">Congelar portal</button><button id="meritProcessPublic" class="secondary">Resultados en proceso</button><button id="meritOpenPublic" class="secondary">Reabrir publicación</button></div><p id="meritWeeklyStatus" class="message"></p><div id="meritWeeklyPreview" class="tablewrap"></div></div>
 
 <div id="merit-monthly" class="merit-pane card"><div class="section"><div><h2>Cierre mensual</h2><p class="hint">Revisa el resultado antes de cerrar.</p></div></div><label>Periodo<select id="meritMonthlyPeriod"></select></label><div class="actions"><button id="meritMonthlyPreviewBtn" class="secondary" onclick="loadMeritMonthlyPreview()">Vista previa del cierre</button><button id="meritMonthlyCloseBtn" class="primary" onclick="closeMeritMonth()">Cerrar mes</button><button id="meritMonthlyPublishBtn" class="secondary" onclick="publishMeritMonth()">Publicar resultado oficial</button></div><p id="meritMonthlyStatus" class="message"></p><div id="meritMonthlyPreview" class="tablewrap"></div><div id="meritTieResolutions"></div><div id="meritMonthlyResult"></div></div>
@@ -108,7 +111,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="./supabase-admin.js?v=1"></script>
-<script src="./app.js?v=2"></script>
+<script src="./app.js?v=3"></script>
 <script src="./merit-movements.js?v=2"></script>
 <script src="./merit-corrections.js?v=2"></script>
 <script src="./merit-ranking.js?v=2"></script>

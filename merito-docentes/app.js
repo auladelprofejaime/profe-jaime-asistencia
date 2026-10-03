@@ -236,6 +236,8 @@ async function loadTeacherRanking(){
   const d=await rpc('merit_live_ranking');
   if(!d?.ok)throw new Error(friendlyReason(d));
   if(label)label.textContent=d.period?.label||'Sin periodo abierto';
+  if(d.state==='results_in_process'){box.innerHTML='<div class="card" style="text-align:center"><h3>🔒 Se están contando los puntos</h3><p class="muted">El ranking está temporalmente bloqueado mientras se revisan los movimientos y se determina el resultado.</p></div>';const catBox=$('#teacherCategoryLeaders');if(catBox)catBox.innerHTML='';if(st)st.textContent='El ranking volverá a mostrarse cuando finalice el cierre.';return}
+  if(d.state==='official'&&d.official_result){box.innerHTML='<div class="card" style="text-align:center"><h3>🏆 Ganador oficial</h3><h2>Grupo '+escapeHtml(String(d.official_result.overall_winner||'—'))+'</h2><p><b>'+escapeHtml(String(d.official_result.overall_score||0))+' puntos</b></p></div>';if(st)st.textContent='Resultado oficial del periodo.';return}
   const rows=Array.isArray(d.ranking)?d.ranking:[];
   box.innerHTML='<p class="muted"><b>Mérito Gabino A. Palma</b> · Solo el 1.er lugar gana el Mérito y recibe los beneficios registrados por los docentes.</p>'+(rows.length?'<table><thead><tr><th>Lugar</th><th>Grupo</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(String(r.rank))+(Number(r.rank)===1?' 🏆':'')+'</b></td><td><b>Grupo '+escapeHtml(String(r.group_code))+'</b></td><td>'+escapeHtml(String(r.score))+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay clasificación disponible.</p>');
   const catBox=$('#teacherCategoryLeaders'),cats=Array.isArray(d.category_leaders)?d.category_leaders:[];
@@ -704,7 +706,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=40').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=41').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 

@@ -1,0 +1,9 @@
+/* v52: two panels side by side on tablet/desktop */
+#teacherRankingCard.merit-ranking-combined{display:grid!important;grid-template-columns:minmax(0,56fr) minmax(0,44fr)!important;align-items:stretch!important;padding:0!important;background:#fffdf7!important;border:2px solid #d2a62d!important;overflow:hidden!important}
+#teacherRankingCard>.merit-main-award{grid-column:1!important;min-width:0!important;margin:0!important;padding:24px!important;background:linear-gradient(145deg,#0b2b54,#174f86)!important;color:#fff!important}
+#teacherRankingCard>.merit-category-section{grid-column:2!important;min-width:0!important;margin:0!important;padding:24px!important;border:0!important;border-left:3px solid #d2a62d!important;background:#fffdf7!important;box-shadow:none!important;border-radius:0!important}
+#teacherRankingCard>.merit-category-section .category-divider{display:none!important}
+#teacherRankingTable,#teacherRankingTable table,#teacherRankingTable th,#teacherRankingTable td,#teacherRankingTable b,#teacherRankingTable p{color:#102a4d!important}
+#teacherRankingTable .muted{color:#5e6671!important}
+#teacherRankingTable{background:#fff!important}
+@media(max-width:600px){#teacherRankingCard.merit-ranking-combined{grid-template-columns:1fr!important}#teacherRankingCard>.merit-main-award{grid-column:1!important}#teacherRankingCard>.merit-category-section{grid-column:1!important;border-left:0!important;border-top:3px solid #d2a62d!important}}

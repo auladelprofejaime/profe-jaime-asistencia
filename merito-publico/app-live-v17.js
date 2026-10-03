@@ -1,0 +1,18 @@
+const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co",SUPABASE_KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA";
+const $=s=>document.querySelector(s);let data=null;
+async function rpc(name,args={}){const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{method:'POST',cache:'no-store',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(args)});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(t||r.status);return d}
+const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
+function render(){
+ $('#periodName').textContent=data?.period?.label||'Sin periodo abierto';
+ const rows=Array.isArray(data?.ranking)?data.ranking:[],cats=Array.isArray(data?.category_leaders)?data.category_leaders:[];
+ $('#updated').textContent=data?.updated_at?'Actualizado '+new Date(data.updated_at).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit',second:'2-digit'}):'';
+ const winner=rows.find(x=>Number(x.rank)===1);
+ $('#leaderNow').innerHTML=winner?`<div class="leaderCrown">🏆</div><div class="leaderLabel">1.er lugar hasta el momento</div><div class="leaderGroup">Grupo ${esc(winner.group_code)}</div><div class="leaderPoints">${esc(winner.score)} puntos</div><div class="leaderNote">Si el periodo terminara ahora, este grupo obtendría el Mérito y los beneficios.</div>`:'<div class="empty">Aún no hay puntuación registrada.</div>';
+ $('#ranking').innerHTML=rows.map(x=>`<div class="rankrow top${Number(x.rank)}"><div class="rank">${x.rank}.º</div><div class="grp">Grupo ${esc(x.group_code)}</div><div class="score">${esc(x.score)} pts</div></div>`).join('');
+ $('#categories').innerHTML=cats.length?cats.map(x=>`<div class="categoryTile"><div class="categoryName">${esc(x.category)}</div><div class="categoryWinner">🥇 Grupo ${esc(x.group_code)}</div><div class="categoryScore">${esc(x.score)} pts</div></div>`).join(''):'<div class="empty">Aún no hay categorías con puntuación.</div>';
+}
+function formatMeritTime(v){if(!v)return'—';const[hh,mm]=String(v).slice(0,5).split(':').map(Number),d=new Date();d.setHours(hh,mm,0,0);return d.toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})}
+async function checkAccess(){try{const a=await rpc('merit_public_access_status'),block=$('#schoolHoursBlock'),main=$('#publicMain');if(a?.blocked){$('#schoolHoursTitle').textContent=a.message_title||'¡Ahora no, joven!';$('#schoolHoursMessage').textContent='Este portal está diseñado para consultarse fuera del horario de clases. Durante la jornada escolar, tu atención debe estar en tus clases, actividades y profesores, no en el celular.';$('#schoolHoursOpenTime').textContent=formatMeritTime(a.next_open);block.classList.remove('hidden');main.classList.add('hidden');return false}block.classList.add('hidden');main.classList.remove('hidden');return true}catch{return false}}
+async function load(){if(!await checkAccess())return;try{data=await rpc('merit_live_ranking');render()}catch(e){$('#leaderNow').innerHTML='<div class="empty">No se pudo actualizar el ranking.</div>'}}
+load();setInterval(load,15000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load()});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker-v15.js?v=17').catch(()=>{});

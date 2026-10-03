@@ -128,7 +128,7 @@ async function loadMeritBenefits(){
   box.innerHTML='<table><thead><tr><th>Docente</th><th>Asignatura / función</th><th>Beneficio</th><th>¿Debe dar beneficio?</th><th>Estado</th></tr></thead><tbody>'+
    data.map(x=>'<tr><td><b>'+esc(x.display_name||"")+'</b><div class="hint">ID '+esc(x.staff_code||"")+'</div></td><td>'+esc(x.subject_area||"—")+'</td><td>'+(x.benefit?'<b>'+esc(x.benefit)+'</b>':'<span class="hint">Pendiente</span>')+'</td><td><div class="actions"><button type="button" class="'+(x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="true">SÍ, exigir</button><button type="button" class="'+(!x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="false">NO, exentar</button></div><div class="hint">'+(x.requirement_source==="admin"?"Definido por ti":"Detección automática")+'</div></td><td>'+(x.benefit_required?(x.benefit?'<span class="success">✓ Habilitado</span>':'<span class="error">🔒 Bloqueado hasta registrar beneficio</span>'):'<span class="success">✓ Exento · puede capturar puntos</span>')+'</td></tr>').join("")+
    '</tbody></table>';
-  $(".meritBenefitReq").forEach(b=>b.onclick=async()=>{
+  document.querySelectorAll(".meritBenefitReq").forEach(b=>b.onclick=async()=>{
    const required=b.dataset.required==="true";
    b.disabled=true;
    try{

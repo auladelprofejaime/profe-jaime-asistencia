@@ -73,7 +73,8 @@ function friendlyReason(d){
   trial_not_started:'El acceso del Comité inicia el lunes 21 de septiembre a las 6:00 a. m.',
   trial_day_only:'Los folios de prueba no confirmados solo pueden registrar durante el Consejo Técnico del 25 de septiembre.',
   invalid_capture_time:'El registro pendiente es demasiado antiguo para sincronizarse automáticamente.',
-  duplicate_event_conflict:'No fue posible validar el identificador del registro.'
+  duplicate_event_conflict:'No fue posible validar el identificador del registro.',
+  benefit_required:'Antes de registrar puntos o reconocimientos, debes registrar tu beneficio del mes.'
  };
  return map[d?.reason]||d?.reason||'No se pudo guardar.';
 }
@@ -214,7 +215,17 @@ function showCapture(){
 }
 
 
-let meritBenefitData=null;
+let meritBenefitData=null,benefitGateActive=false;
+function benefitExemptClient(){
+ const role=String(staff?.role_type||'').toLowerCase();
+ const area=String(staff?.subject_area||'').toLowerCase();
+ return ['direccion','subdireccion','prefectura'].includes(role)||/(prefect|direc|subdirec|udei|udi|orient|trabajo social|servicio social)/.test(area);
+}
+function setBenefitGate(active){
+ benefitGateActive=!!active;
+ const btn=$('#reviewBtn');if(btn)btn.disabled=benefitGateActive;
+ const cancel=$('#benefitCancelBtn');if(cancel)cancel.classList.toggle('hidden',benefitGateActive);
+}
 async function loadMonthlyBenefit(){
  if(!token||!navigator.onLine||!staff?.confirmed||staff?.is_placeholder)return;
  try{
@@ -222,10 +233,11 @@ async function loadMonthlyBenefit(){
   if(!d?.ok||!d.period)return;
   meritBenefitData=d;
   const card=$('#benefitCard'),saved=$('#benefitSavedText'),btn=$('#benefitOpenBtn');
+  if(d.benefit_required===false){setBenefitGate(false);card?.classList.add('hidden');return;}
   card?.classList.remove('hidden');
   $('#benefitCardText').textContent='Indica el beneficio que darás al grupo ganador durante '+d.period.label+'.';
-  if(d.benefit){saved.textContent='✓ Registrado: '+d.benefit;btn.textContent='EDITAR MI BENEFICIO';}
-  else{saved.textContent='';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},500);}
+  if(d.benefit){setBenefitGate(false);saved.textContent='✓ Registrado: '+d.benefit;btn.textContent='EDITAR MI BENEFICIO';}
+  else{setBenefitGate(true);saved.textContent='⚠ Debes registrar tu beneficio antes de poder sumar o restar puntos.';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
  }catch(_){}
 }
 function openBenefitDialog(){
@@ -236,7 +248,8 @@ function openBenefitDialog(){
  $('#benefitDialog').showModal();
 }
 $('#benefitOpenBtn')?.addEventListener('click',openBenefitDialog);
-$('#benefitCancelBtn')?.addEventListener('click',()=>$('#benefitDialog').close());
+$('#benefitCancelBtn')?.addEventListener('click',()=>{if(!benefitGateActive)$('#benefitDialog').close()});
+$('#benefitDialog')?.addEventListener('cancel',e=>{if(benefitGateActive)e.preventDefault()});
 $('#benefitSaveBtn')?.addEventListener('click',async()=>{
  const st=$('#benefitStatus'),btn=$('#benefitSaveBtn'),benefit=$('#benefitInput').value.trim();
  if(benefit.length<3){st.innerHTML='<span class="error">Escribe el beneficio que ofrecerás.</span>';return}
@@ -245,6 +258,7 @@ $('#benefitSaveBtn')?.addEventListener('click',async()=>{
   const d=await rpc('merit_save_my_benefit',{p_token:token,p_benefit:benefit});
   if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
   meritBenefitData.benefit=d.benefit;
+  setBenefitGate(false);
   $('#benefitSavedText').textContent='✓ Registrado: '+d.benefit;
   $('#benefitOpenBtn').textContent='EDITAR MI BENEFICIO';
   st.innerHTML='<span class="success">✓ Beneficio guardado. El Profr. Jaime ya puede verlo en Administración.</span>';
@@ -447,6 +461,11 @@ function selectedCriteria(){return $$('#criteria input:checked').map(x=>x.value)
 
 $('#reviewBtn').onclick=async()=>{
  $('#captureStatus').textContent='';
+ if(benefitGateActive){
+  $('#captureStatus').innerHTML='<span class="error">Primero registra tu beneficio del mes para continuar.</span>';
+  if(navigator.onLine&&!$('#benefitDialog')?.open)openBenefitDialog();
+  return;
+ }
  if(mustCompleteFormalSetup()){
   $('#captureStatus').innerHTML='<span class="error">Antes de continuar, completa el cambio de NIP.</span>';
   if(navigator.onLine)openPinDialog(!!staff?.is_placeholder);
@@ -653,6 +672,6 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=33').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=34').catch(()=>{});
 updateOfflineUI();
 checkDevice();

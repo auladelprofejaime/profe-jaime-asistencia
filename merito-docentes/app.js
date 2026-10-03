@@ -252,8 +252,10 @@ async function loadMonthlyBenefit(){
   if(d.benefit_required===false){setBenefitGate(false);card?.classList.add('hidden');return;}
   card?.classList.remove('hidden');
   $('#benefitCardText').textContent='Indica el beneficio que darás al grupo ganador durante '+d.period.label+'.';
-  if(d.benefit){setBenefitGate(false);saved.textContent='✓ Registrado: '+d.benefit;btn.textContent='EDITAR MI BENEFICIO';}
-  else{setBenefitGate(true);saved.textContent=d.rejection_reason?('⚠ '+d.rejection_reason):'⚠ Debes registrar tu beneficio antes de poder sumar o restar puntos.';btn.textContent=d.rejection_reason?'REGISTRAR OTRO BENEFICIO':'REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
+  if(d.benefit&&d.review_status==='accepted'){setBenefitGate(false);saved.textContent='✓ Beneficio aceptado: '+d.benefit;btn.textContent='EDITAR MI BENEFICIO';}
+  else if(d.benefit&&d.review_status==='pending'){setBenefitGate(true);saved.textContent='⏳ Beneficio enviado y pendiente de revisión: '+d.benefit;btn.textContent='EDITAR PROPUESTA';}
+  else if(d.benefit&&d.review_status==='rejected'){setBenefitGate(true);saved.textContent='⚠ Beneficio rechazado: '+(d.review_reason||'Debes registrar otra propuesta.');btn.textContent='REGISTRAR OTRO BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
+  else{setBenefitGate(true);saved.textContent='⚠ Debes registrar tu beneficio antes de poder sumar o restar puntos.';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
  }catch(_){}
 }
 function openBenefitDialog(){
@@ -688,7 +690,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=37').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=38').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 

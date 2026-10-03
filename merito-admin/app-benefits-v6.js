@@ -121,22 +121,17 @@ async function loadMeritBenefits(){
  if(!box||!period)return;
  box.innerHTML='<p class="hint">Cargando beneficios…</p>';
  try{
-  const rows=await rpc("teacher_merit_benefits",{p_period_id:period});
-  const data=Array.isArray(rows)?rows:[];
-  const required=data.filter(x=>x.benefit_required).length,done=data.filter(x=>x.benefit_required&&x.benefit).length,blocked=data.filter(x=>x.benefit_required&&!x.benefit).length;
-  if(sum)sum.textContent=done+" de "+required+" obligados ya registraron beneficio · "+blocked+" bloqueados";
-  box.innerHTML='<table><thead><tr><th>Docente</th><th>Asignatura / función</th><th>Beneficio</th><th>¿Debe dar beneficio?</th><th>Estado</th></tr></thead><tbody>'+
-   data.map(x=>'<tr><td><b>'+esc(x.display_name||"")+'</b><div class="hint">ID '+esc(x.staff_code||"")+'</div></td><td>'+esc(x.subject_area||"—")+'</td><td>'+(x.benefit?'<b>'+esc(x.benefit)+'</b>':'<span class="hint">Pendiente</span>')+'</td><td><div class="actions"><button type="button" class="'+(x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="true">SÍ, exigir</button><button type="button" class="'+(!x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="false">NO, exentar</button></div><div class="hint">'+(x.requirement_source==="admin"?"Definido por ti":"Detección automática")+'</div></td><td>'+(x.benefit_required?(x.benefit?'<span class="success">✓ Habilitado</span>':'<span class="error">🔒 Bloqueado hasta registrar beneficio</span>'):'<span class="success">✓ Exento · puede capturar puntos</span>')+'</td></tr>').join("")+
-   '</tbody></table>';
-  document.querySelectorAll(".meritBenefitReq").forEach(b=>b.onclick=async()=>{
-   const required=b.dataset.required==="true";
-   b.disabled=true;
-   try{
-    const d=await rpc("teacher_merit_set_benefit_requirement",{p_period_id:period,p_staff_id:b.dataset.staff,p_required:required});
-    if(!d?.ok)throw new Error(d?.reason||"No se pudo guardar.");
-    await loadMeritBenefits();
-   }catch(e){alert("No se pudo cambiar: "+(e.message||e));b.disabled=false}
-  });
+  const rows=await rpc("teacher_merit_benefits",{p_period_id:period}),data=Array.isArray(rows)?rows:[];
+  const required=data.filter(x=>x.benefit_required).length,accepted=data.filter(x=>x.benefit_required&&x.review_status==="accepted").length,pending=data.filter(x=>x.benefit_required&&x.benefit&&x.review_status==="pending").length,blocked=data.filter(x=>x.benefit_required&&x.review_status!=="accepted").length;
+  if(sum)sum.textContent=accepted+" de "+required+" aprobados · "+pending+" pendientes de revisión · "+blocked+" bloqueados";
+  box.innerHTML='<table><thead><tr><th>Docente</th><th>Asignatura / función</th><th>Beneficio</th><th>Revisión</th><th>¿Debe dar beneficio?</th></tr></thead><tbody>'+data.map(x=>{
+   let review=x.review_status==="accepted"?'<span class="success">✓ Aceptado</span>':x.review_status==="rejected"?'<span class="error">✕ Rechazado</span><div class="hint">'+esc(x.review_reason||"")+'</div>':x.review_status==="pending"?'<span class="badge">Pendiente de revisión</span>':x.review_status==="exempt"?'<span class="success">✓ Exento</span>':'<span class="hint">Sin beneficio</span>';
+   let buttons=x.benefit&&x.benefit_required?'<div class="actions"><button type="button" class="primary meritBenefitAccept" data-staff="'+esc(x.staff_id)+'">Aceptar</button><button type="button" class="secondary meritBenefitReject" data-staff="'+esc(x.staff_id)+'">Rechazar</button></div>':'';
+   return '<tr><td><b>'+esc(x.display_name||"")+'</b><div class="hint">ID '+esc(x.staff_code||"")+'</div></td><td>'+esc(x.subject_area||"—")+'</td><td>'+(x.benefit?'<b>'+esc(x.benefit)+'</b>':'<span class="hint">Pendiente</span>')+'</td><td>'+review+buttons+'</td><td><div class="actions"><button type="button" class="'+(x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="true">SÍ, exigir</button><button type="button" class="'+(!x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="false">NO, exentar</button></div></td></tr>';
+  }).join("")+'</tbody></table>';
+  document.querySelectorAll(".meritBenefitReq").forEach(b=>b.onclick=async()=>{const required=b.dataset.required==="true";b.disabled=true;try{const d=await rpc("teacher_merit_set_benefit_requirement",{p_period_id:period,p_staff_id:b.dataset.staff,p_required:required});if(!d?.ok)throw new Error(d?.reason||"No se pudo guardar.");await loadMeritBenefits()}catch(e){alert("No se pudo cambiar: "+(e.message||e));b.disabled=false}});
+  document.querySelectorAll(".meritBenefitAccept").forEach(b=>b.onclick=async()=>{if(!confirm("¿Aceptar este beneficio? El docente quedará habilitado para registrar puntos."))return;b.disabled=true;try{const d=await rpc("teacher_merit_review_benefit",{p_period_id:period,p_staff_id:b.dataset.staff,p_status:"accepted",p_reason:null});if(!d?.ok)throw new Error(d?.reason||"No se pudo aceptar.");await loadMeritBenefits()}catch(e){alert("No se pudo aceptar: "+(e.message||e));b.disabled=false}});
+  document.querySelectorAll(".meritBenefitReject").forEach(b=>b.onclick=async()=>{const reason=prompt("Escribe por qué no se acepta este beneficio:");if(reason===null)return;if(reason.trim().length<3){alert("Escribe el motivo del rechazo.");return}b.disabled=true;try{const d=await rpc("teacher_merit_review_benefit",{p_period_id:period,p_staff_id:b.dataset.staff,p_status:"rejected",p_reason:reason.trim()});if(!d?.ok)throw new Error(d?.reason||"No se pudo rechazar.");await loadMeritBenefits()}catch(e){alert("No se pudo rechazar: "+(e.message||e));b.disabled=false}});
  }catch(e){box.innerHTML='<p class="message">No se pudieron cargar los beneficios: '+esc(e.message||e)+'</p>'}
 }
 window.loadMeritBenefits=loadMeritBenefits;

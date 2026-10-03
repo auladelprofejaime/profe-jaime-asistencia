@@ -1,6 +1,6 @@
 <!doctype html><html lang="es"><head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="theme-color" content="#ffc800"><title>Mérito Gabino A. Palma · Avance semanal</title>
+<meta name="theme-color" content="#ffc800"><title>Mérito Gabino A. Palma · Ranking en tiempo real</title>
 <link rel="manifest" href="manifest.webmanifest"><link rel="stylesheet" href="styles.css">
 <style>
 .brand-byline{font-size:.82rem;font-weight:700;opacity:.72;margin-top:3px}
@@ -23,12 +23,13 @@
 </section>
 
 <main id="publicMain" class="hidden">
-<div class="card hero"><img src="logo-merito.jpeg" alt=""><h2>Avance semanal</h2><p id="periodName" class="muted">Consultando publicación…</p><p id="updated"></p></div>
-<div class="card"><p class="muted" style="text-align:center;margin:0"><b>Clasificación general de la escuela</b><br>Todos los grados y grupos compiten en una sola tabla.</p></div>
-<div id="stateBox" class="card hidden"></div>
+<div class="card hero meritHero"><img src="logo-merito.jpeg" alt=""><div class="liveBadge">● EN TIEMPO REAL</div><h2>Mérito Gabino A. Palma</h2><p id="periodName" class="periodTitle">Consultando periodo…</p><p id="updated" class="muted"></p></div>
+<div id="leaderNow" class="card leaderCard"><div class="empty">Consultando primer lugar…</div></div>
+<div class="sectionTitle"><h2>Clasificación general</h2><p>1.º, 2.º y 3.º lugar de toda la escuela</p></div>
 <div id="ranking" class="ranking"></div>
-<p class="muted" style="text-align:center">Este portal muestra únicamente el último corte oficial publicado por la administración.</p>
+<div class="card categoryCard"><div class="sectionTitle"><h2>🥇 Líderes por categoría</h2><p>Reconocimientos independientes del Mérito general. Se muestra únicamente el primer lugar actual de cada categoría.</p></div><div id="categories" class="categoryGrid"></div></div>
+<p class="muted liveFoot">Los puntos se actualizan automáticamente conforme se registran movimientos válidos. Solo el 1.er lugar general obtiene el Mérito Gabino A. Palma y los beneficios del mes.</p>
 </main>
 <footer class="app-brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</footer>
-<script src="app-v15.js?v=16"></script>
+<script src="app-live-v17.js"></script>
 </body></html>

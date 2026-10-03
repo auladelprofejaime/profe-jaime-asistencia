@@ -123,11 +123,20 @@ async function loadMeritBenefits(){
  try{
   const rows=await rpc("teacher_merit_benefits",{p_period_id:period});
   const data=Array.isArray(rows)?rows:[];
-  const done=data.filter(x=>x.benefit).length;
-  if(sum)sum.textContent=done+" de "+data.length+" participantes han registrado su beneficio";
-  box.innerHTML='<table><thead><tr><th>Docente</th><th>Asignatura / función</th><th>Beneficio</th><th>Actualizado</th></tr></thead><tbody>'+
-   data.map(x=>'<tr><td><b>'+esc(x.display_name||"")+'</b><div class="hint">ID '+esc(x.staff_code||"")+'</div></td><td>'+esc(x.subject_area||"—")+'</td><td>'+(x.benefit?'<b>'+esc(x.benefit)+'</b>':'<span class="hint">Pendiente</span>')+'</td><td>'+esc(x.updated_at?new Date(x.updated_at).toLocaleString("es-MX"):"—")+'</td></tr>').join("")+
+  const required=data.filter(x=>x.benefit_required).length,done=data.filter(x=>x.benefit_required&&x.benefit).length,blocked=data.filter(x=>x.benefit_required&&!x.benefit).length;
+  if(sum)sum.textContent=done+" de "+required+" obligados ya registraron beneficio · "+blocked+" bloqueados";
+  box.innerHTML='<table><thead><tr><th>Docente</th><th>Asignatura / función</th><th>Beneficio</th><th>¿Debe dar beneficio?</th><th>Estado</th></tr></thead><tbody>'+
+   data.map(x=>'<tr><td><b>'+esc(x.display_name||"")+'</b><div class="hint">ID '+esc(x.staff_code||"")+'</div></td><td>'+esc(x.subject_area||"—")+'</td><td>'+(x.benefit?'<b>'+esc(x.benefit)+'</b>':'<span class="hint">Pendiente</span>')+'</td><td><div class="actions"><button type="button" class="'+(x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="true">SÍ, exigir</button><button type="button" class="'+(!x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="false">NO, exentar</button></div><div class="hint">'+(x.requirement_source==="admin"?"Definido por ti":"Detección automática")+'</div></td><td>'+(x.benefit_required?(x.benefit?'<span class="success">✓ Habilitado</span>':'<span class="error">🔒 Bloqueado hasta registrar beneficio</span>'):'<span class="success">✓ Exento · puede capturar puntos</span>')+'</td></tr>').join("")+
    '</tbody></table>';
+  $(".meritBenefitReq").forEach(b=>b.onclick=async()=>{
+   const required=b.dataset.required==="true";
+   b.disabled=true;
+   try{
+    const d=await rpc("teacher_merit_set_benefit_requirement",{p_period_id:period,p_staff_id:b.dataset.staff,p_required:required});
+    if(!d?.ok)throw new Error(d?.reason||"No se pudo guardar.");
+    await loadMeritBenefits();
+   }catch(e){alert("No se pudo cambiar: "+(e.message||e));b.disabled=false}
+  });
  }catch(e){box.innerHTML='<p class="message">No se pudieron cargar los beneficios: '+esc(e.message||e)+'</p>'}
 }
 window.loadMeritBenefits=loadMeritBenefits;

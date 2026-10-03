@@ -1,3 +1,20 @@
+function enforceCombinedRankingLayout(){
+ const main=document.querySelector('#teacherRankingCard'),old=document.querySelector('#teacherCategoryLeadersCard');
+ if(!main)return;
+ main.classList.add('merit-ranking-combined');
+ if(old){
+  old.classList.remove('card');
+  old.classList.add('merit-category-section');
+  let divider=old.querySelector('.category-divider');if(!divider){divider=document.createElement('div');divider.className='category-divider';old.prepend(divider)}
+  main.appendChild(old);
+ }
+ if(!document.querySelector('#meritRankingCombinedStyle')){
+  const s=document.createElement('style');s.id='meritRankingCombinedStyle';s.textContent='.merit-ranking-combined{overflow:hidden;border:2px solid #d4aa32!important}.merit-ranking-combined>div.section:first-child,.merit-ranking-combined>p.badge,.merit-ranking-combined>#teacherRankingTable,.merit-ranking-combined>#teacherRankingStatus{margin-left:22px;margin-right:22px}.merit-ranking-combined{background:linear-gradient(180deg,#fff8d8 0,#fffdf7 54%,#fff 100%)}.merit-ranking-combined>div.section:first-child{margin-top:22px;padding:18px;border-radius:18px;background:linear-gradient(135deg,#0b2b54,#174d82);color:#fff}.merit-ranking-combined>div.section:first-child h2,.merit-ranking-combined>div.section:first-child .muted{color:#fff}.merit-ranking-combined>div.section:first-child .secondary{background:#f4d36d;color:#102a4d;border-color:#d9ae32}.merit-category-section{margin:24px 0 0!important;padding:20px 22px 24px!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:#fffdf7}.merit-category-section h2{font-size:1.25rem}.category-divider{height:3px;background:linear-gradient(90deg,#d4a923,#f3dc8b,#d4a923);border-radius:3px;margin-bottom:16px}';document.head.appendChild(s);
+ }
+}
+if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
+setTimeout(enforceCombinedRankingLayout,300);
+
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
 const SUPABASE_KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA";
 const TOKEN_KEY='meritInstallationTokenV1';

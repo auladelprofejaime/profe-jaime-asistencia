@@ -227,7 +227,7 @@ function showCapture(){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
-   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit();loadTeacherRanking();loadTeacherCategoryLeaders();setTimeout(ensureNotificationGate,120);
+   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit();loadTeacherRanking();setTimeout(ensureNotificationGate,120);
  }
 }
 

@@ -1,5 +1,5 @@
-const C='merito-publico-v1-6';
-const A=['./','index.html','styles.css','app-v15.js','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest'];
+const C='merito-publico-v1-7-live';
+const A=['./','index.html','styles.css','app-live-v17.js','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest'];
 self.addEventListener('install',e=>e.waitUntil(
   caches.open(C).then(c=>c.addAll(A)).then(()=>self.skipWaiting())
 ));
@@ -9,7 +9,7 @@ self.addEventListener('activate',e=>e.waitUntil(
 self.addEventListener('fetch',e=>{
   if(e.request.method!=='GET') return;
   const u=new URL(e.request.url);
-  const isShell = u.pathname.endsWith('/') || u.pathname.endsWith('/index.html') || u.pathname.endsWith('/app-v15.js');
+  const isShell = u.pathname.endsWith('/') || u.pathname.endsWith('/index.html') || u.pathname.endsWith('/app-live-v17.js');
   if(isShell){
     e.respondWith(
       fetch(e.request,{cache:'no-store'}).catch(()=>caches.match(e.request))

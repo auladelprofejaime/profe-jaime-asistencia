@@ -253,7 +253,7 @@ async function loadMonthlyBenefit(){
   card?.classList.remove('hidden');
   $('#benefitCardText').textContent='Indica el beneficio que darás al grupo ganador durante '+d.period.label+'.';
   if(d.benefit){setBenefitGate(false);saved.textContent='✓ Registrado: '+d.benefit;btn.textContent='EDITAR MI BENEFICIO';}
-  else{setBenefitGate(true);saved.textContent='⚠ Debes registrar tu beneficio antes de poder sumar o restar puntos.';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
+  else{setBenefitGate(true);saved.textContent=d.rejection_reason?('⚠ '+d.rejection_reason):'⚠ Debes registrar tu beneficio antes de poder sumar o restar puntos.';btn.textContent=d.rejection_reason?'REGISTRAR OTRO BENEFICIO':'REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
  }catch(_){}
 }
 function openBenefitDialog(){
@@ -688,7 +688,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=36').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=37').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 

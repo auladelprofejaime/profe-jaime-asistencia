@@ -26,7 +26,7 @@
 .merit-main-award #teacherRankingTable .muted{color:#5f6570!important}
 .merit-main-award #teacherRankingTable{background:#fff!important}
 @media(max-width:720px){.merit-ranking-combined{grid-template-columns:1fr!important}.merit-category-section{border-left:0!important;border-top:3px solid #d4aa32!important}}
-</style><link rel="stylesheet" href="layout-v52.css?v=61"></head><body>
+</style><link rel="stylesheet" href="layout-v52.css?v=62"></head><body>
 <header><img src="logo-merito.jpeg" alt=""><div><h1>Mérito Gabino A. Palma</h1><p>Captura para docentes autorizados</p><div class="brand-byline">Una app de Aula del Profe Jaime</div></div></header>
 <main>
 <section id="activation" class="card">
@@ -44,22 +44,7 @@
 <div id="offlineCard" class="card statusbar"><div><span class="muted">Conexión y sincronización</span><h2 id="offlineTitle" style="margin:3px 0">Comprobando conexión…</h2><span id="offlineDetail" class="badge">0 pendientes</span></div><button id="offlineRetry" class="secondary" type="button">Sincronizar</button></div>
 <div class="card statusbar"><div><span class="muted">Dispositivo autorizado</span><h2 id="staffName" style="margin:3px 0"></h2><span id="staffRole" class="badge"></span></div><button id="forgetDevice" class="secondary">Desvincular</button></div>
 
-<div id="teacherRankingCard" class="card merit-ranking-combined">
- <section class="merit-main-award">
-  <div class="merit-award-kicker">🏆 PREMIO PRINCIPAL</div>
-  <div class="section"><div><h2>✨ Mérito Gabino A. Palma</h2><p class="merit-award-subtitle">Ranking general en tiempo real</p></div><button id="teacherRankingRefresh" class="secondary" type="button">Actualizar ranking ahora</button></div>
-  <p id="teacherRankingPeriod" class="badge">Cargando periodo…</p>
-  <div id="teacherRankingTable" class="tablewrap"><p class="muted">Cargando clasificación…</p></div>
-  <p class="merit-benefit-callout">🎁 <b>Solo el 1.er lugar general obtiene el Mérito Gabino A. Palma y recibe los beneficios del mes.</b></p>
-  <p id="teacherRankingStatus" class="muted"></p>
- </section>
- <section class="merit-category-section">
-  <div class="category-divider"></div>
-  <h3>🥇 Líderes por categoría</h3>
-  <p class="muted">Reconocimientos independientes · se muestra únicamente el 1.er lugar actual de cada categoría.</p>
-  <div id="teacherCategoryLeaders"><p class="muted">Cargando categorías…</p></div>
- </section>
-</div>
+<div class="card ranking-location-note" style="padding:14px 18px"><b>🏆 Ranking del mes</b><p class="muted" style="margin:5px 0 0">Consulta el ranking general y los líderes por categoría al final de esta página.</p></div>
 
 <div id="benefitCard" class="card hidden" style="border:2px solid #c9962d;background:linear-gradient(135deg,#fff7d8,#fffdf5)">
  <div style="font-size:2rem">🎁🏆</div><h2>Beneficio para el grupo ganador</h2>
@@ -110,6 +95,25 @@
 <p id="captureStatus"></p>
 <div id="lastRecord" class="hidden"><hr><b>Último registro realizado en este dispositivo</b><p id="lastRecordText"></p></div><hr><button id="reportMovementErrorBtn" class="secondary full" type="button">REPORTAR ERROR EN UN REGISTRO DE HOY</button><p class="muted">Solo puedes solicitar revisión el mismo día en que hiciste el movimiento.</p><p id="movementReviewQuickStatus"></p>
 </div>
+
+<div class="ranking-bottom-wrap"><div id="teacherRankingCard" class="card merit-ranking-combined">
+ <section class="merit-main-award">
+  <div class="merit-award-kicker">🏆 PREMIO PRINCIPAL</div>
+  <div class="section"><div><h2>✨ Mérito Gabino A. Palma</h2><p class="merit-award-subtitle">Ranking general en tiempo real</p></div><button id="teacherRankingRefresh" class="secondary" type="button">Actualizar ranking ahora</button></div>
+  <p id="teacherRankingPeriod" class="badge">Cargando periodo…</p>
+  <div id="teacherRankingTable" class="tablewrap"><p class="muted">Cargando clasificación…</p></div>
+  <p class="merit-benefit-callout">🎁 <b>Solo el 1.er lugar general obtiene el Mérito Gabino A. Palma y recibe los beneficios del mes.</b></p>
+  <p id="teacherRankingStatus" class="muted"></p>
+ </section>
+ <section class="merit-category-section">
+  <div class="category-divider"></div>
+  <h3>🥇 Líderes por categoría</h3>
+  <p class="muted">Reconocimientos independientes · se muestra únicamente el 1.er lugar actual de cada categoría.</p>
+  <div id="teacherCategoryLeaders"><p class="muted">Cargando categorías…</p></div>
+ </section>
+</div>
+
+</div>
 </div></section>
 </main>
 <dialog id="pinDialog"><div class="dialogbody"><h2 id="pinDialogTitle">Completa tu registro</h2><p id="pinDialogText" class="muted">Completa tus datos y cambia tu NIP.</p><div id="profileFields"><label>Nombre<input id="profileFirstName" autocomplete="given-name"></label><label>Primer apellido<input id="profileFirstSurname" autocomplete="family-name"></label><label>Asignatura<input id="profileSubject" autocomplete="organization-title"></label></div><label>NIP actual<input id="currentPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Nuevo NIP<input id="newPin" inputmode="numeric" maxlength="4" placeholder="0000"></label><label>Confirma nuevo NIP<input id="newPinConfirm" inputmode="numeric" maxlength="4" placeholder="0000"></label><button id="saveNewPin" class="primary full">GUARDAR</button><p id="pinChangeStatus"></p></div></dialog>
@@ -139,4 +143,4 @@
   <p id="notificationStatus"></p>
 </div></dialog>
 <footer class="app-brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</footer>
-<script src="app.js?v=61"></script></body></html>
+<script src="app.js?v=62"></script></body></html>

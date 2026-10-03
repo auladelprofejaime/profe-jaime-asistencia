@@ -36,3 +36,18 @@
 #teacherCategoryLeaders .category-winner{min-width:0!important;white-space:normal!important;overflow-wrap:anywhere!important}
 #teacherCategoryLeaders .category-score{width:54px!important;justify-self:end!important}
 #teacherCategoryLeaders .category-tie-badge{white-space:normal!important;width:max-content!important;max-width:100%!important}
+
+/* v61: compact ranking summary so point capture stays close */
+#teacherRankingCard>.merit-main-award{padding:18px!important}
+#teacherRankingCard>.merit-category-section{padding:18px!important}
+#teacherRankingCard .merit-main-award h2{margin:6px 0 2px!important;line-height:1.05!important}
+#teacherRankingCard .merit-main-award p{margin-top:5px!important;margin-bottom:8px!important}
+#teacherCategoryLeaders .category-list{gap:6px!important;margin-top:8px!important}
+#teacherCategoryLeaders .category-row{padding:8px 9px!important}
+#teacherCategoryLeaders .category-name{margin:0 0 5px!important;padding:0 0 4px!important;font-size:.92rem!important}
+#teacherCategoryLeaders .category-row-bottom{grid-template-columns:minmax(0,1fr) 48px!important;gap:8px!important}
+#teacherCategoryLeaders .category-winner{font-size:.9rem!important}
+#teacherCategoryLeaders .category-score{width:48px!important;min-height:34px!important;font-size:.95rem!important;border-radius:8px!important}
+#teacherCategoryLeaders .category-tie-badge{margin-top:3px!important;padding:2px 6px!important;font-size:.55rem!important}
+#teacherRankingTable{padding:12px!important}
+#teacherRankingCard .merit-benefit-callout{margin-top:10px!important;padding:10px 12px!important}

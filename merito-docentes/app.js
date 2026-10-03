@@ -267,7 +267,7 @@ async function loadTeacherRanking(){
     const g=String(r.group_code||'');
     if(g&&!row.groups.includes(g))row.groups.push(g);
    });
-   catBox.innerHTML=grouped.length?'<table><thead><tr><th>Categoría</th><th>1.er lugar</th><th>Puntos</th></tr></thead><tbody>'+grouped.map(r=>'<tr><td><b>'+escapeHtml(r.label)+'</b></td><td><b>'+escapeHtml(r.groups.map(g=>'Grupo '+g).join(' · '))+'</b>'+(r.groups.length>1?'<div class="muted">Empate en primer lugar</div>':'')+'</td><td>'+escapeHtml(String(r.score??''))+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay líderes por categoría.</p>';
+   catBox.innerHTML=grouped.length?'<table><thead><tr><th>Categoría</th><th>1.er lugar</th><th>Puntos</th></tr></thead><tbody>'+grouped.map(r=>'<tr><td><b>'+escapeHtml(r.label)+'</b></td><td><b>'+escapeHtml(r.groups.map(g=>'Grupo '+g).join(r.groups.length>1?' y ':' · '))+'</b>'+(r.groups.length>1?'<div class="muted">Empate en primer lugar</div>':'')+'</td><td>'+escapeHtml(String(r.score??''))+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay líderes por categoría.</p>';
   }
   if(st)st.textContent='Solo consulta · 1.º, 2.º y 3.º lugar general.';
  }catch(e){if(st)st.innerHTML='<span class="error">No se pudo cargar el ranking: '+escapeHtml(e.message||e)+'</span>'}

@@ -15,6 +15,9 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
+const MERIT_APP_VERSION='60';
+(async()=>{try{const r=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();const remote=String(v.version||'');const seen=sessionStorage.getItem('meritAppVersionSeen')||'';if(remote&&remote!==MERIT_APP_VERSION&&seen!==remote){sessionStorage.setItem('meritAppVersionSeen',remote);location.reload()}}catch(_){}})();
+
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
 const SUPABASE_KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA";
 const TOKEN_KEY='meritInstallationTokenV1';
@@ -733,7 +736,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=59').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=60').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 

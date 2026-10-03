@@ -210,10 +210,22 @@ function showCapture(){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
-   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit();loadTeacherRanking();setTimeout(ensureNotificationGate,120);
+   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit();loadTeacherRanking();loadTeacherCategoryLeaders();setTimeout(ensureNotificationGate,120);
  }
 }
 
+
+
+async function loadTeacherCategoryLeaders(){
+ const box=$('#teacherCategoryLeaders');if(!box||!token)return;
+ if(!navigator.onLine){box.innerHTML='<p class="muted">Conéctate a internet para consultar los líderes actuales.</p>';return}
+ try{
+  const d=await rpc('merit_teacher_category_leaders',{p_token:token});
+  if(!d?.ok)throw new Error(friendlyReason(d));
+  const rows=Array.isArray(d.leaders)?d.leaders:[];
+  box.innerHTML=rows.length?'<table><thead><tr><th>Categoría</th><th>1.er lugar</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(r.label)+'</b></td><td><b>'+escapeHtml((r.groups||[]).map(g=>'Grupo '+g).join(' · '))+'</b>'+(r.groups?.length>1?'<div class="muted">Empate en primer lugar</div>':'')+'</td><td>'+escapeHtml(r.score)+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay datos por categoría.</p>';
+ }catch(e){box.innerHTML='<p class="error">No se pudieron cargar los líderes por categoría: '+escapeHtml(e.message||e)+'</p>'}
+}
 
 async function loadTeacherRanking(){
  const box=$('#teacherRankingTable'),label=$('#teacherRankingPeriod'),st=$('#teacherRankingStatus');
@@ -690,7 +702,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=38').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=39').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 

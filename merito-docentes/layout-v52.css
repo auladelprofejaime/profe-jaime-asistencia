@@ -7,3 +7,15 @@
 #teacherRankingTable .muted{color:#5e6671!important}
 #teacherRankingTable{background:#fff!important}
 @media(max-width:600px){#teacherRankingCard.merit-ranking-combined{grid-template-columns:1fr!important}#teacherRankingCard>.merit-main-award{grid-column:1!important}#teacherRankingCard>.merit-category-section{grid-column:1!important;border-left:0!important;border-top:3px solid #d2a62d!important}}
+
+/* v56: clearer category rows */
+#teacherCategoryLeaders table{width:100%;border-collapse:collapse;table-layout:fixed}
+#teacherCategoryLeaders th{padding:8px 8px 10px;text-align:left;border-bottom:2px solid #d7b44d;color:#102a4d}
+#teacherCategoryLeaders th:nth-child(1){width:39%}
+#teacherCategoryLeaders th:nth-child(2){width:43%}
+#teacherCategoryLeaders th:nth-child(3){width:18%;text-align:center}
+#teacherCategoryLeaders td{padding:13px 8px;vertical-align:middle;border-bottom:1px solid rgba(16,42,77,.16);line-height:1.25}
+#teacherCategoryLeaders tbody tr:last-child td{border-bottom:0}
+#teacherCategoryLeaders td:nth-child(3){text-align:center;font-weight:700}
+#teacherCategoryLeaders tbody tr:nth-child(even){background:rgba(212,169,35,.055)}
+#teacherCategoryLeaders .category-tie-badge{display:inline-block;margin-top:6px;padding:4px 8px;border:1px solid #d1a42b;border-radius:999px;background:#fff1b9;color:#624a00;font-size:.72rem;font-weight:800;line-height:1.1;white-space:nowrap}

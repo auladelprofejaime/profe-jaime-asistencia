@@ -240,7 +240,7 @@ async function loadTeacherCategoryLeaders(){
   const d=await rpc('merit_teacher_category_leaders',{p_token:token});
   if(!d?.ok)throw new Error(friendlyReason(d));
   const rows=Array.isArray(d.leaders)?d.leaders:[];
-  box.innerHTML=rows.length?'<table><thead><tr><th>Categoría</th><th>1.er lugar</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(r.label)+'</b></td><td><b>'+escapeHtml((r.groups||[]).map(g=>'Grupo '+g).join(' · '))+'</b>'+(r.groups?.length>1?'<div class="muted">Empate en primer lugar</div>':'')+'</td><td>'+escapeHtml(r.score)+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay datos por categoría.</p>';
+  box.innerHTML=rows.length?'<table><thead><tr><th>Categoría</th><th>1.er lugar</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(r.label)+'</b></td><td><b>'+escapeHtml((r.groups||[]).map(g=>'Grupo '+g).join(' · '))+'</b>'+(r.groups?.length>1?'<div class="category-tie-badge">EMPATE EN 1.er LUGAR</div>':'')+'</td><td>'+escapeHtml(r.score)+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay datos por categoría.</p>';
  }catch(e){box.innerHTML='<p class="error">No se pudieron cargar los líderes por categoría: '+escapeHtml(e.message||e)+'</p>'}
 }
 

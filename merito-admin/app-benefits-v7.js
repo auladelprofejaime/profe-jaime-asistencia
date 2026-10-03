@@ -15,8 +15,21 @@ function fillSelect(id,rows){
  if(rows.some(p=>String(p.id)===String(old)))el.value=old;
 }
 async function loadMeritPeriods(){
- const rows=await rpc("teacher_merit_periods",{});
- meritPeriodsCache=Array.isArray(rows)?rows:[];
+ let rows=null,lastError=null;
+ for(let attempt=0;attempt<3;attempt++){
+  try{
+   const result=await rpc("teacher_merit_periods",{});
+   if(Array.isArray(result)&&result.length){rows=result;break}
+   if(Array.isArray(result)&&result.length===0)lastError=new Error("La consulta devolvió temporalmente 0 periodos.");
+   else lastError=new Error("Respuesta temporal inválida al cargar periodos.");
+  }catch(e){lastError=e}
+  if(attempt<2)await new Promise(r=>setTimeout(r,350*(attempt+1)));
+ }
+ if(!rows){
+  if(meritPeriodsCache.length)return meritPeriodsCache;
+  throw lastError||new Error("No se pudieron cargar los periodos.");
+ }
+ meritPeriodsCache=rows;
  ["meritRankingPeriod","meritMovementPeriod","meritWeeklyPeriod","meritMonthlyPeriod","meritBenefitsPeriod"].forEach(id=>fillSelect(id,meritPeriodsCache));
  renderPeriodList(meritPeriodsCache);
  return meritPeriodsCache;
@@ -117,8 +130,14 @@ async function saveStaffEdit(){
 
 
 async function loadMeritBenefits(){
- const box=$("#meritBenefitsTable"),sum=$("#meritBenefitsSummary"),period=$("#meritBenefitsPeriod")?.value;
- if(!box||!period)return;
+ const box=$("#meritBenefitsTable"),sum=$("#meritBenefitsSummary");
+ if(!box)return;
+ let period=$("#meritBenefitsPeriod")?.value;
+ if(!period){
+  try{await loadMeritPeriods()}catch(e){box.innerHTML='<p class="message">No se pudieron cargar los periodos. Pulsa Actualizar para reintentar.</p>';return}
+  period=$("#meritBenefitsPeriod")?.value;
+ }
+ if(!period){box.innerHTML='<p class="message">No hay un periodo disponible en este momento.</p>';return}
  box.innerHTML='<p class="hint">Cargando beneficios…</p>';
  try{
   const rows=await rpc("teacher_merit_benefits",{p_period_id:period}),data=Array.isArray(rows)?rows:[];

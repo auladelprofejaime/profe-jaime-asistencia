@@ -219,7 +219,7 @@ let meritBenefitData=null,benefitGateActive=false;
 function benefitExemptClient(){
  const role=String(staff?.role_type||'').toLowerCase();
  const area=String(staff?.subject_area||'').toLowerCase();
- return ['direccion','subdireccion','prefectura'].includes(role)||/(prefect|direc|subdirec|udei|udi|orient|trabajo social|servicio social)/.test(area);
+ return ['direccion','subdireccion','prefectura'].includes(role)||/(prefect|direc|subdirec|udeei|udei|udi|orient|trabajo social|servicio social)/.test(area);
 }
 function setBenefitGate(active){
  benefitGateActive=!!active;

@@ -237,8 +237,10 @@ async function loadTeacherRanking(){
   if(!d?.ok)throw new Error(friendlyReason(d));
   if(label)label.textContent=d.period?.label||'Sin periodo abierto';
   const rows=Array.isArray(d.ranking)?d.ranking:[];
-  box.innerHTML=rows.length?'<table><thead><tr><th>Lugar</th><th>Grupo</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(r.rank)+'</b></td><td><b>Grupo '+escapeHtml(r.group_code)+'</b></td><td>'+escapeHtml(r.score)+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay clasificación disponible.</p>';
-  if(st)st.textContent='Solo consulta · no puedes modificar esta clasificación.';
+  box.innerHTML='<p class="muted"><b>Mérito Gabino A. Palma</b> · Solo el 1.er lugar gana el Mérito y recibe los beneficios registrados por los docentes.</p>'+(rows.length?'<table><thead><tr><th>Lugar</th><th>Grupo</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(String(r.rank))+(Number(r.rank)===1?' 🏆':'')+'</b></td><td><b>Grupo '+escapeHtml(String(r.group_code))+'</b></td><td>'+escapeHtml(String(r.score))+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay clasificación disponible.</p>');
+  const catBox=$('#teacherCategoryLeaders'),cats=Array.isArray(d.category_leaders)?d.category_leaders:[];
+  if(catBox)catBox.innerHTML=cats.length?'<table><thead><tr><th>Categoría</th><th>1.er lugar</th></tr></thead><tbody>'+cats.map(r=>'<tr><td><b>'+escapeHtml(String(r.category))+'</b></td><td>Grupo <b>'+escapeHtml(String(r.group_code))+'</b></td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay líderes por categoría.</p>';
+  if(st)st.textContent='Solo consulta · 1.º, 2.º y 3.º lugar general.';
  }catch(e){if(st)st.innerHTML='<span class="error">No se pudo cargar el ranking: '+escapeHtml(e.message||e)+'</span>'}
 }
 

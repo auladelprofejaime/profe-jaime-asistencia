@@ -210,8 +210,24 @@ function showCapture(){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
-   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit();setTimeout(ensureNotificationGate,120);
+   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit();loadTeacherRanking();setTimeout(ensureNotificationGate,120);
  }
+}
+
+
+async function loadTeacherRanking(){
+ const box=$('#teacherRankingTable'),label=$('#teacherRankingPeriod'),st=$('#teacherRankingStatus');
+ if(!box||!token)return;
+ if(!navigator.onLine){box.innerHTML='<p class="muted">Conéctate a internet para consultar el ranking actual.</p>';return}
+ try{
+  if(st)st.textContent='Actualizando…';
+  const d=await rpc('merit_teacher_ranking',{p_token:token});
+  if(!d?.ok)throw new Error(friendlyReason(d));
+  if(label)label.textContent=d.period?.label||'Sin periodo abierto';
+  const rows=Array.isArray(d.ranking)?d.ranking:[];
+  box.innerHTML=rows.length?'<table><thead><tr><th>Lugar</th><th>Grupo</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(r.rank)+'</b></td><td><b>Grupo '+escapeHtml(r.group_code)+'</b></td><td>'+escapeHtml(r.score)+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay clasificación disponible.</p>';
+  if(st)st.textContent='Solo consulta · no puedes modificar esta clasificación.';
+ }catch(e){if(st)st.innerHTML='<span class="error">No se pudo cargar el ranking: '+escapeHtml(e.message||e)+'</span>'}
 }
 
 
@@ -672,6 +688,8 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=35').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=36').catch(()=>{});
 updateOfflineUI();
 checkDevice();
+
+$('#teacherRankingRefresh')?.addEventListener('click',loadTeacherRanking);

@@ -1,6 +1,6 @@
-const CACHE="merito-admin-v1-6-benefit-controls";
+const CACHE="merito-admin-v1-7-benefit-controls-fix";
 const ASSETS=[
- "./","./index.html","./styles.css?v=2","./app.js?v=4","./supabase-admin.js?v=1",
+ "./","./index.html","./styles.css?v=2","./app.js?v=5","./supabase-admin.js?v=1",
  "./merit-staff-provision.js?v=2","./merit-movements.js?v=2","./merit-corrections.js?v=2",
  "./merit-ranking.js?v=2","./merit-staff-period.js?v=2","./merit-tie-vote.js?v=2",
  "./merit-admin.js?v=2","./merit-annual.js?v=2","./manifest.webmanifest?v=3",

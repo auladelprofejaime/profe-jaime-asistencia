@@ -233,7 +233,7 @@ async function loadTeacherRanking(){
  if(!navigator.onLine){box.innerHTML='<p class="muted">Conéctate a internet para consultar el ranking actual.</p>';return}
  try{
   if(st)st.textContent='Actualizando…';
-  const d=await rpc('merit_teacher_ranking',{p_token:token});
+  const d=await rpc('merit_live_ranking');
   if(!d?.ok)throw new Error(friendlyReason(d));
   if(label)label.textContent=d.period?.label||'Sin periodo abierto';
   const rows=Array.isArray(d.ranking)?d.ranking:[];
@@ -704,8 +704,9 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=39').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=40').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 
 $('#teacherRankingRefresh')?.addEventListener('click',loadTeacherRanking);
+setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)loadTeacherRanking()},15000);

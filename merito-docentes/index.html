@@ -8,7 +8,15 @@
 .tie-vote-card{border:2px solid #c9962d;background:linear-gradient(180deg,#fff7dc,#fffdf7)}
 .tie-vote-card h2{margin-bottom:4px}.tie-vote-session{border-top:1px solid #ddca95;padding-top:12px;margin-top:12px}.tie-vote-issue{padding:12px;border:1px solid #d9c590;border-radius:14px;margin-top:10px;background:#fffef9}.tie-vote-options{display:flex;gap:8px;flex-wrap:wrap;margin-top:9px}.tie-vote-options button{min-width:88px}.tie-voted{font-weight:800;margin-top:8px}
 </style>
-</head><body>
+<style>
+.merit-ranking-combined{padding:0!important;overflow:hidden;border:1px solid #d7b354!important}
+.merit-main-award{padding:24px;background:linear-gradient(145deg,#0b2b54 0%,#123f73 58%,#1d568c 100%);color:#fff}
+.merit-main-award h2{color:#fff;margin:4px 0;font-size:1.8rem}.merit-award-kicker{display:inline-block;background:#f3ca55;color:#122a4a;border-radius:999px;padding:6px 11px;font-size:.72rem;font-weight:900;letter-spacing:.08em}
+.merit-award-subtitle{margin:3px 0;color:#f5e5aa}.merit-main-award .badge{background:#fff3c6;color:#172d4d;border-color:#d8b34f}.merit-main-award .tablewrap{background:#fff;border-radius:16px;padding:12px;margin-top:14px;color:#142641;box-shadow:0 7px 22px #00152c40}
+.merit-main-award .secondary{background:#f5d36e;color:#102a4d;border-color:#e1b83e;font-weight:900}.merit-main-award .muted{color:#e7e9ed}.merit-benefit-callout{background:#fff3c6;color:#183252;border:1px solid #e4c157;border-radius:14px;padding:12px 14px;margin:14px 0 4px}
+.merit-category-section{padding:20px 24px 24px;background:#fffdf7}.merit-category-section h3{font-size:1.3rem;margin:10px 0 4px;color:#142d50}.category-divider{height:3px;border-radius:3px;background:linear-gradient(90deg,#d4a923,#f1d779,#d4a923);margin-bottom:16px}
+@media(max-width:650px){.merit-main-award,.merit-category-section{padding:18px}.merit-main-award h2{font-size:1.5rem}}
+</style></head><body>
 <header><img src="logo-merito.jpeg" alt=""><div><h1>Mérito Gabino A. Palma</h1><p>Captura para docentes autorizados</p><div class="brand-byline">Una app de Aula del Profe Jaime</div></div></header>
 <main>
 <section id="activation" class="card">
@@ -26,9 +34,22 @@
 <div id="offlineCard" class="card statusbar"><div><span class="muted">Conexión y sincronización</span><h2 id="offlineTitle" style="margin:3px 0">Comprobando conexión…</h2><span id="offlineDetail" class="badge">0 pendientes</span></div><button id="offlineRetry" class="secondary" type="button">Sincronizar</button></div>
 <div class="card statusbar"><div><span class="muted">Dispositivo autorizado</span><h2 id="staffName" style="margin:3px 0"></h2><span id="staffRole" class="badge"></span></div><button id="forgetDevice" class="secondary">Desvincular</button></div>
 
-<div id="teacherRankingCard" class="card"><div class="section"><div><h2>🏆 Mérito Gabino A. Palma</h2><p class="muted">Ranking en tiempo real · 1.º, 2.º y 3.º lugar.</p></div><button id="teacherRankingRefresh" class="secondary" type="button">Actualizar ranking ahora</button></div><p id="teacherRankingPeriod" class="badge">Cargando periodo…</p><div id="teacherRankingTable" class="tablewrap"><p class="muted">Cargando clasificación…</p></div><p id="teacherRankingStatus" class="muted"></p></div>
-
-<div id="teacherCategoryLeadersCard" class="card"><h2>🥇 Líderes por categoría</h2><p class="muted"><b>Reconocimientos por categoría.</b> Son independientes del premio principal del Mérito Gabino A. Palma. Aquí se muestra únicamente el grupo que va en primer lugar en cada categoría.</p><div id="teacherCategoryLeaders"><p class="muted">Cargando categorías…</p></div></div>
+<div id="teacherRankingCard" class="card merit-ranking-combined">
+ <section class="merit-main-award">
+  <div class="merit-award-kicker">🏆 PREMIO PRINCIPAL</div>
+  <div class="section"><div><h2>✨ Mérito Gabino A. Palma</h2><p class="merit-award-subtitle">Ranking general en tiempo real</p></div><button id="teacherRankingRefresh" class="secondary" type="button">Actualizar ranking ahora</button></div>
+  <p id="teacherRankingPeriod" class="badge">Cargando periodo…</p>
+  <div id="teacherRankingTable" class="tablewrap"><p class="muted">Cargando clasificación…</p></div>
+  <p class="merit-benefit-callout">🎁 <b>Solo el 1.er lugar general obtiene el Mérito Gabino A. Palma y recibe los beneficios del mes.</b></p>
+  <p id="teacherRankingStatus" class="muted"></p>
+ </section>
+ <section class="merit-category-section">
+  <div class="category-divider"></div>
+  <h3>🥇 Líderes por categoría</h3>
+  <p class="muted">Reconocimientos independientes · se muestra únicamente el 1.er lugar actual de cada categoría.</p>
+  <div id="teacherCategoryLeaders"><p class="muted">Cargando categorías…</p></div>
+ </section>
+</div>
 
 <div id="benefitCard" class="card hidden" style="border:2px solid #c9962d;background:linear-gradient(135deg,#fff7d8,#fffdf5)">
  <div style="font-size:2rem">🎁🏆</div><h2>Beneficio para el grupo ganador</h2>
@@ -108,4 +129,4 @@
   <p id="notificationStatus"></p>
 </div></dialog>
 <footer class="app-brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</footer>
-<script src="app.js?v=48"></script></body></html>
+<script src="app.js?v=49"></script></body></html>

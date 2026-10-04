@@ -818,7 +818,7 @@ async function refreshHome(){
 }
 
 async function fillSelectors(){let s=await students(),academic=s.filter(x=>!sameShift(x.shift,'Vespertino')),sh=uniq(academic.map(x=>x.shift));for(let id of ['attShift','actShift','gridShift','newActShift','metShift','calcMetShift']){let el=$('#'+id),old=el.value;el.innerHTML=sh.length?sh.map(x=>`<option>${safe(x)}</option>`).join(''):'<option>Sin alumnos</option>';if(sh.includes(old))el.value=old}await fillGroups('att');await fillGroups('act');await fillGroups('grid');await fillGroups('newAct');await fillGroups('met');await fillGroups('calcMet');}
-async function fillGroups(prefix){let s=(await students()).filter(x=>!sameShift(x.shift,'Vespertino')),shift=$('#'+prefix+'Shift').value,id=prefix+'Group',el=$('#'+id),old=el.value,g=uniq(s.filter(x=>x.shift===shift).map(x=>x.group));el.innerHTML=g.length?g.map(x=>`<option>${safe(x)}</option>`).join(''):'<option>Sin grupo</option>';if(g.includes(old))el.value=old;if(prefix==='att')refreshAttendance();if(prefix==='act')refreshActivitySelectors();if(prefix==='grid')refreshGridWeeks();if(prefix==='newAct'){renderNewActivityGroupChoices(g)}if(prefix==='met')renderMethodologies();if(prefix==='calcMet')refreshCalculationMethodologies()}
+async function fillGroups(prefix){let s=(await students()).filter(x=>!sameShift(x.shift,'Vespertino')),shift=$('#'+prefix+'Shift').value,id=prefix+'Group',el=$('#'+id),old=el.value,g=uniq(s.filter(x=>x.shift===shift).map(x=>x.group));el.innerHTML=g.length?g.map(x=>`<option>${safe(x)}</option>`).join(''):'<option>Sin grupo</option>';if(g.includes(old))el.value=old;if(prefix==='att')refreshAttendance();if(prefix==='act')refreshActivitySelectors();if(prefix==='grid')refreshGridWeeks();if(prefix==='newAct'){renderNewActivityGroupChoices(g)}if(prefix==='met'){renderMethodologyGroupChoices(g);renderMethodologies();}if(prefix==='calcMet')refreshCalculationMethodologies()}
 function status(base,type,title,text){let p=$('#'+base+'Status');p.className='status '+type;p.querySelector('i').textContent=type==='success'?'✓':type==='error'?'⛔':type==='warning'?'⚠':'▣';p.querySelector('h2').textContent=title;p.querySelector('p').textContent=text;clearTimeout(p._t);p._t=setTimeout(()=>{p.className='status neutral';p.querySelector('i').textContent='▣';p.querySelector('h2').textContent=base==='att'?'Escanea la credencial':'Escanea para registrar entrega';p.querySelector('p').textContent=base==='att'?'El lector escribe el ID y envía Enter.':'El alumno quedará con palomita.'},2200)}
 
 function attendanceRosterMatch(student,shift,group){
@@ -3606,6 +3606,14 @@ const roundSchoolGrade=value=>{
   return Math.min(10,decimal>=.6-1e-9?base+1:base);
 };
 const periodLabel=m=>`${m.month||'Mes sin definir'} · T${m.quarter||'?'} · ${m.cycle||'Ciclo sin definir'}`;
+function renderMethodologyGroupChoices(groups=[],selected=[]){
+ const box=$('#metGroupChoices');if(!box)return;
+ const chosen=new Set((Array.isArray(selected)?selected:[selected]).filter(Boolean).map(String));
+ const editing=!!$('#editMethodologyId')?.value;
+ box.innerHTML=groups.map(g=>`<label class="activity-group-choice ${chosen.has(String(g))?'selected':''}"><input type="checkbox" class="met-group-check" value="${safe(g)}" ${chosen.has(String(g))?'checked':''} ${editing&&!chosen.has(String(g))?'disabled':''}> ${safe(g)}</label>`).join('');
+ box.querySelectorAll('.met-group-check').forEach(x=>x.onchange=()=>x.closest('label')?.classList.toggle('selected',x.checked));
+}
+function selectedMethodologyGroups(){return [...document.querySelectorAll('.met-group-check:checked')].map(x=>String(x.value))}
 function resetMethodologyForm(){
   $('#methodologyForm').reset();
   $('#metSubject').value='Español';
@@ -3619,31 +3627,29 @@ function resetMethodologyForm(){
   addCriterion({name:'Actividades y tareas',percent:100});
 }
 async function saveMethodology(e){
-  e.preventDefault();
-  let criteria=getCriteriaFromEditor(),total=criteria.reduce((s,c)=>s+c.percent,0);
-  if(!criteria.length)return alert('Agrega al menos un criterio.');
-  if(Math.abs(total-100)>0.001)return alert('Los porcentajes deben sumar exactamente 100%.');
-  let id=$('#editMethodologyId').value||crypto.randomUUID(),old=await req(store('methodologies').get(id));
-  let cycle=norm($('#metCycle').value);
-  localStorage.setItem('lastSchoolCycle',cycle);
-  let m={
-    id,shift:$('#metShift').value,group:$('#metGroup').value,
-    name:norm($('#metName').value),subject:norm($('#metSubject').value)||'Español',
-    cycle,quarter:Number($('#metQuarter').value),month:$('#metMonth').value,
-    criteria,assignments:old?.assignments||{},gradeRecords:old?.gradeRecords||{},
-    closed:old?.closed||false,closedAt:old?.closedAt||null,
-    created:old?.created||new Date().toISOString(),updated:new Date().toISOString()
-  };
-  await put('methodologies',m);
-  resetMethodologyForm();await renderMethodologies();await refreshCalculationMethodologies();
-  alert('Metodología guardada.');
+ e.preventDefault();
+ let criteria=getCriteriaFromEditor(),total=criteria.reduce((s,c)=>s+c.percent,0);
+ if(!criteria.length)return alert('Agrega al menos un criterio.');
+ if(Math.abs(total-100)>0.001)return alert('Los porcentajes deben sumar exactamente 100%.');
+ let cycle=norm($('#metCycle').value),editId=$('#editMethodologyId').value;localStorage.setItem('lastSchoolCycle',cycle);
+ let groups=selectedMethodologyGroups();
+ if(editId){
+  let old=await req(store('methodologies').get(editId));if(!old)return;
+  groups=[String(old.group)];
+  await put('methodologies',{...old,name:norm($('#metName').value),subject:norm($('#metSubject').value)||'Español',cycle,quarter:Number($('#metQuarter').value),month:$('#metMonth').value,criteria,updated:new Date().toISOString()});
+ }else{
+  if(!groups.length)return alert('Selecciona al menos un grupo.');
+  for(const group of groups)await put('methodologies',{id:crypto.randomUUID(),shift:$('#metShift').value,group,name:norm($('#metName').value),subject:norm($('#metSubject').value)||'Español',cycle,quarter:Number($('#metQuarter').value),month:$('#metMonth').value,criteria:criteria.map(x=>({...x})),assignments:{},gradeRecords:{},closed:false,closedAt:null,created:new Date().toISOString(),updated:new Date().toISOString()});
+ }
+ resetMethodologyForm();await renderMethodologies();await refreshCalculationMethodologies();
+ alert(groups.length>1?`Metodología guardada en ${groups.length} grupos.`:'Metodología guardada.');
 }
 async function editMethodology(id){
   let m=await req(store('methodologies').get(id));if(!m)return;
   $('#editMethodologyId').value=m.id;
   $('#metShift').value=[...$('#metShift').options].find(o=>sameShift(o.value,m.shift))?.value||m.shift;
   await fillGroups('met');
-  $('#metGroup').value=[...$('#metGroup').options].find(o=>sameGroup(o.value,m.group))?.value||m.group;
+  renderMethodologyGroupChoices([...$('#metGroup').options].map(o=>o.value).filter(x=>x&&x!=='Sin grupo'),[m.group]);
   $('#metName').value=m.name;$('#metSubject').value=m.subject||'Español';
   $('#metCycle').value=m.cycle||'2026-2027';$('#metQuarter').value=String(m.quarter||1);
   $('#metMonth').value=MONTH_ORDER.includes(m.month)?m.month:'Agosto';

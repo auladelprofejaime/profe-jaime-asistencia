@@ -8,11 +8,17 @@ function meritPane(name){
 }
 async function rpc(name,args={}){return await window.ProfeSupabase.rpc(name,args)}
 
+function currentMeritPeriod(rows){
+ const now=new Date(),mx=new Date(now.toLocaleString("en-US",{timeZone:"America/Mexico_City"}));
+ const y=mx.getFullYear(),m=String(mx.getMonth()+1).padStart(2,"0"),d=String(mx.getDate()).padStart(2,"0"),today=y+"-"+m+"-"+d;
+ return rows.find(p=>!String(p.label||"").toLowerCase().startsWith("prueba")&&today>=String(p.starts_at||"")&&today<=String(p.ends_at||""))||null;
+}
 function fillSelect(id,rows){
  const el=$("#"+id); if(!el)return;
- const old=el.value;
+ const old=el.value,current=currentMeritPeriod(rows);
  el.innerHTML=rows.map(p=>'<option value="'+esc(p.id)+'">'+esc(p.label)+' · '+esc(p.status)+'</option>').join("");
- if(rows.some(p=>String(p.id)===String(old)))el.value=old;
+ if(current)el.value=String(current.id);
+ else if(rows.some(p=>String(p.id)===String(old)))el.value=old;
 }
 async function loadMeritPeriods(){
  let rows=null,lastError=null;
@@ -217,7 +223,7 @@ async function boot(){
  };
  if(await requireSession()){$("#loginGate").classList.add("hidden");$("#appShell").classList.remove("hidden");await startData()}
  else{$("#loginGate").classList.remove("hidden");$("#appShell").classList.add("hidden")}
- if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js?v=3").catch(()=>{});
+ if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js?v=11").catch(()=>{});
 }
 async function startData(){
  await loadMeritPeriods();

@@ -3609,8 +3609,7 @@ const periodLabel=m=>`${m.month||'Mes sin definir'} · T${m.quarter||'?'} · ${m
 function renderMethodologyGroupChoices(groups=[],selected=[]){
  const box=$('#metGroupChoices');if(!box)return;
  const chosen=new Set((Array.isArray(selected)?selected:[selected]).filter(Boolean).map(String));
- const editing=!!$('#editMethodologyId')?.value;
- box.innerHTML=groups.map(g=>`<label class="activity-group-choice ${chosen.has(String(g))?'selected':''}"><input type="checkbox" class="met-group-check" value="${safe(g)}" ${chosen.has(String(g))?'checked':''} ${editing&&!chosen.has(String(g))?'disabled':''}> ${safe(g)}</label>`).join('');
+ box.innerHTML=groups.map(g=>`<label class="activity-group-choice ${chosen.has(String(g))?'selected':''}"><input type="checkbox" class="met-group-check" value="${safe(g)}" ${chosen.has(String(g))?'checked':''}> ${safe(g)}</label>`).join('');
  box.querySelectorAll('.met-group-check').forEach(x=>x.onchange=()=>x.closest('label')?.classList.toggle('selected',x.checked));
 }
 function selectedMethodologyGroups(){return [...document.querySelectorAll('.met-group-check:checked')].map(x=>String(x.value))}
@@ -3633,16 +3632,24 @@ async function saveMethodology(e){
  if(Math.abs(total-100)>0.001)return alert('Los porcentajes deben sumar exactamente 100%.');
  let cycle=norm($('#metCycle').value),editId=$('#editMethodologyId').value;localStorage.setItem('lastSchoolCycle',cycle);
  let groups=selectedMethodologyGroups();
+ if(!groups.length)return alert('Selecciona al menos un grupo.');
+ const now=new Date().toISOString();
  if(editId){
   let old=await req(store('methodologies').get(editId));if(!old)return;
-  groups=[String(old.group)];
-  await put('methodologies',{...old,name:norm($('#metName').value),subject:norm($('#metSubject').value)||'Español',cycle,quarter:Number($('#metQuarter').value),month:$('#metMonth').value,criteria,updated:new Date().toISOString()});
+  const originalGroup=String(old.group);
+  if(!groups.includes(originalGroup))return alert('El grupo original debe permanecer seleccionado para conservar esta metodología y sus registros.');
+  await put('methodologies',{...old,name:norm($('#metName').value),subject:norm($('#metSubject').value)||'Español',cycle,quarter:Number($('#metQuarter').value),month:$('#metMonth').value,criteria,updated:now});
+  const allMethods=await all('methodologies');
+  for(const group of groups.filter(g=>String(g)!==originalGroup)){
+   const existing=allMethods.find(x=>x.id!==old.id&&sameShift(x.shift,old.shift)&&sameGroup(x.group,group)&&String(x.cycle||'')===String(cycle)&&Number(x.quarter||0)===Number($('#metQuarter').value)&&String(x.month||'')===$('#metMonth').value&&norm(x.name)===norm($('#metName').value));
+   if(existing)continue;
+   await put('methodologies',{id:crypto.randomUUID(),shift:old.shift,group,name:norm($('#metName').value),subject:norm($('#metSubject').value)||'Español',cycle,quarter:Number($('#metQuarter').value),month:$('#metMonth').value,criteria:criteria.map(x=>({...x})),assignments:{},gradeRecords:{},closed:false,closedAt:null,created:now,updated:now});
+  }
  }else{
-  if(!groups.length)return alert('Selecciona al menos un grupo.');
-  for(const group of groups)await put('methodologies',{id:crypto.randomUUID(),shift:$('#metShift').value,group,name:norm($('#metName').value),subject:norm($('#metSubject').value)||'Español',cycle,quarter:Number($('#metQuarter').value),month:$('#metMonth').value,criteria:criteria.map(x=>({...x})),assignments:{},gradeRecords:{},closed:false,closedAt:null,created:new Date().toISOString(),updated:new Date().toISOString()});
+  for(const group of groups)await put('methodologies',{id:crypto.randomUUID(),shift:$('#metShift').value,group,name:norm($('#metName').value),subject:norm($('#metSubject').value)||'Español',cycle,quarter:Number($('#metQuarter').value),month:$('#metMonth').value,criteria:criteria.map(x=>({...x})),assignments:{},gradeRecords:{},closed:false,closedAt:null,created:now,updated:now});
  }
- resetMethodologyForm();await renderMethodologies();await refreshCalculationMethodologies();
- alert(groups.length>1?`Metodología guardada en ${groups.length} grupos.`:'Metodología guardada.');
+ resetMethodologyForm();await fillGroups('met');await renderMethodologies();await refreshCalculationMethodologies();
+ alert(editId?(groups.length>1?`Metodología actualizada y aplicada a ${groups.length} grupos.`:'Metodología actualizada.'):(groups.length>1?`Metodología guardada en ${groups.length} grupos.`:'Metodología guardada.'));
 }
 async function editMethodology(id){
   let m=await req(store('methodologies').get(id));if(!m)return;

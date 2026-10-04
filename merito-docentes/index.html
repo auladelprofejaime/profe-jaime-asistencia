@@ -26,7 +26,7 @@
 .merit-main-award #teacherRankingTable .muted{color:#5f6570!important}
 .merit-main-award #teacherRankingTable{background:#fff!important}
 @media(max-width:720px){.merit-ranking-combined{grid-template-columns:1fr!important}.merit-category-section{border-left:0!important;border-top:3px solid #d4aa32!important}}
-</style><link rel="stylesheet" href="layout-v52.css?v=62"></head><body>
+</style><link rel="stylesheet" href="layout-v52.css?v=62"><style>.merit-welcome-dialog{text-align:center;max-width:560px}.merit-welcome-logo{display:block;max-width:150px;max-height:150px;margin:0 auto 10px}.merit-welcome-trophy{font-size:2.4rem}.merit-welcome-dialog p{line-height:1.5}.merit-welcome-dialog .primary{margin-top:14px}</style></head><body>
 <header><img src="logo-merito.jpeg" alt=""><div><h1>Mérito Gabino A. Palma</h1><p>Captura para docentes autorizados</p><div class="brand-byline">Una app de Aula del Profe Jaime</div></div></header>
 <main>
 <section id="activation" class="card">
@@ -133,6 +133,15 @@
  <div class="actions"><button id="benefitCancelBtn" class="secondary" type="button">Cancelar</button><button id="benefitSaveBtn" class="primary" type="button">GUARDAR BENEFICIO</button></div>
  <p id="benefitStatus"></p>
 </div></dialog>
+<dialog id="welcomeDialog"><div class="dialogbody merit-welcome-dialog">
+ <img src="logo-merito.jpeg" alt="Mérito Gabino A. Palma" class="merit-welcome-logo">
+ <div class="merit-welcome-trophy">🏆✨</div><h2>¡Gracias por ser parte de Mérito Gabino A. Palma!</h2>
+ <p>Hoy comenzamos juntos este proyecto.</p><p>Gracias por aceptar participar y por sumar tu tiempo, compromiso y disposición para reconocer el esfuerzo de nuestros estudiantes.</p>
+ <p>Cada registro que realices contribuirá a valorar aquello que también forma parte de su formación: la responsabilidad, la convivencia, la actitud, la puntualidad y el compromiso con nuestra comunidad escolar.</p>
+ <p><b>Gracias por ayudarnos a hacer del mérito algo que también se reconoce.</b></p>
+ <p class="muted"><b>Profr. Jaime Pérez</b><br>Coordinación del proyecto Mérito Gabino A. Palma</p>
+ <button id="welcomeStartBtn" class="primary full" type="button">¡VAMOS A COMENZAR!</button><p id="welcomeStatus"></p>
+</div></dialog>
 <dialog id="notificationDialog"><div class="dialogbody">
   <div style="font-size:2rem">🔔</div>
   <h2>Activa las notificaciones</h2>
@@ -143,4 +152,4 @@
   <p id="notificationStatus"></p>
 </div></dialog>
 <footer class="app-brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</footer>
-<script src="app.js?v=62"></script></body></html>
+<script src="app.js?v=63"></script></body></html>

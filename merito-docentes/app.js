@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='62';
+const MERIT_APP_VERSION='63';
 (async()=>{try{const r=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();const remote=String(v.version||'');const seen=sessionStorage.getItem('meritAppVersionSeen')||'';if(remote&&remote!==MERIT_APP_VERSION&&seen!==remote){sessionStorage.setItem('meritAppVersionSeen',remote);location.reload()}}catch(_){}})();
 
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
@@ -230,7 +230,7 @@ function showCapture(){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
-   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit();loadTeacherRanking();setTimeout(ensureNotificationGate,120);
+   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit().finally(()=>maybeShowWelcome());loadTeacherRanking();setTimeout(ensureNotificationGate,120);
  }
 }
 
@@ -304,6 +304,20 @@ async function loadMonthlyBenefit(){
   else{setBenefitGate(true);saved.textContent='⚠ Debes registrar tu beneficio antes de poder sumar o restar puntos.';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
  }catch(_){}
 }
+async function maybeShowWelcome(){
+ if(!token||!navigator.onLine||!staff?.confirmed||staff?.is_placeholder)return;
+ try{
+  const b=meritBenefitData;if(b?.benefit_required!==false&&b?.benefit_complete!==true)return;
+  const d=await rpc('merit_my_welcome',{p_token:token});
+  if(d?.ok&&d.eligible&&!d.acknowledged&&!$('#benefitDialog')?.open)$('#welcomeDialog')?.showModal();
+ }catch(_){}
+}
+$('#welcomeDialog')?.addEventListener('cancel',e=>e.preventDefault());
+$('#welcomeStartBtn')?.addEventListener('click',async()=>{
+ const btn=$('#welcomeStartBtn'),st=$('#welcomeStatus');btn.disabled=true;st.textContent='Guardando…';
+ try{const d=await rpc('merit_ack_welcome',{p_token:token});if(!d?.ok)throw new Error(friendlyReason(d));$('#welcomeDialog').close();st.textContent='';}
+ catch(e){st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>';btn.disabled=false}
+});
 function openBenefitDialog(){
  if(!meritBenefitData?.period)return;
  $('#benefitDialogTitle').textContent='🎁 Beneficio · '+meritBenefitData.period.label;
@@ -736,7 +750,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=62').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=63').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 

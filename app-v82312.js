@@ -3726,13 +3726,12 @@ async function calculateMethodology(){
       let ca=acts.filter(a=>m.assignments[a.id]===c.id),values=[];
       for(const a of ca){
         let rec=map.get(`${a.id}|${st.id}`),mode=a.evaluationMode||'delivery';
-        if(mode==='numeric'){if(typeof rec?.score==='number')values.push(rec.score);else pending.push(a.name)}
-        else{if(rec?.status==='yes')values.push(10);else if(rec?.status==='no')values.push(0);else pending.push(a.name)}
+        if(mode==='numeric'){values.push(typeof rec?.score==='number'?rec.score:0)}
+        else{values.push(rec?.status==='yes'?10:0)}
       }
-      criterionGrades[c.id]=ca.length&&values.length===ca.length?values.reduce((x,y)=>x+y,0)/values.length:null;
+      criterionGrades[c.id]=ca.length?values.reduce((x,y)=>x+y,0)/ca.length:0;
     }
-    let complete=pending.length===0&&m.criteria.every(c=>acts.some(a=>m.assignments[a.id]===c.id)&&criterionGrades[c.id]!==null),
-        base=complete?m.criteria.reduce((sum,c)=>sum+(criterionGrades[c.id]*(c.percent/100)),0):null,
+    let base=m.criteria.reduce((sum,c)=>sum+(Number(criterionGrades[c.id]||0)*(c.percent/100)),0),
         prior=m.gradeRecords[st.id]||{},manualExtra=Number(prior.manualExtra||0),pointsUsed=Number(prior.pointsUsed||0),
         ledger=await pointsLedgerFor(m,st.id,true),maxUsable=ledger.available,
         safeUsed=Math.min(pointsUsed,maxUsable),raw=base===null?null:base+manualExtra+safeUsed,
@@ -3740,7 +3739,7 @@ async function calculateMethodology(){
         rounded=finalDecimal===null?null:roundSchoolGrade(finalDecimal),
         pointsGenerated=raw===null?0:Math.max(0,raw-10);
     m.gradeRecords[st.id]={...prior,base,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,updated:new Date().toISOString()};
-    rows.push({student:st,criterionGrades,pending:[...new Set(pending)],base,final:finalDecimal,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,pointsAvailable:Math.max(0,maxUsable-safeUsed),pointsTotalBefore:maxUsable});
+    rows.push({student:st,criterionGrades,base,final:finalDecimal,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,pointsAvailable:Math.max(0,maxUsable-safeUsed),pointsTotalBefore:maxUsable});
   }
   await put('methodologies',m);
   window._lastMethodologyCalculation={methodology:m,activities:acts,rows};
@@ -3749,14 +3748,14 @@ async function calculateMethodology(){
 function renderMethodologyResults(data){
   let {methodology:m,rows}=data,box=$('#methodologyResults');
   box.innerHTML=`<div class="methodology-summary"><strong>${safe(m.name)}</strong> · ${safe(m.subject||'Español')} · ${safe(periodLabel(m))} · ${safe(m.shift)} · Grupo ${safe(m.group)} · ${m.closed?'<span class="month-closed">Mes cerrado</span>':'<span class="month-open">Mes abierto</span>'}<br>${m.criteria.map(c=>`${safe(c.name)}: ${c.percent}%`).join(' · ')}</div>
-  <table class="matrix"><thead><tr><th>#</th><th class="name">Alumno</th>${m.criteria.map(c=>`<th>${safe(c.name)}<br>${c.percent}%</th>`).join('')}<th>Base decimal</th><th>Extra manual</th><th class="points-cell">Puntos disponibles</th><th>Usados</th><th>Final decimal</th><th>Redondeada</th><th>Pendientes</th></tr></thead><tbody>
+  <table class="matrix methodology-results-table"><thead><tr><th>#</th><th>Alumno</th>${m.criteria.map(c=>`<th>${safe(c.name)}<br>${c.percent}%</th>`).join('')}<th>Calificación calculada</th><th>Extra manual</th><th class="points-cell">Puntos disponibles</th><th>Usados</th><th>Calificación final</th><th>Calificación oficial</th></tr></thead><tbody>
   ${rows.map(r=>`<tr><td>${r.student.number}</td><td class="name">${safe(studentListDisplayName(r.student))}</td>${m.criteria.map(c=>`<td>${r.criterionGrades[c.id]===null?'—':r.criterionGrades[c.id].toFixed(1)}</td>`).join('')}
-  <td>${r.base===null?'Pendiente':r.base.toFixed(2)}</td>
+  <td>${r.base.toFixed(2)}</td>
   <td><input class="extra-input" data-extra-student="${safe(r.student.id)}" type="number" min="0" step="0.1" value="${Number(r.manualExtra||0).toFixed(1)}" ${m.closed?'disabled':''}></td>
   <td class="points-cell"><span class="points-positive">${r.pointsAvailable.toFixed(2)}</span>${m.closed?'':`<button class="secondary" data-use-points="${safe(r.student.id)}">Usar puntos disponibles</button>`}</td>
   <td>${r.pointsUsed.toFixed(2)}${!m.closed&&r.pointsUsed>0?`<br><button class="secondary" data-return-points="${safe(r.student.id)}">Devolver</button>`:''}</td>
-  <td class="${r.finalDecimal===null?'grade-pending':'grade-good'}">${r.finalDecimal===null?'Pendiente':r.finalDecimal.toFixed(2)}${r.pointsGenerated>0?`<br><small>Genera ${r.pointsGenerated.toFixed(2)} puntos</small>`:''}</td>
-  <td class="grade-rounded">${r.rounded===null?'—':r.rounded}</td><td>${r.pending.length?safe(r.pending.join(', ')):'—'}</td></tr>`).join('')}
+  <td class="grade-good">${r.finalDecimal.toFixed(2)}${r.pointsGenerated>0?`<br><small>Genera ${r.pointsGenerated.toFixed(2)} puntos</small>`:''}</td>
+  <td class="grade-rounded">${r.rounded}</td></tr>`).join('')}
   </tbody></table>`;
   $$('[data-extra-student]').forEach(input=>input.onchange=()=>saveManualExtra(input.dataset.extraStudent,input.value));
   $$('[data-use-points]').forEach(b=>b.onclick=()=>openUsePointsDialog(b.dataset.usePoints));

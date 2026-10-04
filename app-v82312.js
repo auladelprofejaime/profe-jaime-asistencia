@@ -3747,12 +3747,12 @@ async function calculateMethodology(){
     let base=m.criteria.reduce((sum,c)=>sum+(Number(criterionGrades[c.id]||0)*(c.percent/100)),0),
         prior=m.gradeRecords[st.id]||{},manualExtra=Number(prior.manualExtra||0),pointsUsed=Number(prior.pointsUsed||0),
         ledger=await pointsLedgerFor(m,st.id,true),maxUsable=ledger.available,
-        safeUsed=Math.min(pointsUsed,maxUsable),raw=base===null?null:base+manualExtra+safeUsed,
-        finalDecimal=raw===null?null:Math.min(10,Math.max(0,raw)),
-        rounded=finalDecimal===null?null:roundSchoolGrade(finalDecimal),
-        pointsGenerated=raw===null?0:Math.max(0,raw-10);
-    m.gradeRecords[st.id]={...prior,base,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,updated:new Date().toISOString()};
-    rows.push({student:st,criterionGrades,base,final:finalDecimal,manualExtra,pointsUsed:safeUsed,finalDecimal,rounded,pointsGenerated,pointsAvailable:Math.max(0,maxUsable-safeUsed),pointsTotalBefore:maxUsable});
+        safeUsed=Math.min(pointsUsed,maxUsable),raw=base+manualExtra+safeUsed,
+        obtainedAverage=Math.min(10,Math.max(0,raw)),
+        monthlyGrade=Math.min(10,Math.max(5,roundSchoolGrade(obtainedAverage))),
+        pointsGenerated=Math.max(0,raw-10);
+    m.gradeRecords[st.id]={...prior,base,manualExtra,pointsUsed:safeUsed,finalDecimal:obtainedAverage,rounded:monthlyGrade,obtainedAverage,monthlyGrade,pointsGenerated,updated:new Date().toISOString()};
+    rows.push({student:st,criterionGrades,base,final:obtainedAverage,manualExtra,pointsUsed:safeUsed,finalDecimal:obtainedAverage,obtainedAverage,rounded:monthlyGrade,monthlyGrade,pointsGenerated,pointsAvailable:Math.max(0,maxUsable-safeUsed),pointsTotalBefore:maxUsable});
   }
   await put('methodologies',m);
   window._lastMethodologyCalculation={methodology:m,activities:acts,rows};
@@ -3761,14 +3761,14 @@ async function calculateMethodology(){
 function renderMethodologyResults(data){
   let {methodology:m,rows}=data,box=$('#methodologyResults');
   box.innerHTML=`<div class="methodology-summary"><strong>${safe(m.name)}</strong> · ${safe(m.subject||'Español')} · ${safe(periodLabel(m))} · ${safe(m.shift)} · Grupo ${safe(m.group)} · ${m.closed?'<span class="month-closed">Mes cerrado</span>':'<span class="month-open">Mes abierto</span>'}<br>${m.criteria.map(c=>`${safe(c.name)}: ${c.percent}%`).join(' · ')}</div>
-  <table class="matrix methodology-results-table"><thead><tr><th>#</th><th>Alumno</th>${m.criteria.map(c=>`<th>${safe(c.name)}<br>${c.percent}%</th>`).join('')}<th>Calificación calculada</th><th>Extra manual</th><th class="points-cell">Puntos disponibles</th><th>Usados</th><th>Calificación final</th><th>Calificación oficial</th></tr></thead><tbody>
+  <table class="matrix methodology-results-table"><thead><tr><th>#</th><th>Alumno</th>${m.criteria.map(c=>`<th>${safe(c.name)}<br>${c.percent}%</th>`).join('')}<th>Promedio obtenido</th><th>Extra manual</th><th class="points-cell">Puntos disponibles</th><th>Usados</th><th>Promedio con ajustes</th><th>Calificación mensual (5–10)</th></tr></thead><tbody>
   ${rows.map(r=>`<tr><td>${r.student.number}</td><td class="name">${safe(studentListDisplayName(r.student))}</td>${m.criteria.map(c=>`<td>${r.criterionGrades[c.id]===null?'—':r.criterionGrades[c.id].toFixed(1)}</td>`).join('')}
   <td>${r.base.toFixed(2)}</td>
   <td><input class="extra-input" data-extra-student="${safe(r.student.id)}" type="number" min="0" step="0.1" value="${Number(r.manualExtra||0).toFixed(1)}" ${m.closed?'disabled':''}></td>
   <td class="points-cell"><span class="points-positive">${r.pointsAvailable.toFixed(2)}</span>${m.closed?'':`<button class="secondary" data-use-points="${safe(r.student.id)}">Usar puntos disponibles</button>`}</td>
   <td>${r.pointsUsed.toFixed(2)}${!m.closed&&r.pointsUsed>0?`<br><button class="secondary" data-return-points="${safe(r.student.id)}">Devolver</button>`:''}</td>
-  <td class="grade-good">${r.finalDecimal.toFixed(2)}${r.pointsGenerated>0?`<br><small>Genera ${r.pointsGenerated.toFixed(2)} puntos</small>`:''}</td>
-  <td class="grade-rounded">${r.rounded}</td></tr>`).join('')}
+  <td class="grade-good">${r.obtainedAverage.toFixed(2)}${r.pointsGenerated>0?`<br><small>Genera ${r.pointsGenerated.toFixed(2)} puntos</small>`:''}</td>
+  <td class="grade-rounded">${r.monthlyGrade}</td></tr>`).join('')}
   </tbody></table>`;
   $$('[data-extra-student]').forEach(input=>input.onchange=()=>saveManualExtra(input.dataset.extraStudent,input.value));
   $$('[data-use-points]').forEach(b=>b.onclick=()=>openUsePointsDialog(b.dataset.usePoints));

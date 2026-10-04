@@ -1029,3 +1029,6 @@ button.danger{
 @media(max-width:430px){
  .activity-pending-summary{grid-template-columns:1fr}
 }
+
+/* v8.24.23 methodology results: horizontal scroll without frozen student columns */
+.methodology-results-table .name,.methodology-results-table .num{position:static!important;left:auto!important;z-index:auto!important}.methodology-results-table th.name,.methodology-results-table th.num{position:sticky!important;top:0!important;z-index:2!important}

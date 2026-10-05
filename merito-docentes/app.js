@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='63';
+const MERIT_APP_VERSION='64';
 (async()=>{try{const r=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();const remote=String(v.version||'');const seen=sessionStorage.getItem('meritAppVersionSeen')||'';if(remote&&remote!==MERIT_APP_VERSION&&seen!==remote){sessionStorage.setItem('meritAppVersionSeen',remote);location.reload()}}catch(_){}})();
 
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
@@ -270,7 +270,7 @@ async function loadTeacherRanking(){
     const g=String(r.group_code||'');
     if(g&&!row.groups.includes(g))row.groups.push(g);
    });
-   catBox.innerHTML=grouped.length?'<div class="category-list">'+grouped.map(r=>'<div class="category-row"><div class="category-name">'+escapeHtml(r.label)+'</div><div class="category-row-bottom"><div class="category-winner"><b>'+escapeHtml(r.groups.map(g=>'Grupo '+g).join(r.groups.length>1?' + ':' · '))+'</b>'+(r.groups.length>1?'<span class="category-tie-badge">EMPATE EN 1.er LUGAR</span>':'')+'</div><div class="category-score">'+escapeHtml(String(r.score??''))+'<small>pts</small></div></div></div>').join('')+'</div>':'<p class="muted">Todavía no hay líderes por categoría.</p>'
+   catBox.innerHTML=grouped.length?'<div class="category-list">'+grouped.map(r=>'<div class="category-row"><div class="category-name">'+escapeHtml(r.label)+'</div><div class="category-row-bottom"><div class="category-winner"><b>'+escapeHtml(r.groups.map(g=>'Grupo '+g).join(r.groups.length>1?' + ':' · '))+'</b>'+(r.groups.length>1?'<span class="category-tie-badge">EMPATE EN 1.er LUGAR</span>':'')+'</div><div class="category-score">'+escapeHtml(String(r.score??''))+'<small>reconocimientos</small></div></div></div>').join('')+'</div>':'<p class="muted">Todavía no hay líderes por categoría.</p>'
   }
   if(st)st.textContent='Solo consulta · 1.º, 2.º y 3.º lugar general.';
  }catch(e){if(st)st.innerHTML='<span class="error">No se pudo cargar el ranking: '+escapeHtml(e.message||e)+'</span>'}

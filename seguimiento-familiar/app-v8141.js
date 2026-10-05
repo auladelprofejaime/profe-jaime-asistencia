@@ -608,7 +608,7 @@ let familySWRegistration=null;
 
 async function ensureFamilyServiceWorker(){
  if(!('serviceWorker' in navigator))throw new Error('Este navegador no admite service workers.');
- familySWRegistration=await navigator.serviceWorker.register('./service-worker.js?v=8140',{scope:'./'});
+ familySWRegistration=await navigator.serviceWorker.register('./service-worker.js',{scope:'./'});
  await navigator.serviceWorker.ready;
  return familySWRegistration;
 }

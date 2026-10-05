@@ -1,5 +1,5 @@
-const CACHE='app-padres-v8-14-6-exam-status';
-const FILES=['./','./index.html','./styles.css','./app-v8141.js?v=8151','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','./citas.html','./celular.html','../shared/data-contract.js','../shared/supabase-adapter.js'];
+const CACHE='app-padres-v8-15-2-stable-updates';
+const FILES=['./','./index.html','./styles.css','./app-v8141.js?v=8152','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','./citas.html','./celular.html','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{
  self.skipWaiting();
@@ -12,7 +12,7 @@ self.addEventListener('install',event=>{
 self.addEventListener('activate',event=>{
  event.waitUntil((async()=>{
    const keys=await caches.keys();
-   await Promise.all(keys.filter(k=>k!==CACHE).map(k=>caches.delete(k)));
+   await Promise.all(keys.filter(k=>k.startsWith('app-padres-')&&k!==CACHE).map(k=>caches.delete(k)));
    await self.clients.claim();
  })());
 });
@@ -45,8 +45,8 @@ self.addEventListener('push',event=>{
  try{if(event.data)data={...data,...event.data.json()}}catch(e){try{data.body=event.data.text()}catch(_){}}
  event.waitUntil(self.registration.showNotification(data.title,{
    body:data.body,
-   icon:'./icon-app-padres-v821.png','./citas.html','./celular.html',
-   badge:'./icon-app-padres-v821.png','./citas.html','./celular.html',
+   icon:'./icon-app-padres-v821.png',
+   badge:'./icon-app-padres-v821.png',
    tag:'family-'+(data.event||'update')+'-'+(data.created||Date.now()),
    renotify:true,
    data:{target:data.target||'home'}

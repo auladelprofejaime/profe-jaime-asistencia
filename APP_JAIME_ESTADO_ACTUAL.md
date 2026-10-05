@@ -930,3 +930,12 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 - App Estudiantes v8.13.9: acceso Mis puntos recuperado; saldo del servidor, historial, aplicación a calificación y donación por ID durante el periodo abierto, con los RPC existentes. Se conserva sesión y navegación.
 - Pruebas SQL revertidas: grupo completo, selección, rechazo de grupo incorrecto, cantidad cero, falta de autorización y reintento sin duplicados. Pruebas DOM de controles, configuración, saldo, periodo programado y donación.
 - No se asignaron puntos reales ni se abrió una dinámica como parte de esta actualización.
+
+
+## 2026-10-05 · Estudiantes v8.14.0 / Padres v8.15.2 · Recargas continuas
+- Causa reproducida en ambas apps: HTML y módulo registraban el mismo scope con URLs de service-worker distintas. controllerchange llamaba location.reload, y el indicador reloading se reiniciaba en cada carga.
+- Eliminado el registro duplicado del HTML. Los módulos activos usan una URL estable ./service-worker.js. Se conserva la comprobación de actualizaciones en segundo plano sin forzar recargas al usuario.
+- Corregida sintaxis inválida del worker de Padres en icon y badge de notificaciones.
+- Activación de cada worker elimina únicamente cachés anteriores de su propia app; conserva las de otras apps del mismo dominio.
+- No se modificaron alumnos, calificaciones, puntos, sesiones ni PIN. Sin cambios de base de datos.
+- Verificación: sintaxis de módulos y workers; reproducción del ciclo anterior de recargas en ambas apps; cinco cargas consecutivas con el arreglo dan cero recargas forzadas y un solo registro por carga; limpieza de caché respeta otras apps.

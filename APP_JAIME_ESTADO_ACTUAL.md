@@ -920,3 +920,13 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
   - entonces solicita nombre, primer apellido, asignatura y cambio de NIP;
   - antes de la activación formal no pide esos datos.
 - No se borraron movimientos, dispositivos, IDs, NIP ni datos de personal.
+
+
+## 2026-10-05 · v8.24.26 · Puntos y donaciones
+- App Docente: acceso recuperado en Metodologías → Puntos y donaciones.
+- Asignación al saldo: elegir turno/grupo, todos los alumnos activos o una selección, cantidad por alumno y motivo. Confirmación con cantidad y destinatarios.
+- RPC teacher_award_points_batch valida sesión docente, alumnos activos del mismo turno/grupo y cantidad positiva; guarda el lote en una transacción y usa award_batch_id para evitar duplicados al reintentar. Excluye alumno monitor 00001.
+- Apertura de dinámica mediante teacher_save_point_period: metodología mensual abierta de Matutino, fecha/hora local de apertura y cierre. Se muestran periodos y estados.
+- App Estudiantes v8.13.9: acceso Mis puntos recuperado; saldo del servidor, historial, aplicación a calificación y donación por ID durante el periodo abierto, con los RPC existentes. Se conserva sesión y navegación.
+- Pruebas SQL revertidas: grupo completo, selección, rechazo de grupo incorrecto, cantidad cero, falta de autorización y reintento sin duplicados. Pruebas DOM de controles, configuración, saldo, periodo programado y donación.
+- No se asignaron puntos reales ni se abrió una dinámica como parte de esta actualización.

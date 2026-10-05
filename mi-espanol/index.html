@@ -714,12 +714,13 @@
     <div class="student-schedule-time">Podrás ingresar a partir de las <b id="studentScheduleOpenTime">--:--</b>.</div>
     <p class="student-schedule-foot">Cuando termine el horario establecido por el profesor, la aplicación se habilitará automáticamente.</p>
   </div>
-</div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.13.3</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
+</div><div id="portalApp" class="hidden"><header><img src="logo-app-estudiante-v821.png"><div><h1>App estudiante</h1><small>El Aula del Profe Jaime · v8.13.9</small></div><div class="student-head-actions"><button id="studentNotifBtn" class="student-notif-btn" type="button">🔔<span id="studentNotifCount" class="student-notif-count hidden">0</span></button><button id="logoutBtn" class="logout-btn">Cerrar sesión</button></div></header>
 <main>
 <section id="home" class="view active"><div class="hero"><div><small>BIENVENIDO</small><h2 id="hello">Hola.</h2><p>Tu materia de Español, en un solo lugar.</p></div><img src="logo-app-estudiante-v821.png"></div><div class="portal-menu">
 <button data-view="activities" class="portal-menu-btn"><span>📚</span><b>Próximas entregas</b></button>
 <button data-view="attendance" class="portal-menu-btn"><span>📅</span><b>Asistencia</b></button>
 <button data-view="grades" class="portal-menu-btn"><span>📊</span><b>Calificaciones</b></button>
+<button data-view="points" class="portal-menu-btn"><span>⭐</span><b>Mis puntos</b></button>
 <button data-view="materials" class="portal-menu-btn"><span>📎</span><b>Materiales</b></button>
 <button data-view="study" class="portal-menu-btn"><span>🎯</span><b>Estudiar</b></button>
 
@@ -753,6 +754,7 @@
   </div>
 </div>
 </section>
+<section id="points" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>⭐ Mis puntos</h2><button id="studentPointsRefresh" type="button">Actualizar saldo</button><p id="studentPointsMessage" role="status" aria-live="polite"></p><div id="studentPointsContent"></div></section>
 <section id="grades" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Calificaciones</h2><div id="gradeContent"></div></section>
 <section id="materials" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Materiales</h2><div id="materialCards" class="cards"></div></section>
 <section id="study" class="view"><button class="back-home" data-view="home">← Inicio</button><h2>Estudiar jugando</h2><p class="muted">Solo aparecen temas publicados por el profesor.</p><div id="studyTopics" class="cards"></div></section>
@@ -827,7 +829,7 @@ if('serviceWorker' in navigator){
   });
 }
 </script>
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script><script type="module" src="app.js?v=8138"></script><script id="student-auto-update-v8133">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.117.1/dist/umd/supabase.js"></script><script type="module" src="app.js?v=8139"></script><script id="student-auto-update-v8133">
 if('serviceWorker' in navigator){
   let reloading=false;
   navigator.serviceWorker.addEventListener('controllerchange',()=>{

@@ -32,7 +32,7 @@
   }
   async function loadGroup(){
     const token=++generation;
-    roster=[];renderRoster();q('ptStatus').textContent='Cargando saldo de puntos…';
+    roster=[];methodologies=[];periods=[];q('ptMethodology').innerHTML='<option value="">Selecciona una metodología</option>';q('ptEnable').disabled=true;q('ptPeriods').innerHTML='';q('ptPeriodForm').classList.toggle('hidden',q('ptShift').value!=='Matutino');renderRoster();q('ptStatus').textContent='Cargando saldo de puntos…';
     const shift=q('ptShift').value, group=q('ptGroup').value;
     try{
       if(!group){q('ptStatus').textContent='Selecciona un grupo.';return;}

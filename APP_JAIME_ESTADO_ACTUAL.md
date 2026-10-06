@@ -975,3 +975,10 @@ App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entr
 - Pruebas: grupos 22–26 en escáner/cuadrícula/metodologías y aislamiento; formulario docente y estudiante usan add RPC; prueba SQL rollback 3 + 1 + reintento = 4 con una solicitud; permisos anon y función interna restringidos.
 
 - Ajuste final Docente 8.24.35: escaneo individual y conteos por grupo seleccionado; examen compartido acepta únicamente alumnos del grupo seleccionado si está en la lista de grupos de la actividad. Verificado registro de entrega en grupo 26.
+
+
+## 2026-10-06 · Mérito Docentes v65 · arranque
+- Karla Negrete Inglés ID700068 verificada: activa, confirmada, perfil formal y acceso de captura oficial octubre. No se modificaron cuenta, PIN ni dispositivos.
+- Reporte de logo al abrir: service worker anterior esperaba fetch indefinidamente. Nuevo worker limita navegación/recursos a7s, recupera página guardada o muestra reintento; instalación usa allSettled con tiempo limitado y conserva cache anterior si nuevo precache incompleto. Limpieza limitada a merito-docentes-, protege caches de otras apps.
+- HTML renderiza antes del script defer y agrega recuperación de inicio a12s / error de descarga. No reinicios automáticos nuevos, no se borra sesión ni registros. showActivation/showCapture marcan arranque completo.
+- Prueba: red indefinidamente bloqueada devuelve login guardado o reintento; instalación termina; caches ajenas y anterior se conservan; watchdog muestra recuperación.

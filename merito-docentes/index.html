@@ -152,4 +152,18 @@
   <p id="notificationStatus"></p>
 </div></dialog>
 <footer class="app-brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</footer>
-<script src="app.js?v=64"></script></body></html>
+<script id="merit-startup-recovery">
+(function(){
+ window.__meritStartupComplete=false;
+ function recovery(){
+  if(window.__meritStartupComplete||document.getElementById('meritBootRecovery'))return;
+  if(typeof document.getElementById('activateBtn')?.onclick==='function'&&(!document.getElementById('activation').classList.contains('hidden')||!document.getElementById('capture').classList.contains('hidden')))return;
+  const el=document.createElement('section');el.id='meritBootRecovery';el.className='card';
+  el.innerHTML='<h2>No se pudo completar el inicio</h2><p>Revisa tu conexión y vuelve a intentar. Tu cuenta y tus registros se conservan.</p><button type="button" class="primary full">Volver a intentar</button>';
+  el.querySelector('button').onclick=()=>location.reload();document.querySelector('main').prepend(el);
+ }
+ window.meritScriptLoadFailed=recovery;
+ setTimeout(recovery,12000);
+})();
+</script>
+<script defer src="app.js?v=65" onerror="meritScriptLoadFailed()"></script></body></html>

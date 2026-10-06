@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='64';
+const MERIT_APP_VERSION='65';
 (async()=>{try{const r=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();const remote=String(v.version||'');const seen=sessionStorage.getItem('meritAppVersionSeen')||'';if(remote&&remote!==MERIT_APP_VERSION&&seen!==remote){sessionStorage.setItem('meritAppVersionSeen',remote);location.reload()}}catch(_){}})();
 
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
@@ -182,6 +182,7 @@ async function checkDevice(){
     $('#activation').classList.add('hidden');
     $('#capture').classList.add('hidden');
     openPinDialog(true);
+    window.__meritStartupComplete=true;
     return;
   }
   showCapture();
@@ -196,11 +197,13 @@ async function checkDevice(){
 
 function mustCompleteFormalSetup(){return !!(needsProfileSetup() || (cachedMustChange() && !(staff?.is_placeholder && !staff?.confirmed)))}
 function showActivation(invite=false){
+ window.__meritStartupComplete=true;document.getElementById('meritBootRecovery')?.remove();
  $('#activation').classList.remove('hidden');$('#capture').classList.add('hidden');updateOfflineUI();
  const st=$('#activationStatus');
  if(invite&&st)st.innerHTML='<div style="margin-top:14px;padding:18px;border:2px solid #c9962d;border-radius:18px;background:linear-gradient(135deg,#fff7d8,#fffdf5);color:#071a36;text-align:center;box-shadow:0 8px 22px rgba(7,26,54,.12)"><div style="font-size:2.2rem">🏆✨</div><div style="font-size:1.12rem;font-weight:900;margin:5px 0">¿Quieres participar en Mérito Gabino A. Palma?</div><div style="line-height:1.45">¡Nos dará mucho gusto contar contigo! Acércate o escríbele al <b>Profr. Jaime</b> para que te dé acceso.</div></div>';
 }
 function showCapture(){
+ window.__meritStartupComplete=true;document.getElementById('meritBootRecovery')?.remove();
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
  const pending=$('#accessPendingCard'),workspace=$('#captureWorkspace');
  const mode=accessState?.mode||((staff?.is_placeholder&&!staff?.confirmed)?'pending_confirmation':'official');
@@ -750,7 +753,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=63').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=65').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 

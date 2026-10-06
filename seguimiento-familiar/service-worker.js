@@ -1,5 +1,5 @@
-const CACHE='app-padres-v8-15-2-stable-updates';
-const FILES=['./','./index.html','./styles.css','./app-v8141.js?v=8152','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','./citas.html','./celular.html','../shared/data-contract.js','../shared/supabase-adapter.js'];
+const CACHE='app-padres-v8-15-3-stable-updates';
+const FILES=['./','./index.html','./styles.css','./app-v8141.js?v=8153','./manifest.webmanifest','./profe-jaime.png','./icon-app-padres-v821.png','./citas.html','./celular.html','../shared/data-contract.js','../shared/supabase-adapter.js'];
 
 self.addEventListener('install',event=>{
  self.skipWaiting();

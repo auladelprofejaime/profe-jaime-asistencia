@@ -961,3 +961,7 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 - Pruebas SQL revertidas: donación, reintento sin duplicación, rechazo de mismo ID/otro grupo/saldo insuficiente, uso de puntos, resumen/historial y autorización.
 - Pruebas DOM: scanner Enter avanza entre campos sin enviar; confirmación, reintento, historial, aplicación y periodo cerrado deshabilitado.
 - Sin donaciones ni puntos reales modificados durante esta actualización.
+
+
+## 2026-10-06 · Promedios provisionales antes del cierre
+App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entrar a Metodologías. Publicación provisional autenticada por RPC solo añade banderas; conserva calificaciones, puntos y mes abierto. Alumnos v8.14.1 acepta promedios provisionales; Padres v8.15.3 los etiqueta. Pruebas de visibilidad y actualización por puntos; publicación de los 188 promedios existentes de Septiembre 2026-2027 grupos 22–26, sin cerrar meses.

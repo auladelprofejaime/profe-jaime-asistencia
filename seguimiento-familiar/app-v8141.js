@@ -894,7 +894,7 @@ function renderAll(){
      return `<div class="card">
        <div style="display:flex;justify-content:space-between;gap:10px;align-items:start">
          <div><h3 style="margin:0">${esc(m.month||'Mes')}</h3><p class="muted" style="margin:4px 0 0">Trimestre ${esc(m.quarter||'—')} · ${esc(m.cycle||'')}</p></div>
-         <span class="status ok">Publicada</span>
+         <span class="status ok">${m.closed?'Definitiva':'Provisional'}</span>
        </div>
        <h1 style="margin-bottom:4px">${Number(x.finalDecimal).toFixed(2)}</h1>
        <p>Redondeada: <b>${x.rounded??'—'}</b></p>

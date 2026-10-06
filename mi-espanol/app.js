@@ -597,10 +597,12 @@ async function load(){
  $('#hello').textContent=`Hola, ${(bundle.student.name||'').split(' ')[0]||'alumno'}.`;
  renderSummary();renderNotices();renderActivities();renderAttendance();renderGrades();renderMaterials();renderStudy();renderStudentNotifBadge();await enforceStudentSchedule();await showBirthdayGreetingIfNeeded();refreshStudentPoints(false).catch(()=>{});startStudentPolling();startStudentActivityRealtime().catch(e=>console.warn('Realtime App Estudiante',e));if(Notification.permission==='granted')syncStudentPushSubscription().catch(()=>{});
 }
-function currentGrade(){
- const closed=(bundle.methodologies||[]).filter(m=>m.closed&&m.gradeRecords?.[currentId]?.finalDecimal!=null).sort((a,b)=>String(b.closedAt||b.updated||'').localeCompare(String(a.closedAt||a.updated||'')));
- return closed[0]?.gradeRecords?.[currentId]||null;
+function currentGradeMethodology(){
+ const order=['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'];
+ return (bundle.methodologies||[]).filter(m=>(m.closed||m.provisionalPublished===true)&&m.gradeRecords?.[currentId]?.finalDecimal!=null&&!String(m.month||'').toLowerCase().includes('trimes'))
+ .sort((a,b)=>String(b.cycle||'').localeCompare(String(a.cycle||''))||Number(b.quarter||0)-Number(a.quarter||0)||order.indexOf(b.month)-order.indexOf(a.month)||String(b.updated||'').localeCompare(String(a.updated||'')))[0]||null;
 }
+function currentGrade(){return currentGradeMethodology()?.gradeRecords?.[currentId]||null}
 function pointsAvailable(){
  if(studentPointSnapshot?.id===currentId)return studentPointSnapshot.balance;
  let earned=0,used=0;(bundle.methodologies||[]).forEach(m=>{let r=m.gradeRecords?.[currentId];if(r){earned+=Number(r.pointsGenerated||0);used+=Number(r.pointsUsed||0)}});return Math.max(0,earned-used)
@@ -679,7 +681,7 @@ function renderAttendance(){
  }).join('');
 }
 
-function renderGrades(){let g=currentGrade(),pct=g?Math.min(100,(Number(g.finalDecimal||0)/10)*100):0;$('#gradeContent').innerHTML=`<div class="card"><h3>Calificación actual</h3><h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><div class="progress"><i style="width:${pct}%"></i></div><p>Redondeada: <b>${g?.rounded??'—'}</b></p><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>`}
+function renderGrades(){let m=currentGradeMethodology(),g=currentGrade(),pct=g?Math.min(100,(Number(g.finalDecimal||0)/10)*100):0;$('#gradeContent').innerHTML=`<div class="card"><h3>Calificación ${m&&!m.closed?'provisional':'actual'}</h3><p>${esc(m?.month||'')}</p>${m&&!m.closed?'<p>El mes sigue abierto. Puedes usar tus puntos antes del cierre; el promedio puede cambiar.</p>':''}<h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><div class="progress"><i style="width:${pct}%"></i></div><p>Redondeada: <b>${g?.rounded??'—'}</b></p><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>`}
 function renderMaterials(){
  $('#materialCards').innerHTML=bundle.materials.length?bundle.materials.map(m=>`<button class="card action" data-material="${esc(m.id)}"><b>${esc(m.title)}</b><p class="muted">${esc(m.type)} · ${m.source==='file'?'Archivo':'Enlace'}</p>${m.fileName?`<small class="muted">${esc(m.fileName)}</small>`:''}</button>`).join(''):'<div class="card muted">Sin materiales publicados.</div>';
  $$('[data-material]').forEach(b=>b.onclick=()=>openMaterial(b.dataset.material));

@@ -98,7 +98,7 @@ let studentSWRegistration=null;
 async function ensureStudentServiceWorker(){
   if(!('serviceWorker' in navigator)) throw new Error('Este navegador no admite service workers.');
   studentSWRegistration = await navigator.serviceWorker.register('./service-worker.js',{scope:'./'});
-  await navigator.serviceWorker.ready;
+  await studentBootDeadline(navigator.serviceWorker.ready,10000);
   return studentSWRegistration;
 }
 
@@ -107,8 +107,24 @@ let selectedChatTopic='';
 let newChatDraftOpen=false;
 let chatCloseTimer=null;
 const CHAT_REPLY_WINDOW_MS=5*60*1000;
+function studentBootDeadline(promise,ms){
+ let timer;
+ return Promise.race([promise,new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('La conexión tardó demasiado. Puedes reintentar sin borrar tus datos.')),ms)})]).finally(()=>clearTimeout(timer));
+}
+function showStudentBootRecovery(error){
+ $('#sessionLoading')?.classList.add('hidden');
+ $('#loginGate')?.classList.remove('hidden');
+ if($('#loginId')&&currentId)$('#loginId').value=currentId;
+ const box=$('#loginError');if(!box)return;
+ box.textContent='No se pudo recuperar tu sesión. Revisa tu conexión y pulsa Reintentar.';
+ let b=$('#studentBootRetry');
+ if(!b){b=document.createElement('button');b.id='studentBootRetry';b.type='button';b.className='action';b.textContent='Reintentar acceso';box.after(b)}
+ b.onclick=async()=>{b.disabled=true;try{await init()}finally{b.disabled=false}};
+}
+
 async function init(){
- try{await ensureStudentServiceWorker()}catch(e){console.warn('SW',e)}
+ // Updates and push registration must never block login.
+ ensureStudentServiceWorker().catch(e=>console.warn('SW',e));
  $('#loginBtn').onclick=doLogin;$('#logoutBtn').onclick=logout;
  $('#studentNotifBtn').onclick=openStudentNotifications;
 
@@ -119,8 +135,7 @@ async function init(){
      currentId=s.studentId;
      currentToken=s.token||'';
      if(currentToken && await enterPortal())return;
-   }catch(e){console.warn('Sesión guardada inválida',e)}
-   clearSession();
+   }catch(e){console.warn('No se pudo recuperar la sesión',e);showStudentBootRecovery(e);return}
  }
  $('#sessionLoading')?.classList.add('hidden');
  $('#loginGate')?.classList.remove('hidden');
@@ -146,9 +161,9 @@ async function forceChangePin(){
 }
 async function enterPortal(){
  let raw;
- try{raw=await portalGetBundle(currentToken)}catch(e){raw=null}
+ try{raw=await studentBootDeadline(portalGetBundle(currentToken),15000)}catch(e){showStudentBootRecovery(e);return true}
  if(!raw?.ok){
-   clearSession();currentToken='';
+   currentToken='';
    $('#sessionLoading')?.classList.add('hidden');
    $('#loginGate')?.classList.remove('hidden');
    $('#portalApp')?.classList.add('hidden');
@@ -810,7 +825,7 @@ async function sendMessage(){
  await refreshStudentPortal();
 }
 window.addEventListener('message',e=>{if(e.data?.type==='OPEN_PUSH_TARGET'){const t=(e.data.target==='chat'?'home':(e.data.target||'home'));$$('.nav-btn').forEach(x=>x.classList.toggle('active',x.dataset.view===t));$$('.view').forEach(v=>v.classList.toggle('active',v.id===t));if(t==='chat')refreshStudentPortal().catch(()=>{})}});
-init();
+init().catch(showStudentBootRecovery);
 
 
 let studentRealtimeClient=null;
@@ -900,3 +915,5 @@ async function studentPointsAction(e,name,args,label){
  }finally{studentPointsBusy=false;$('#studentPointsContent').querySelectorAll('button,input').forEach(x=>x.disabled=false);}
 }
 $('#studentPointsRefresh')?.addEventListener('click',()=>refreshStudentPoints().catch(e=>{$('#studentPointsMessage').textContent=e.message;}));
+
+window.addEventListener('student-realtime-ready',()=>{if(currentToken)startStudentActivityRealtime().catch(()=>{})});

@@ -7,7 +7,7 @@ const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function toolbar(){
  let el=byId('savedGradeActions');
  if(!el){el=document.createElement('div');el.id='savedGradeActions';el.className='card';byId('methodologyResults').before(el)}
- el.innerHTML='<button type="button" id="restoreSavedGrades">Ver promedios guardados</button> <button type="button" id="publishProvisionalGrades">Publicar calificación provisional</button><p id="savedGradeStatus" aria-live="polite"></p>';
+ if(!byId('restoreSavedGrades'))el.innerHTML='<button type="button" id="restoreSavedGrades">Ver promedios guardados</button> <button type="button" id="publishProvisionalGrades">Publicar calificación provisional</button><p id="savedGradeStatus" aria-live="polite"></p>';
  byId('restoreSavedGrades').onclick=()=>restoreGrades().catch(showError);
  byId('publishProvisionalGrades').onclick=publish;
  return el;
@@ -32,10 +32,32 @@ async function restoreGrades(){
  const entries=Object.entries(m.gradeRecords||{});
  byId('publishProvisionalGrades').disabled=m.closed||!entries.length;
  if(!entries.length){byId('methodologyResults').innerHTML='<p>No hay promedios guardados. Pulsa Calcular para generarlos.</p>';status('Sin resultados guardados.');return}
- const names=new Map(roster.map(s=>[String(s.id),s]));
- entries.sort((a,b)=>Number(names.get(a[0])?.listNumber||names.get(a[0])?.list_number||999)-Number(names.get(b[0])?.listNumber||names.get(b[0])?.list_number||999));
- const n=x=>Number.isFinite(Number(x))?Number(x).toFixed(2):'—';
- byId('methodologyResults').innerHTML='<p>Promedios guardados · '+esc(m.month)+' · Grupo '+esc(m.group)+'. No se recalcularon.</p><div style="overflow:auto"><table><thead><tr><th>Alumno</th><th>Base</th><th>Extra</th><th>Puntos usados</th><th>Promedio</th><th>Redondeada</th></tr></thead><tbody>'+entries.map(([sid,g])=>'<tr><td>'+esc(names.get(sid)?.name||sid)+'</td><td>'+n(g.base)+'</td><td>'+n(g.manualExtra||0)+'</td><td>'+n(g.pointsUsed||0)+'</td><td>'+n(g.finalDecimal)+'</td><td>'+esc(g.rounded??g.monthlyGrade??'—')+'</td></tr>').join('')+'</tbody></table></div>';
+ // Build the existing table model from saved grades. Displaying details does not
+ // recalculate or write the saved average, applied points or monthly grade.
+ const acts=(await all('activities')).filter(a=>m.assignments?.[a.id]);
+ const records=await all('activityRecords'),recordMap=new Map(records.map(r=>[r.key,r]));
+ const names=new Map(roster.map(st=>[String(st.id),st]));
+ const rows=[];
+ for(const [sid,g] of entries){
+  const st=names.get(sid)||{id:sid,name:sid,number:''};
+  const criterionGrades={};
+  for(const c of m.criteria||[]){
+   const ca=acts.filter(a=>m.assignments?.[a.id]===c.id);
+   const values=ca.map(a=>{const r=recordMap.get(a.id+'|'+sid);return (a.evaluationMode||'delivery')==='numeric'?(typeof r?.score==='number'?r.score:0):(r?.status==='yes'?10:0)});
+   criterionGrades[c.id]=ca.length?values.reduce((a,b)=>a+b,0)/ca.length:null;
+  }
+  const ledger=await pointsLedgerFor(m,sid,true);
+  const used=Number(g.pointsUsed||0),average=Number(g.finalDecimal??g.obtainedAverage??0);
+  rows.push({student:st,criterionGrades,base:Number(g.base||0),manualExtra:Number(g.manualExtra||0),
+   pointsUsed:used,final:average,finalDecimal:average,obtainedAverage:average,
+   rounded:g.rounded??g.monthlyGrade,monthlyGrade:g.monthlyGrade??g.rounded,
+   pointsGenerated:Number(g.pointsGenerated||0),pointsAvailable:Math.max(0,Number(ledger.available||0)-used),
+   pointsTotalBefore:Number(ledger.available||0)});
+ }
+ rows.sort((a,b)=>compareStudentsForList(a.student,b.student));
+ if(ticket!==seq||byId('calcMethodology').value!==id)return;
+ window._lastMethodologyCalculation={methodology:m,activities:acts,rows};
+ renderMethodologyResults(window._lastMethodologyCalculation);
  status(entries.length+' promedios recuperados del servidor. '+(m.closed?'Mes cerrado.':m.provisionalPublished?'Provisionales visibles en Alumnos y Padres.':'Todavía no publicados.'));
 }
 async function publish(){
@@ -45,6 +67,13 @@ async function publish(){
  try{status('Publicando…');const out=await ProfeSupabase.rpc('teacher_publish_provisional_methodology',{p_methodology_id:id});if(!out?.ok)throw new Error('El servidor no confirmó la publicación.');await restoreGrades()}
  catch(e){showError(e)}finally{b.disabled=false}
 }
+// A newer calculation invalidates any unfinished server restore.
+const originalResults=renderMethodologyResults;
+renderMethodologyResults=function(data){
+ if(data?.methodology?.id!==byId('calcMethodology')?.value)return;
+ ++seq;
+ return originalResults.apply(this,arguments);
+};
 const original=renderMethodologyAssignments;
 renderMethodologyAssignments=async function(){await original.apply(this,arguments);try{await restoreGrades()}catch(e){showError(e)}};
 window.addEventListener('load',()=>{
@@ -55,7 +84,7 @@ const originalMirror=queueRemoteMirror,pending=new Map();
 queueRemoteMirror=function(n,v){const p=originalMirror.apply(this,arguments);if(n==='methodologies')pending.set(v.id,p);return p};
 const originalCalculate=calculateMethodology;
 calculateMethodology=async function(){
- toolbar();const id=byId('calcMethodology')?.value;
+ ++seq;toolbar();const id=byId('calcMethodology')?.value;
  try{
   if(!supabaseReady)throw new Error('Conecta con Supabase antes de calcular y guardar.');
   await originalCalculate.apply(this,arguments);

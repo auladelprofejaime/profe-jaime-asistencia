@@ -1,7 +1,8 @@
 /* Saved averages are restored, never recalculated on entry. */
 (()=>{
 'use strict';
-let seq=0;
+let seq=0,calculating=false,refreshing=false;
+const signatures=new Map();
 const byId=id=>document.getElementById(id);
 const esc=x=>String(x??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 function toolbar(){
@@ -20,12 +21,15 @@ async function remote(id){
  const row=rows[0];
  return {...row.data,id:row.id,group:row.group_name,shift:row.shift,month:row.month,cycle:row.cycle,quarter:row.quarter,closed:row.closed};
 }
-async function restoreGrades(){
+async function restoreGrades(options={}){
+ const quiet=options.quiet===true;
  const ticket=++seq,id=byId('calcMethodology')?.value;
- toolbar();
+ if(!quiet)toolbar();
  if(!id){status('Selecciona una metodología.');return}
- status('Consultando promedios guardados…');
- const m=await remote(id),roster=await students();
+ if(!quiet)status('Consultando promedios guardados…');
+ const m=await remote(id),signature=JSON.stringify([m.closed,m.gradeRecords,m.provisionalPublished]);
+ if(quiet&&signatures.get(id)===signature)return;
+ const roster=await students();
  if(ticket!==seq||byId('calcMethodology').value!==id)return;
  // Local cache only: no remote upsert and no recalculation.
  await req(store('methodologies','readwrite').put(m));
@@ -50,7 +54,7 @@ async function restoreGrades(){
   const used=Number(g.pointsUsed||0),average=Number(g.finalDecimal??g.obtainedAverage??0);
   rows.push({student:st,criterionGrades,base:Number(g.base||0),manualExtra:Number(g.manualExtra||0),
    pointsUsed:used,final:average,finalDecimal:average,obtainedAverage:average,
-   rounded:g.rounded??g.monthlyGrade,monthlyGrade:g.monthlyGrade??g.rounded,
+   rounded:g.rounded??g.monthlyGrade,monthlyGrade:g.rounded??g.monthlyGrade,
    pointsGenerated:Number(g.pointsGenerated||0),pointsAvailable:Math.max(0,Number(ledger.available||0)-used),
    pointsTotalBefore:Number(ledger.available||0)});
  }
@@ -58,6 +62,7 @@ async function restoreGrades(){
  if(ticket!==seq||byId('calcMethodology').value!==id)return;
  window._lastMethodologyCalculation={methodology:m,activities:acts,rows};
  renderMethodologyResults(window._lastMethodologyCalculation);
+ signatures.set(id,signature);
  status(entries.length+' promedios recuperados del servidor. '+(m.closed?'Mes cerrado.':m.provisionalPublished?'Provisionales visibles en Alumnos y Padres.':'Todavía no publicados.'));
 }
 async function publish(){
@@ -82,16 +87,45 @@ window.addEventListener('load',()=>{
 // Await the existing remote mirror before confirming a calculation was saved.
 const originalMirror=queueRemoteMirror,pending=new Map();
 queueRemoteMirror=function(n,v){const p=originalMirror.apply(this,arguments);if(n==='methodologies')pending.set(v.id,p);return p};
+const originalLedger=pointsLedgerFor;
+pointsLedgerFor=async function(m,sid,excludeCurrent=true){
+ const ledger=await originalLedger.apply(this,arguments);
+ if(excludeCurrent)ledger.available=Math.max(Number(ledger.available||0),Number(m.gradeRecords?.[sid]?.pointsUsed||0));
+ return ledger;
+};
+// Refund through the bank transaction API, never only reset a local number.
+returnUsedPoints=async function(studentId){
+ if(!confirm('¿Deshacer la aplicación y devolver los puntos al saldo del alumno?'))return;
+ try{
+  const id=byId('calcMethodology')?.value;
+  const periods=await ProfeSupabase.select('point_periods','select=id,opens_at,closes_at,closed_at&methodology_id=eq.'+encodeURIComponent(id)+'&closed_at=is.null');
+  const now=Date.now(),period=(periods||[]).find(p=>now>=Date.parse(p.opens_at)&&now<Date.parse(p.closes_at));
+  if(!period)throw new Error('El periodo de puntos no está abierto.');
+  const out=await ProfeSupabase.rpc('teacher_set_grade_points',{p_student_id:studentId,p_period_id:period.id,p_amount:0});
+  if(!out?.ok)throw new Error('El servidor no confirmó la devolución.');
+  await restoreGrades();
+ }catch(e){showError(e);alert(e.message||e)}
+};
 const originalCalculate=calculateMethodology;
 calculateMethodology=async function(){
- ++seq;toolbar();const id=byId('calcMethodology')?.value;
+ ++seq;calculating=true;toolbar();const id=byId('calcMethodology')?.value;
  try{
   if(!supabaseReady)throw new Error('Conecta con Supabase antes de calcular y guardar.');
   await originalCalculate.apply(this,arguments);
   if(pending.has(id))await pending.get(id);
   const m=await remote(id);
   status(Object.keys(m.gradeRecords||{}).length+' promedios guardados en el servidor. Puedes publicar la calificación provisional.');
- }catch(e){showError(e);throw e}
+ }catch(e){showError(e);throw e}finally{calculating=false}
 };
 window.addEventListener('load',()=>{if(byId('calculateMethodologyBtn'))byId('calculateMethodologyBtn').onclick=()=>calculateMethodology().catch(()=>{})});
+async function refreshAppliedPoints(){
+ if(refreshing||calculating||document.hidden||!byId('methodologies')?.classList.contains('active')||!byId('met-calculate')?.classList.contains('active'))return;
+ if(byId('methodologyResults')?.contains(document.activeElement)||document.querySelector('dialog[open]'))return;
+ refreshing=true;
+ try{await restoreGrades({quiet:true})}catch(e){console.warn('No se pudieron consultar las calificaciones actualizadas:',e.message||e)}
+ finally{refreshing=false}
+}
+window.addEventListener('load',()=>setInterval(refreshAppliedPoints,10000));
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshAppliedPoints()});
+window.addEventListener('focus',refreshAppliedPoints);
 })();

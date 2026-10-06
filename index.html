@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.24.32</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.24.33</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -1517,7 +1517,7 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=808"></script><script src="app-v82312.js?v=82432"></script><script src="teacher-points-v82426.js?v=82432"></script><script src="teacher-point-operations-v82428.js?v=82432"></script>
+<script src="./shared/supabase-teacher.js?v=808"></script><script src="app-v82312.js?v=82433"></script><script src="teacher-points-v82426.js?v=82433"></script><script src="teacher-point-operations-v82428.js?v=82433"></script>
 <script src="activity-record-server-guard-v82403.js?v=82415"></script><script src="evening-book-custody-v82384.js?v=82392"></script><script src="activities-pending-v82338.js?v=82416"></script><script src="activities-individual-pdf-v82341.js?v=82341"></script><script src="activities-range-grid-v82386.js?v=82404"></script><script src="activity-full-reconcile-v82393.js?v=82417"></script>\n<script src="activity-exam-scanner-v82418.js?v=82422"></script><script src="cleanup-historieta-grupo25-v82342.js?v=82343"></script><script src="connectivity-books-v82339.js?v=82344"></script><script src="book-money-transfer-fix-v82345.js?v=82345"></script><script src="birthday-benefits-fix-v82346.js?v=82346"></script><script src="supabase-stability-v82347.js?v=82347"></script><script src="book-payments-stability-v82348.js?v=82348"></script><script src="book-payments-ui-v82350.js?v=82350"></script><script src="book-request-safe-v82351.js?v=82366"></script><script src="book-transfer-pending-v82352.js?v=82352"></script><script src="offline-queue-drain-v82353.js?v=82366"></script><script src="offline-queue-safety-v82370.js?v=82378"></script><script src="activity-delivery-audit-v82368.js?v=82396"></script><script src="book-payment-auth-fallback-v82365.js?v=82365"></script><script src="book-payment-postsave-fix-v82385.js?v=82392"></script>
 
 
@@ -1598,100 +1598,56 @@
 </script>
 <script id="activity-create-repair-20261001">
 (function(){
- const q=s=>document.querySelector(s), v=s=>(q(s)?.value||'').trim();
- const norm=x=>String(x??'').trim().toLowerCase().replace(/[^0-9a-záéíóúüñ]/gi,'');
- const same=(a,b)=>{try{return typeof sameGroup==='function'?sameGroup(a,b):norm(a)===norm(b)}catch(_){return norm(a)===norm(b)}};
- const sameS=(a,b)=>{try{return typeof sameShift==='function'?sameShift(a,b):norm(a)===norm(b)}catch(_){return norm(a)===norm(b)}};
- function groups(){
-  const box=q('#newActGroupChoices');
-  const a=box?[...box.querySelectorAll('input.new-act-group-check:checked')].map(x=>String(x.value||x.dataset.group||'').trim()).filter(Boolean):[];
-  if(a.length)return [...new Set(a)];
-  const b=box?[...box.querySelectorAll('.selected[data-group]')].map(x=>String(x.dataset.group||'').trim()).filter(Boolean):[];
-  if(b.length)return [...new Set(b)];
-  return v('#newActGroup')?[v('#newActGroup')]:[];
+ const q=s=>document.querySelector(s),v=s=>(q(s)?.value||'').trim();
+ const KEY='teacherPendingActivityCreate';let busy=false,generation=0;
+ function message(t,bad=false){let el=q('#activityCreateStatus');if(!el){el=document.createElement('p');el.id='activityCreateStatus';el.setAttribute('aria-live','polite');q('#saveActivityBtn')?.parentNode.after(el)}el.textContent=t;el.className=bad?'message bad':'hint'}
+ function signature(a){return JSON.stringify([a.name,a.shift,a.date,a.dueDate,a.week,a.type,a.evaluationMode,[...(a.groups||[])].sort()])}
+ async function save(form,ticket){
+  const groups=[...q('#newActGroupChoices').querySelectorAll('input.new-act-group-check:checked')].map(x=>x.value);
+  const base={shift:v('#newActShift'),groups,group:groups[0],name:v('#newActName'),date:v('#newActDate'),dueDate:v('#newActDueDate'),week:v('#newActWeek'),type:v('#newActType')||'Actividad',evaluationMode:v('#newActEvaluation')||'delivery'};
+  if(v('#editActivityId'))throw new Error('Para editar utiliza el botón Editar de la actividad.');
+  if(!groups.length||!base.shift||!base.name||!base.date||!base.dueDate)throw new Error('Completa turno, grupos, nombre y fechas.');
+  if(!window.ProfeSupabase)throw new Error('No hay conexión con el servidor.');
+  const fingerprint=signature(base);let pending;
+  try{pending=JSON.parse(sessionStorage.getItem(KEY)||'null')}catch(_){}
+  if(pending?.fingerprint!==fingerprint)pending={fingerprint,id:crypto.randomUUID()};
+  sessionStorage.setItem(KEY,JSON.stringify(pending));
+  // Adopt a matching activity from an earlier interrupted form instead of duplicating it.
+  const matches=await ProfeSupabase.select('activities','select=id,data&title=eq.'+encodeURIComponent(base.name)+'&activity_date=eq.'+base.date+'&shift=eq.'+encodeURIComponent(base.shift));
+  const same=(matches||[]).filter(x=>signature(x.data||{})===fingerprint);
+  if(same.length>1)throw new Error('Ya hay varias actividades con esos datos. Revísalas en Actividades creadas.');
+  if(same.length===1){pending.id=same[0].id;sessionStorage.setItem(KEY,JSON.stringify(pending))}
+  message('Guardando actividad y registros de alumnos juntos…');
+  const stamp=new Date().toISOString(),activity={...base,id:pending.id,closed:false,order:Date.now(),created:stamp};
+  const out=await ProfeSupabase.rpc('teacher_create_activity_atomic',{p_activity:activity});
+  if(!out?.ok||!out.activity?.id)throw new Error('El servidor no confirmó el guardado.');
+  if(ticket!==generation)return;
+  try{
+   await req(store('activities','readwrite').put(out.activity));
+   for(const r of out.records||[]){
+    const record={...(r.data||{}),key:r.activity_id+'|'+r.student_id,activityId:r.activity_id,studentId:r.student_id,score:r.score,timestamp:r.delivery_date};
+    if(r.delivered===true)record.status='yes';else if(r.delivered===false)record.status='no';else delete record.status;
+    await req(store('activityRecords','readwrite').put(record));
+   }
+  }catch(e){console.warn('Actividad confirmada en servidor; vista local pendiente:',e)}
+  if(ticket!==generation)return;
+  sessionStorage.removeItem(KEY);
+  if(typeof resetActivityForm==='function')resetActivityForm();else form.reset();
+  message('✓ Actividad guardada en '+groups.length+' grupo(s), con '+(out.records||[]).length+' registros de alumnos.');
+  Promise.allSettled([renderActivities(),refreshActivitySelectors(),refreshGridWeeks()]).catch(console.error);
  }
  document.addEventListener('submit',async e=>{
   if(e.target?.id!=='activityForm')return;
-  e.preventDefault();e.stopImmediatePropagation();
-  const btn=q('#saveActivityBtn');
+  e.preventDefault();e.stopImmediatePropagation();if(busy)return;
+  busy=true;const ticket=++generation;const btn=q('#saveActivityBtn');if(btn){btn.disabled=true;btn.textContent='Guardando…'}
+  let timer;
   try{
-   if(typeof put!=='function')throw new Error('La aplicación necesita recargarse con internet antes de guardar.');
-   const gs=groups(); if(!gs.length)throw new Error('Selecciona al menos un grupo.');
-   const shift=v('#newActShift'),name=v('#newActName'),date=v('#newActDate'),dueDate=v('#newActDueDate'),week=v('#newActWeek');
-   const type=v('#newActType')||'Actividad',evaluationMode=v('#newActEvaluation')||'delivery';
-   if(!shift||!name||!date||!dueDate)throw new Error('Completa turno, nombre y fechas.');
-   if(v('#editActivityId'))throw new Error('Este ajuste es solo para crear actividades nuevas; no se modificó nada.');
-   if(btn){btn.disabled=true;btn.textContent='Guardando…'}
-   const sts=typeof students==='function'?await students():(typeof all==='function'?await all('students'):[]);
-   const createdAt=new Date().toISOString();
-   const activityId=crypto.randomUUID();
-   const a={id:activityId,shift,group:gs[0],groups:gs,name,date,dueDate,week,type,evaluationMode,closed:false,order:Date.now(),created:createdAt};
-   await put('activities',a);
-   if(window.ProfeSupabase){
-    const linked=await window.ProfeSupabase.rpc('teacher_activity_groups_set',{p_activity_id:activityId,p_groups:gs});
-    if(linked?.ok===false)throw new Error('No se pudieron asociar los grupos.');
-   }
-   if(evaluationMode==='delivery'){
-    for(const st of (sts||[]).filter(s=>sameS(s.shift,shift)&&gs.some(g=>same(s.group||s.group_name,g)))){
-     await put('activityRecords',{key:activityId+'|'+st.id,activityId,studentId:st.id,status:'no',timestamp:createdAt});
-    }
-   }
-   e.target.reset();
-   if(typeof renderActivities==='function')await renderActivities();
-   if(typeof renderActivityGrid==='function')await renderActivityGrid();
-   alert('Actividad creada correctamente.');
-  }catch(err){console.error(err);alert('No se pudo crear la actividad: '+(err?.message||err))}
-  finally{if(btn){btn.disabled=false;btn.textContent='Guardar actividad'}}
+   await Promise.race([save(e.target,ticket),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('No llegó la confirmación del servidor. Conservamos el identificador para que puedas reintentar sin duplicar la actividad.')),35000)})]);
+  }catch(err){++generation;console.error(err);message(err.message||err,true)}
+  finally{clearTimeout(timer);busy=false;if(btn){btn.disabled=false;btn.textContent='Guardar actividad'}}
  },true);
 })();
-
-// Reparación 2026-10-01: eliminar actividad desde la tarjeta visible y verificar servidor + iPad.
-document.addEventListener('click',async e=>{
- const el=e.target.closest('[data-actdel],button,a,[role="button"]');
- if(!el)return;
- const label=(el.textContent||el.getAttribute('aria-label')||el.title||'').trim().toLowerCase();
- if(!el.dataset.actdel && !label.includes('eliminar') && !label.includes('borrar'))return;
- const row=el.closest('[data-activity-id],[data-id],tr,.activity-row,.activity-card,.card,.list-item');
- let id=String(el.dataset.actdel||el.dataset.activityId||el.dataset.id||row?.dataset.activityId||row?.dataset.id||'').trim();
-
- // Si la tarjeta no expone el ID, resolverlo por los datos visibles contra IndexedDB.
- if(!id && typeof all==='function'){
-   const txt=String(row?.innerText||'');
-   const acts=await all('activities');
-   const candidates=(acts||[]).filter(a=>{
-     const name=String(a?.name||a?.title||'').trim();
-     const group=String(a?.group||a?.group_name||'').trim();
-     return name && txt.includes(name) && (!group || txt.includes('· '+group+' ·') || txt.includes(' '+group+' '));
-   });
-   if(candidates.length===1)id=String(candidates[0].id||'');
- }
- if(!id)return;
- e.preventDefault();e.stopImmediatePropagation();
- if(!confirm('¿Eliminar esta actividad?'))return;
- el.disabled=true;
- try{
-   if(!window.ProfeSupabase)throw new Error('Sin conexión con Supabase.');
-   const out=await window.ProfeSupabase.rpc('teacher_activity_delete',{p_activity_id:id});
-   if(out?.ok===false)throw new Error(out?.error||out?.reason||'Supabase no confirmó la eliminación.');
-
-   // Borrar SOLO local: no volver a invocar window.del porque la guardia llamaría otra vez al RPC.
-   if(typeof window.__activityOriginalDel==='function')await window.__activityOriginalDel('activities',id);
-   else if(typeof del==='function')await del('activities',id);
-
-   // Verificación remota: no declarar éxito si todavía existe.
-   const check=await window.ProfeSupabase.select('activities','select=id&id=eq.'+encodeURIComponent(id));
-   if(Array.isArray(check)&&check.length)throw new Error('El servidor todavía conserva la actividad.');
-
-   row?.remove();
-   if(typeof renderActivities==='function')await renderActivities();
-   if(typeof renderActivityGrid==='function')await renderActivityGrid();
- }catch(err){
-   console.error(err);
-   alert('No se pudo eliminar: '+(err?.message||err));
-   if(typeof renderActivities==='function')await renderActivities();
- }finally{el.disabled=false}
-},true);
 </script>
-<script src="methodology-saved-grades-v82429.js?v=82432"></script>
-<script src="activities-server-list-v82432.js?v=82432"></script>
+<script src="methodology-saved-grades-v82429.js?v=82433"></script>
+<script src="activities-server-list-v82432.js?v=82433"></script>
 </body></html>

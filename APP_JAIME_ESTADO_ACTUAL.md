@@ -973,3 +973,5 @@ App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entr
 - Nuevas RPC teacher_add_grade_points / portal_add_grade_points: autorización docente o sesión estudiante, bloqueo de metodología, total calculado desde ledger, request UUID persistente y registro privado RLS point_grade_add_requests para reintentos sin duplicación. No usar set_grade_points para sumar.
 - Caso alumno 26007 reparado de total 1 a total 4 mediante API de banco (3 anteriores + 1 donado); promedio 8.18 / mensual 8, saldo 0. Historial preservado.
 - Pruebas: grupos 22–26 en escáner/cuadrícula/metodologías y aislamiento; formulario docente y estudiante usan add RPC; prueba SQL rollback 3 + 1 + reintento = 4 con una solicitud; permisos anon y función interna restringidos.
+
+- Ajuste final Docente 8.24.35: escaneo individual y conteos por grupo seleccionado; examen compartido acepta únicamente alumnos del grupo seleccionado si está en la lista de grupos de la actividad. Verificado registro de entrega en grupo 26.

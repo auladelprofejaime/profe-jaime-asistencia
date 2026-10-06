@@ -990,3 +990,10 @@ App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entr
 - RPC de actualización cambia únicamente metadatos y asignación de grupos; conserva filas de entregas/calificaciones, sus detalles, IDs y metodologías. Inicializa entregas nuevas solo para alumnos añadidos y ON CONFLICT DO NOTHING. Al retirar grupos conserva historial; modo/turno protegidos si existen registros.
 - Pruebas DOM: otras actividades compartidas e individuales cargan selección real; casillas y Todos funcionan; edición no invoca creación; entrega, score y detalles preservados. Creación masiva/reintento sigue pasando.
 - Prueba SQL rollback: quitar y volver a poner grupos deja los 188 registros idénticos; agregar grupo a una actividad de prueba crea solo faltantes, reintento sin duplicados y entrega previa conservada. No se alteraron actividades reales durante esta reparación.
+
+
+## 2026-10-06 · Docente 8.24.37
+- Corregidas referencias antiguas en onchange de grupo/semana del escáner y cuadrícula. Ahora resuelven las funciones actuales con soporte multigrupo. Prueba DOM real de cambio en grupos 22–26: Dictado y Repeticiones visibles y escaneo habilitado.
+- Columnas por criterio muestran aportación ponderada (examen 10 al 35%=3.50), no la nota cruda sobre diez. No se modifica criterionGrades, base, notas guardadas ni puntos aplicados. La fórmula de base ya ponderaba correctamente una sola vez.
+- Aviso cuando las aportaciones de los registros actuales difieren de la base guardada: debe pulsarse Calcular para actualizarla. Auditoría previa: 188 promedios, 37 distintos de los registros actuales; ejemplo grupo22 cálculo guardado 12:50Z y examen capturado 16:28Z. No se recalcularon ni sobrescribieron automáticamente.
+- Regresión local: eventos onchange (no solo llamadas directas), resolución tardía de funciones, ponderación 3.50/3.50/1.50=8.50, render repetido sin doble ponderación, rechazo de metodología desactualizada y conservación de controles y puntos usados. PDF conserva su formato actual.

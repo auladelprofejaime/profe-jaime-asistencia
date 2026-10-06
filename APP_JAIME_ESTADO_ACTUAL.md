@@ -949,3 +949,15 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 - Pruebas SQL revertidas: actualización de tiempos, preservación del periodo/notificaciones/transacciones, fechas inválidas y falta de autorización.
 - Prueba DOM en America/Mexico_City: todos los grupos visibles, editor precargado, ID de destino correcto, sin crear otro periodo, lista refrescada.
 - No se cambiaron los horarios reales del usuario.
+
+
+## 2026-10-05 · App Docente v8.24.28 · Movimientos y operación por ID
+- En Metodologías → Puntos y donaciones, botón Ver movimientos por periodo y módulo Movimientos y operación por ID.
+- Resumen: donaciones contadas por salida una sola vez, puntos donados, puntos aplicados netos. Estado por alumno: saldo, puntos aplicados al mes y decisión registrada; historial con fecha, nombres/IDs, contraparte, importe y origen.
+- Escaneo HID o captura manual: ID donante → ID receptor → cantidad → confirmación con nombres. El escaneo no transfiere automáticamente.
+- teacher_donate_points_safe valida docente, grupo del periodo, cantidad/saldo y registra petición idempotente; reintentar la misma petición no duplica la donación.
+- Aplicación docente al mes con teacher_set_grade_points: se captura el total a tener aplicado, no una cantidad adicional; cero devuelve puntos. Requiere calificación provisional calculada y periodo abierto.
+- teacher_point_period_activity reúne detalle, registros de calificación, resumen y últimos 500 movimientos del periodo.
+- Pruebas SQL revertidas: donación, reintento sin duplicación, rechazo de mismo ID/otro grupo/saldo insuficiente, uso de puntos, resumen/historial y autorización.
+- Pruebas DOM: scanner Enter avanza entre campos sin enviar; confirmación, reintento, historial, aplicación y periodo cerrado deshabilitado.
+- Sin donaciones ni puntos reales modificados durante esta actualización.

@@ -1,4 +1,4 @@
-// App Docente v8.24.27 · puntos por grupo y apertura de donaciones
+// App Docente v8.24.28 · puntos por grupo y apertura de donaciones
 (() => {
   const q=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -27,7 +27,7 @@
   }
   function renderPeriods(){
     const labels={open:'Abierta',scheduled:'Programada',closed:'Cerrada'};
-    q('ptPeriods').innerHTML=periods.length?periods.map(p=>'<div style="padding:14px;border-bottom:1px solid #ddd"><b>Grupo '+esc(p.group_name)+' · '+esc(p.shift)+' · '+esc(p.month)+' · '+esc(p.cycle)+'</b><p><b>'+esc(labels[p.state]||p.state)+'</b><br>Apertura: '+esc(new Date(p.opens_at).toLocaleString('es-MX'))+'<br>Cierre: '+esc(new Date(p.closes_at).toLocaleString('es-MX'))+'</p>'+(p.closed_at?'<small>Cerrado definitivamente.</small>':'<button type="button" class="secondary" data-pt-edit="'+esc(p.id)+'">Editar horario</button>')+'</div>').join(''):'<p class="hint">Todavía no hay periodos de puntos guardados.</p>';
+    q('ptPeriods').innerHTML=periods.length?periods.map(p=>'<div style="padding:14px;border-bottom:1px solid #ddd"><b>Grupo '+esc(p.group_name)+' · '+esc(p.shift)+' · '+esc(p.month)+' · '+esc(p.cycle)+'</b><p><b>'+esc(labels[p.state]||p.state)+'</b><br>Apertura: '+esc(new Date(p.opens_at).toLocaleString('es-MX'))+'<br>Cierre: '+esc(new Date(p.closes_at).toLocaleString('es-MX'))+'</p>'+(p.closed_at?'<small>Cerrado definitivamente.</small>':'<button type="button" class="secondary" data-pt-edit="'+esc(p.id)+'">Editar horario</button>')+' <button type="button" class="secondary" data-pt-history="'+esc(p.id)+'">Ver movimientos</button></div>').join(''):'<p class="hint">Todavía no hay periodos de puntos guardados.</p>';
   }
   async function refreshPeriods(){
     periods=await rpc('teacher_point_periods')||[];renderPeriods();

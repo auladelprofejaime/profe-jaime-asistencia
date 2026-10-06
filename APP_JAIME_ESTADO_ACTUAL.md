@@ -939,3 +939,13 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 - Activación de cada worker elimina únicamente cachés anteriores de su propia app; conserva las de otras apps del mismo dominio.
 - No se modificaron alumnos, calificaciones, puntos, sesiones ni PIN. Sin cambios de base de datos.
 - Verificación: sintaxis de módulos y workers; reproducción del ciclo anterior de recargas en ambas apps; cinco cargas consecutivas con el arreglo dan cero recargas forzadas y un solo registro por carga; limpieza de caché respeta otras apps.
+
+
+## 2026-10-05 · App Docente v8.24.27 · Editar periodos de puntos
+- Metodologías → Puntos y donaciones muestra todos los periodos guardados, con turno, grupo, mes, estado y apertura/cierre.
+- Lista independiente de la selección de grupo y de la carga de metodologías/saldos.
+- Botón Editar horario abre fechas y horas ya guardadas; guarda con teacher_edit_point_period_schedule.
+- El RPC requiere docente, valida fechas y actualiza solo opens_at, closes_at y updated_at del mismo periodo. Conserva ID, puntos, decisiones, donaciones y notified_at. Rechaza periodos cerrados definitivamente.
+- Pruebas SQL revertidas: actualización de tiempos, preservación del periodo/notificaciones/transacciones, fechas inválidas y falta de autorización.
+- Prueba DOM en America/Mexico_City: todos los grupos visibles, editor precargado, ID de destino correcto, sin crear otro periodo, lista refrescada.
+- No se cambiaron los horarios reales del usuario.

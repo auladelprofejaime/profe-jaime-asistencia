@@ -1,4 +1,4 @@
-// App Docente v8.24.26 · puntos por grupo y apertura de donaciones
+// App Docente v8.24.27 · puntos por grupo y apertura de donaciones
 (() => {
   const q=id=>document.getElementById(id);
   const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
@@ -26,25 +26,44 @@
     q('ptEnable').disabled=busy||!m;
   }
   function renderPeriods(){
-    const matching=periods.filter(p=>groupKey(p.group_name)===groupKey(q('ptGroup').value)&&p.shift===q('ptShift').value);
     const labels={open:'Abierta',scheduled:'Programada',closed:'Cerrada'};
-    q('ptPeriods').innerHTML=matching.map(p=>'<div style="padding:10px"><b>'+esc(p.month)+' · '+esc(p.cycle)+' · '+esc(labels[p.state]||p.state)+'</b><p>'+esc(new Date(p.opens_at).toLocaleString('es-MX'))+' → '+esc(new Date(p.closes_at).toLocaleString('es-MX'))+'</p></div>').join('');
+    q('ptPeriods').innerHTML=periods.length?periods.map(p=>'<div style="padding:14px;border-bottom:1px solid #ddd"><b>Grupo '+esc(p.group_name)+' · '+esc(p.shift)+' · '+esc(p.month)+' · '+esc(p.cycle)+'</b><p><b>'+esc(labels[p.state]||p.state)+'</b><br>Apertura: '+esc(new Date(p.opens_at).toLocaleString('es-MX'))+'<br>Cierre: '+esc(new Date(p.closes_at).toLocaleString('es-MX'))+'</p>'+(p.closed_at?'<small>Cerrado definitivamente.</small>':'<button type="button" class="secondary" data-pt-edit="'+esc(p.id)+'">Editar horario</button>')+'</div>').join(''):'<p class="hint">Todavía no hay periodos de puntos guardados.</p>';
+  }
+  async function refreshPeriods(){
+    periods=await rpc('teacher_point_periods')||[];renderPeriods();
+  }
+  function editPeriod(id){
+    if(busy)return;
+    const p=periods.find(p=>p.id===id);if(!p)return;
+    showDialog('Editar horario · Grupo '+p.group_name,'<p><b>'+esc(p.shift)+' · '+esc(p.month)+' · '+esc(p.cycle)+'</b></p><p class="hint">Se conserva el mismo periodo, sus puntos y donaciones. Horarios en la hora local de tu dispositivo.</p><label>Apertura<input id="ptEditOpen" type="datetime-local" value="'+localDate(p.opens_at)+'"></label><label>Cierre<input id="ptEditClose" type="datetime-local" value="'+localDate(p.closes_at)+'"></label><div class="actions"><button type="button" id="ptEditSave" class="primary">Guardar horario</button><button type="button" id="ptEditCancel" class="secondary">Cancelar</button></div><p id="ptEditStatus" role="status" aria-live="polite"></p>');
+    q('ptEditCancel').onclick=()=>q('dialog').close();
+    q('ptEditSave').onclick=async()=>{
+      if(busy)return;
+      const open=new Date(q('ptEditOpen').value),close=new Date(q('ptEditClose').value);
+      if(!Number.isFinite(open.getTime())||!Number.isFinite(close.getTime())||close<=open){q('ptEditStatus').textContent='El cierre debe ser posterior a la apertura.';return;}
+      if(!confirm('Cambiar únicamente el horario del grupo '+p.group_name+' a '+open.toLocaleString('es-MX')+' → '+close.toLocaleString('es-MX')+' ¿Continuar?'))return;
+      busy=true;q('ptEditSave').disabled=true;q('ptEditCancel').disabled=true;
+      try{
+        await rpc('teacher_edit_point_period_schedule',{p_period_id:p.id,p_opens_at:open.toISOString(),p_closes_at:close.toISOString()});
+        q('dialog').close();q('ptPeriodStatus').textContent='✓ Horario actualizado del grupo '+p.group_name+'. Se conservaron sus registros.';
+        await refreshPeriods();currentMethodology();
+      }catch(e){if(q('dialog').open)q('ptEditStatus').textContent='No se pudo actualizar: '+e.message;else q('ptPeriodStatus').textContent='Horario guardado; no se pudo refrescar la lista: '+e.message;}
+      finally{busy=false;if(q('ptEditSave'))q('ptEditSave').disabled=false;if(q('ptEditCancel'))q('ptEditCancel').disabled=false;}
+    };
   }
   async function loadGroup(){
     const token=++generation;
-    roster=[];methodologies=[];periods=[];q('ptMethodology').innerHTML='<option value="">Selecciona una metodología</option>';q('ptEnable').disabled=true;q('ptPeriods').innerHTML='';q('ptPeriodForm').classList.toggle('hidden',q('ptShift').value!=='Matutino');renderRoster();q('ptStatus').textContent='Cargando saldo de puntos…';
+    roster=[];methodologies=[];q('ptMethodology').innerHTML='<option value="">Selecciona una metodología</option>';q('ptEnable').disabled=true;q('ptPeriodForm').classList.toggle('hidden',q('ptShift').value!=='Matutino');renderRoster();q('ptStatus').textContent='Cargando saldo de puntos…';
     const shift=q('ptShift').value, group=q('ptGroup').value;
     try{
       if(!group){q('ptStatus').textContent='Selecciona un grupo.';return;}
       const result=await Promise.all([
         rpc('teacher_group_points',{p_shift:shift,p_group:group}),
-        window.ProfeSupabase.select('methodologies','select=id,shift,group_name,month,cycle,closed,data'),
-        rpc('teacher_point_periods')
+        window.ProfeSupabase.select('methodologies','select=id,shift,group_name,month,cycle,closed,data')
       ]);
       if(token!==generation)return;
       roster=(result[0]||[]).filter(s=>s.student_id!=='00001');
       methodologies=(result[1]||[]).filter(m=>!m.closed&&m.shift==='Matutino'&&shift==='Matutino'&&groupKey(m.group_name)===groupKey(group));
-      periods=result[2]||[];
       q('ptMethodology').innerHTML='<option value="">Selecciona una metodología</option>'+methodologies.map(m=>'<option value="'+esc(m.id)+'">'+esc(m.data?.name||m.month)+' · '+esc(m.month)+' · '+esc(m.cycle)+'</option>').join('');
       currentMethodology();renderPeriods();renderRoster();q('ptStatus').textContent='Saldos actualizados.';
       q('ptPeriodForm').classList.toggle('hidden',shift!=='Matutino');
@@ -53,6 +72,7 @@
   async function loadGroups(){
     const token=++generation;
     try{
+      await refreshPeriods();
       const data=await students();if(token!==generation)return;
       const groups=[...new Set(data.filter(s=>s.shift===q('ptShift').value).map(s=>s.group||s.group_name).filter(Boolean))].sort((a,b)=>String(a).localeCompare(String(b),'es',{numeric:true}));
       const prior=q('ptGroup').value;
@@ -91,11 +111,12 @@
       if(!m?.length||m[0].closed)throw Error('La metodología mensual ya está cerrada.');
       await rpc('teacher_save_point_period',{p_methodology_id:id,p_opens_at:open.toISOString(),p_closes_at:close.toISOString()});
       q('ptPeriodStatus').textContent='✓ Dinámica guardada. Los alumnos podrán usar o donar dentro del plazo indicado.';
-      await loadGroup();
+      await refreshPeriods();await loadGroup();
     }catch(err){q('ptPeriodStatus').textContent='No se pudo habilitar: '+err.message;}
     finally{lock(false);}
   }
   function init(){
+    q('ptPeriods').addEventListener('click',e=>{const b=e.target.closest('[data-pt-edit]');if(b)editPeriod(b.dataset.ptEdit);});
     q('ptShift').addEventListener('change',loadGroups);q('ptGroup').addEventListener('change',loadGroup);q('ptRefresh').addEventListener('click',loadGroups);
     q('ptMode').addEventListener('change',renderRoster);q('ptRoster').addEventListener('change',updateCount);
     q('ptMethodology').addEventListener('change',currentMethodology);q('ptAwardForm').addEventListener('submit',award);q('ptPeriodForm').addEventListener('submit',enable);

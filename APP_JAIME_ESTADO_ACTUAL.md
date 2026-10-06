@@ -982,3 +982,11 @@ App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entr
 - Reporte de logo al abrir: service worker anterior esperaba fetch indefinidamente. Nuevo worker limita navegación/recursos a7s, recupera página guardada o muestra reintento; instalación usa allSettled con tiempo limitado y conserva cache anterior si nuevo precache incompleto. Limpieza limitada a merito-docentes-, protege caches de otras apps.
 - HTML renderiza antes del script defer y agrega recuperación de inicio a12s / error de descarga. No reinicios automáticos nuevos, no se borra sesión ni registros. showActivation/showCapture marcan arranque completo.
 - Prueba: red indefinidamente bloqueada devuelve login guardado o reintento; instalación termina; caches ajenas y anterior se conservan; watchdog muestra recuperación.
+
+
+## 2026-10-06 · Docente 8.24.36 · edición general de actividades
+- Corregido editor heredado que solo seleccionaba a.group y deshabilitaba las demás casillas. activity-editor-v82436 lee grupos reales mediante teacher_get_activity_editor y habilita Todos / grupos tanto para actividades compartidas como individuales.
+- Corregido handler capture del formulario, que rechazaba siempre editActivityId: ahora enruta edición a teacher_update_activity_atomic y creación a teacher_create_activity_atomic. No hay condiciones por nombre/ID de actividad.
+- RPC de actualización cambia únicamente metadatos y asignación de grupos; conserva filas de entregas/calificaciones, sus detalles, IDs y metodologías. Inicializa entregas nuevas solo para alumnos añadidos y ON CONFLICT DO NOTHING. Al retirar grupos conserva historial; modo/turno protegidos si existen registros.
+- Pruebas DOM: otras actividades compartidas e individuales cargan selección real; casillas y Todos funcionan; edición no invoca creación; entrega, score y detalles preservados. Creación masiva/reintento sigue pasando.
+- Prueba SQL rollback: quitar y volver a poner grupos deja los 188 registros idénticos; agregar grupo a una actividad de prueba crea solo faltantes, reintento sin duplicados y entrega previa conservada. No se alteraron actividades reales durante esta reparación.

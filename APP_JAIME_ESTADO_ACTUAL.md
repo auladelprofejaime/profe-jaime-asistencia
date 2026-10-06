@@ -997,3 +997,10 @@ App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entr
 - Columnas por criterio muestran aportación ponderada (examen 10 al 35%=3.50), no la nota cruda sobre diez. No se modifica criterionGrades, base, notas guardadas ni puntos aplicados. La fórmula de base ya ponderaba correctamente una sola vez.
 - Aviso cuando las aportaciones de los registros actuales difieren de la base guardada: debe pulsarse Calcular para actualizarla. Auditoría previa: 188 promedios, 37 distintos de los registros actuales; ejemplo grupo22 cálculo guardado 12:50Z y examen capturado 16:28Z. No se recalcularon ni sobrescribieron automáticamente.
 - Regresión local: eventos onchange (no solo llamadas directas), resolución tardía de funciones, ponderación 3.50/3.50/1.50=8.50, render repetido sin doble ponderación, rechazo de metodología desactualizada y conservación de controles y puntos usados. PDF conserva su formato actual.
+
+
+## 2026-10-06 · Docente 8.24.38 · Libros/editorial
+- Separados solicitados pendientes de entrega (26), entregados (112) e histórico solicitado (138). Los contadores de libros no se ocultan con los importes privados.
+- Valor de pendientes de entrega: 26×250=$6,500. Saldo real registrado de todos los pedidos: 138×250−28,500=$6,000. No sumar ambas cifras ni restar entregas de la deuda.
+- Nuevo pedido aún por solicitar separado: alumnos liquidados sin estado de solicitud; actualmente0. Cuenta y desglose visibles. Importes conservan botón privado Mostrar importes.
+- Sin modificaciones a pagos/entregas/BD. Wrapper de renderEditorialFinance, compatible con actualización tras entrega y nuevos pagos. Prueba regresión DOM: entregado reduce pendientes, no histórico ni deuda; nuevo liquidado aumenta próximo pedido, no deuda; fallback resumen correcto.

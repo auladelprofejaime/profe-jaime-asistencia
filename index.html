@@ -281,7 +281,7 @@
   </div>
 </div>
 
-<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.24.37</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
+<header class="topbar"><img class="avatar-mini" src="logo-app-docente-v821.png" alt="Avatar de El Aula del Profe Jaime"><div><h1>App docente</h1><p>El Aula del Profe Jaime · v8.24.38</p></div><div class="top-actions"><button id="teacherNotifBtn" class="notif-bell" type="button" aria-label="Notificaciones">🔔<span id="teacherNotifCount" class="notif-count hidden">0</span></button><button id="updateAppBtn" class="mini">Actualizar app</button><button id="saveAllTop" class="save-all">Guardar en la app</button><button id="installBtn" class="mini hidden">Instalar</button></div></header>
 <nav class="tabs dropdown-nav">
   <details id="mainMenu" class="main-menu">
     <summary aria-label="Abrir menú principal">
@@ -1435,10 +1435,15 @@
  <dialog id="bookEditorialDialog" data-private-visible="0"><div class="dialoghead"><h2>Administración editorial</h2><button id="bookEditorialClose" type="button">×</button></div><div class="dialogbody">
  <div class="section"><div><p class="hint">Resumen privado de los libros y de lo que corresponde pagar a la editorial.</p></div><button id="bookEditorialPrivacyToggle" data-private-toggle class="secondary" type="button">👁 Mostrar importes</button></div>
  <h3>Estado de libros</h3>
- <div class="stats"><div><b id="bookEditorialPaidCount" class="private-value masked">0</b><span>Liquidados</span></div><div><b id="bookEditorialReady" class="private-value masked">0</b><span>Pendientes de solicitar</span></div><div><b id="bookEditorialRequested" class="private-value masked">0</b><span>Solicitados</span></div><div><b id="bookEditorialDelivered" class="private-value masked">0</b><span>Entregados</span></div></div>
- <h3>Dinero con editorial</h3>
- <div class="stats"><div><b id="bookEditorialEstimatedTotal" class="private-value masked">$0</b><span>Total si todos adquieren</span></div><div><b id="bookEditorialPaid" class="private-value masked">$0</b><span>Pagado a editorial</span></div><div><b id="bookEditorialEstimatedRemaining" class="private-value masked">$0</b><span>Falta estimada</span></div></div>
- <div class="stats"><div><b id="bookEditorialDue" class="private-value masked">$0</b><span>Próximo pedido</span></div><div><b id="bookEditorialBalance" class="private-value masked">$0</b><span>Saldo de pedidos ya hechos</span></div><div><b id="bookEditorialProfit" class="private-value masked">$0</b><span>Ganancia acumulada</span></div></div>
+ <div class="stats"><div><b id="bookEditorialPaidCount">0</b><span>Liquidados</span></div><div><b id="bookEditorialReady">0</b><span>Pendientes de solicitar</span></div><div><b id="bookEditorialRequested">0</b><span>Solicitados pendientes de entregar</span></div><div><b id="bookEditorialDelivered">0</b><span>Entregados</span></div><div><b id="bookEditorialRequestedTotal">0</b><span>Total histórico solicitado a editorial</span></div></div>
+ <h3>Pedido actual y saldo con editorial</h3>
+ <div class="stats"><div><b id="bookEditorialPendingValue" class="private-value masked">$0</b><span>Valor de libros solicitados pendientes de entrega</span></div><div><b id="bookEditorialBalance" class="private-value masked">$0</b><span>Por pagar a editorial · pedidos registrados</span></div><div><b id="bookEditorialPaid" class="private-value masked">$0</b><span>Ya pagado a editorial</span></div></div>
+ <p id="bookEditorialOrderExplanation" class="hint" aria-live="polite"></p>
+ <h3>Nuevo pedido aún por solicitar</h3>
+ <div class="stats"><div><b id="bookEditorialDue" class="private-value masked">$0</b><span>Importe de libros liquidados aún sin solicitar</span></div></div>
+ <p id="bookEditorialNewOrderCount" class="hint"></p>
+ <h3>Estimación general</h3>
+ <div class="stats"><div><b id="bookEditorialEstimatedTotal" class="private-value masked">$0</b><span>Total si todos adquieren</span></div><div><b id="bookEditorialEstimatedRemaining" class="private-value masked">$0</b><span>Falta estimada · no es deuda actual</span></div><div><b id="bookEditorialProfit" class="private-value masked">$0</b><span>Ganancia acumulada</span></div></div>
  <p id="bookEditorialEstimateHint" class="hint">Editorial: <b>$250 por libro</b>. El total estimado excluye a quienes ya adquirieron el libro por cuenta propia.</p>
  <div class="card">
    <h3>Registrar pago a editorial</h3>
@@ -1517,8 +1522,8 @@
 <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf-autotable@3.8.2/dist/jspdf.plugin.autotable.min.js"></script>
-<script src="./shared/supabase-teacher.js?v=808"></script><script src="app-v82312.js?v=82437"></script><script src="teacher-points-v82426.js?v=82437"></script><script src="teacher-point-operations-v82428.js?v=82437"></script>
-<script src="activity-record-server-guard-v82403.js?v=82415"></script><script src="evening-book-custody-v82384.js?v=82392"></script><script src="activities-pending-v82338.js?v=82416"></script><script src="activities-individual-pdf-v82341.js?v=82341"></script><script src="activities-range-grid-v82386.js?v=82404"></script><script src="activity-full-reconcile-v82393.js?v=82417"></script>\n<script src="activity-exam-scanner-v82418.js?v=82437"></script><script src="cleanup-historieta-grupo25-v82342.js?v=82343"></script><script src="connectivity-books-v82339.js?v=82344"></script><script src="book-money-transfer-fix-v82345.js?v=82345"></script><script src="birthday-benefits-fix-v82346.js?v=82346"></script><script src="supabase-stability-v82347.js?v=82347"></script><script src="book-payments-stability-v82348.js?v=82348"></script><script src="book-payments-ui-v82350.js?v=82350"></script><script src="book-request-safe-v82351.js?v=82366"></script><script src="book-transfer-pending-v82352.js?v=82352"></script><script src="offline-queue-drain-v82353.js?v=82366"></script><script src="offline-queue-safety-v82370.js?v=82378"></script><script src="activity-delivery-audit-v82368.js?v=82396"></script><script src="book-payment-auth-fallback-v82365.js?v=82365"></script><script src="book-payment-postsave-fix-v82385.js?v=82392"></script>
+<script src="./shared/supabase-teacher.js?v=808"></script><script src="app-v82312.js?v=82438"></script><script src="teacher-points-v82426.js?v=82438"></script><script src="teacher-point-operations-v82428.js?v=82438"></script>
+<script src="activity-record-server-guard-v82403.js?v=82415"></script><script src="evening-book-custody-v82384.js?v=82392"></script><script src="activities-pending-v82338.js?v=82416"></script><script src="activities-individual-pdf-v82341.js?v=82341"></script><script src="activities-range-grid-v82386.js?v=82404"></script><script src="activity-full-reconcile-v82393.js?v=82417"></script>\n<script src="activity-exam-scanner-v82418.js?v=82438"></script><script src="cleanup-historieta-grupo25-v82342.js?v=82343"></script><script src="connectivity-books-v82339.js?v=82344"></script><script src="book-money-transfer-fix-v82345.js?v=82345"></script><script src="birthday-benefits-fix-v82346.js?v=82346"></script><script src="supabase-stability-v82347.js?v=82347"></script><script src="book-payments-stability-v82348.js?v=82348"></script><script src="book-payments-ui-v82350.js?v=82350"></script><script src="book-request-safe-v82351.js?v=82366"></script><script src="book-transfer-pending-v82352.js?v=82352"></script><script src="offline-queue-drain-v82353.js?v=82366"></script><script src="offline-queue-safety-v82370.js?v=82378"></script><script src="activity-delivery-audit-v82368.js?v=82396"></script><script src="book-payment-auth-fallback-v82365.js?v=82365"></script><script src="book-payment-postsave-fix-v82385.js?v=82392"></script>
 
 
 <dialog id="meritEditPeriodDialog">
@@ -1654,10 +1659,11 @@
  },true);
 })();
 </script>
-<script src="activity-multi-group-v82434.js?v=82437"></script>
-<script src="methodology-saved-grades-v82429.js?v=82437"></script>
-<script src="activities-server-list-v82432.js?v=82437"></script>
-<script src="teacher-add-grade-points-v82434.js?v=82437"></script>
-<script src="activity-editor-v82436.js?v=82437"></script>
-<script src="activity-week-and-weighted-grades-v82437.js?v=82437"></script>
+<script src="activity-multi-group-v82434.js?v=82438"></script>
+<script src="methodology-saved-grades-v82429.js?v=82438"></script>
+<script src="activities-server-list-v82432.js?v=82438"></script>
+<script src="teacher-add-grade-points-v82434.js?v=82438"></script>
+<script src="activity-editor-v82436.js?v=82438"></script>
+<script src="activity-week-and-weighted-grades-v82437.js?v=82438"></script>
+<script src="books-editorial-summary-v82438.js?v=82438"></script>
 </body></html>

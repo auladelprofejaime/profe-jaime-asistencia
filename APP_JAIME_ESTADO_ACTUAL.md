@@ -1004,3 +1004,10 @@ App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entr
 - Valor de pendientes de entrega: 26×250=$6,500. Saldo real registrado de todos los pedidos: 138×250−28,500=$6,000. No sumar ambas cifras ni restar entregas de la deuda.
 - Nuevo pedido aún por solicitar separado: alumnos liquidados sin estado de solicitud; actualmente0. Cuenta y desglose visibles. Importes conservan botón privado Mostrar importes.
 - Sin modificaciones a pagos/entregas/BD. Wrapper de renderEditorialFinance, compatible con actualización tras entrega y nuevos pagos. Prueba regresión DOM: entregado reduce pendientes, no histórico ni deuda; nuevo liquidado aumenta próximo pedido, no deuda; fallback resumen correcto.
+
+
+## 2026-10-06 · Docente 8.24.39 · Resumen completo de libros e historial
+- Resumen completo del matutino:188alumnos,112entregados,138pedidos(incluyenentregados),26pedidosporentregar,49librosfaltanpedir,49alumnossinliquidar,138liquidados,0liquidadoslistosparapedir,1externo. Se excluye externo de pendientes de compra/pago, no de total alumnos.
+- Clarificado Pendientes de solicitar: antes significaba únicamente liquidados sin solicitud (0); ahora hay otro contador que incluye a todos los que faltan de pedir (49).
+- Historial editorial conservado en base:1pago28,500connota114fecha2oct2026;209movimientos de alumnos. Sin borrar/modificar ningún movimiento. Historial trasladado junto al saldo, render explícito, lectura RPC independiente al abrir/actualizar para no depender de loadBookPayments. Datos confirmados permanecen si una consulta posterior falla o el resumen temporal está incompleto. Importes mantienen control de privacidad.
+- Pruebas DOM contra renderer original+ambosaddons:188/49/49/1 y138/26 correctos; historial existe, respuesta incompleta no lo borra, error de consulta tampoco; carga independiente consulta solo dashboardRPCsinmutaciones.

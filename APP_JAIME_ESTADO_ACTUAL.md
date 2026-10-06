@@ -1011,3 +1011,11 @@ App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entr
 - Clarificado Pendientes de solicitar: antes significaba únicamente liquidados sin solicitud (0); ahora hay otro contador que incluye a todos los que faltan de pedir (49).
 - Historial editorial conservado en base:1pago28,500connota114fecha2oct2026;209movimientos de alumnos. Sin borrar/modificar ningún movimiento. Historial trasladado junto al saldo, render explícito, lectura RPC independiente al abrir/actualizar para no depender de loadBookPayments. Datos confirmados permanecen si una consulta posterior falla o el resumen temporal está incompleto. Importes mantienen control de privacidad.
 - Pruebas DOM contra renderer original+ambosaddons:188/49/49/1 y138/26 correctos; historial existe, respuesta incompleta no lo borra, error de consulta tampoco; carga independiente consulta solo dashboardRPCsinmutaciones.
+
+
+## 2026-10-06 · Docente 8.24.40 · Concurso de poemas vespertino
+- Nuevo menú Concurso de poemas, reserva manual por alumno/número del PDF, exclusividad dentro de cada grupo, sin afectar otros grupos. Catálogo numerado1–36:9y16aliasdeSonatina(canonical9),35opcionesdistintas.
+- Listado vespertino no vive en students(matutinossolamente): se reutilizó roster existente de evening-book-custody-v82384.js, sin modificar alumnos/credenciales/entregas:1C32,3A30,3B31,3C29=122. Nuevo poem_contest_roster teacher-only.
+- Tables catálogo/reservas/roster con RLS, RPC SECURITY INVOKER conauth.uid+is_teacher ysearch_pathvacío,anonrevocado. Índices únicos parciales ciclo+grupo+canonical y ciclo+alumno. Reserva rechazada revierte transacción sin perder previa. Correcciones liberan antiguas conservandohistorial. No hay almacenamiento offline ni cambios de calificaciones.
+- Prueba authenticated role enrollback:9bloquea16mismogrupo,16permitidootrogrupo,cambiofallidoconservaprevio,retryidempotente,liberaciónfunciona. 0reservasreales creadas. Advisor sin findings de objetos nuevos. DOM test números visibles, gruposaislados, conteos, dobleclicúnicaRPC.
+- Elecciones previas aún no capturadas: docente debe registrarlas en orden de recepción, no inventadas. Versión publicada con módulo y caché nueva.

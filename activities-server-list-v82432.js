@@ -46,7 +46,7 @@ renderActivities=async function(){
   const acts=await pullActivities(true);
   if(ticket!==request)return;
   box.className=acts.length?'list':'list empty';
-  box.innerHTML=acts.length?acts.map(a=>'<div class="row" data-activity-id="'+esc(a.id)+'"><div><strong>'+esc(a.name)+'</strong><small>'+esc(a.shift)+' · '+esc(a.group)+' · '+esc(a.week)+' · Asignada '+esc(a.date||'Sin fecha')+' · Entrega '+esc(a.dueDate||'Sin fecha')+' · '+esc(a.type||'Actividad')+'</small></div><div class="rowactions"><button type="button" class="edit activity-edit" data-actedit="'+esc(a.id)+'">✏️ Editar</button><button type="button" class="del" data-actdel="'+esc(a.id)+'">Eliminar</button></div></div>').join(''):'No hay actividades guardadas.';
+  box.innerHTML=acts.length?acts.map(a=>'<div class="row" data-activity-id="'+esc(a.id)+'"><div><strong>'+esc(a.name)+'</strong><small>'+esc(a.shift)+' · '+esc((a.groups?.length?a.groups:[a.group]).join(', '))+' · '+esc(a.week)+' · Asignada '+esc(a.date||'Sin fecha')+' · Entrega '+esc(a.dueDate||'Sin fecha')+' · '+esc(a.type||'Actividad')+'</small></div><div class="rowactions"><button type="button" class="edit activity-edit" data-actedit="'+esc(a.id)+'">✏️ Editar</button><button type="button" class="del" data-actdel="'+esc(a.id)+'">Eliminar</button></div></div>').join(''):'No hay actividades guardadas.';
   box.querySelectorAll('[data-actedit]').forEach(b=>b.onclick=()=>editActivity(b.dataset.actedit));
   // Deletion remains with the existing server-verified capture handler.
   info(acts.length+' actividades cargadas del servidor.');

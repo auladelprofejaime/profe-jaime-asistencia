@@ -45,10 +45,13 @@
  async function use(e){
   e.preventDefault();if(busy||!isOpen())return;
   const s=identify('pxUseStudent','pxUseInfo',true),amount=Number(q('pxUseAmount').value);
-  if(!s||!Number.isFinite(amount)||amount<0){q('pxUseStatus').textContent='Revisa el ID y la cantidad.';return;}
-  if(!confirm('Dejar '+amount.toFixed(2)+' puntos aplicados a la calificación de '+s.student_name+' en '+detail.period.month+' ¿Guardar?'))return;
+  if(!s||!Number.isFinite(amount)||amount<=0){q('pxUseStatus').textContent='Revisa el ID y la cantidad.';return;}
+  if(!confirm('Sumar '+amount.toFixed(2)+' puntos adicionales a la calificación de '+s.student_name+' en '+detail.period.month+' ¿Guardar?'))return;
   lock(true);q('pxUseStatus').textContent='Guardando…';
-  try{const r=await rpc('teacher_set_grade_points',{p_student_id:s.student_id,p_period_id:detail.period.id,p_amount:amount});if(!r?.ok)throw Error('Sin confirmación del servidor.');q('pxUseStatus').textContent='✓ Puntos aplicados guardados. Calificación: '+Number(r.final_decimal).toFixed(2);await load();q('ptRefresh')?.click();}
+  try{const payload={p_student_id:s.student_id,p_period_id:detail.period.id,p_amount:amount},fingerprint=JSON.stringify(payload),key='teacherPendingGradeAdd';
+  let request;try{request=JSON.parse(sessionStorage.getItem(key)||'null')}catch(_){}
+  if(!request||request.fingerprint!==fingerprint){request={fingerprint,id:crypto.randomUUID()};sessionStorage.setItem(key,JSON.stringify(request));}
+  const r=await rpc('teacher_add_grade_points',{...payload,p_request_id:request.id});if(!r?.ok)throw Error('Sin confirmación del servidor.');sessionStorage.removeItem('teacherPendingGradeAdd');q('pxUseAmount').value='';q('pxUseStatus').textContent='✓ Puntos aplicados guardados. Calificación: '+Number(r.final_decimal).toFixed(2);await load();q('ptRefresh')?.click();}
   catch(err){q('pxUseStatus').textContent='No se pudo guardar: '+err.message;}
   finally{lock(false);}
  }

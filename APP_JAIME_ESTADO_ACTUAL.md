@@ -965,3 +965,11 @@ Renderizado y revisado visualmente sin clipping/overlaps; comparación visual mo
 
 ## 2026-10-06 · Promedios provisionales antes del cierre
 App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entrar a Metodologías. Publicación provisional autenticada por RPC solo añade banderas; conserva calificaciones, puntos y mes abierto. Alumnos v8.14.1 acepta promedios provisionales; Padres v8.15.3 los etiqueta. Pruebas de visibilidad y actualización por puntos; publicación de los 188 promedios existentes de Septiembre 2026-2027 grupos 22–26, sin cerrar meses.
+
+
+## 2026-10-06 · Docente 8.24.34 / Estudiantes 8.14.3
+- Las actividades compartidas conservan un solo ID y grupos explícitos; scanner, cuadrícula, reportes y asignaciones de metodología usan activityMatchesGroup. El listado muestra todos los grupos. Dictado 051026 y Repeticiones verificados: 188 registros cada una en grupos 22–26, sin duplicación ni sustitución.
+- Aplicar puntos ahora SUMA la cantidad adicional en operaciones docente, diálogo de metodología y app estudiante. Devolver sigue siendo una acción separada mediante teacher_set_grade_points(0).
+- Nuevas RPC teacher_add_grade_points / portal_add_grade_points: autorización docente o sesión estudiante, bloqueo de metodología, total calculado desde ledger, request UUID persistente y registro privado RLS point_grade_add_requests para reintentos sin duplicación. No usar set_grade_points para sumar.
+- Caso alumno 26007 reparado de total 1 a total 4 mediante API de banco (3 anteriores + 1 donado); promedio 8.18 / mensual 8, saldo 0. Historial preservado.
+- Pruebas: grupos 22–26 en escáner/cuadrícula/metodologías y aislamiento; formulario docente y estudiante usan add RPC; prueba SQL rollback 3 + 1 + reintento = 4 con una solicitud; permisos anon y función interna restringidos.

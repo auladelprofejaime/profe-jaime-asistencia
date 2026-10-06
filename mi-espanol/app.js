@@ -897,21 +897,27 @@ async function refreshStudentPoints(render=true){
  const p=out.period,open=p?.state==='open';
  $('#studentPointsContent').innerHTML='<div class="card"><h3>Saldo disponible</h3><h1>'+Number(out.balance||0).toFixed(2)+'</h1><p>Los puntos que conserves permanecen en tu saldo.</p></div>'+
  '<div class="card"><h3>Dinámica del mes</h3>'+(p?'<p><b>'+esc(p.month)+' · Grupo '+esc(p.group_name)+'</b></p><p>'+esc(new Date(p.opens_at).toLocaleString('es-MX'))+' → '+esc(new Date(p.closes_at).toLocaleString('es-MX'))+'</p><p>'+esc(open?'Abierta para usar o donar puntos.':'La dinámica está programada; todavía no abre.')+'</p>':'<p>Tu profesor todavía no ha abierto una dinámica para tu grupo.</p>')+'</div>'+
- (open?'<form id="studentPointsUse" class="card"><h3>Usar en mi calificación</h3><p>Actualmente aplicados: '+Number(p.points_used||0).toFixed(2)+'. Máximo para llegar a 10: '+Number(p.max_applicable||0).toFixed(2)+'.</p><label>Puntos que quieres tener aplicados<input id="studentPointsUseAmount" type="number" min="0" step="0.01" value="'+Number(p.points_used||0).toFixed(2)+'" required></label><button type="submit">Guardar puntos aplicados</button></form><form id="studentPointsDonate" class="card"><h3>Donar a un compañero de mi grupo</h3><label>ID de 5 dígitos del compañero<input id="studentPointsRecipient" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required></label><label>Puntos a donar<input id="studentPointsDonation" type="number" min="0.01" step="0.01" required></label><button type="submit">Donar puntos</button></form>':'')+
+ (open?'<form id="studentPointsUse" class="card"><h3>Usar en mi calificación</h3><p>Actualmente aplicados: '+Number(p.points_used||0).toFixed(2)+'. Máximo para llegar a 10: '+Number(p.max_applicable||0).toFixed(2)+'.</p><label>Puntos adicionales a aplicar<input id="studentPointsUseAmount" type="number" min="0.01" step="0.01" value="" required></label><button type="submit">Sumar puntos a mi calificación</button></form><form id="studentPointsDonate" class="card"><h3>Donar a un compañero de mi grupo</h3><label>ID de 5 dígitos del compañero<input id="studentPointsRecipient" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required></label><label>Puntos a donar<input id="studentPointsDonation" type="number" min="0.01" step="0.01" required></label><button type="submit">Donar puntos</button></form>':'')+
  '<div class="card"><h3>Movimientos recientes</h3>'+out.transactions.map(t=>'<p><b>'+Number(t.amount).toFixed(2)+'</b> · '+esc(t.reason||t.type)+'<br><small>'+esc(new Date(t.created_at).toLocaleString('es-MX'))+'</small></p>').join('')+'</div>';
- $('#studentPointsUse')?.addEventListener('submit',e=>studentPointsAction(e,'portal_set_grade_points',{p_period_id:p.id,p_amount:Number($('#studentPointsUseAmount').value)},'Guardar los puntos aplicados a tu calificación'));
+ $('#studentPointsUse')?.addEventListener('submit',e=>studentPointsAction(e,'portal_add_grade_points',{p_period_id:p.id,p_amount:Number($('#studentPointsUseAmount').value)},'Sumar estos puntos a los que ya aplicaste a tu calificación'));
  $('#studentPointsDonate')?.addEventListener('submit',e=>studentPointsAction(e,'portal_donate_points',{p_period_id:p.id,p_recipient_id:$('#studentPointsRecipient').value.trim(),p_amount:Number($('#studentPointsDonation').value)},'Donar '+$('#studentPointsDonation').value+' puntos al ID '+$('#studentPointsRecipient').value));
 }
 let studentPointsBusy=false;
 async function studentPointsAction(e,name,args,label){
  e.preventDefault();if(studentPointsBusy||!confirm(label+' ¿Continuar?'))return;
- studentPointsBusy=true;$('#studentPointsMessage').textContent='Guardando…';
+ let confirmed=false;studentPointsBusy=true;$('#studentPointsMessage').textContent='Guardando…';
  $('#studentPointsContent').querySelectorAll('button,input').forEach(x=>x.disabled=true);
  try{
-  await studentPointsRpc(name,args);
+  if(name==='portal_add_grade_points'){
+   const key='studentPendingGradeAdd',fingerprint=JSON.stringify({student:currentId,...args});
+   let pending;try{pending=JSON.parse(sessionStorage.getItem(key)||'null')}catch(_){}
+   if(!pending||pending.fingerprint!==fingerprint){pending={fingerprint,id:crypto.randomUUID()};sessionStorage.setItem(key,JSON.stringify(pending));}
+   await studentPointsRpc(name,{...args,p_request_id:pending.id});sessionStorage.removeItem(key);
+  }else await studentPointsRpc(name,args);
+  confirmed=true;if(name==='portal_add_grade_points'&&$('#studentPointsUseAmount'))$('#studentPointsUseAmount').value='';
   await refreshStudentPoints();$('#studentPointsMessage').textContent='✓ Operación guardada.';
  }catch(error){
-  $('#studentPointsMessage').textContent='No se pudo confirmar: '+error.message+'. Actualiza el saldo antes de volver a intentar.';
+  $('#studentPointsMessage').textContent=confirmed?'✓ Operación guardada. No se pudo refrescar la vista; pulsa Actualizar para consultar el saldo.':'No se pudo confirmar: '+error.message+'. Actualiza el saldo antes de volver a intentar.';
  }finally{studentPointsBusy=false;$('#studentPointsContent').querySelectorAll('button,input').forEach(x=>x.disabled=false);}
 }
 $('#studentPointsRefresh')?.addEventListener('click',()=>refreshStudentPoints().catch(e=>{$('#studentPointsMessage').textContent=e.message;}));

@@ -1,5 +1,5 @@
-const C='merito-docentes-v1-66-bounded-start';
-const A=['./','index.html','styles.css?v=32','app.js?v=66','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest','version.json','layout-v52.css?v=62'];
+const C='merito-docentes-v1-67-bounded-start';
+const A=['./','index.html','styles.css?v=32','app.js?v=67','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest','version.json','layout-v52.css?v=62'];
 async function boundedFetch(request){
  const controller=new AbortController();let timer;
  try{return await Promise.race([fetch(request,{cache:'no-store',signal:controller.signal}),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('network_timeout'))},7000)})])}finally{clearTimeout(timer)}
@@ -10,7 +10,7 @@ self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil((async()=>{
 })())});
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
  const c=await caches.open(C);
- if(await c.match(new URL('index.html',self.registration.scope).href)&&await c.match(new URL('app.js?v=66',self.registration.scope).href)){
+ if(await c.match(new URL('index.html',self.registration.scope).href)&&await c.match(new URL('app.js?v=67',self.registration.scope).href)){
   const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('merito-docentes-')&&k!==C).map(k=>caches.delete(k)));
  }
  await self.clients.claim();

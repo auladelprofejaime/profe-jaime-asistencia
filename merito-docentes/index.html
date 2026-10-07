@@ -26,7 +26,7 @@
 .merit-main-award #teacherRankingTable .muted{color:#5f6570!important}
 .merit-main-award #teacherRankingTable{background:#fff!important}
 @media(max-width:720px){.merit-ranking-combined{grid-template-columns:1fr!important}.merit-category-section{border-left:0!important;border-top:3px solid #d4aa32!important}}
-</style><link rel="stylesheet" href="layout-v52.css?v=62"><style>.merit-welcome-dialog{text-align:center;max-width:560px}.merit-welcome-logo{display:block;max-width:150px;max-height:150px;margin:0 auto 10px}.merit-welcome-trophy{font-size:2.4rem}.merit-welcome-dialog p{line-height:1.5}.merit-welcome-dialog .primary{margin-top:14px}</style></head><body>
+</style><link rel="stylesheet" href="layout-v52.css?v=62"><style>.merit-welcome-dialog{text-align:center;max-width:560px}.merit-welcome-logo{display:block;max-width:150px;max-height:150px;margin:0 auto 10px}.merit-welcome-trophy{font-size:2.4rem}.merit-welcome-dialog p{line-height:1.5}.merit-welcome-dialog .primary{margin-top:14px}</style><style>.merit-confirm-fallback[open]{display:block;position:fixed;inset:8vh 12px auto;margin:0 auto;max-height:84vh;overflow:auto;z-index:10000;width:min(560px,calc(100vw - 24px))}</style></head><body>
 <header><img src="logo-merito.jpeg" alt=""><div><h1>Mérito Gabino A. Palma</h1><p>Captura para docentes autorizados</p><div class="brand-byline">Una app de Aula del Profe Jaime</div></div></header>
 <main>
 <section id="activation" class="card">
@@ -92,7 +92,7 @@
 
 <div class="card">
 <button id="reviewBtn" class="primary full">REVISAR Y REGISTRAR</button>
-<p id="captureStatus"></p>
+<p id="captureStatus" role="status" aria-live="polite"></p>
 <div id="lastRecord" class="hidden"><hr><b>Último registro realizado en este dispositivo</b><p id="lastRecordText"></p></div><hr><button id="reportMovementErrorBtn" class="secondary full" type="button">REPORTAR ERROR EN UN REGISTRO DE HOY</button><p class="muted">Solo puedes solicitar revisión el mismo día en que hiciste el movimiento.</p><p id="movementReviewQuickStatus"></p>
 </div>
 
@@ -166,4 +166,4 @@
  setTimeout(recovery,12000);
 })();
 </script>
-<script defer src="app.js?v=66" onerror="meritScriptLoadFailed()"></script></body></html>
+<script defer src="app.js?v=67" onerror="meritScriptLoadFailed()"></script></body></html>

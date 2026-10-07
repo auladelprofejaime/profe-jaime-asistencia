@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='66';
+const MERIT_APP_VERSION='67';
 (async()=>{try{const r=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();const remote=String(v.version||'');const seen=sessionStorage.getItem('meritAppVersionSeen')||'';if(remote&&remote!==MERIT_APP_VERSION&&seen!==remote){sessionStorage.setItem('meritAppVersionSeen',remote);location.reload()}}catch(_){}})();
 
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
@@ -288,7 +288,8 @@ function benefitExemptClient(){
 }
 function setBenefitGate(active){
  benefitGateActive=!!active;
- const btn=$('#reviewBtn');if(btn)btn.disabled=benefitGateActive;
+ // Keep Review usable: a gated teacher must see why capture is blocked.
+ const btn=$('#reviewBtn');if(btn)btn.disabled=reviewBusy;
  const cancel=$('#benefitCancelBtn');if(cancel)cancel.classList.toggle('hidden',benefitGateActive);
 }
 async function loadMonthlyBenefit(){
@@ -312,7 +313,7 @@ async function maybeShowWelcome(){
  try{
   const b=meritBenefitData;if(b?.benefit_required!==false&&b?.benefit_complete!==true)return;
   const d=await rpc('merit_my_welcome',{p_token:token});
-  if(d?.ok&&d.eligible&&!d.acknowledged&&!$('#benefitDialog')?.open)$('#welcomeDialog')?.showModal();
+  if(d?.ok&&d.eligible&&!d.acknowledged&&!document.querySelector('dialog[open]'))$('#welcomeDialog')?.showModal();
  }catch(_){}
 }
 $('#welcomeDialog')?.addEventListener('cancel',e=>e.preventDefault());
@@ -423,6 +424,7 @@ async function registerMeritPushSubscription(){
 }
 async function ensureNotificationGate(){
  if(!token||!staff||staff.is_placeholder||cachedMustChange())return;
+ if(document.querySelector('dialog[open]'))return;
  try{if(localStorage.getItem(NOTIFICATION_SKIP_KEY)==='1'||sessionStorage.getItem(NOTIFICATION_SKIP_KEY)==='1')return}catch(_){}
  const dlg=$('#notificationDialog'),st=$('#notificationStatus'),help=$('#notificationHelp');
  if(!dlg)return;
@@ -540,11 +542,35 @@ $$('#pointButtons button').forEach(b=>b.onclick=()=>{
 const criteriaNames={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
 function selectedCriteria(){return $$('#criteria input:checked').map(x=>x.value)}
 
+let reviewBusy=false;
+function captureNotice(message){
+ const el=$('#captureStatus');el.textContent=message;el.setAttribute('role','status');el.setAttribute('aria-live','polite');
+ el.scrollIntoView?.({block:'nearest'});
+}
+function benefitCaptureNotice(){
+ const d=meritBenefitData;
+ if(d?.review_status==='pending')return 'Tu beneficio está enviado y pendiente de aprobación del Profr. Jaime. Hasta que se apruebe, no puedes confirmar puntos. No necesitas enviarlo otra vez.';
+ if(d?.review_status==='rejected')return 'Tu beneficio fue rechazado: '+(d.review_reason||'Debes indicar qué le darás al grupo ganador')+'. Corrígelo en REGISTRAR OTRO BENEFICIO.';
+ return 'Primero escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE en REGISTRAR MI BENEFICIO para continuar.';
+}
+function openCaptureConfirmation(){
+ const dlg=$('#confirmDialog');
+ // Optional prompts must not cover the confirmation on small screens.
+ for(const id of ['notificationDialog','welcomeDialog'])if($('#'+id)?.open)$('#'+id).close();
+ try{if(typeof dlg.showModal==='function'){if(!dlg.open)dlg.showModal();return;}}catch(e){console.warn('Confirmación compatible:',e.message)}
+ dlg.classList.add('merit-confirm-fallback');dlg.setAttribute('open','');
+}
+function closeCaptureConfirmation(){
+ const dlg=$('#confirmDialog');if(typeof dlg.close==='function')dlg.close();else dlg.removeAttribute('open');dlg.classList.remove('merit-confirm-fallback');
+}
 $('#reviewBtn').onclick=async()=>{
- $('#captureStatus').textContent='';
+ if(reviewBusy)return;
+ const btn=$('#reviewBtn'),label=btn.textContent;
+ reviewBusy=true;btn.disabled=true;btn.textContent='REVISANDO…';captureNotice('Revisando el registro…');
+ try{
  if(benefitGateActive){
-  $('#captureStatus').innerHTML='<span class="error">Primero escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE para continuar.</span>';
-  if(navigator.onLine&&!$('#benefitDialog')?.open)openBenefitDialog();
+  captureNotice(benefitCaptureNotice());
+  if(meritBenefitData?.review_status!=='pending'&&navigator.onLine&&!$('#benefitDialog')?.open)openBenefitDialog();
   return;
  }
  if(mustCompleteFormalSetup()){
@@ -556,23 +582,27 @@ $('#reviewBtn').onclick=async()=>{
   try{
    const d=await rpc('merit_device_info',{p_token:token});
    if(!d?.ok){
-    clearSessionToken();token='';return showActivation();
+    clearSessionToken();token='';showActivation();$('#activationStatus').textContent=friendlyReason(d);return;
    }
-   staff=d.staff;cacheSession(!!d.must_change_pin);
+   staff=d.staff;accessState=d.access||null;cacheSession(!!d.must_change_pin);
+   if(accessState?.can_capture===false){captureNotice(accessState.message||'Tu cuenta no tiene autorización para registrar en este periodo. Consulta al Profr. Jaime.');return;}
    if(needsProfileSetup() || (d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))){
     $('#captureStatus').innerHTML='<span class="error">Antes de continuar, completa tu registro y cambia tu NIP.</span>';
     openPinDialog(needsProfileSetup());return;
    }
-  }catch(e){updateOfflineUI()}
+  }catch(e){captureNotice('No se pudo revisar tu acceso: '+e.message+'. Vuelve a tocar REVISAR Y REGISTRAR.');return;}
  }
  if(!group)return $('#captureStatus').innerHTML='<span class="error">Selecciona un grupo.</span>';
  const cs=selectedCriteria(),reason=$('#reason').value.trim();
  if(points!==null&&!reason)return $('#captureStatus').innerHTML='<span class="error">Escribe el motivo de los puntos.</span>';
  if(points===null&&!cs.length)return $('#captureStatus').innerHTML='<span class="error">Selecciona puntos o al menos un reconocimiento.</span>';
  $('#confirmSummary').innerHTML=`<p><b>Docente:</b> ${escapeHtml(staff?.display_name||('ID '+staff?.staff_code))}</p><p><b>Grupo:</b> ${group}</p><p><b>Puntos:</b> ${points===null?'Sin puntos':points>0?'+'+points:points}</p>${points!==null?`<p><b>Motivo:</b> ${escapeHtml(reason)}</p>`:''}<p><b>Reconocimientos:</b> ${cs.length?cs.map(x=>criteriaNames[x]).join(', '):'Ninguno'}</p><p class="muted">${navigator.onLine?'Se guardará en línea.':'Sin internet: quedará pendiente y se sincronizará automáticamente.'}</p>`;
- $('#confirmDialog').showModal();
+ captureNotice('Revisa el resumen y pulsa CONFIRMAR Y GUARDAR.');
+ openCaptureConfirmation();
+ }catch(e){captureNotice('No se pudo abrir la confirmación: '+(e.message||e)+'. Vuelve a intentar.');}
+ finally{reviewBusy=false;btn.disabled=false;btn.textContent=label;}
 };
-$('#cancelConfirm').onclick=()=>$('#confirmDialog').close();
+$('#cancelConfirm').onclick=closeCaptureConfirmation;
 
 function resetCapture(){
  points=null;
@@ -581,7 +611,7 @@ function resetCapture(){
  $$('#criteria input').forEach(x=>x.checked=false);
 }
 function showSaved(item,offline){
- $('#confirmDialog').close();
+ closeCaptureConfirmation();
  $('#captureStatus').innerHTML=offline
   ?'<span class="success">✓ Guardado en este dispositivo. Se enviará automáticamente al recuperar internet.</span>'
   :'<span class="success">✓ Registro guardado correctamente.</span>';
@@ -619,7 +649,7 @@ $('#sendConfirm').onclick=async()=>{
    }else throw e;
   }
  }catch(e){
-  $('#confirmDialog').close();
+  closeCaptureConfirmation();
   $('#captureStatus').innerHTML=`<span class="error">${e.message||e}</span>`;
  }finally{btn.disabled=false}
 };
@@ -753,9 +783,10 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=66').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=67').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 
 $('#teacherRankingRefresh')?.addEventListener('click',loadTeacherRanking);
 setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)loadTeacherRanking()},15000);
+

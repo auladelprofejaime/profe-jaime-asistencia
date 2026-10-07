@@ -1,10 +1,26 @@
 const $=s=>document.querySelector(s), $$=s=>[...document.querySelectorAll(s)];
 const esc=v=>String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;","\"":"&quot;","'":"&#39;"}[c]));
 let meritPeriodsCache=[];
+let meritPeriodsLoading=null,benefitsLoadTicket=0;
+const benefitRequests=new Map();
+async function boundedRead(name,args){
+ let timer;
+ try{return await Promise.race([rpc(name,args),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('La consulta tardó demasiado. Pulsa Actualizar para reintentar.')),12000)})])}finally{clearTimeout(timer)}
+}
+function benefitsNotice(text){
+ let el=$('#meritBenefitsLoadStatus');
+ if(!el){el=document.createElement('p');el.id='meritBenefitsLoadStatus';el.setAttribute('role','status');el.setAttribute('aria-live','polite');$('#meritBenefitsTable')?.before(el)}
+ el.textContent=text;
+}
+function benefitsRequest(period){
+ if(benefitRequests.has(period))return benefitRequests.get(period);
+ const p=boundedRead('teacher_merit_benefits',{p_period_id:period}).finally(()=>benefitRequests.delete(period));benefitRequests.set(period,p);return p;
+}
 
 function meritPane(name){
  $$(".meritNav").forEach(b=>b.classList.toggle("active",b.dataset.meritPane===name));
  $$(".merit-pane").forEach(p=>p.classList.toggle("active",p.id==="merit-"+name));
+ if(name==='benefits')loadMeritBenefits();
 }
 async function rpc(name,args={}){return await window.ProfeSupabase.rpc(name,args)}
 
@@ -20,16 +36,19 @@ function fillSelect(id,rows){
  if(current)el.value=String(current.id);
  else if(rows.some(p=>String(p.id)===String(old)))el.value=old;
 }
-async function loadMeritPeriods(){
+function loadMeritPeriods(){
+ if(meritPeriodsLoading)return meritPeriodsLoading;
+ meritPeriodsLoading=fetchMeritPeriods().finally(()=>{meritPeriodsLoading=null});return meritPeriodsLoading;
+}
+async function fetchMeritPeriods(){
  let rows=null,lastError=null;
- for(let attempt=0;attempt<3;attempt++){
+ for(let attempt=0;attempt<1;attempt++){
   try{
-   const result=await rpc("teacher_merit_periods",{});
+   const result=await boundedRead("teacher_merit_periods",{});
    if(Array.isArray(result)&&result.length){rows=result;break}
    if(Array.isArray(result)&&result.length===0)lastError=new Error("La consulta devolvió temporalmente 0 periodos.");
    else lastError=new Error("Respuesta temporal inválida al cargar periodos.");
   }catch(e){lastError=e}
-  if(attempt<2)await new Promise(r=>setTimeout(r,350*(attempt+1)));
  }
  if(!rows){
   if(meritPeriodsCache.length)return meritPeriodsCache;
@@ -138,16 +157,21 @@ async function saveStaffEdit(){
 async function loadMeritBenefits(){
  const box=$("#meritBenefitsTable"),sum=$("#meritBenefitsSummary");
  if(!box)return;
+ const ticket=++benefitsLoadTicket;
+ benefitsNotice('Cargando beneficios…');box.setAttribute('aria-busy','true');
  let period=$("#meritBenefitsPeriod")?.value;
  if(!period){
-  try{await loadMeritPeriods()}catch(e){box.innerHTML='<p class="message">No se pudieron cargar los periodos. Pulsa Actualizar para reintentar.</p>';return}
+  try{await loadMeritPeriods()}catch(e){if(ticket===benefitsLoadTicket){benefitsNotice('No se pudieron cargar los periodos: '+(e.message||e));box.setAttribute('aria-busy','false')}return}
   period=$("#meritBenefitsPeriod")?.value;
  }
- if(!period){box.innerHTML='<p class="message">No hay un periodo disponible en este momento.</p>';return}
- box.innerHTML='<p class="hint">Cargando beneficios…</p>';
+ if(ticket!==benefitsLoadTicket)return;
+ if(!period){benefitsNotice('No hay un periodo disponible en este momento.');box.setAttribute('aria-busy','false');return}
+ if(box.dataset.period!==period){box.innerHTML='<p class="hint">Consultando los beneficios de este periodo…</p>';if(sum)sum.textContent='';}
+ else benefitsNotice('Actualizando beneficios… La lista visible corresponde a la última consulta.');
  try{
-  const rows=await rpc("teacher_merit_benefits",{p_period_id:period}),data=Array.isArray(rows)?rows:[];
-  const required=data.filter(x=>x.benefit_required).length,accepted=data.filter(x=>x.benefit_required&&x.review_status==="accepted").length,pending=data.filter(x=>x.benefit_required&&x.benefit&&x.review_status==="pending").length,blocked=data.filter(x=>x.benefit_required&&x.review_status!=="accepted").length;
+  const rows=await benefitsRequest(period);if(ticket!==benefitsLoadTicket)return;
+  if(!Array.isArray(rows))throw new Error('El servidor no devolvió una lista válida.');const data=rows;
+  const required=data.filter(x=>x.benefit_required).length,accepted=data.filter(x=>x.benefit_required&&x.review_status==="accepted").length,pending=data.filter(x=>x.benefit_required&&x.benefit&&x.review_status==="pending").length,blocked=data.filter(x=>x.benefit_required&&(!x.benefit||x.review_status==="rejected")).length;
   if(sum)sum.textContent=accepted+" de "+required+" aprobados · "+pending+" pendientes de revisión · "+blocked+" bloqueados";
   box.innerHTML='<table><thead><tr><th>Docente</th><th>Asignatura / función</th><th>Beneficio</th><th>Revisión</th><th>¿Debe dar beneficio?</th></tr></thead><tbody>'+data.map(x=>{
    let review=x.review_status==="accepted"?'<span class="success">✓ Aceptado</span>':x.review_status==="rejected"?'<span class="error">✕ Rechazado</span><div class="hint">'+esc(x.review_reason||"")+'</div>':x.review_status==="pending"?'<span class="badge">Pendiente de revisión</span>':x.review_status==="exempt"?'<span class="success">✓ Exento</span>':'<span class="hint">Sin beneficio</span>';
@@ -155,9 +179,11 @@ async function loadMeritBenefits(){
    return '<tr><td><b>'+esc(x.display_name||"")+'</b><div class="hint">ID '+esc(x.staff_code||"")+'</div></td><td>'+esc(x.subject_area||"—")+'</td><td>'+(x.benefit?'<b>'+esc(x.benefit)+'</b>':'<span class="hint">Pendiente</span>')+'</td><td>'+review+buttons+'</td><td><div class="actions"><button type="button" class="'+(x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="true">SÍ, exigir</button><button type="button" class="'+(!x.benefit_required?'primary':'secondary')+' meritBenefitReq" data-staff="'+esc(x.staff_id)+'" data-required="false">NO, exentar</button></div></td></tr>';
   }).join("")+'</tbody></table>';
   document.querySelectorAll(".meritBenefitReq").forEach(b=>b.onclick=async()=>{const required=b.dataset.required==="true";b.disabled=true;try{const d=await rpc("teacher_merit_set_benefit_requirement",{p_period_id:period,p_staff_id:b.dataset.staff,p_required:required});if(!d?.ok)throw new Error(d?.reason||"No se pudo guardar.");await loadMeritBenefits()}catch(e){alert("No se pudo cambiar: "+(e.message||e));b.disabled=false}});
-  document.querySelectorAll(".meritBenefitAccept").forEach(b=>b.onclick=async()=>{if(!confirm("¿Aceptar este beneficio? El docente quedará habilitado para registrar puntos."))return;b.disabled=true;try{const d=await rpc("teacher_merit_review_benefit",{p_period_id:period,p_staff_id:b.dataset.staff,p_status:"accepted",p_reason:null});if(!d?.ok)throw new Error(d?.reason||"No se pudo aceptar.");await loadMeritBenefits()}catch(e){alert("No se pudo aceptar: "+(e.message||e));b.disabled=false}});
+  document.querySelectorAll(".meritBenefitAccept").forEach(b=>b.onclick=async()=>{if(!confirm("¿Aceptar este beneficio? El docente ya puede registrar puntos mientras está pendiente de revisión."))return;b.disabled=true;try{const d=await rpc("teacher_merit_review_benefit",{p_period_id:period,p_staff_id:b.dataset.staff,p_status:"accepted",p_reason:null});if(!d?.ok)throw new Error(d?.reason||"No se pudo aceptar.");await loadMeritBenefits()}catch(e){alert("No se pudo aceptar: "+(e.message||e));b.disabled=false}});
   document.querySelectorAll(".meritBenefitReject").forEach(b=>b.onclick=async()=>{const reason=prompt("Escribe por qué no se acepta este beneficio:");if(reason===null)return;if(reason.trim().length<3){alert("Escribe el motivo del rechazo.");return}b.disabled=true;try{const d=await rpc("teacher_merit_review_benefit",{p_period_id:period,p_staff_id:b.dataset.staff,p_status:"rejected",p_reason:reason.trim()});if(!d?.ok)throw new Error(d?.reason||"No se pudo rechazar.");await loadMeritBenefits()}catch(e){alert("No se pudo rechazar: "+(e.message||e));b.disabled=false}});
- }catch(e){box.innerHTML='<p class="message">No se pudieron cargar los beneficios: '+esc(e.message||e)+'</p>'}
+  box.dataset.period=period;benefitsNotice('Beneficios actualizados.');
+ }catch(e){if(ticket===benefitsLoadTicket)benefitsNotice('No se pudieron actualizar los beneficios: '+(e.message||e)+(box.dataset.period===period?' Conservamos la última lista visible.':''));}
+ finally{if(ticket===benefitsLoadTicket)box.setAttribute('aria-busy','false')}
 }
 window.loadMeritBenefits=loadMeritBenefits;
 
@@ -223,10 +249,11 @@ async function boot(){
  };
  if(await requireSession()){$("#loginGate").classList.add("hidden");$("#appShell").classList.remove("hidden");await startData()}
  else{$("#loginGate").classList.remove("hidden");$("#appShell").classList.add("hidden")}
- if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js?v=11").catch(()=>{});
+ if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js?v=12",{updateViaCache:'none'}).catch(()=>{});
 }
 async function startData(){
- await loadMeritPeriods();
- await Promise.allSettled([loadMeritStaff(),loadMeritBenefits(),window.loadMeritRanking?.(),window.loadMeritMovements?.()]);
+ const benefits=loadMeritBenefits();
+ try{await loadMeritPeriods()}catch(e){console.warn('Periodos:',e.message||e)}
+ await Promise.allSettled([loadMeritStaff(),benefits,window.loadMeritRanking?.(),window.loadMeritMovements?.()]);
 }
 if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",boot);else boot();

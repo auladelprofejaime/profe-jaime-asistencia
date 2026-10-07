@@ -92,7 +92,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
  <div id="meritStaffList" class="tablewrap"></div>
 </div>
 
-<div id="merit-benefits" class="merit-pane card"><div class="section"><div><h2>🎁 Beneficios del mes</h2><p class="hint">Consulta qué beneficio ofrecerá cada docente al grupo ganador.</p></div><button id="meritRefreshBenefits" class="secondary" type="button">Actualizar</button></div><label>Periodo<select id="meritBenefitsPeriod"></select></label><div id="meritBenefitsSummary" class="badge" style="margin:10px 0"></div><div id="meritBenefitsTable" class="tablewrap"></div></div>
+<div id="merit-benefits" class="merit-pane card"><div class="section"><div><h2>🎁 Beneficios del mes</h2><p class="hint">Consulta qué beneficio ofrecerá cada docente al grupo ganador.</p></div><button id="meritRefreshBenefits" class="secondary" type="button">Actualizar</button></div><label>Periodo<select id="meritBenefitsPeriod"></select></label><div id="meritBenefitsSummary" class="badge" style="margin:10px 0"></div><p id="meritBenefitsLoadStatus" role="status" aria-live="polite">Cargando beneficios…</p><div id="meritBenefitsTable" class="tablewrap"></div></div>
 
 <div id="merit-weekly" class="merit-pane card"><h2>Publicación semanal</h2><label>Periodo<select id="meritWeeklyPeriod"></select></label><label>Mensaje público opcional<textarea id="meritWeeklyMessage" rows="3"></textarea></label><div class="actions"><button id="meritPreviewWeekly" class="secondary">Vista previa</button><button id="meritPublishWeekly" class="primary">Publicar avance semanal</button><button id="meritFreezePublic" class="secondary">Congelar portal</button><button id="meritProcessPublic" class="secondary">Resultados en proceso</button><button id="meritOpenPublic" class="secondary">Reabrir publicación</button></div><p id="meritWeeklyStatus" class="message"></p><div id="meritWeeklyPreview" class="tablewrap"></div></div>
 
@@ -110,8 +110,8 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 <dialog id="meritEditStaffDialog"><div class="dialogbody"><h2>Editar personal autorizado</h2><input id="meritEditStaffId" type="hidden"><label>Nombre<input id="meritEditStaffName"></label><label>Tipo<select id="meritEditStaffRole"><option value="docente">Docente</option><option value="direccion">Dirección</option><option value="subdireccion">Subdirección</option><option value="prefectura">Prefectura</option><option value="otro">Otro</option></select></label><label>Asignatura / función<input id="meritEditStaffSubject"></label><div class="actions"><button id="meritCancelEditStaff" class="secondary" type="button">Cancelar</button><button id="meritSaveEditStaff" class="primary" type="button">Guardar cambios</button></div><p id="meritEditStaffStatus" class="message"></p></div></dialog>
 
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
-<script src="./supabase-admin.js?v=1"></script>
-<script src="./app-benefits-v7.js?v=11"></script>
+<script src="./supabase-admin.js?v=2"></script>
+<script src="./app-benefits-v7.js?v=12"></script>
 <script src="./merit-movements.js?v=2"></script>
 <script src="./merit-corrections.js?v=2"></script>
 <script src="./merit-ranking.js?v=2"></script>

@@ -4,6 +4,12 @@ const KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA";
 const SESSION_KEY="meritoAdminSupabaseSessionV1";
 let session=null,refreshPromise=null;
 function headers(token,extra={}){return {apikey:KEY,Authorization:"Bearer "+(token||KEY),...extra}}
+async function timedReadFetch(url,options){
+ const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),10000);
+ try{return await fetch(url,{...options,signal:controller.signal})}
+ catch(e){if(e.name==='AbortError')throw new Error('La conexión tardó demasiado. Vuelve a intentar.');throw e}
+ finally{clearTimeout(timer)}
+}
 async function parse(r){const t=await r.text();let d=null;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(d?.message||d?.error_description||d?.hint||("Supabase "+r.status));return d}
 async function login(email,password,remember=true){
  const r=await fetch(URL+"/auth/v1/token?grant_type=password",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({email,password})});
@@ -17,7 +23,7 @@ async function refresh(){
  if(refreshPromise)return refreshPromise;
  if(!session?.refresh_token)return null;
  refreshPromise=(async()=>{
-  const r=await fetch(URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:session.refresh_token})});
+  const r=await timedReadFetch(URL+"/auth/v1/token?grant_type=refresh_token",{method:"POST",headers:{apikey:KEY,"Content-Type":"application/json"},body:JSON.stringify({refresh_token:session.refresh_token})});
   const next=await parse(r);next.saved_at=Date.now();session=next;
   const remember=!!localStorage.getItem(SESSION_KEY);
   (remember?localStorage:sessionStorage).setItem(SESSION_KEY,JSON.stringify(session));
@@ -34,7 +40,8 @@ async function token(){
 }
 async function rest(path,{method="GET",body}={}){
  let t=await token();if(!t)throw new Error("Inicia sesión para continuar.");
- const doFetch=tv=>fetch(URL+"/rest/v1/"+path,{method,headers:headers(tv,body!==undefined?{"Content-Type":"application/json"}:{}),body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
+ const readOnly=/^rpc\/(teacher_merit_periods|teacher_merit_benefits)$/.test(path);
+ const doFetch=tv=>(readOnly?timedReadFetch:fetch)(URL+"/rest/v1/"+path,{method,headers:headers(tv,body!==undefined?{"Content-Type":"application/json"}:{}),body:body===undefined?undefined:JSON.stringify(body),cache:"no-store"});
  let r=await doFetch(t);
  if(r.status===401){await refresh();t=session?.access_token||null;if(t)r=await doFetch(t)}
  return parse(r);

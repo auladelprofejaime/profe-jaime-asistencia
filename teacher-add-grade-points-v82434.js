@@ -3,9 +3,10 @@ openUsePointsDialog=async function(studentId){
  try{
   const methodId=document.getElementById('calcMethodology')?.value;
   const ps=await ProfeSupabase.select('point_periods','select=id,opens_at,closes_at,closed_at&methodology_id=eq.'+encodeURIComponent(methodId)+'&closed_at=is.null');
-  const period=ps.find(p=>Date.now()>=Date.parse(p.opens_at)&&Date.now()<Date.parse(p.closes_at));
-  if(!period)throw Error('El periodo de puntos no está abierto.');
+  const period=ps.find(p=>Date.now()>=Date.parse(p.opens_at)&&Date.now()<Date.parse(p.closes_at))||ps[0];
+  if(!period)throw Error('No hay un periodo de puntos para este mes.');
   const detail=await ProfeSupabase.rpc('teacher_point_period_activity',{p_period_id:period.id});
+  if(detail.teacher_can_operate!==true)throw Error('El mes o periodo está cerrado definitivamente. Reábrelo antes de modificar puntos.');
   const student=detail.students.find(s=>s.student_id===studentId),grade=detail.grade_records[studentId]||{};
   if(!student||grade.base==null)throw Error('Falta la calificación provisional.');
   const used=Number(grade.pointsUsed||0),available=Math.max(0,Math.min(Number(student.balance||0),10-Number(grade.base)-Number(grade.manualExtra||0)-used));

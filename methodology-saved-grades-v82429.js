@@ -99,8 +99,8 @@ returnUsedPoints=async function(studentId){
  try{
   const id=byId('calcMethodology')?.value;
   const periods=await ProfeSupabase.select('point_periods','select=id,opens_at,closes_at,closed_at&methodology_id=eq.'+encodeURIComponent(id)+'&closed_at=is.null');
-  const now=Date.now(),period=(periods||[]).find(p=>now>=Date.parse(p.opens_at)&&now<Date.parse(p.closes_at));
-  if(!period)throw new Error('El periodo de puntos no está abierto.');
+  const now=Date.now(),period=(periods||[]).find(p=>now>=Date.parse(p.opens_at)&&now<Date.parse(p.closes_at))||(periods||[])[0];
+  if(!period)throw new Error('No hay un periodo de puntos para este mes.');
   const out=await ProfeSupabase.rpc('teacher_set_grade_points',{p_student_id:studentId,p_period_id:period.id,p_amount:0});
   if(!out?.ok)throw new Error('El servidor no confirmó la devolución.');
   await restoreGrades();

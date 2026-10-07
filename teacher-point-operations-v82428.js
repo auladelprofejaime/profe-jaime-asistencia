@@ -6,12 +6,14 @@
  const choices={used:'Usó puntos',donated:'Donó puntos',mixed:'Usó y donó',keep:'Conserva puntos'};
  async function rpc(n,a={}){if(!window.ProfeSupabase)throw Error('Inicia sesión docente con internet.');const r=await window.ProfeSupabase.rpc(n,a);if(r?.ok===false)throw Error(r.error||r.reason||'El servidor no confirmó el movimiento.');return r;}
  const student=id=>detail?.students?.find(s=>s.student_id===id);
- const isOpen=()=>detail?.period?.state==='open'&&!detail.period.closed_at&&(!detail.period.opens_at||Date.now()>=Date.parse(detail.period.opens_at))&&(!detail.period.closes_at||Date.now()<Date.parse(detail.period.closes_at));
+ // The server authorizes teacher intervention independently of student dates.
+ const isOpen=()=>detail?.teacher_can_operate===true;
  function periodMessage(){
   const p=detail?.period;if(!p)return 'Selecciona un periodo y actualiza los movimientos.';
-  if(isOpen())return 'Periodo abierto: puedes registrar donaciones o aplicar puntos.';
+  if(isOpen())return p.state==='open'?'Dinámica abierta para alumnos. Como docente puedes registrar donaciones y aplicar puntos.':'Dinámica cerrada para alumnos por horario. Tú puedes registrar donaciones y aplicar puntos como docente, sin reabrirla para ellos.';
   const fmt=v=>new Date(v).toLocaleString('es-MX',{timeZone:'America/Mexico_City'});
   if(p.closed_at)return 'Periodo cerrado definitivamente: solo consulta.';
+  if(detail.teacher_can_operate===false)return 'El mes está cerrado. Reábrelo en Metodologías antes de modificar puntos como docente.';
   if(p.closes_at&&Date.now()>=Date.parse(p.closes_at))return 'El plazo terminó el '+fmt(p.closes_at)+' (hora de México). Para continuar, usa Editar horario en Periodos de puntos guardados. No se ha movido ningún saldo.';
   if(p.opens_at&&Date.now()<Date.parse(p.opens_at))return 'La dinámica abre el '+fmt(p.opens_at)+' (hora de México).';
   return 'Periodo no abierto: solo consulta. Revisa el horario en Periodos de puntos guardados.';

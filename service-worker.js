@@ -1,16 +1,16 @@
-const CACHE='app-docente-v8-24-42-point-operations';
+const CACHE='app-docente-v8-24-43-point-operations';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
- './teacher-points-v82426.js?v=82442','./teacher-point-operations-v82428.js?v=82442',
- './activity-month-register-v82441.js?v=82442',
- './poem-contest-v82440.js?v=82442',
- './books-roster-summary-v82439.js?v=82442',
- './books-editorial-summary-v82438.js?v=82442',
- './activity-week-and-weighted-grades-v82437.js?v=82442',
- './activity-editor-v82436.js?v=82442','./activity-multi-group-v82434.js?v=82442','./teacher-add-grade-points-v82434.js?v=82442','./activities-server-list-v82432.js?v=82442',
- './methodology-saved-grades-v82429.js?v=82442',
- './','./index.html','./styles.css?v=82442','./app-v82312.js?v=82442','./teacher-points-v82428.js?v=82442','./activity-record-server-guard-v82403.js?v=82415','./evening-book-custody-v82384.js?v=82392','./activities-pending-v82338.js?v=82416','./activities-individual-pdf-v82341.js?v=82341','./activities-range-grid-v82386.js?v=82404','./activity-full-reconcile-v82393.js?v=82417','./activity-exam-scanner-v82418.js?v=82442','./cleanup-historieta-grupo25-v82342.js?v=82343','./connectivity-books-v82339.js?v=82344','./book-money-transfer-fix-v82345.js?v=82345','./birthday-benefits-fix-v82346.js?v=82346','./supabase-stability-v82347.js?v=82347','./book-payments-stability-v82348.js?v=82348','./book-payments-ui-v82350.js?v=82350','./book-request-safe-v82351.js?v=82366','./book-transfer-pending-v82352.js?v=82352','./offline-queue-drain-v82353.js?v=82366','./offline-queue-safety-v82370.js?v=82378','./activity-delivery-audit-v82368.js?v=82396','./book-payment-auth-fallback-v82365.js?v=82365','./book-payment-postsave-fix-v82385.js?v=82392',
+ './teacher-points-v82426.js?v=82443','./teacher-point-operations-v82428.js?v=82443',
+ './activity-month-register-v82441.js?v=82443',
+ './poem-contest-v82440.js?v=82443',
+ './books-roster-summary-v82439.js?v=82443',
+ './books-editorial-summary-v82438.js?v=82443',
+ './activity-week-and-weighted-grades-v82437.js?v=82443',
+ './activity-editor-v82436.js?v=82443','./activity-multi-group-v82434.js?v=82443','./teacher-add-grade-points-v82434.js?v=82443','./activities-server-list-v82432.js?v=82443',
+ './methodology-saved-grades-v82429.js?v=82443',
+ './','./index.html','./styles.css?v=82443','./app-v82312.js?v=82443','./teacher-points-v82428.js?v=82443','./activity-record-server-guard-v82403.js?v=82415','./evening-book-custody-v82384.js?v=82392','./activities-pending-v82338.js?v=82416','./activities-individual-pdf-v82341.js?v=82341','./activities-range-grid-v82386.js?v=82404','./activity-full-reconcile-v82393.js?v=82417','./activity-exam-scanner-v82418.js?v=82443','./cleanup-historieta-grupo25-v82342.js?v=82343','./connectivity-books-v82339.js?v=82344','./book-money-transfer-fix-v82345.js?v=82345','./birthday-benefits-fix-v82346.js?v=82346','./supabase-stability-v82347.js?v=82347','./book-payments-stability-v82348.js?v=82348','./book-payments-ui-v82350.js?v=82350','./book-request-safe-v82351.js?v=82366','./book-transfer-pending-v82352.js?v=82352','./offline-queue-drain-v82353.js?v=82366','./offline-queue-safety-v82370.js?v=82378','./activity-delivery-audit-v82368.js?v=82396','./book-payment-auth-fallback-v82365.js?v=82365','./book-payment-postsave-fix-v82385.js?v=82392',
  './manifest.webmanifest','./icon.svg','./avatar-profe-jaime.png','./icon-app-docente-v821.png','./logo-app-docente-v821.png',
  './shared/supabase-teacher.js?v=808','./supabase-reconnect-v82395.js?v=82396'
 ];

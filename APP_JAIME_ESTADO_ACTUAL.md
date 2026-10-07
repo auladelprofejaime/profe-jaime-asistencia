@@ -1035,3 +1035,11 @@ App Docente v8.24.29 restaura gradeRecords desde servidor sin recalcular al entr
 - Estado vencido explicita fecha/horaMéxico y Editar horario. isOpen verifica fechas además de estado del servidor, refresco15s bloquea formulario abierto al cruzar cierre. Guards al confirmar muestran motivo, no return silencioso. Texto aplicación corregido: solo adicionales, no total ni cero.
 - Prueba botones click verdaderos conambosmódulos y HTML actual: reprodujo desbloqueo incorrecto anterior; asignación de saldo funciona aun conperiodo vencido; versióncorregida mantiene donación/aplicaciónbloqueadas, abiertasconfirmanunaRPCcadauna, sinduplicar.
 - RPC teacher_award_points_batch probado con rol docente y rollback:oktrue,count1; ningún saldo/calificación/historial modificado. Guía Supabase usada para validar prueba reversible y respetar auth/plazos. No esquema ni permisos cambiados.
+
+
+## 2026-10-07 · Docente8.24.43 · Horario limitado a alumnos
+- Usuario aclaró: al vencer dinámica, alumnos bloqueados pero docente debe seguir registrando donaciones/usos. No se alteraron point_periods ni horarios, closed_at ni publicación/gradeRecords.
+- teacher_donate_points autenticado ignora opens_at/closes_at; conserva bloqueo definitivo/mes cerrado y validación saldo/grupo. points_set_grade_use_internal omite horario SOLOsource teacher con auth.uid/is_teacher y actor coincidente; student conserva guard original. Función interna mantiene solo postgresEXECUTE, no accesible poranon/authenticated.
+- teacher_point_period_activity expone teacher_can_operate según existencia de método,closed yclosed_at; UI porID usa autorización servidor. Tabla mensual de uso/devolución permite periodo vencido no definitivo. Se conserva API incremental/idempotente, no reemplazo total.
+- SQL rollback pruebas: docente dona y suma enperiodovencido, retryuuidno duplica, otroaddacumula, student rechazado, sesiónanonrechazada, mesclosedrechazado. DOM botones reales/tabla mensual confirmó permitido docente aunque stateclosed, mensajecorrecto y closedmethoddisabled. Ninguna prueba dejó movimientos reales.
+- Advisor: endpoints SECURITYDEFINER autenticados intencionales, todosguardsauthuid/is_teacher; internas privadas. 8.24.41selector mensual regresión aprobada.

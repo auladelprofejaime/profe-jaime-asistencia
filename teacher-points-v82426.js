@@ -81,7 +81,9 @@
       await loadGroup();
     }catch(e){q('ptStatus').textContent='No se pudieron cargar los grupos: '+e.message;}
   }
-  function lock(value){busy=value;for(const el of q('met-points').querySelectorAll('input,select,button'))el.disabled=value;if(!value){updateCount();q('ptEnable').disabled=!q('ptMethodology').value;}}
+  // The manual operations module owns its controls and its period lock.
+  // Do not enable expired-period donation buttons or freeze a sibling request.
+  function lock(value){busy=value;for(const el of q('met-points').querySelectorAll('input,select,button')){if(!el.closest('#ptOperations'))el.disabled=value;}if(!value){updateCount();q('ptEnable').disabled=!q('ptMethodology').value;}}
   async function award(e){
     e.preventDefault();if(busy)return;
     const ids=recipients(), amount=Number(q('ptAmount').value),reason=q('ptReason').value.trim();

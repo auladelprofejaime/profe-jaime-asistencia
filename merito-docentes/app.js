@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='69';
+const MERIT_APP_VERSION='70';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
@@ -346,7 +346,7 @@ async function loadMonthlyBenefit(){
   card?.classList.remove('hidden');
   $('#benefitCardText').textContent='Escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE durante '+d.period.label+'. Debe ser el premio o apoyo que tú otorgarás en tu asignatura.';
   if(d.benefit&&d.review_status==='accepted'){setBenefitGate(false);saved.textContent='✓ Beneficio aceptado: '+d.benefit;btn.textContent='EDITAR MI BENEFICIO';}
-  else if(d.benefit&&d.review_status==='pending'){setBenefitGate(true);saved.textContent='⏳ Beneficio enviado y pendiente de revisión: '+d.benefit;btn.textContent='EDITAR PROPUESTA';}
+  else if(d.benefit&&d.review_status==='pending'){setBenefitGate(false);saved.textContent='✓ Beneficio enviado. Ya puedes subir y quitar puntos mientras el Profr. Jaime lo revisa: '+d.benefit;btn.textContent='EDITAR PROPUESTA';}
   else if(d.benefit&&d.review_status==='rejected'){setBenefitGate(true);saved.textContent='⚠ Tu propuesta debe explicar QUÉ LE VAS A DAR AL GRUPO QUE GANE. Motivo de revisión: '+(d.review_reason||'Debes registrar otra propuesta.');btn.textContent='REGISTRAR OTRO BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
   else{setBenefitGate(true);saved.textContent='⚠ Para continuar, escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE en tu asignatura.';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
  }catch(_){}
@@ -383,8 +383,9 @@ $('#benefitSaveBtn')?.addEventListener('click',async()=>{
   const d=await rpc('merit_save_my_benefit',{p_token:token,p_benefit:benefit});
   if(!d?.ok)throw new Error(d?.reason||'No se pudo guardar.');
   meritBenefitData.benefit=d.benefit;
+  meritBenefitData.review_status='pending';meritBenefitData.review_reason=null;meritBenefitData.benefit_complete=true;
   setBenefitGate(false);
-  $('#benefitSavedText').textContent='✓ Registrado: '+d.benefit;
+  $('#benefitSavedText').textContent='✓ Beneficio enviado. Ya puedes subir y quitar puntos mientras se revisa: '+d.benefit;
   $('#benefitOpenBtn').textContent='EDITAR MI BENEFICIO';
   st.innerHTML='<span class="success">✓ Beneficio guardado. El Profr. Jaime ya puede verlo en Administración.</span>';
   setTimeout(()=>$('#benefitDialog').close(),900);
@@ -592,7 +593,7 @@ function captureNotice(message){
 }
 function benefitCaptureNotice(){
  const d=meritBenefitData;
- if(d?.review_status==='pending')return 'Tu beneficio está enviado y pendiente de aprobación del Profr. Jaime. Hasta que se apruebe, no puedes confirmar puntos. No necesitas enviarlo otra vez.';
+ if(d?.review_status==='pending')return 'Tu beneficio está enviado. Ya puedes subir y quitar puntos mientras el Profr. Jaime lo revisa.';
  if(d?.review_status==='rejected')return 'Tu beneficio fue rechazado: '+(d.review_reason||'Debes indicar qué le darás al grupo ganador')+'. Corrígelo en REGISTRAR OTRO BENEFICIO.';
  return 'Primero escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE en REGISTRAR MI BENEFICIO para continuar.';
 }
@@ -612,6 +613,7 @@ $('#reviewBtn').onclick=async()=>{
  reviewBusy=true;btn.disabled=true;btn.textContent='REVISANDO…';captureNotice('Revisando el registro…');
  try{
  if(await checkMeritUpdate({fromReview:true}))return;
+ if(navigator.onLine)await loadMonthlyBenefit();
  if(benefitGateActive){
   captureNotice(benefitCaptureNotice());
   if(meritBenefitData?.review_status!=='pending'&&navigator.onLine&&!$('#benefitDialog')?.open)openBenefitDialog();
@@ -828,7 +830,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
 if('serviceWorker'in navigator){
- navigator.serviceWorker.register('service-worker.js?v=69',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
+ navigator.serviceWorker.register('service-worker.js?v=70',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
  navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='MERIT_APP_UPDATED')checkMeritUpdate()});
  navigator.serviceWorker.addEventListener('controllerchange',()=>checkMeritUpdate());
 }

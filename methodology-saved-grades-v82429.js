@@ -98,7 +98,7 @@ returnUsedPoints=async function(studentId){
  if(!confirm('¿Deshacer la aplicación y devolver los puntos al saldo del alumno?'))return;
  try{
   const id=byId('calcMethodology')?.value;
-  const periods=await ProfeSupabase.select('point_periods','select=id,opens_at,closes_at,closed_at&methodology_id=eq.'+encodeURIComponent(id)+'&closed_at=is.null');
+  const periods=(await ProfeSupabase.rpc('teacher_point_periods')).filter(p=>p.methodology_id===id&&!p.closed_at);
   const now=Date.now(),period=(periods||[]).find(p=>now>=Date.parse(p.opens_at)&&now<Date.parse(p.closes_at))||(periods||[])[0];
   if(!period)throw new Error('No hay un periodo de puntos para este mes.');
   const out=await ProfeSupabase.rpc('teacher_set_grade_points',{p_student_id:studentId,p_period_id:period.id,p_amount:0});

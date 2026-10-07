@@ -2,7 +2,7 @@
 openUsePointsDialog=async function(studentId){
  try{
   const methodId=document.getElementById('calcMethodology')?.value;
-  const ps=await ProfeSupabase.select('point_periods','select=id,opens_at,closes_at,closed_at&methodology_id=eq.'+encodeURIComponent(methodId)+'&closed_at=is.null');
+  const ps=(await ProfeSupabase.rpc('teacher_point_periods')).filter(p=>p.methodology_id===methodId&&!p.closed_at);
   const period=ps.find(p=>Date.now()>=Date.parse(p.opens_at)&&Date.now()<Date.parse(p.closes_at))||ps[0];
   if(!period)throw Error('No hay un periodo de puntos para este mes.');
   const detail=await ProfeSupabase.rpc('teacher_point_period_activity',{p_period_id:period.id});

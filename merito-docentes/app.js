@@ -15,8 +15,34 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='67';
-(async()=>{try{const r=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();const remote=String(v.version||'');const seen=sessionStorage.getItem('meritAppVersionSeen')||'';if(remote&&remote!==MERIT_APP_VERSION&&seen!==remote){sessionStorage.setItem('meritAppVersionSeen',remote);location.reload()}}catch(_){}})();
+const MERIT_APP_VERSION='68';
+let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
+function meritCaptureInProgress(){
+ return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
+  !!$('#reason')?.value.trim()||!!$('#activationCode')?.value||!!$('#staffCode')?.value||
+  $$('#pointButtons button.active').some(b=>b.dataset.points!=='')||!!$('#criteria input:checked');
+}
+function applyMeritUpdate(){
+ if(!meritUpdatePending||meritUpdateReloading||!navigator.onLine||document.visibilityState==='hidden'||meritCaptureInProgress())return;
+ try{if(sessionStorage.getItem('meritAutoReloadTarget')===meritUpdatePending)return;sessionStorage.setItem('meritAutoReloadTarget',meritUpdatePending)}catch(_){}
+ meritUpdateReloading=true;location.reload();
+}
+async function checkMeritUpdate(){
+ if(meritUpdateChecking||!navigator.onLine||document.visibilityState==='hidden')return;
+ meritUpdateChecking=true;const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
+ try{
+  const r=await fetch('version.json?ts='+Date.now(),{cache:'no-store',signal:controller.signal});if(!r.ok)return;
+  const v=await r.json(),remote=String(v.version||'');
+  if(remote&&remote!==MERIT_APP_VERSION){
+   // Validate that the deployed page references the new bundle before reloading.
+   const page=await fetch('index.html?update='+encodeURIComponent(remote),{cache:'no-store',signal:controller.signal});
+   if(!page.ok||!(await page.text()).includes('app.js?v='+remote))return;
+   meritUpdatePending=remote;
+   applyMeritUpdate();
+  }else{meritUpdatePending='';try{sessionStorage.removeItem('meritAutoReloadTarget')}catch(_){}}
+  if(meritWorkerRegistration)meritWorkerRegistration.update().catch(()=>{});
+ }catch(_){}finally{clearTimeout(timer);meritUpdateChecking=false;}
+}
 
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
 const SUPABASE_KEY="sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA";
@@ -783,10 +809,20 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=67').catch(()=>{});
+if('serviceWorker'in navigator){
+ navigator.serviceWorker.register('service-worker.js?v=68',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
+ navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='MERIT_APP_UPDATED')checkMeritUpdate()});
+ navigator.serviceWorker.addEventListener('controllerchange',()=>checkMeritUpdate());
+}
 updateOfflineUI();
 checkDevice();
 
 $('#teacherRankingRefresh')?.addEventListener('click',loadTeacherRanking);
 setInterval(()=>{if(document.visibilityState==='visible'&&navigator.onLine)loadTeacherRanking()},15000);
+setTimeout(checkMeritUpdate,1000);
+setInterval(checkMeritUpdate,30000);
+window.addEventListener('online',checkMeritUpdate);
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkMeritUpdate()});
+document.addEventListener('input',()=>{if(meritUpdatePending)setTimeout(applyMeritUpdate,1000)});
+document.addEventListener('click',()=>{if(meritUpdatePending)setTimeout(applyMeritUpdate,1000)});
 

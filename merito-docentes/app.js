@@ -15,19 +15,23 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='68';
+const MERIT_APP_VERSION='69';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
   !!$('#reason')?.value.trim()||!!$('#activationCode')?.value||!!$('#staffCode')?.value||
   $$('#pointButtons button.active').some(b=>b.dataset.points!=='')||!!$('#criteria input:checked');
 }
-function applyMeritUpdate(){
- if(!meritUpdatePending||meritUpdateReloading||!navigator.onLine||document.visibilityState==='hidden'||meritCaptureInProgress())return;
- try{if(sessionStorage.getItem('meritAutoReloadTarget')===meritUpdatePending)return;sessionStorage.setItem('meritAutoReloadTarget',meritUpdatePending)}catch(_){}
- meritUpdateReloading=true;location.reload();
+function applyMeritUpdate(fromReview=false){
+ if(!meritUpdatePending||meritUpdateReloading||!navigator.onLine||document.visibilityState==='hidden'||(!fromReview&&meritCaptureInProgress()))return false;
+ try{
+  if(sessionStorage.getItem('meritAutoReloadTarget')===meritUpdatePending)return false;
+  if(fromReview)sessionStorage.setItem('meritUpdateCaptureDraft',JSON.stringify({staffCode:staff?.staff_code,grade,group,points,reason:$('#reason').value,criteria:selectedCriteria(),savedAt:Date.now()}));
+  sessionStorage.setItem('meritAutoReloadTarget',meritUpdatePending);
+ }catch(_){return false;}
+ meritUpdateReloading=true;location.reload();return true;
 }
-async function checkMeritUpdate(){
+async function checkMeritUpdate({fromReview=false}={}){
  if(meritUpdateChecking||!navigator.onLine||document.visibilityState==='hidden')return;
  meritUpdateChecking=true;const controller=new AbortController(),timer=setTimeout(()=>controller.abort(),8000);
  try{
@@ -38,10 +42,23 @@ async function checkMeritUpdate(){
    const page=await fetch('index.html?update='+encodeURIComponent(remote),{cache:'no-store',signal:controller.signal});
    if(!page.ok||!(await page.text()).includes('app.js?v='+remote))return;
    meritUpdatePending=remote;
-   applyMeritUpdate();
+   return applyMeritUpdate(fromReview);
   }else{meritUpdatePending='';try{sessionStorage.removeItem('meritAutoReloadTarget')}catch(_){}}
   if(meritWorkerRegistration)meritWorkerRegistration.update().catch(()=>{});
  }catch(_){}finally{clearTimeout(timer);meritUpdateChecking=false;}
+}
+function restoreMeritUpdateDraft(){
+ try{
+  const raw=sessionStorage.getItem('meritUpdateCaptureDraft');if(!raw||!staff)return;
+  const d=JSON.parse(raw);sessionStorage.removeItem('meritUpdateCaptureDraft');
+  if(String(d.staffCode)!==String(staff.staff_code)||Date.now()-d.savedAt>1800000)return;
+  if(d.grade)$('#gradeButtons button[data-grade="'+Number(d.grade)+'"]')?.click();
+  const b=$$('#groupButtons button').find(x=>x.textContent===String(d.group));if(b)b.click();
+  $('#pointButtons button[data-points="'+(d.points===null?'':Number(d.points))+'"]')?.click();
+  $('#reason').value=String(d.reason||'');
+  $$('#criteria input').forEach(x=>x.checked=Array.isArray(d.criteria)&&d.criteria.includes(x.value));
+  captureNotice('App actualizada. Conservamos tu selección; pulsa REVISAR Y REGISTRAR para confirmarla.');
+ }catch(_){try{sessionStorage.removeItem('meritUpdateCaptureDraft')}catch(__){}}
 }
 
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
@@ -259,7 +276,7 @@ function showCapture(){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
-   checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit().finally(()=>maybeShowWelcome());loadTeacherRanking();setTimeout(ensureNotificationGate,120);
+   restoreMeritUpdateDraft();checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit().finally(()=>maybeShowWelcome());loadTeacherRanking();setTimeout(ensureNotificationGate,120);
  }
 }
 
@@ -594,6 +611,7 @@ $('#reviewBtn').onclick=async()=>{
  const btn=$('#reviewBtn'),label=btn.textContent;
  reviewBusy=true;btn.disabled=true;btn.textContent='REVISANDO…';captureNotice('Revisando el registro…');
  try{
+ if(await checkMeritUpdate({fromReview:true}))return;
  if(benefitGateActive){
   captureNotice(benefitCaptureNotice());
   if(meritBenefitData?.review_status!=='pending'&&navigator.onLine&&!$('#benefitDialog')?.open)openBenefitDialog();
@@ -810,7 +828,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
 if('serviceWorker'in navigator){
- navigator.serviceWorker.register('service-worker.js?v=68',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
+ navigator.serviceWorker.register('service-worker.js?v=69',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
  navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='MERIT_APP_UPDATED')checkMeritUpdate()});
  navigator.serviceWorker.addEventListener('controllerchange',()=>checkMeritUpdate());
 }

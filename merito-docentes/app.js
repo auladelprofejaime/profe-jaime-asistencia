@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='65';
+const MERIT_APP_VERSION='66';
 (async()=>{try{const r=await fetch('version.json?ts='+Date.now(),{cache:'no-store'});if(!r.ok)return;const v=await r.json();const remote=String(v.version||'');const seen=sessionStorage.getItem('meritAppVersionSeen')||'';if(remote&&remote!==MERIT_APP_VERSION&&seen!==remote){sessionStorage.setItem('meritAppVersionSeen',remote);location.reload()}}catch(_){}})();
 
 const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co";
@@ -300,11 +300,11 @@ async function loadMonthlyBenefit(){
   const card=$('#benefitCard'),saved=$('#benefitSavedText'),btn=$('#benefitOpenBtn');
   if(d.benefit_required===false){setBenefitGate(false);card?.classList.add('hidden');return;}
   card?.classList.remove('hidden');
-  $('#benefitCardText').textContent='Indica el beneficio que darás al grupo ganador durante '+d.period.label+'.';
+  $('#benefitCardText').textContent='Escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE durante '+d.period.label+'. Debe ser el premio o apoyo que tú otorgarás en tu asignatura.';
   if(d.benefit&&d.review_status==='accepted'){setBenefitGate(false);saved.textContent='✓ Beneficio aceptado: '+d.benefit;btn.textContent='EDITAR MI BENEFICIO';}
   else if(d.benefit&&d.review_status==='pending'){setBenefitGate(true);saved.textContent='⏳ Beneficio enviado y pendiente de revisión: '+d.benefit;btn.textContent='EDITAR PROPUESTA';}
-  else if(d.benefit&&d.review_status==='rejected'){setBenefitGate(true);saved.textContent='⚠ Beneficio rechazado: '+(d.review_reason||'Debes registrar otra propuesta.');btn.textContent='REGISTRAR OTRO BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
-  else{setBenefitGate(true);saved.textContent='⚠ Debes registrar tu beneficio antes de poder sumar o restar puntos.';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
+  else if(d.benefit&&d.review_status==='rejected'){setBenefitGate(true);saved.textContent='⚠ Tu propuesta debe explicar QUÉ LE VAS A DAR AL GRUPO QUE GANE. Motivo de revisión: '+(d.review_reason||'Debes registrar otra propuesta.');btn.textContent='REGISTRAR OTRO BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
+  else{setBenefitGate(true);saved.textContent='⚠ Para continuar, escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE en tu asignatura.';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
  }catch(_){}
 }
 async function maybeShowWelcome(){
@@ -323,7 +323,7 @@ $('#welcomeStartBtn')?.addEventListener('click',async()=>{
 });
 function openBenefitDialog(){
  if(!meritBenefitData?.period)return;
- $('#benefitDialogTitle').textContent='🎁 Beneficio · '+meritBenefitData.period.label;
+ $('#benefitDialogTitle').textContent='🎁 ¿QUÉ LE VAS A DAR AL GRUPO QUE GANE? · '+meritBenefitData.period.label;
  $('#benefitInput').value=meritBenefitData.benefit||'';
  $('#benefitStatus').textContent='';
  $('#benefitDialog').showModal();
@@ -333,7 +333,7 @@ $('#benefitCancelBtn')?.addEventListener('click',()=>{if(!benefitGateActive)$('#
 $('#benefitDialog')?.addEventListener('cancel',e=>{if(benefitGateActive)e.preventDefault()});
 $('#benefitSaveBtn')?.addEventListener('click',async()=>{
  const st=$('#benefitStatus'),btn=$('#benefitSaveBtn'),benefit=$('#benefitInput').value.trim();
- if(benefit.length<3){st.innerHTML='<span class="error">Escribe el beneficio que ofrecerás.</span>';return}
+ if(benefit.length<3){st.innerHTML='<span class="error">Escribe qué beneficio le vas a dar al grupo que gane.</span>';return}
  btn.disabled=true;st.textContent='Guardando…';
  try{
   const d=await rpc('merit_save_my_benefit',{p_token:token,p_benefit:benefit});
@@ -543,7 +543,7 @@ function selectedCriteria(){return $$('#criteria input:checked').map(x=>x.value)
 $('#reviewBtn').onclick=async()=>{
  $('#captureStatus').textContent='';
  if(benefitGateActive){
-  $('#captureStatus').innerHTML='<span class="error">Primero registra tu beneficio del mes para continuar.</span>';
+  $('#captureStatus').innerHTML='<span class="error">Primero escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE para continuar.</span>';
   if(navigator.onLine&&!$('#benefitDialog')?.open)openBenefitDialog();
   return;
  }
@@ -753,7 +753,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=65').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker.js?v=66').catch(()=>{});
 updateOfflineUI();
 checkDevice();
 

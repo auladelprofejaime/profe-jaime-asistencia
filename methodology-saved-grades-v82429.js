@@ -27,7 +27,7 @@ async function restoreGrades(options={}){
  if(!quiet)toolbar();
  if(!id){status('Selecciona una metodología.');return}
  if(!quiet)status('Consultando promedios guardados…');
- const m=await remote(id),signature=JSON.stringify([m.closed,m.gradeRecords,m.provisionalPublished]);
+ const m=await remote(id),signature=JSON.stringify([m.closed,m.gradeRecords,m.provisionalPublished,m.evaluationRanges]);
  if(quiet&&signatures.get(id)===signature)return;
  const roster=await students();
  if(ticket!==seq||byId('calcMethodology').value!==id)return;
@@ -46,7 +46,7 @@ async function restoreGrades(options={}){
   const st=names.get(sid)||{id:sid,name:sid,number:''};
   const criterionGrades={};
   for(const c of m.criteria||[]){
-   const ca=acts.filter(a=>m.assignments?.[a.id]===c.id);
+   const ca=acts.filter(a=>m.assignments?.[a.id]===c.id&&(!window.StudentEvaluationRange||StudentEvaluationRange.applicable(m,sid,a)));
    const values=ca.map(a=>{const r=recordMap.get(a.id+'|'+sid);return (a.evaluationMode||'delivery')==='numeric'?(typeof r?.score==='number'?r.score:0):(r?.status==='yes'?10:0)});
    criterionGrades[c.id]=ca.length?values.reduce((a,b)=>a+b,0)/ca.length:null;
   }

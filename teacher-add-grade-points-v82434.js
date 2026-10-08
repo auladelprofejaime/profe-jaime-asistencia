@@ -9,7 +9,7 @@ openUsePointsDialog=async function(studentId){
   if(detail.teacher_can_operate!==true)throw Error('El mes o periodo está cerrado definitivamente. Reábrelo antes de modificar puntos.');
   const student=detail.students.find(s=>s.student_id===studentId),grade=detail.grade_records[studentId]||{};
   if(!student||grade.base==null)throw Error('Falta la calificación provisional.');
-  const used=Number(grade.pointsUsed||0),available=Math.max(0,Math.min(Number(student.balance||0),10-Number(grade.base)-Number(grade.manualExtra||0)-used));
+  const used=Number(grade.pointsUsed||0),available=Math.max(0,Math.min(Number(student.balance||0),10-(window.FinalGradePoints?FinalGradePoints.pointBase(grade):Number(grade.base)+Number(grade.manualExtra||0))-used));
   showDialog('Sumar puntos a la calificación','<p>'+safe(student.student_name)+' · Ya aplicados: <b>'+used.toFixed(2)+'</b> · Puedes sumar: <b>'+available.toFixed(2)+'</b></p><label>Puntos adicionales<input id="pointsAmountInput" type="number" min="0.01" max="'+available+'" step="0.01" value="'+available.toFixed(2)+'"></label><button id="applyPointsBtn" type="button">Sumar puntos</button><button id="cancelPointsBtn" type="button">Cancelar</button><p id="gradeAddStatus"></p>');
   document.getElementById('cancelPointsBtn').onclick=()=>document.getElementById('dialog').close();
   document.getElementById('applyPointsBtn').onclick=async function(){

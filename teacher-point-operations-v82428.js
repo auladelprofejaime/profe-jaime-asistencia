@@ -22,7 +22,7 @@
  function identify(input,box,grade=false){
   const id=q(input).value.trim(),s=student(id);
   q(box).textContent=s?s.student_name+' · Saldo: '+Number(s.balance||0).toFixed(2):id?'ID no encontrado en este grupo.':'';
-  if(s&&grade){const r=detail.grade_records?.[id]||{};q(box).textContent+=' · Aplicados: '+Number(r.pointsUsed||0).toFixed(2)+(r.base==null?' · Falta calcular su calificación.':' · Máximo para llegar a 10: '+Math.max(0,10-Number(r.base)-Number(r.manualExtra||0)).toFixed(2));}
+  if(s&&grade){const r=detail.grade_records?.[id]||{};q(box).textContent+=' · Aplicados: '+Number(r.pointsUsed||0).toFixed(2)+(r.base==null?' · Falta calcular su calificación.':' · Máximo para llegar a 10: '+Math.max(0,10-(window.FinalGradePoints?FinalGradePoints.pointBase(r):Number(r.base)+Number(r.manualExtra||0))).toFixed(2));}
   return s;
  }
  function render(){

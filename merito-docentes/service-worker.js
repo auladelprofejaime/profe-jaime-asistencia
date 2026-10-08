@@ -1,5 +1,5 @@
-const C='merito-docentes-v1-70-bounded-start';
-const A=['./','index.html','styles.css?v=32','app.js?v=70','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest','version.json','layout-v52.css?v=62'];
+const C='merito-docentes-v1-71-review-response';
+const A=['./','index.html','styles.css?v=32','app.js?v=71','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest','version.json','layout-v52.css?v=62'];
 async function boundedFetch(request){
  const controller=new AbortController();let timer;
  try{return await Promise.race([fetch(request,{cache:'no-store',signal:controller.signal}),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('network_timeout'))},7000)})])}finally{clearTimeout(timer)}
@@ -10,12 +10,12 @@ self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil((async()=>{
 })())});
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
  const c=await caches.open(C);
- if(await c.match(new URL('index.html',self.registration.scope).href)&&await c.match(new URL('app.js?v=70',self.registration.scope).href)){
+ if(await c.match(new URL('index.html',self.registration.scope).href)&&await c.match(new URL('app.js?v=71',self.registration.scope).href)){
   const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('merito-docentes-')&&k!==C).map(k=>caches.delete(k)));
  }
  await self.clients.claim();
  const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
- for(const client of windows)if(client.url.startsWith(self.registration.scope))client.postMessage({type:'MERIT_APP_UPDATED',version:'70'});
+ for(const client of windows)if(client.url.startsWith(self.registration.scope))client.postMessage({type:'MERIT_APP_UPDATED',version:'71'});
 })()));
 self.addEventListener('fetch',e=>{
  const request=e.request,url=new URL(request.url);
@@ -40,3 +40,4 @@ self.addEventListener('fetch',e=>{
 });
 self.addEventListener('push',e=>{let d={};try{d=e.data?e.data.json():{}}catch{};if(!['merit_period_started','merit_vote_open','merit_results_published'].includes(d.event))return;const opts={body:d.body||'',icon:'icon-192.png',badge:'icon-192.png',data:{url:d.url||'./',target:d.target||''},tag:'merit-'+d.event+'-'+(d.created||'')};e.waitUntil(self.registration.showNotification(d.title||'Mérito Gabino A. Palma',opts))});
 self.addEventListener('notificationclick',e=>{e.notification.close();const url=e.notification.data?.url||'./';e.waitUntil(clients.matchAll({type:'window',includeUncontrolled:true}).then(ws=>{for(const w of ws){if('focus'in w){w.navigate(url);return w.focus()}}return clients.openWindow?clients.openWindow(url):null}))});
+

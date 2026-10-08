@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='70';
+const MERIT_APP_VERSION='71';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
@@ -87,8 +87,9 @@ function clearSessionToken(){
 
 async function rpc(name,args={}){
  const controller=new AbortController();
- const timer=setTimeout(()=>controller.abort(),8000);
+ let timer;
  try{
+  return await Promise.race([(async()=>{
   const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{
    method:'POST',
    cache:'no-store',
@@ -99,6 +100,7 @@ async function rpc(name,args={}){
   const text=await r.text();let d=null;try{d=text?JSON.parse(text):null}catch{d=text}
   if(!r.ok)throw new Error(d?.message||d?.error||text||`HTTP ${r.status}`);
   return d;
+  })(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('La conexión tardó demasiado.'))},8000)})]);
  }catch(e){
   if(e?.name==='AbortError')throw new Error('La conexión tardó demasiado.');
   if(!navigator.onLine)throw new Error('No hay conexión a internet.');
@@ -335,11 +337,12 @@ function setBenefitGate(active){
  const btn=$('#reviewBtn');if(btn)btn.disabled=reviewBusy;
  const cancel=$('#benefitCancelBtn');if(cancel)cancel.classList.toggle('hidden',benefitGateActive);
 }
-async function loadMonthlyBenefit(){
+async function loadMonthlyBenefit({strict=false}={}){
  if(!token||!navigator.onLine||!staff?.confirmed||staff?.is_placeholder)return;
  try{
   const d=await rpc('merit_my_benefit',{p_token:token});
-  if(!d?.ok||!d.period)return;
+  if(!d?.ok){if(strict)throw new Error(friendlyReason(d));return;}
+  if(!d.period){setBenefitGate(false);return;}
   meritBenefitData=d;
   const card=$('#benefitCard'),saved=$('#benefitSavedText'),btn=$('#benefitOpenBtn');
   if(d.benefit_required===false){setBenefitGate(false);card?.classList.add('hidden');return;}
@@ -349,7 +352,7 @@ async function loadMonthlyBenefit(){
   else if(d.benefit&&d.review_status==='pending'){setBenefitGate(false);saved.textContent='✓ Beneficio enviado. Ya puedes subir y quitar puntos mientras el Profr. Jaime lo revisa: '+d.benefit;btn.textContent='EDITAR PROPUESTA';}
   else if(d.benefit&&d.review_status==='rejected'){setBenefitGate(true);saved.textContent='⚠ Tu propuesta debe explicar QUÉ LE VAS A DAR AL GRUPO QUE GANE. Motivo de revisión: '+(d.review_reason||'Debes registrar otra propuesta.');btn.textContent='REGISTRAR OTRO BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
   else{setBenefitGate(true);saved.textContent='⚠ Para continuar, escribe QUÉ BENEFICIO LE VAS A DAR AL GRUPO QUE GANE en tu asignatura.';btn.textContent='REGISTRAR MI BENEFICIO';setTimeout(()=>{if(!$('#benefitDialog')?.open)openBenefitDialog()},250);}
- }catch(_){}
+ }catch(e){if(strict)throw e;}
 }
 async function maybeShowWelcome(){
  if(!token||!navigator.onLine||!staff?.confirmed||staff?.is_placeholder)return;
@@ -612,40 +615,52 @@ $('#reviewBtn').onclick=async()=>{
  const btn=$('#reviewBtn'),label=btn.textContent;
  reviewBusy=true;btn.disabled=true;btn.textContent='REVISANDO…';captureNotice('Revisando el registro…');
  try{
- if(await checkMeritUpdate({fromReview:true}))return;
- if(navigator.onLine)await loadMonthlyBenefit();
+ if(!group){captureNotice('Selecciona un grupo.');return;}
+ const cs=selectedCriteria(),reason=$('#reason').value.trim();
+ if(points!==null&&!reason){captureNotice('Escribe el motivo de los puntos.');return;}
+ if(points===null&&!cs.length){captureNotice('Selecciona puntos o al menos un reconocimiento.');return;}
+ $('#confirmSummary').innerHTML=`<p><b>Grupo:</b> ${group}</p><p><b>Puntos:</b> ${points===null?'Sin puntos':points>0?'+'+points:points}</p><p role="status">Comprobando tu acceso… Todavía no se han registrado puntos.</p>`;
+ $('#sendConfirm').disabled=true;
+ openCaptureConfirmation();
+ // Update checks run independently; an update cannot reload an open confirmation.
+ checkMeritUpdate().catch(()=>{});
+ let reviewedDevice=null;
+ if(navigator.onLine){
+  const checked=await Promise.all([loadMonthlyBenefit({strict:true}),rpc('merit_device_info',{p_token:token})]);
+  reviewedDevice=checked[1];
+ }
+ if(!$('#confirmDialog').open)return;
  if(benefitGateActive){
+  closeCaptureConfirmation();
   captureNotice(benefitCaptureNotice());
   if(meritBenefitData?.review_status!=='pending'&&navigator.onLine&&!$('#benefitDialog')?.open)openBenefitDialog();
   return;
  }
  if(mustCompleteFormalSetup()){
+  closeCaptureConfirmation();
   $('#captureStatus').innerHTML='<span class="error">Antes de continuar, completa el cambio de NIP.</span>';
   if(navigator.onLine)openPinDialog(!!staff?.is_placeholder);
   return;
  }
  if(navigator.onLine){
   try{
-   const d=await rpc('merit_device_info',{p_token:token});
+   const d=reviewedDevice;
    if(!d?.ok){
-    clearSessionToken();token='';showActivation();$('#activationStatus').textContent=friendlyReason(d);return;
+    closeCaptureConfirmation();clearSessionToken();token='';showActivation();$('#activationStatus').textContent=friendlyReason(d);return;
    }
    staff=d.staff;accessState=d.access||null;cacheSession(!!d.must_change_pin);
-   if(accessState?.can_capture===false){captureNotice(accessState.message||'Tu cuenta no tiene autorización para registrar en este periodo. Consulta al Profr. Jaime.');return;}
+   if(accessState?.can_capture===false){closeCaptureConfirmation();captureNotice(accessState.message||'Tu cuenta no tiene autorización para registrar en este periodo. Consulta al Profr. Jaime.');return;}
    if(needsProfileSetup() || (d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))){
-    $('#captureStatus').innerHTML='<span class="error">Antes de continuar, completa tu registro y cambia tu NIP.</span>';
+    closeCaptureConfirmation();$('#captureStatus').innerHTML='<span class="error">Antes de continuar, completa tu registro y cambia tu NIP.</span>';
     openPinDialog(needsProfileSetup());return;
    }
-  }catch(e){captureNotice('No se pudo revisar tu acceso: '+e.message+'. Vuelve a tocar REVISAR Y REGISTRAR.');return;}
+  }catch(e){closeCaptureConfirmation();captureNotice('No se pudo revisar tu acceso: '+e.message+'. Vuelve a tocar REVISAR Y REGISTRAR.');return;}
  }
- if(!group)return $('#captureStatus').innerHTML='<span class="error">Selecciona un grupo.</span>';
- const cs=selectedCriteria(),reason=$('#reason').value.trim();
- if(points!==null&&!reason)return $('#captureStatus').innerHTML='<span class="error">Escribe el motivo de los puntos.</span>';
- if(points===null&&!cs.length)return $('#captureStatus').innerHTML='<span class="error">Selecciona puntos o al menos un reconocimiento.</span>';
  $('#confirmSummary').innerHTML=`<p><b>Docente:</b> ${escapeHtml(staff?.display_name||('ID '+staff?.staff_code))}</p><p><b>Grupo:</b> ${group}</p><p><b>Puntos:</b> ${points===null?'Sin puntos':points>0?'+'+points:points}</p>${points!==null?`<p><b>Motivo:</b> ${escapeHtml(reason)}</p>`:''}<p><b>Reconocimientos:</b> ${cs.length?cs.map(x=>criteriaNames[x]).join(', '):'Ninguno'}</p><p class="muted">${navigator.onLine?'Se guardará en línea.':'Sin internet: quedará pendiente y se sincronizará automáticamente.'}</p>`;
  captureNotice('Revisa el resumen y pulsa CONFIRMAR Y GUARDAR.');
+ $('#sendConfirm').disabled=false;
  openCaptureConfirmation();
- }catch(e){captureNotice('No se pudo abrir la confirmación: '+(e.message||e)+'. Vuelve a intentar.');}
+ }catch(e){closeCaptureConfirmation();captureNotice('No se pudo comprobar el registro: '+(e.message||e)+'. No se enviaron puntos. Vuelve a tocar REVISAR Y REGISTRAR.');}
  finally{reviewBusy=false;btn.disabled=false;btn.textContent=label;}
 };
 $('#cancelConfirm').onclick=closeCaptureConfirmation;
@@ -666,6 +681,7 @@ function showSaved(item,offline){
 }
 
 $('#sendConfirm').onclick=async()=>{
+ if(reviewBusy||$('#sendConfirm').disabled)return;
  const btn=$('#sendConfirm');btn.disabled=true;
  const item={
   eventId:eventId(),

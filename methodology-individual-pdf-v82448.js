@@ -42,7 +42,7 @@ printMethodologyIndividuals=async function(){
   // The legacy renderer reads this shared view model. Restore it even on failure.
   const printable={...data,rows};
   window._lastMethodologyCalculation=printable;
-  try{await original.apply(this,arguments)}finally{if(window._lastMethodologyCalculation===printable)window._lastMethodologyCalculation=data}
+  try{await (window.renderMethodologyPointsIndividualPdf||original).apply(this,arguments)}finally{if(window._lastMethodologyCalculation===printable)window._lastMethodologyCalculation=data}
   status('PDF individual generado. Tus calificaciones guardadas no se modificaron.');
  }catch(error){console.error('PDF individual de metodología',error);status('No se pudo generar el PDF: '+(error.message||error)+'. Tus calificaciones se conservan.');}
  finally{busy=false;button.disabled=false;button.textContent=label;}

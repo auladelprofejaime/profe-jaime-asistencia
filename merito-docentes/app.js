@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='71';
+const MERIT_APP_VERSION='72';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
@@ -143,6 +143,7 @@ function friendlyReason(d){
  };
  return map[d?.reason]||d?.reason||'No se pudo guardar.';
 }
+function transientConnectionError(e){return /conexión|internet|tardó|Failed to fetch|Network/i.test(e?.message||String(e||''))}
 function updateOfflineUI(){
  const title=$('#offlineTitle'),detail=$('#offlineDetail'),retry=$('#offlineRetry');
  if(!title||!detail)return;
@@ -206,9 +207,12 @@ function queueMovement(item){
 
 async function checkDevice(){
  if(!token)return showActivation();
+ const cached=readCachedStaff();
+ // Datos móviles pueden indicar "en línea" mientras el servidor todavía responde lento.
+ // Abre la sesión ya verificada y vuelve a validarla sin bloquear la pantalla inicial.
+ if(cached){staff=cached;showCapture();updateOfflineUI()}
  if(!navigator.onLine){
-  staff=readCachedStaff();
-  if(staff){showCapture();updateOfflineUI();return}
+  if(cached)return;
   showActivation();
   $('#activationStatus').innerHTML='<span class="error">Necesitas internet para el primer acceso en este dispositivo.</span>';
   return;
@@ -230,12 +234,16 @@ async function checkDevice(){
     window.__meritStartupComplete=true;
     return;
   }
-  showCapture();
+  if(!cached)showCapture();
+  else{
+   $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
+   $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
+   updateOfflineUI();checkSystemReady();syncPending();
+  }
   if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(false),80);
   syncPending();
  }catch(e){
-  staff=readCachedStaff();
-  if(staff){showCapture();updateOfflineUI()}
+  if(cached){staff=cached;showCapture();updateOfflineUI()}
   else showActivation();
  }
 }
@@ -624,10 +632,15 @@ $('#reviewBtn').onclick=async()=>{
  openCaptureConfirmation();
  // Update checks run independently; an update cannot reload an open confirmation.
  checkMeritUpdate().catch(()=>{});
- let reviewedDevice=null;
+ let reviewedDevice=null,connectionFallback=false;
  if(navigator.onLine){
-  const checked=await Promise.all([loadMonthlyBenefit({strict:true}),rpc('merit_device_info',{p_token:token})]);
-  reviewedDevice=checked[1];
+  try{
+   const checked=await Promise.all([loadMonthlyBenefit({strict:true}),rpc('merit_device_info',{p_token:token})]);
+   reviewedDevice=checked[1];
+  }catch(e){
+   if(staff&&transientConnectionError(e))connectionFallback=true;
+   else throw e;
+  }
  }
  if(!$('#confirmDialog').open)return;
  if(benefitGateActive){
@@ -642,7 +655,7 @@ $('#reviewBtn').onclick=async()=>{
   if(navigator.onLine)openPinDialog(!!staff?.is_placeholder);
   return;
  }
- if(navigator.onLine){
+ if(navigator.onLine&&!connectionFallback){
   try{
    const d=reviewedDevice;
    if(!d?.ok){
@@ -656,7 +669,7 @@ $('#reviewBtn').onclick=async()=>{
    }
   }catch(e){closeCaptureConfirmation();captureNotice('No se pudo revisar tu acceso: '+e.message+'. Vuelve a tocar REVISAR Y REGISTRAR.');return;}
  }
- $('#confirmSummary').innerHTML=`<p><b>Docente:</b> ${escapeHtml(staff?.display_name||('ID '+staff?.staff_code))}</p><p><b>Grupo:</b> ${group}</p><p><b>Puntos:</b> ${points===null?'Sin puntos':points>0?'+'+points:points}</p>${points!==null?`<p><b>Motivo:</b> ${escapeHtml(reason)}</p>`:''}<p><b>Reconocimientos:</b> ${cs.length?cs.map(x=>criteriaNames[x]).join(', '):'Ninguno'}</p><p class="muted">${navigator.onLine?'Se guardará en línea.':'Sin internet: quedará pendiente y se sincronizará automáticamente.'}</p>`;
+ $('#confirmSummary').innerHTML=`<p><b>Docente:</b> ${escapeHtml(staff?.display_name||('ID '+staff?.staff_code))}</p><p><b>Grupo:</b> ${group}</p><p><b>Puntos:</b> ${points===null?'Sin puntos':points>0?'+'+points:points}</p>${points!==null?`<p><b>Motivo:</b> ${escapeHtml(reason)}</p>`:''}<p><b>Reconocimientos:</b> ${cs.length?cs.map(x=>criteriaNames[x]).join(', '):'Ninguno'}</p><p class="muted">${navigator.onLine&&!connectionFallback?'Se guardará en línea.':'Conexión inestable: quedará pendiente y se sincronizará automáticamente.'}</p>`;
  captureNotice('Revisa el resumen y pulsa CONFIRMAR Y GUARDAR.');
  $('#sendConfirm').disabled=false;
  openCaptureConfirmation();
@@ -846,7 +859,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
 if('serviceWorker'in navigator){
- navigator.serviceWorker.register('service-worker.js?v=71',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
+ navigator.serviceWorker.register('service-worker.js?v=72',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
  navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='MERIT_APP_UPDATED')checkMeritUpdate()});
  navigator.serviceWorker.addEventListener('controllerchange',()=>checkMeritUpdate());
 }

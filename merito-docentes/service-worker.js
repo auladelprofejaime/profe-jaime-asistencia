@@ -1,5 +1,5 @@
-const C='merito-docentes-v1-71-review-response';
-const A=['./','index.html','styles.css?v=32','app.js?v=71','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest','version.json','layout-v52.css?v=62'];
+const C='merito-docentes-v1-72-cellular-fast-start';
+const A=['./','index.html','styles.css?v=32','app.js?v=72','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest','version.json','layout-v52.css?v=62'];
 async function boundedFetch(request){
  const controller=new AbortController();let timer;
  try{return await Promise.race([fetch(request,{cache:'no-store',signal:controller.signal}),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('network_timeout'))},7000)})])}finally{clearTimeout(timer)}
@@ -10,17 +10,23 @@ self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil((async()=>{
 })())});
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
  const c=await caches.open(C);
- if(await c.match(new URL('index.html',self.registration.scope).href)&&await c.match(new URL('app.js?v=71',self.registration.scope).href)){
+ if(await c.match(new URL('index.html',self.registration.scope).href)&&await c.match(new URL('app.js?v=72',self.registration.scope).href)){
   const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('merito-docentes-')&&k!==C).map(k=>caches.delete(k)));
  }
  await self.clients.claim();
  const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
- for(const client of windows)if(client.url.startsWith(self.registration.scope))client.postMessage({type:'MERIT_APP_UPDATED',version:'71'});
+ for(const client of windows)if(client.url.startsWith(self.registration.scope))client.postMessage({type:'MERIT_APP_UPDATED',version:'72'});
 })()));
 self.addEventListener('fetch',e=>{
  const request=e.request,url=new URL(request.url);
  if(request.method!=='GET'||url.origin!==self.location.origin)return;
  e.respondWith((async()=>{
+  const shell=A.some(path=>new URL(path,self.registration.scope).pathname===url.pathname)&&!url.pathname.endsWith('/version.json');
+  const cached=shell||request.mode==='navigate'?await caches.match(request,{ignoreSearch:true}):null;
+  if(cached){
+   e.waitUntil(boundedFetch(request).then(r=>r.ok?caches.open(C).then(c=>c.put(request,r.clone())):null).catch(()=>{}));
+   return cached;
+  }
   try{
    const r=await boundedFetch(request);
    if(!r.ok)throw new Error('HTTP '+r.status);

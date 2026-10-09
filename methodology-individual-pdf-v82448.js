@@ -20,12 +20,12 @@ function status(text){
  if(!el){el=document.createElement('p');el.id='methodologyIndividualPdfStatus';el.setAttribute('role','status');el.setAttribute('aria-live','polite');q('methodologyIndividualPdfBtn').closest('.section')?.after(el);if(!el.isConnected)q('methodologyIndividualPdfBtn').after(el)}
  el.textContent=text;
 }
-printMethodologyIndividuals=async function(){
+printMethodologyIndividuals=async function(options={}){
  if(busy)return;
- const button=q('methodologyIndividualPdfBtn'),data=window._lastMethodologyCalculation,id=q('calcMethodology')?.value;
+ const zip=options.zip===true,button=q(zip?'methodologyIndividualZipBtn':'methodologyIndividualPdfBtn'),other=q(zip?'methodologyIndividualPdfBtn':'methodologyIndividualZipBtn'),data=window._lastMethodologyCalculation,id=q('calcMethodology')?.value;
  if(!id||data?.methodology?.id!==id||!data.rows?.length){status('Selecciona la metodología y pulsa Ver promedios guardados antes de generar el PDF. No se recalculó nada.');return;}
  if(!data.methodology.month){status('La metodología no tiene un mes definido. Revisa su configuración antes de generar el PDF.');return;}
- busy=true;const label=button.textContent;button.disabled=true;button.textContent='Generando PDF…';status('Preparando los reportes individuales con las calificaciones mostradas…');
+ busy=true;const label=button.textContent,otherDisabled=other?.disabled;button.disabled=true;if(other)other.disabled=true;button.textContent=zip?'Generando ZIP…':'Generando PDF…';status('Preparando los reportes individuales con las calificaciones mostradas…');
  try{
   await ensurePdf();
   const records=await deadline(all('activityRecords'));
@@ -42,10 +42,10 @@ printMethodologyIndividuals=async function(){
   // The legacy renderer reads this shared view model. Restore it even on failure.
   const printable={...data,rows};
   window._lastMethodologyCalculation=printable;
-  try{await (window.renderMethodologyPointsIndividualPdf||original).apply(this,arguments)}finally{if(window._lastMethodologyCalculation===printable)window._lastMethodologyCalculation=data}
-  status('PDF individual generado. Tus calificaciones guardadas no se modificaron.');
- }catch(error){console.error('PDF individual de metodología',error);status('No se pudo generar el PDF: '+(error.message||error)+'. Tus calificaciones se conservan.');}
- finally{busy=false;button.disabled=false;button.textContent=label;}
+  try{if(zip)await window.renderMethodologyIndividualZip(printable,records,status);else await (window.renderMethodologyPointsIndividualPdf||original).apply(this,arguments)}finally{if(window._lastMethodologyCalculation===printable)window._lastMethodologyCalculation=data}
+  status(zip?'ZIP listo: un PDF por alumno. Pulsa Guardar ZIP para descargarlo.':'PDF individual generado. Tus calificaciones guardadas no se modificaron.');
+ }catch(error){console.error('Reporte individual de metodología',error);status('No se pudo generar el '+(zip?'ZIP':'PDF')+': '+(error.message||error)+'. Tus calificaciones se conservan.');}
+ finally{busy=false;button.disabled=false;button.textContent=label;if(other)other.disabled=otherDisabled;}
 };
 // Capture delegation survives older scripts that rebind the button on load.
 document.addEventListener('click',event=>{

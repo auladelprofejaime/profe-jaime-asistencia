@@ -1,10 +1,10 @@
-window.renderMethodologyPointsIndividualPdf=async function(){
-  let data=window._lastMethodologyCalculation;
+window.renderMethodologyPointsIndividualPdf=async function(options={}){
+  let data=options.data||window._lastMethodologyCalculation;
   const {methodology:m,activities,rows}=data;
   let timer;
-  const details=await Promise.race([ProfeSupabase.rpc('teacher_methodology_report_points',{p_methodology_id:m.id}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('La consulta de puntos tardó demasiado. Vuelve a intentar.')),15000)})]).finally(()=>clearTimeout(timer));
+  const details=options.details||await Promise.race([ProfeSupabase.rpc('teacher_methodology_report_points',{p_methodology_id:m.id}),new Promise((_,reject)=>{timer=setTimeout(()=>reject(new Error('La consulta de puntos tardó demasiado. Vuelve a intentar.')),15000)})]).finally(()=>clearTimeout(timer));
   if(details?.methodology_id!==m.id)throw new Error('No se pudieron consultar los puntos del reporte.');
-  const records=await all('activityRecords');
+  const records=options.records||await all('activityRecords');
   const recordMap=new Map(records.map(r=>[r.key,r]));
   const {jsPDF}=window.jspdf;
   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
@@ -131,6 +131,7 @@ window.renderMethodologyPointsIndividualPdf=async function(){
   });
 
   pdfFooter(doc);
+  if(options.returnDocument)return doc;
   const preview=`<p><b>Materia:</b> ${safe(subject)} · <b>Mes:</b> ${safe(m.month||'Sin definir')}</p>
   <p><b>Docente:</b> ${safe(teacher)}</p>
   <p>Se generó un solo archivo con <b>${rows.length} reportes</b>, con calificación inicial y final, puntos aplicados, donaciones y saldo disponible.</p>`;

@@ -41,7 +41,7 @@ window.renderMethodologyPointsIndividualPdf=async function(){
     const cells=[
      ['Calificación inicial',initial.toFixed(1)],
      ['Calificación final',finalText],
-     ['Puntos aplicados a sí mismo',Number(g.pointsUsed||0).toFixed(2)],
+     ['Puntos aplicados (propios y donados)',Number(g.pointsUsed||0).toFixed(2)],
      ['Puntos donados a compañeros',Number(detail.donated||0).toFixed(2)],
      ['Puntos recibidos por donación',Number(detail.received||0).toFixed(2)],
      ['Puntos extras disponibles',Number(detail.available||0).toFixed(2)]
@@ -55,7 +55,7 @@ window.renderMethodologyPointsIndividualPdf=async function(){
     doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(85,85,85);
     doc.text('Donaciones y uso: esta evaluación. Disponibles: saldo actual al generar el reporte.',14,94);
     doc.text('Promedio sin puntos (incluye extra manual): '+base.toFixed(2)+' · Promedio con puntos: '+Number(g.finalDecimal??g.obtainedAverage??finalGrade).toFixed(2),14,99);
-    doc.text('Los puntos recibidos están incluidos en el saldo; no se suman dos veces.',14,104);
+    doc.text('Los puntos recibidos se aplican automáticamente; el excedente queda disponible.',14,104);
     let y=110;
     m.criteria.forEach((criterion,criterionIndex)=>{
       const criterionActivities=activities.filter(a=>m.assignments?.[a.id]===criterion.id&&(!window.StudentEvaluationRange||StudentEvaluationRange.applicable(m,student.id,a)));

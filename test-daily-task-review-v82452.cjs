@@ -15,5 +15,19 @@ assert.equal(calls.filter(x=>x.name==='teacher_daily_task_save_review').length,1
 q('dailyPrepareNotices').click();assert.match(q('dailyNotices').textContent,/Matemáticas/);assert.doesNotMatch(q('dailyNotices').textContent,/Pages/);assert.match(q('dailyNoticesPanel').textContent,/No se envían automáticamente/);
 q('dailyRoster').children[0].click();q('dailyReport').click();assert.match(q('dailyReportText').value,/No presentó — Matemáticas/);
 broken=true;q('dailyAll').click();await new Promise(r=>setTimeout(r,10));assert.match(q('dailyStatus').textContent,/Sin conexión/);assert.equal(q('dailyAll').disabled,false);assert.equal(q('dailyDate').disabled,false);
-w.close();console.log('PASS: 30 names, no empty saves, retirement, Friday due dates, OCR draft parser, selected missing tasks, unknown variants, double-click guard, reports, error recovery, no auto email');
+// Photo reader uses a single private request and never saves before confirmation.
+broken=false;
+w.ProfeSupabase.URL='https://test.invalid';w.ProfeSupabase.KEY='public-test';w.ProfeSupabase.token=async()=> 'test-session';
+w.AbortSignal={timeout:()=>undefined};w.createImageBitmap=async()=>({width:100,height:100,close(){}});
+w.HTMLCanvasElement.prototype.getContext=()=>({drawImage(){}});w.HTMLCanvasElement.prototype.toDataURL=()=> 'data:image/jpeg;base64,/9j/AA==';
+let photoCalls=0;
+w.fetch=async()=>{photoCalls++;return {ok:true,json:async()=>({tasks:[{subject:'Artes',variant:'Teatro',title:'Aprender [ilegible]',due_date:'',needs_review:true,review_note:'Corrobora la palabra.'}],warnings:[]})}};
+await q('dailyPhoto').onchange({target:{files:[{size:100}]}});
+assert.equal(photoCalls,1);assert.match(q('dailyDraft').textContent,/Corrobora la palabra/);assert.equal(q('dailyConfirmPhoto').disabled,true);
+let ack=q('dailyDraft').querySelector('[data-draft="reviewed"]');ack.checked=true;ack.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(q('dailyConfirmPhoto').disabled,false);
+let title=q('dailyDraft').querySelector('[data-draft="title"]');title.value='Aprender diálogos';title.dispatchEvent(new w.Event('change',{bubbles:true}));assert.equal(q('dailyConfirmPhoto').disabled,true);
+assert.equal(calls.filter(x=>x.name==='teacher_daily_task_save_board').length,0);
+w.fetch=async()=>({ok:false,json:async()=>({message:'Límite gratuito'})});await q('dailyPhoto').onchange({target:{files:[{size:100}]}});assert.equal(q('dailyDraft').children.length,0);assert.equal(q('dailyConfirmPhoto').disabled,true);assert.equal(q('dailyPhoto').disabled,false);
+w.close();console.log('PASS: roster/review regression plus single private photo request, uncertainty acknowledgement, edit invalidates acknowledgement, no pre-confirmation saves, failed photo clears stale draft and unlocks UI');
 })().catch(e=>{console.error(e);process.exitCode=1});
+

@@ -1,0 +1,21 @@
+const fs=require('fs'),vm=require('vm'),assert=require('assert/strict'),{stripTypeScriptTypes}=require('module');
+(async()=>{
+ let key='test-private-key',uid='e35c76f1-b60f-440b-8c88-6acd7efc0128',upStatus=200,geminiCalls=0,handler;
+ let output={tasks:[{subject:'Inglés',variant:'Upper',title:'Páginas del libro',due_date:'',needs_review:false,review_note:''},{subject:'Artes',variant:'Teatro',title:'Aprender [ilegible]',due_date:'2026-02-31',needs_review:false,review_note:'Corrobora la palabra final.'},{subject:'Química',variant:'',title:'No hay',due_date:'',needs_review:false,review_note:''}],warnings:[]};
+ const fetchMock=async(url,opts)=>{if(url.endsWith('/auth/v1/user'))return Response.json({id:uid});geminiCalls++;assert.equal(opts.headers['x-goog-api-key'],key);const body=JSON.parse(opts.body);assert.equal(body.contents.length,1);assert.equal(body.generationConfig.responseMimeType,'application/json');assert.equal(body.tools,undefined);return upStatus===200?Response.json({candidates:[{finishReason:'STOP',content:{parts:[{text:JSON.stringify(output)}]}}]}):new Response('PRIVATE ERROR',{status:upStatus});};
+ const context={Response,Request,TextDecoder,AbortSignal,atob,fetch:fetchMock,Deno:{env:{get:n=>n==='GEMINI_API_KEY'?key:n==='SUPABASE_URL'?'https://test.invalid':'public-test'},serve:h=>handler=h}};
+ const code=stripTypeScriptTypes(fs.readFileSync('daily-photo-reader/index.ts','utf8').replace('export async function','async function'));
+ vm.runInNewContext(code,context);
+ const photo='data:image/jpeg;base64,'+Buffer.from([255,216,255,224,0,16,74,70,73,70,0,1]).toString('base64');
+ const call=(body={photo},headers={authorization:'Bearer test-session',origin:'https://auladelprofejaime.github.io'})=>handler(new Request('https://test.invalid/function',{method:'POST',headers,body:JSON.stringify(body)}));
+ let r=await call();assert.equal(r.status,200);let d=await r.json();assert.equal(d.tasks.length,2);assert.equal(d.tasks[1].needs_review,true);assert.equal(d.tasks[1].due_date,'');assert.ok(!JSON.stringify(d).includes(key));assert.equal(geminiCalls,1);
+ r=await call({photo:'not an image'});assert.equal(r.status,400);assert.equal(geminiCalls,1);
+ r=await call({photo},{});assert.equal(r.status,401);
+ r=await call({photo},{authorization:'Bearer test',origin:'https://evil.invalid'});assert.equal(r.status,403);
+ uid='other-teacher';r=await call();assert.equal(r.status,403);assert.equal(geminiCalls,1);uid='e35c76f1-b60f-440b-8c88-6acd7efc0128';
+ key='';r=await call();assert.equal(r.status,503);key='test-private-key';
+ upStatus=429;r=await call();assert.equal(r.status,503);assert.match((await r.json()).message,/límite gratuito/);assert.equal(geminiCalls,2);
+ upStatus=403;r=await call();assert.ok(!(await r.text()).includes('PRIVATE ERROR'));
+ upStatus=200;output.tasks[0].subject='Inventada';r=await call();assert.equal(r.status,502);
+ console.log('PASS: authenticated owner only, CORS, bounded image validation, schema, no-hay filtering, uncertainty/date validation, private key, quota error with no retry; no database writes.');
+})().catch(e=>{console.error(e);process.exitCode=1});

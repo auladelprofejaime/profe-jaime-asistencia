@@ -1,7 +1,8 @@
-const CACHE='app-docente-v8-24-59-missing-task-zip';
+const CACHE='app-docente-v8-24-60-editorial-calculator';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
+ './book-editorial-calculator-v82460.js?v=82460',
  './daily-missing-zip-v82459.js?v=82459',
  './daily-task-review-v82452.js?v=82459',
  './methodology-individual-zip-v82451.js?v=82459',

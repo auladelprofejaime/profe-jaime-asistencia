@@ -1,7 +1,8 @@
-const CACHE='app-docente-v8-24-62-book-payment-fulfillment';
+const CACHE='app-docente-v8-24-63-portal-access-fast';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
+ './portal-access-fast-v82463.js?v=82463',
  './book-payment-fulfillment-labels-v82462.js?v=82462',
  './book-report-multistatus-v82461.js?v=82461',
  './book-editorial-calculator-v82460.js?v=82460',

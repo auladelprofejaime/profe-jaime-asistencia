@@ -31,17 +31,18 @@ function apiPump(){
  const now=Date.now();
  const wait=Math.max(0,apiCooldownUntil-now,API_MIN_GAP-(now-apiLastStart));
  if(wait>0){setTimeout(apiPump,wait);return}
- const job=apiQueue.shift();apiActive++;apiLastStart=Date.now();
+ const urgent=apiQueue.findIndex(job=>job.priority);
+ const job=apiQueue.splice(urgent<0?0:urgent,1)[0];apiActive++;apiLastStart=Date.now();
  Promise.resolve().then(job.task).then(job.resolve,job.reject).finally(()=>{apiActive--;apiPump()});
  if(apiActive<API_MAX_CONCURRENT)setTimeout(apiPump,API_MIN_GAP);
 }
-function apiSchedule(task){
- return new Promise((resolve,reject)=>{apiQueue.push({task,resolve,reject});apiPump()});
+function apiSchedule(task,priority=false){
+ return new Promise((resolve,reject)=>{apiQueue.push({task,resolve,reject,priority});apiPump()});
 }
 function apiCooldown(ms=2500){
  apiCooldownUntil=Math.max(apiCooldownUntil,Date.now()+ms);
 }
-async function apiFetch(factory,{retry429=true}={}){
+async function apiFetch(factory,{retry429=true,priority=false}={}){
  return apiSchedule(async()=>{
    let r=await factory();
    if(r?.status===429&&retry429){
@@ -52,7 +53,7 @@ async function apiFetch(factory,{retry429=true}={}){
      r=await factory();
    }
    return r;
- });
+ },priority);
 }
 function headers(token,extra={}){return {apikey:KEY,Authorization:`Bearer ${token||KEY}`,...extra}}
 async function parse(r){let t=await r.text(),d=null;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(d?.message||d?.error_description||d?.hint||`Supabase ${r.status}`);return d}
@@ -212,7 +213,7 @@ async function rest(path,{method='GET',body,prefer,onConflict}={}){
  let p=path;if(onConflict)p+=(p.includes('?')?'&':'?')+'on_conflict='+encodeURIComponent(onConflict);
  const doFetch=async(tokenValue)=>{
    const h=headers(tokenValue,body!==undefined?{'Content-Type':'application/json'}:{});if(prefer)h.Prefer=prefer;
-   return apiFetch(()=>fetch(URL+'/rest/v1/'+p,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)}));
+   return apiFetch(()=>fetch(URL+'/rest/v1/'+p,{method,headers:h,body:body===undefined?undefined:JSON.stringify(body)}),{priority:path==='rpc/teacher_poem_dashboard'});
  };
  let r=await doFetch(t);
  if(r.status===401){

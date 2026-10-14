@@ -1,4 +1,4 @@
-const CACHE='app-docente-v8-24-63-portal-access-fast';
+const CACHE='app-docente-v8-24-64-poems-available';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
@@ -17,7 +17,7 @@ const LOCAL=[
  './books-manual-status-v82444.js?v=82459',
  './teacher-points-v82426.js?v=82459','./teacher-point-operations-v82428.js?v=82459',
  './activity-month-register-v82441.js?v=82459',
- './poem-contest-v82440.js?v=82459',
+ './poem-contest-v82440.js?v=82464',
  './books-roster-summary-v82439.js?v=82459',
  './books-editorial-summary-v82438.js?v=82459',
  './activity-week-and-weighted-grades-v82437.js?v=82459',

@@ -19,7 +19,7 @@ if(validPct){const v=Number(pct);interpretation=v>=90?'El resultado se sitúa en
 else if(Number.isFinite(q))interpretation='Se obtuvo un cociente de '+q+'. Para explicar su posición respecto a otros estudiantes es necesario contar con el percentil correspondiente.';
 else interpretation='Se registraron los aciertos; aún no hay una conversión normativa verificable para interpretarlos.';
 const activity=n==="Razonamiento"?'Resolver problemas sencillos, explicar cómo llegó a una respuesta y comparar distintas soluciones.':'Leer textos breves, conversar sobre sus ideas principales y pedirle que explique con sus propias palabras lo que comprendió.';
-return '<h3>'+E(n)+'</h3><p><b>'+E(d.raw)+' aciertos</b>'+(Number.isFinite(q)?' · Cociente '+E(q):'')+(validPct?' · Percentil '+E(pct):'')+'</p>'+chart+'<div class="famInterpret"><b>¿Qué significa para la familia?</b><p>'+E(interpretation)+'</p><b>¿Cómo apoyarlo en casa?</b><p>'+E(activity)+'</p></div>';
+return '<h3>'+E(n)+'</h3><p><b>'+E(d.raw)+' aciertos</b>'+(Number.isFinite(q)?' · Cociente '+E(q):'')+(validPct?' · Percentil '+E(pct):'')+'</p>'+chart+'<div class="famInterpret"><b>¿Qué significa?</b><p>'+E(interpretation)+'</p><b>¿Cómo apoyarlo en casa?</b><p>'+E(activity)+'</p></div>';
 }).join("");
 return section(titles[k],sub);
 }

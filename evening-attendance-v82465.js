@@ -49,7 +49,7 @@ function init(){
   if(isEvening){Array.from(host.children).forEach(x=>{if(x!==panel){if(x.dataset.eveningOldDisplay===undefined)x.dataset.eveningOldDisplay=x.style.display;x.style.display='none'}});load()}
   else Array.from(host.children).forEach(x=>{if(x!==panel&&x.dataset.eveningOldDisplay!==undefined){x.style.display=x.dataset.eveningOldDisplay;delete x.dataset.eveningOldDisplay}});
  }
- if(shift){shift.addEventListener('change',()=>setTimeout(sync,50));setTimeout(sync,1300)}
+ if(shift){if(!Array.from(shift.options).some(o=>/vespertino/i.test(o.value+' '+o.text)))shift.add(new Option('Vespertino','Vespertino'));shift.addEventListener('change',()=>setTimeout(sync,50));setTimeout(sync,1300);setInterval(()=>{if(!Array.from(shift.options).some(o=>/vespertino/i.test(o.value+' '+o.text)))shift.add(new Option('Vespertino','Vespertino'));},1500)}
  else {panel.style.display='';load()}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();

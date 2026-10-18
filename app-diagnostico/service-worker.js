@@ -1,4 +1,4 @@
-const CACHE="diagnostico-v0137";
+const CACHE="diagnostico-v0138";
 const ASSETS=["./","index.html","styles.css","app-v0134.js","lectura-pendientes-v0135.js","lectura-segundos-excel-v0136.js","informe-familiar-v0137.js","manifest.webmanifest","icon-192.png","icon-512.png","icon-original.jpg"];
 
 self.addEventListener("install",event=>{

@@ -42,15 +42,10 @@ function init(){
  panel.innerHTML='<h2>Asistencia vespertina · La Salle</h2><div style="display:flex;gap:10px;flex-wrap:wrap"><label>Grupo <select id="eveningGroup">'+groups.map(g=>'<option>'+g+'</option>').join('')+'</select></label><label>Fecha <input id="eveningDate" type="date"></label><button id="eveningRefresh" type="button">Cargar alumnos</button></div><p id="eveningNotice" role="status"></p><strong id="eveningCounts"></strong><div id="eveningRows"></div>';
  host.insertBefore(panel,host.firstChild);$('eveningDate').value=dateLocal();
  $('eveningGroup').addEventListener('change',load);$('eveningDate').addEventListener('change',load);$('eveningRefresh').addEventListener('click',load);
- const shift=$('attShift');
- function sync(){
-  const isEvening=shift&&/vespertino/i.test(shift.value||shift.options[shift.selectedIndex]?.text||'');
-  panel.style.display=isEvening?'':'none';
-  if(isEvening){Array.from(host.children).forEach(x=>{if(x!==panel){if(x.dataset.eveningOldDisplay===undefined)x.dataset.eveningOldDisplay=x.style.display;x.style.display='none'}});load()}
-  else Array.from(host.children).forEach(x=>{if(x!==panel&&x.dataset.eveningOldDisplay!==undefined){x.style.display=x.dataset.eveningOldDisplay;delete x.dataset.eveningOldDisplay}});
- }
- if(shift){if(!Array.from(shift.options).some(o=>/vespertino/i.test(o.value+' '+o.text)))shift.add(new Option('Vespertino','Vespertino'));shift.addEventListener('change',()=>setTimeout(sync,50));setTimeout(sync,1300);setInterval(()=>{if(!Array.from(shift.options).some(o=>/vespertino/i.test(o.value+' '+o.text)))shift.add(new Option('Vespertino','Vespertino'));},1500)}
- else {panel.style.display='';load()}
+ // Keep the vespertino roster independent of legacy morning-only selectors.
+ // Never hide existing attendance controls or depend on their options.
+ panel.style.display='';
+ load();
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

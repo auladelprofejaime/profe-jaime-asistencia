@@ -628,7 +628,7 @@ function setView(id){
 }
 function pane(prefix,name){$$('.'+prefix+'pane').forEach(x=>x.classList.toggle('active',x.id===prefix+'-'+name));$$('[data-'+prefix+'tab]').forEach(x=>x.classList.toggle('active',x.dataset[prefix+'tab']===name));if(prefix==='act'){if(name==='grid')renderActivityGrid();if(name==='manage')renderActivities()}if(prefix==='tit'&&name==='individual')refreshTitIndividual();if(prefix==='met'){if(name==='manage')renderMethodologies();if(name==='calculate')refreshCalculationMethodologies();if(name==='quarter')refreshQuarterSelectors()}}
 
-async function pullStudentProfileFieldsFromSupabase(){if(!window.ProfeSupabase?.session)return;const rows=await window.ProfeSupabase.select('students','select=id,name,shift,group_name,list_number,active&shift=eq.Vespertino&active=eq.true&order=list_number.asc');for(const r of rows||[]){const old=await req(store('students').get(String(r.id)));await req(store('students','readwrite').put({...old,id:String(r.id),name:r.name,shift:r.shift,group:r.group_name,number:r.list_number,active:true}));}}
+async function pullStudentProfileFieldsFromSupabase(){if(!window.ProfeSupabase?.session)return;const rows=await window.ProfeSupabase.select('students','select=id,name,shift,group_name,list_number,active&shift=eq.Vespertino&active=eq.true&order=list_number.asc');for(const r of rows||[]){const old=await req(store('students').get(String(r.id)));await req(store('students','readwrite').put({...old,id:String(r.id),name:r.name,shift:r.shift,group:r.group_name,number:r.list_number,firstSurname:null,givenNames:null,active:true}));}}
 function birthdayWeekDays(now=new Date()){
  const today=new Date(now.getFullYear(),now.getMonth(),now.getDate());
  const day=today.getDay();
@@ -3140,17 +3140,20 @@ function studentDisplayName(firstSurname,givenNames){
   return [norm(givenNames),norm(firstSurname)].filter(Boolean).join(' ');
 }
 function studentListDisplayName(st){
+  if(sameShift(st?.shift,'Vespertino'))return String(st?.name||st?.id||'Sin nombre').trim();
   const surname=studentSurnameValue(st);
   const given=studentGivenNamesValue(st);
   if(surname&&given)return `${surname}, ${given}`;
   return surname||given||norm(st?.name||st?.id)||'Sin nombre';
 }
 function compareStudentsForList(a,b){
+  if(sameShift(a?.shift,'Vespertino')&&sameShift(b?.shift,'Vespertino')&&sameGroup(a?.group,b?.group))return Number(a.number||0)-Number(b.number||0);
   return studentSurnameValue(a).localeCompare(studentSurnameValue(b),'es',{sensitivity:'base',numeric:true})
     || studentGivenNamesValue(a).localeCompare(studentGivenNamesValue(b),'es',{sensitivity:'base',numeric:true})
     || String(a.id||'').localeCompare(String(b.id||''),'es',{numeric:true});
 }
 async function renumberStudentGroup(shift,group){
+  if(sameShift(shift,'Vespertino'))return (await all('students')).filter(st=>st.active!==false&&sameShift(st.shift,shift)&&sameGroup(st.group,group)).length;
   const rows=(await all('students'))
     .filter(st=>st.active!==false&&String(st.id)!=='00001'&&sameShift(st.shift,shift)&&sameGroup(st.group,group))
     .sort(compareStudentsForList);

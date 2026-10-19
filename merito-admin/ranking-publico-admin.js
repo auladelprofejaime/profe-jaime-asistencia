@@ -5,8 +5,10 @@
   try{
    const periods=await window.ProfeSupabase.rpc('teacher_merit_periods',{});
    if(!Array.isArray(periods))throw new Error('No se autorizó la consulta administrativa.');
-   const period=periods.find(p=>p.status==='open')||periods[0];
-   if(!period)throw new Error('No hay periodos disponibles.');
+   const nowMX=new Date().toLocaleDateString('en-CA',{timeZone:'America/Mexico_City'});
+   const current=periods.filter(p=>p.starts_at<=nowMX&&p.ends_at>=nowMX&&['open','frozen','closed','published'].includes(p.status));
+   const period=current.sort((a,b)=>String(b.starts_at).localeCompare(String(a.starts_at)))[0]||periods.find(p=>String(p.label||'').toLowerCase().includes('octubre 2026'));
+   if(!period)throw new Error('No se encontró el periodo mensual actual; se evita mostrar una clasificación equivocada.');
    const ranking=await window.ProfeSupabase.rpc('teacher_merit_ranking',{p_period_id:period.id});
    const d={period,ranking:Array.isArray(ranking)?ranking:[],category_leaders:[],state:'live'};
    $('#periodName').textContent=d?.period?.label||'Sin periodo abierto';

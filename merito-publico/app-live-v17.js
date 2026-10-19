@@ -5,12 +5,17 @@ const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 function render(){
  $('#periodName').textContent=data?.period?.label||'Sin periodo abierto';
  const rows=Array.isArray(data?.ranking)?data.ranking:[],cats=Array.isArray(data?.category_leaders)?data.category_leaders:[];
- if(data?.state==='results_in_process'){ $('#leaderNow').innerHTML='<div class="empty"><div class="leaderCrown">🔒</div><h2>Se están contando los puntos</h2><p>La clasificación está temporalmente bloqueada mientras se revisan los movimientos y se determina el resultado.</p></div>';$('#ranking').innerHTML='';$('#categories').innerHTML='';return }
+ if(data?.state==='results_in_process'){ $('#leaderNow').innerHTML='<div class="empty"><div class="leaderCrown">🔒</div><h2>Se están contando los puntos</h2><p>La clasificación está temporalmente bloqueada mientras se revisan los movimientos y se determina el resultado.</p></div>';$('#ranking').innerHTML='';$('#categories').innerHTML='';$('#remainingRanking').classList.add('hidden');return }
  if(data?.state==='official'&&data?.official_result){const o=data.official_result;$('#leaderNow').innerHTML='<div class="leaderCrown">🏆</div><div class="leaderLabel">GANADOR OFICIAL</div><div class="leaderGroup">Grupo '+esc(o.overall_winner)+'</div><div class="leaderPoints">'+esc(o.overall_score)+' puntos</div>';$('#ranking').innerHTML='';$('#categories').innerHTML=cats.map(x=>'<div class="categoryTile"><div class="categoryName">'+esc(x.category)+'</div><div class="categoryWinner">🥇 Grupo '+esc(x.group_code)+'</div></div>').join('');return }
  $('#updated').textContent=data?.updated_at?'Actualizado '+new Date(data.updated_at).toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit',second:'2-digit'}):'';
  const winner=rows.find(x=>Number(x.rank)===1);
  $('#leaderNow').innerHTML=winner?`<div class="leaderCrown">🏆</div><div class="leaderLabel">1.er lugar hasta el momento</div><div class="leaderGroup">Grupo ${esc(winner.group_code)}</div><div class="leaderPoints">${esc(winner.score)} puntos</div><div class="leaderNote">Si el periodo terminara ahora, este grupo obtendría el Mérito y los beneficios.</div>`:'<div class="empty">Aún no hay puntuación registrada.</div>';
- $('#ranking').innerHTML=rows.map(x=>`<div class="rankrow top${Number(x.rank)}"><div class="rank">${x.rank}.º</div><div class="grp">Grupo ${esc(x.group_code)}</div><div class="score">${esc(x.score)} pts</div></div>`).join('');
+ const first=rows.filter(x=>Number(x.rank)<=3),others=rows.filter(x=>Number(x.rank)>3);
+ const timeLabel=v=>v?new Date(v).toLocaleString('es-MX',{timeZone:'America/Mexico_City',day:'2-digit',month:'short',hour:'2-digit',minute:'2-digit'}):'Sin movimientos';
+ const card=x=>'<div class="rankrow top'+Number(x.rank)+'"><div class="rank">'+esc(x.rank)+'.º</div><div class="grp">Grupo '+esc(x.group_code)+'</div><div class="score">'+esc(x.score)+' pts</div></div>';
+ $('#ranking').innerHTML=first.map(card).join('');
+ $('#remainingRanking').classList.toggle('hidden',!others.length);
+ $('#remainingRows').innerHTML=others.map(x=>'<div class="rankrow"><div class="rank">'+esc(x.rank)+'.º</div><div class="grp">Grupo '+esc(x.group_code)+'<div class="meritLastMoves">➕ '+esc(timeLabel(x.last_positive_at))+' · ➖ '+esc(timeLabel(x.last_negative_at))+'</div></div><div class="score">'+esc(x.score)+' pts</div></div>').join('');
  $('#categories').innerHTML=cats.length?cats.map(x=>`<div class="categoryTile"><div class="categoryName">${esc(x.category)}</div><div class="categoryWinner">🥇 Grupo ${esc(x.group_code)}</div><div class="categoryScore">${esc(x.score)} reconocimientos</div></div>`).join(''):'<div class="empty">Aún no hay categorías con reconocimientos.</div>';
 }
 function formatMeritTime(v){if(!v)return'—';const[hh,mm]=String(v).slice(0,5).split(':').map(Number),d=new Date();d.setHours(hh,mm,0,0);return d.toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})}

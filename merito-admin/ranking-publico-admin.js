@@ -5,7 +5,10 @@
   try{
    const periods=await window.ProfeSupabase.rpc('teacher_merit_periods',{});
    if(!Array.isArray(periods))throw new Error('No se autorizó la consulta administrativa.');
-   const d=await window.ProfeSupabase.rpc('merit_live_ranking',{});
+   const period=periods.find(p=>p.status==='open')||periods[0];
+   if(!period)throw new Error('No hay periodos disponibles.');
+   const ranking=await window.ProfeSupabase.rpc('teacher_merit_ranking',{p_period_id:period.id});
+   const d={period,ranking:Array.isArray(ranking)?ranking:[],category_leaders:[],state:'live'};
    $('#periodName').textContent=d?.period?.label||'Sin periodo abierto';
    $('#updated').textContent='Actualizado '+new Date().toLocaleTimeString('es-MX',{timeZone:'America/Mexico_City'});
    if(d?.state==='results_in_process'){$('#leaderNow').textContent='Se están revisando los puntos';$('#ranking').innerHTML='';$('#remainingRanking').style.display='none';return}

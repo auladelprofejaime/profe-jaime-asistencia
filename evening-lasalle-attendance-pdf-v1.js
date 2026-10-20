@@ -18,7 +18,7 @@ async function generate(){
  if(!from||!to||from>to)throw Error('Selecciona un rango válido en Desde y Hasta.');
  const api=window.ProfeSupabase;if(!api?.select)throw Error('No hay conexión con la base de datos.');
  notice.textContent='Consultando asistencia guardada…';
- const students=await api.select('students','select=id,name,list_number,group_name,shift,active&shift=eq.Vespertino&group_name=eq.'+encodeURIComponent(group)+'&order=list_number.asc');
+ const students=await api.select('students','select=*&shift=eq.Vespertino&group_name=eq.'+encodeURIComponent(group)+'&order=list_number.asc');
  const roster=(students||[]).filter(x=>x.group_name===group&&x.shift==='Vespertino').sort((a,b)=>Number(a.list_number)-Number(b.list_number));
  if(!roster.length)throw Error('No hay alumnos registrados para '+group+'.');
  const ids=roster.map(x=>x.id);

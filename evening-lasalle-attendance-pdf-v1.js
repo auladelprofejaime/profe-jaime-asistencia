@@ -35,7 +35,9 @@ async function generate(){
  const dates=[...byDay.keys()].sort();
  if(!dates.length)throw Error('No hay pases de lista guardados dentro del rango seleccionado.');
  const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)throw Error('No se pudo cargar el generador de PDF.');
- const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});\n const logoHeader=await svgAsPng('./assets/lasalle-header.svg',660,280);\n const logoTagline=await svgAsPng('./assets/lasalle-tagline.svg',420,100);
+ const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+ const logoHeader=await svgAsPng('./assets/lasalle-header.svg',660,280);
+ const logoTagline=await svgAsPng('./assets/lasalle-tagline.svg',420,100);
  const W=215.9,left=18,right=8,tableW=W-left-right;
  const nW=5,nameW=63,idW=10,rightNoW=5,dateW=(tableW-nW-nameW-idW-rightNoW)/COLS;
  const x0=left,x1=x0+nW,x2=x1+nameW,x3=x2+idW,yTop=35,rowH=3.6,headerH=22;

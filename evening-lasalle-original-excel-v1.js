@@ -30,7 +30,7 @@ async function generate(){const btn=$('#lasalleExcelBtn');btn.disabled=true;try{
  const sheets=Math.ceil(days.length/20);
  for(let page=0;page<sheets;page++){
   const sheet=page===0?original:workbook.addWorksheet('Continuación '+(page+1));
-  if(page>0){sheet.columns=original.columns.map(c=>({width:c.width,style:c.style}));for(let row=1;row<=46;row++){const src=original.getRow(row),dst=sheet.getRow(row);dst.height=src.height;src.eachCell({includeEmpty:true},(cell,col)=>{const d=dst.getCell(col);d.value=cell.value;d.style=JSON.parse(JSON.stringify(cell.style||{}))})}sheet.pageSetup={...original.pageSetup};}
+  if(page>0){sheet.columns=original.columns.map(c=>({width:c.width,style:c.style}));for(let row=1;row<=46;row++){const src=original.getRow(row),dst=sheet.getRow(row);dst.height=src.height;src.eachCell({includeEmpty:true},(cell,col)=>{const d=dst.getCell(col);d.value=cell.value;d.style=JSON.parse(JSON.stringify(cell.style||{}))})}sheet.pageSetup={...original.pageSetup};for(const image of original.getImages()){sheet.addImage(image.imageId,JSON.parse(JSON.stringify(image.range)));}for(const range of Object.keys(original._merges||{})){try{sheet.mergeCells(range)}catch(_){}}}
   const segment=days.slice(page*20,(page+1)*20);
   for(let col=5;col<=24;col++){sheet.getCell(6,col).value=null;for(let row=7;row<=46;row++)sheet.getCell(row,col).value=null}
   segment.forEach((day,i)=>{const col=5+i;sheet.getCell(6,col).value=day.slice(8,10)+'-'+day.slice(5,7);for(let n=1;n<=40;n++){const st=marks.get(day+'|'+n);if(!st)continue;const cell=sheet.getCell(6+n,col);cell.value=/ausen|falta|inasisten/i.test(st)?'/':/retardo/i.test(st)?'R':'•';cell.alignment={horizontal:'center',vertical:'middle'};}});

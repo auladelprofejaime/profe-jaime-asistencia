@@ -4,6 +4,7 @@
 const $=s=>document.querySelector(s), G=['1C','3A','3B','3C'],COLS=20;
 const MATR={"1C":"222316 202196 263324 263290 202336 212259 263391 202133 263157 263040 263320 263175 202082 263270 263353 263218 263321 263311 263041 263080 263284 202042 252244 263263 263224 202084 192179 222142 202263 263389 263370 222377","3A":"182144 243403 243358 243172 212097 243378 182047 243145 182105 182279 182087 222095 243062 243160 182262 192090 243007 243005 243098 263378 192075 243009 182006 182134 212235 192105 182140 182066 243424 243060","3B":"182173 243102 182119 192045 243355 232232 243113 243096 243057 243112 182267 253329 243064 243344 243257 243058 243395 182135 182145 243169 263356 182207 243134 182033 243267 243263 182025 243063 182036 243099 243050","3C":"243072 182154 182009 232263 182048 243356 253099 212289 243230 243180 243322 253325 263325 243323 202220 243061 243390 243377 222198 253297 243266 182043 182102 182240 253162 182169 192280 243008 202287 263395"};
 const txt=v=>String(v??'');
+async function svgAsPng(path,w,h){const res=await fetch(path);if(!res.ok)throw Error('No se pudo cargar el logotipo institucional.');const blob=await res.blob();const url=URL.createObjectURL(blob);try{return await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);resolve(c.toDataURL('image/png'));};im.onerror=reject;im.src=url;});}finally{URL.revokeObjectURL(url);}}
 function init(){
  const box=$('.attendance-report-tools');if(!box)return;
  const b=document.createElement('button');b.id='lasallePdfBtn';b.type='button';b.className='secondary';b.textContent='PDF La Salle · formato original';b.style.marginTop='10px';box.appendChild(b);
@@ -34,7 +35,7 @@ async function generate(){
  const dates=[...byDay.keys()].sort();
  if(!dates.length)throw Error('No hay pases de lista guardados dentro del rango seleccionado.');
  const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)throw Error('No se pudo cargar el generador de PDF.');
- const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+ const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});\n const logoHeader=await svgAsPng('./assets/lasalle-header.svg',660,280);\n const logoTagline=await svgAsPng('./assets/lasalle-tagline.svg',420,100);
  const W=215.9,left=18,right=8,tableW=W-left-right;
  const nW=5,nameW=63,idW=10,rightNoW=5,dateW=(tableW-nW-nameW-idW-rightNoW)/COLS;
  const x0=left,x1=x0+nW,x2=x1+nameW,x3=x2+idW,yTop=35,rowH=3.6,headerH=22;
@@ -44,7 +45,7 @@ async function generate(){
   doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.text('Colegio La Salle - Mixcoac',left+10,16);
   doc.setFontSize(6);doc.text('Secundaria Vespertina     2026-2027',left+10,20);
   doc.text('Jaime Pérez Vázquez',left+10,24);
-  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('ESPAÑOL '+(group[0]==='1'?'I':'III')+' - '+group[0]+'°'+group[1]+'C',W/2,18,{align:'center'});
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('ESPAÑOL '+(group[0]==='1'?'I':'III')+' - '+group[0]+'°'+group[1],W/2,18,{align:'center'});
   doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(28,45,91);doc.text('La',W-right-19,16,{align:'left'});doc.setTextColor(194,25,55);doc.text('★',W-right-11,16,{align:'center'});doc.setTextColor(28,45,91);doc.text('Salle',W-right-8,16,{align:'left'});
   doc.setFontSize(5);doc.text('Calidad · Mixcoac',W-right,21,{align:'right'});doc.setTextColor(20,20,20);
   doc.setFontSize(5.5);doc.text('Fechas registradas: '+from+' a '+to+'   ·   Hoja '+part+' de '+total,left,30);
@@ -54,7 +55,7 @@ async function generate(){
   for(let i=1;i<=maxRows;i++)doc.line(x0,yTop+headerH+i*rowH,W-right,yTop+headerH+i*rowH);
   doc.setFontSize(5.6);doc.text('NO. LISTA',x0+.5,yTop+headerH-2);
   doc.text('NOMBRE DEL ALUMNO',x1+nameW/2,yTop+headerH-2,{align:'center'});
-  doc.text('Matrícula',x2+idW/2,yTop+headerH-2,{align:'center'});
+  doc.text('MATRÍCULA',x2+idW/2,yTop+headerH-2,{align:'center'});doc.text('NO. LISTA',W-right-rightNoW/2,yTop+headerH-2,{align:'center'});
   chunk.forEach((day,j)=>{doc.setFontSize(5);doc.text(day.slice(8,10)+'-'+day.slice(5,7),x3+j*dateW+dateW/2,yTop+headerH-1,{angle:90,align:'left'})});
   roster.slice(0,maxRows).forEach((p,i)=>{
    const y=yTop+headerH+i*rowH;
@@ -69,7 +70,7 @@ async function generate(){
     else{doc.setFillColor(0);doc.circle(cx,cy,.42,'F')}
    });
   });
-  doc.setFont('helvetica','bold');doc.setTextColor(29,54,104);doc.setFontSize(10);doc.text('COMUNIDAD',W-right-1,253,{align:'right'});doc.setTextColor(201,28,54);doc.setFontSize(7);doc.text('QUE TRASCIENDE',W-right-1,257,{align:'right'});doc.setTextColor(20,20,20);
+  doc.addImage(logoTagline,'PNG',W-right-27,246,27,6.4);
  }
  const chunks=[];for(let i=0;i<dates.length;i+=COLS)chunks.push(dates.slice(i,i+COLS));
  chunks.forEach((c,i)=>{if(i)doc.addPage();page(c,i+1,chunks.length)});

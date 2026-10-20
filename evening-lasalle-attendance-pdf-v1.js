@@ -2,6 +2,7 @@
 (function(){
 'use strict';
 const $=s=>document.querySelector(s), G=['1C','3A','3B','3C'],COLS=20;
+const MATR={"1C":"222316 202196 263324 263290 202336 212259 263391 202133 263157 263040 263320 263175 202082 263270 263353 263218 263321 263311 263041 263080 263284 202042 252244 263263 263224 202084 192179 222142 202263 263389 263370 222377","3A":"182144 243403 243358 243172 212097 243378 182047 243145 182105 182279 182087 222095 243062 243160 182262 192090 243007 243005 243098 263378 192075 243009 182006 182134 212235 192105 182140 182066 243424 243060","3B":"182173 243102 182119 192045 243355 232232 243113 243096 243057 243112 182267 253329 243064 243344 243257 243058 243395 182135 182145 243169 263356 182207 243134 182033 243267 243263 182025 243063 182036 243099 243050","3C":"243072 182154 182009 232263 182048 243356 253099 212289 243230 243180 243322 253325 263325 243323 202220 243061 243390 243377 222198 253297 243266 182043 182102 182240 253162 182169 192280 243008 202287 263395"};
 const txt=v=>String(v??'');
 function init(){
  const box=$('.attendance-report-tools');if(!box)return;
@@ -59,7 +60,7 @@ async function generate(){
    const y=yTop+headerH+i*rowH;
    doc.setFont('helvetica','normal');doc.setFontSize(5.5);doc.text(txt(p.list_number),x0+.6,y+2.2);doc.text(txt(p.list_number),W-right-3,y+2.2);
    let name=txt(p.name).toUpperCase();while(doc.getTextWidth(name)>nameW-2&&name.length>3)name=name.slice(0,-1);
-   doc.text(name,x1+.6,y+2.2);doc.setFontSize(5.1);doc.text(txt(p.enrollment||p.matricula||p.student_number||''),x2+.3,y+2.2);
+   doc.text(name,x1+.6,y+2.2);doc.setFontSize(5.1);doc.text(txt(p.enrollment||p.matricula||p.student_number||(MATR[group]?.split(' ')[Number(p.list_number)-1])||''),x2+.3,y+2.2);
    chunk.forEach((day,j)=>{
     const status=byDay.get(day)?.get(txt(p.id));if(!status)return;
     const cx=x3+j*dateW+dateW/2,cy=y+rowH/2;

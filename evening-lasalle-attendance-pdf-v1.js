@@ -6,7 +6,7 @@ const MATR={"1C":"222316 202196 263324 263290 202336 212259 263391 202133 263157
 const txt=v=>String(v??'');
 async function svgAsPng(path,w,h){const res=await fetch(path);if(!res.ok)throw Error('No se pudo cargar el logotipo institucional.');const blob=await res.blob();const url=URL.createObjectURL(blob);try{return await new Promise((resolve,reject)=>{const im=new Image();im.onload=()=>{const c=document.createElement('canvas');c.width=w;c.height=h;c.getContext('2d').drawImage(im,0,0,w,h);resolve(c.toDataURL('image/png'));};im.onerror=reject;im.src=url;});}finally{URL.revokeObjectURL(url);}}
 function init(){
- const box=$('.attendance-report-tools');if(!box)return;
+ const box=$('.attendance-report-tools');if(!box||$('#lasallePdfBtn'))return;
  const b=document.createElement('button');b.id='lasallePdfBtn';b.type='button';b.className='secondary';b.textContent='PDF La Salle · formato original';b.style.marginTop='10px';box.appendChild(b);
  const hint=document.createElement('p');hint.id='lasallePdfStatus';hint.className='hint';hint.textContent='Turno vespertino: hoja carta vertical, fechas con lista registrada, punto para asistencia y diagonal para falta.';box.appendChild(hint);
  b.addEventListener('click',generate);
@@ -79,4 +79,8 @@ async function generate(){
  }catch(e){notice.textContent='No se pudo generar el reporte: '+(e.message||e)}finally{b.disabled=false}
 }
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+// La vista Asistencia puede renderizarse despues del inicio de la app.
+const observer=new MutationObserver(()=>{if(!$('#lasallePdfBtn'))init()});
+observer.observe(document.documentElement,{childList:true,subtree:true});
+document.addEventListener('click',e=>{if(e.target?.closest?.('[data-view="attendance"], [href="#attendance"]'))setTimeout(init,0)},true);
 })();

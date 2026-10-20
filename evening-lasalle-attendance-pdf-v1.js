@@ -35,32 +35,32 @@ async function generate(){
  if(!dates.length)throw Error('No hay pases de lista guardados dentro del rango seleccionado.');
  const jsPDF=window.jspdf?.jsPDF;if(!jsPDF)throw Error('No se pudo cargar el generador de PDF.');
  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
- const W=215.9,left=29,right=28,tableW=W-left-right;
- const nW=5,nameW=53,idW=9,rightNoW=5,dateW=(tableW-nW-nameW-idW-rightNoW)/COLS;
- const x0=left,x1=x0+nW,x2=x1+nameW,x3=x2+idW,yTop=35,rowH=2.95,headerH=16;
+ const W=215.9,left=18,right=8,tableW=W-left-right;
+ const nW=5,nameW=63,idW=10,rightNoW=5,dateW=(tableW-nW-nameW-idW-rightNoW)/COLS;
+ const x0=left,x1=x0+nW,x2=x1+nameW,x3=x2+idW,yTop=35,rowH=3.6,headerH=22;
  const maxRows=40;
  function page(chunk,part,total){
   doc.setLineWidth(.18);doc.setDrawColor(20);
-  doc.setFont('helvetica','normal');doc.setFontSize(9);doc.text('Colegio La Salle - Mixcoac',left+26,16);
-  doc.setFontSize(7);doc.text('Secundaria Vespertina   2026-2027',left+26,21);
-  doc.text('Jaime Pérez Vázquez',left+26,25);
-  doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('ESPAÑOL '+(group[0]==='1'?'I':'III')+' - '+group[0]+'°'+group[1],W/2+26,19,{align:'center'});
-  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.text('La Salle',W-right,18,{align:'right'});
-  doc.setFontSize(6);doc.text('Calidad · Mixcoac',W-right,22,{align:'right'});
-  doc.setFontSize(6);doc.text('Fechas registradas: '+from+' a '+to+'   ·   Hoja '+part+' de '+total,left,30);
+  doc.setFont('helvetica','normal');doc.setFontSize(7.5);doc.text('Colegio La Salle - Mixcoac',left+10,16);
+  doc.setFontSize(6);doc.text('Secundaria Vespertina     2026-2027',left+10,20);
+  doc.text('Jaime Pérez Vázquez',left+10,24);
+  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('ESPAÑOL '+(group[0]==='1'?'I':'III')+' - '+group[0]+'°'+group[1]+'C',W/2,18,{align:'center'});
+  doc.setFont('helvetica','bold');doc.setFontSize(13);doc.setTextColor(28,45,91);doc.text('La',W-right-19,16,{align:'left'});doc.setTextColor(194,25,55);doc.text('★',W-right-11,16,{align:'center'});doc.setTextColor(28,45,91);doc.text('Salle',W-right-8,16,{align:'left'});
+  doc.setFontSize(5);doc.text('Calidad · Mixcoac',W-right,21,{align:'right'});doc.setTextColor(20,20,20);
+  doc.setFontSize(5.5);doc.text('Fechas registradas: '+from+' a '+to+'   ·   Hoja '+part+' de '+total,left,30);
   const bottom=yTop+headerH+maxRows*rowH;
   [x0,x1,x2,x3,...Array.from({length:COLS+1},(_,i)=>x3+i*dateW),W-right].forEach(x=>doc.line(x,yTop,x,bottom));
   doc.line(x0,yTop,W-right,yTop);doc.line(x0,yTop+headerH,W-right,yTop+headerH);
   for(let i=1;i<=maxRows;i++)doc.line(x0,yTop+headerH+i*rowH,W-right,yTop+headerH+i*rowH);
-  doc.setFontSize(5.6);doc.text('No.',x0+.5,yTop+headerH-1.5);
-  doc.text('NOMBRE DEL ALUMNO',x1+nameW/2,yTop+headerH-1.5,{align:'center'});
-  doc.text('MATRÍC.',x2+idW/2,yTop+headerH-2,{align:'center'});
-  chunk.forEach((day,j)=>{doc.setFontSize(6);doc.text(day.slice(8,10)+'-'+day.slice(5,7),x3+j*dateW+dateW/2,yTop+headerH-2,{angle:90,align:'left'})});
+  doc.setFontSize(5.6);doc.text('NO. LISTA',x0+.5,yTop+headerH-2);
+  doc.text('NOMBRE DEL ALUMNO',x1+nameW/2,yTop+headerH-2,{align:'center'});
+  doc.text('Matrícula',x2+idW/2,yTop+headerH-2,{align:'center'});
+  chunk.forEach((day,j)=>{doc.setFontSize(5);doc.text(day.slice(8,10)+'-'+day.slice(5,7),x3+j*dateW+dateW/2,yTop+headerH-1,{angle:90,align:'left'})});
   roster.slice(0,maxRows).forEach((p,i)=>{
    const y=yTop+headerH+i*rowH;
-   doc.setFont('helvetica','normal');doc.setFontSize(5.5);doc.text(txt(p.list_number),x0+.6,y+2.2);doc.text(txt(p.list_number),W-right-3,y+2.2);
+   doc.setFont('helvetica','normal');doc.setFontSize(6.1);doc.text(txt(p.list_number),x0+.6,y+2.5);doc.text(txt(p.list_number),W-right-3,y+2.5);
    let name=txt(p.name).toUpperCase();while(doc.getTextWidth(name)>nameW-2&&name.length>3)name=name.slice(0,-1);
-   doc.text(name,x1+.6,y+2.2);doc.setFontSize(5.1);doc.text(txt(p.enrollment||p.matricula||p.student_number||(MATR[group]?.split(' ')[Number(p.list_number)-1])||''),x2+.3,y+2.2);
+   doc.text(name,x1+.6,y+2.5);doc.setFontSize(5.2);doc.text(txt(p.enrollment||p.matricula||p.student_number||(MATR[group]?.split(' ')[Number(p.list_number)-1])||''),x2+.3,y+2.5);
    chunk.forEach((day,j)=>{
     const status=byDay.get(day)?.get(txt(p.id));if(!status)return;
     const cx=x3+j*dateW+dateW/2,cy=y+rowH/2;
@@ -69,7 +69,7 @@ async function generate(){
     else{doc.setFillColor(0);doc.circle(cx,cy,.42,'F')}
    });
   });
-  doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('COMUNIDAD',W-right,185,{align:'right'});doc.setFontSize(7);doc.text('QUE TRASCIENDE',W-right,189,{align:'right'});
+  doc.setFont('helvetica','bold');doc.setTextColor(29,54,104);doc.setFontSize(10);doc.text('COMUNIDAD',W-right-1,253,{align:'right'});doc.setTextColor(201,28,54);doc.setFontSize(7);doc.text('QUE TRASCIENDE',W-right-1,257,{align:'right'});doc.setTextColor(20,20,20);
  }
  const chunks=[];for(let i=0;i<dates.length;i+=COLS)chunks.push(dates.slice(i,i+COLS));
  chunks.forEach((c,i)=>{if(i)doc.addPage();page(c,i+1,chunks.length)});

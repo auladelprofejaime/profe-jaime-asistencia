@@ -79,3 +79,5 @@
 })();
 
 (function(){const s=document.createElement('script');s.src='seguimiento-3a-riesgo-trimestral-v1.js?v=20261022';document.head.appendChild(s)})();
+
+(function(){const s=document.createElement('script');s.src='morning-book-custody-v1.js?v=1';document.head.appendChild(s)})();

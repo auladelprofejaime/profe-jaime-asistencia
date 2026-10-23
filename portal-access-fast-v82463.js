@@ -77,3 +77,5 @@
  if(typeof originalLogout==='function')client.logout=async function(){clear();return originalLogout.apply(this,arguments);};
  window.PortalAccessFast={clear};
 })();
+
+(function(){const s=document.createElement('script');s.src='seguimiento-3a-riesgo-trimestral-v1.js?v=1';document.head.appendChild(s)})();

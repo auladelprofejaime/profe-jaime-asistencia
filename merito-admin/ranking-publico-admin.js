@@ -11,12 +11,8 @@
    if(!period)throw new Error('No se encontró el periodo mensual actual; se evita mostrar una clasificación equivocada.');
    const ranking=await window.ProfeSupabase.rpc('teacher_merit_ranking',{p_period_id:period.id});
    const rowsForCategories=Array.isArray(ranking)?ranking:[];
-   const categoryNames={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
-   const category_leaders=Object.entries(categoryNames).flatMap(([code,category])=>{
-    const maximum=Math.max(0,...rowsForCategories.map(x=>Number(x.criteria?.[code]||0)));
-    if(maximum===0)return [];
-    return rowsForCategories.filter(x=>Number(x.criteria?.[code]||0)===maximum).map(x=>({category,group_code:x.group_code,score:maximum}));
-   });
+   const category_leaders=await window.ProfeSupabase.rpc('merit_distinct_category_leaders',{p_period_id:period.id});
+   if(!Array.isArray(category_leaders))throw new Error('No se pudieron consultar los reconocimientos.');
    const d={period,ranking:rowsForCategories,category_leaders,state:'live'};
    $('#periodName').textContent=d?.period?.label||'Sin periodo abierto';
    $('#updated').textContent='Actualizado '+new Date().toLocaleTimeString('es-MX',{timeZone:'America/Mexico_City'});

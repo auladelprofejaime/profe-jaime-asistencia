@@ -11,7 +11,7 @@
    if(!period)throw new Error('No se encontró el periodo mensual actual; se evita mostrar una clasificación equivocada.');
    const ranking=await window.ProfeSupabase.rpc('teacher_merit_ranking',{p_period_id:period.id});
    const category_leaders=await window.ProfeSupabase.rpc('merit_distinct_category_leaders',{p_period_id:period.id});
-   const d={period,ranking:rowsForCategories,category_leaders,state:'live'};
+   const d={period,ranking:Array.isArray(ranking)?ranking:[],category_leaders,state:'live'};
    $('#periodName').textContent=d?.period?.label||'Sin periodo abierto';
    $('#updated').textContent='Actualizado '+new Date().toLocaleTimeString('es-MX',{timeZone:'America/Mexico_City'});
    if(d?.state==='results_in_process'){$('#leaderNow').textContent='Se están revisando los puntos';$('#ranking').innerHTML='';$('#remainingRanking').style.display='none';return}

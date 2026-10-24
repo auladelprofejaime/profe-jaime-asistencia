@@ -10,9 +10,7 @@
    const period=current.sort((a,b)=>String(b.starts_at).localeCompare(String(a.starts_at)))[0]||periods.find(p=>String(p.label||'').toLowerCase().includes('octubre 2026'));
    if(!period)throw new Error('No se encontró el periodo mensual actual; se evita mostrar una clasificación equivocada.');
    const ranking=await window.ProfeSupabase.rpc('teacher_merit_ranking',{p_period_id:period.id});
-   const rowsForCategories=Array.isArray(ranking)?ranking:[];
    const category_leaders=await window.ProfeSupabase.rpc('merit_distinct_category_leaders',{p_period_id:period.id});
-   if(!Array.isArray(category_leaders))throw new Error('No se pudieron consultar los reconocimientos.');
    const d={period,ranking:rowsForCategories,category_leaders,state:'live'};
    $('#periodName').textContent=d?.period?.label||'Sin periodo abierto';
    $('#updated').textContent='Actualizado '+new Date().toLocaleTimeString('es-MX',{timeZone:'America/Mexico_City'});

@@ -17,8 +17,8 @@
    if(d?.state==='results_in_process'){$('#leaderNow').textContent='Se están revisando los puntos';$('#ranking').innerHTML='';$('#remainingRanking').style.display='none';return}
    if(d?.state==='official'){$('#leaderNow').innerHTML='<div class="leaderCrown">🏆</div><div class="leaderLabel">GANADOR OFICIAL</div><div class="leaderGroup">Grupo '+esc(d.official_result?.overall_winner)+'</div><div class="leaderPoints">'+esc(d.official_result?.overall_score)+' puntos</div>';$('#remainingRanking').style.display='none';return}
    const rows=Array.isArray(d?.ranking)?d.ranking:[],cats=Array.isArray(d?.category_leaders)?d.category_leaders:[];
-   const win=rows.find(x=>Number(x.rank)===1);
-   $('#leaderNow').innerHTML=win?'<div class="leaderCrown">🏆</div><div class="leaderLabel">1.er lugar hasta el momento</div><div class="leaderGroup">Grupo '+esc(win.group_code)+'</div><div class="leaderPoints">'+esc(win.score)+' puntos</div>':'Sin puntuaciones registradas';
+   const leaders=rows.filter(x=>Number(x.rank)===1);
+   $('#leaderNow').innerHTML=leaders.length?'<div class="leaderCrown">🏆</div><div class="leaderLabel">'+(leaders.length>1?'Empate en 1.er lugar hasta el momento':'1.er lugar hasta el momento')+'</div><div class="leaderGroup">'+leaders.map(x=>'Grupo '+esc(x.group_code)).join(' · ')+'</div><div class="leaderPoints">'+esc(leaders[0].score)+' puntos'+(leaders.length>1?' cada uno':'')+'</div>':'Sin puntuaciones registradas';
    $('#ranking').innerHTML=rows.filter(x=>Number(x.rank)<=3).map(x=>'<div class="rankrow top'+esc(x.rank)+'"><div class="rank">'+esc(x.rank)+'.º</div><div class="grp">Grupo '+esc(x.group_code)+'</div><div class="score">'+esc(x.score)+' pts</div></div>').join('');
    const rest=rows.filter(x=>Number(x.rank)>3);
    $('#remainingRanking').style.display=rest.length?'':'none';

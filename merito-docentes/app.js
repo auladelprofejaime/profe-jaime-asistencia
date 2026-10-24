@@ -294,13 +294,12 @@ function showCapture(){setTimeout(configureSubdireccionPoints,0);
 
 async function loadTeacherCategoryLeaders(){
  const box=$('#teacherCategoryLeaders');if(!box||!token)return;
- if(!navigator.onLine){box.innerHTML='<p class="muted">Conéctate a internet para consultar los líderes actuales.</p>';return}
+ if(!navigator.onLine){box.innerHTML='<p class="muted">Conéctate a internet para consultar los reconocimientos.</p>';return}
  try{
-  const d=await rpc('merit_teacher_category_leaders',{p_token:token});
-  if(!d?.ok)throw new Error(friendlyReason(d));
-  const rows=Array.isArray(d.leaders)?d.leaders:[];
-  box.innerHTML=rows.length?'<table><thead><tr><th>Categoría</th><th>1.er lugar</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(r.label)+'</b></td><td><b>'+escapeHtml((r.groups||[]).map(g=>'Grupo '+g).join(' · '))+'</b>'+(r.groups?.length>1?'<div class="category-tie-badge">EMPATE EN 1.er LUGAR</div>':'')+'</td><td>'+escapeHtml(r.score)+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay datos por categoría.</p>';
- }catch(e){box.innerHTML='<p class="error">No se pudieron cargar los líderes por categoría: '+escapeHtml(e.message||e)+'</p>'}
+  const d=await rpc('merit_live_ranking');
+  const rows=Array.isArray(d.category_leaders)?d.category_leaders:[];
+  box.innerHTML=rows.length?'<table><thead><tr><th>Categoría</th><th>Grupo destacado</th><th>Reconocimientos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td><b>'+escapeHtml(r.category)+'</b></td><td><b>Grupo '+escapeHtml(r.group_code)+'</b></td><td>'+escapeHtml(r.score)+'</td></tr>').join('')+'</tbody></table>':'<p class="muted">Todavía no hay datos por categoría.</p>';
+ }catch(e){box.innerHTML='<p class="error">No se pudieron cargar los reconocimientos: '+escapeHtml(e.message||e)+'</p>'}
 }
 
 async function loadTeacherRanking(){

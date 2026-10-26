@@ -79,18 +79,23 @@ const pending=data.filter(x=>x.status==='pending'),red=data.filter(x=>x.status==
 const top=data.filter(x=>x.a!==null&&x.b!==null&&x.a>=9&&x.b>=9);
 const concerns=data.filter(x=>x.needed!==null&&x.needed>0).sort((a,b)=>b.needed-a.needed);
 const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'letter',compress:true});
-const navy=[9,43,98];doc.setFillColor(...navy);doc.rect(0,0,215.9,5,'F');
-doc.setTextColor(...navy);doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text('COLEGIO LA SALLE · MIXCOAC',13,17);
-doc.setFontSize(8);doc.text('CONSTRUYENDO UN MUNDO FRATERNO',13,22);
-doc.setDrawColor(...navy);doc.line(13,26,203,26);
-doc.setFontSize(11);doc.text('REPORTE INDIVIDUAL DE SEGUIMIENTO ACADEMICO',13,33);
-doc.setFontSize(9);doc.text('3.º A  |  SEPTIEMBRE Y OCTUBRE 2026  |  PROYECCION DE NOVIEMBRE',13,39);
-doc.setFillColor(242,246,252);doc.roundedRect(13,43,190,17,2,2,'F');doc.setTextColor(25,40,65);
-doc.setFontSize(10);doc.text('Alumno: '+name.slice(0,65),17,50);doc.setFontSize(8.5);doc.text('Matricula: '+id+'     Grupo: 3.º A',17,56);
-doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Para acreditar el trimestre se requieren 18 puntos entre los tres meses.',13,66);
+const navy=[9,43,98];
+doc.setTextColor(...navy);
+doc.setFont('helvetica','bold');doc.setFontSize(17);
+doc.text('La',64,16,{align:'right'});doc.text('Salle',89,16);
+doc.setDrawColor(188,25,51);doc.setLineWidth(1.15);
+const star=[];for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,rad=i%2===0?10:4.3;star.push([76+Math.cos(a)*rad,12+Math.sin(a)*rad]);}
+for(let i=0;i<10;i++)doc.line(...star[i],...star[(i+1)%10]);
+doc.setFontSize(9);doc.text('Galicia-Mixcoac',76,26,{align:'center'});
+doc.setDrawColor(...navy);doc.setLineWidth(.5);doc.line(13,30,203,30);
+doc.setFontSize(15);doc.text('REPORTE DE TRIMESTRE',108,39,{align:'center'});
+doc.setFontSize(9);doc.text('Seguimiento academico individual · 3.º A',108,45,{align:'center'});
+doc.setFillColor(242,246,252);doc.roundedRect(13,49,190,17,2,2,'F');doc.setTextColor(25,40,65);
+doc.setFontSize(10);doc.text('Alumno: '+name.slice(0,65),17,56);doc.setFontSize(8.5);doc.text('Matricula: '+id+'     Grupo: 3.º A',17,62);
+doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Para acreditar el trimestre se requieren 18 puntos entre septiembre, octubre y noviembre.',13,71);
 const cards=[['ACREDITACION ASEGURADA',green.length,[20,118,74]],['REQUIEREN MEJORA',yellow.length,[176,113,18]],['RIESGO DE NO ACREDITAR',red.length,[185,48,52]],['POR CONFIRMAR',pending.length,[103,113,128]]];
-cards.forEach((c,i)=>{let x=13+i*48;doc.setFillColor(245,247,251);doc.roundedRect(x,70,45.5,17,1.5,1.5,'F');doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(...c[2]);doc.text(String(c[1]),x+4,78);doc.setFontSize(6.2);doc.text(c[0],x+4,83.7);});
-doc.autoTable({startY:92,margin:{left:13,right:13},tableWidth:190,head:[['MATERIA','SEPT.','OCT.','MIN. NOV.','SITUACION']],body:data.map(x=>[x.subject,x.a===null?'Pendiente':String(x.a),x.b===null?'Pendiente':String(x.b),x.needed===null?'Por determinar':x.needed===0?'Asegurada':String(x.needed),x.status==='green'?'VERDE · Asegurada':x.status==='yellow'?'AMARILLO · Atencion':x.status==='red'?'ROJO · Riesgo':'GRIS · Por confirmar']),theme:'grid',styles:{fontSize:7.8,cellPadding:1.7,minCellHeight:7.4,lineColor:[225,230,238],lineWidth:.2,textColor:[33,45,64]},headStyles:{fillColor:navy,textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:61},1:{cellWidth:21},2:{cellWidth:21},3:{cellWidth:31},4:{cellWidth:56}},didParseCell(h){if(h.section==='body'&&h.column.index===4){const st=data[h.row.index].status;h.cell.styles.textColor=st==='green'?[20,118,74]:st==='yellow'?[176,113,18]:st==='red'?[185,48,52]:[103,113,128];h.cell.styles.fontStyle='bold';}}});
+cards.forEach((c,i)=>{let x=13+i*48;doc.setFillColor(245,247,251);doc.roundedRect(x,75,45.5,17,1.5,1.5,'F');doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(...c[2]);doc.text(String(c[1]),x+4,83);doc.setFontSize(6.2);doc.text(c[0],x+4,88.7);});
+doc.autoTable({startY:97,margin:{left:13,right:13},tableWidth:190,head:[['MATERIA','SEPT.','OCT.','MIN. NOV.','SITUACION']],body:data.map(x=>[x.subject,x.a===null?'Pendiente':String(x.a),x.b===null?'Pendiente':String(x.b),x.needed===null?'Por determinar':x.needed===0?'Asegurada':String(x.needed),x.status==='green'?'VERDE · Asegurada':x.status==='yellow'?'AMARILLO · Atencion':x.status==='red'?'ROJO · Riesgo':'GRIS · Por confirmar']),theme:'grid',styles:{fontSize:7.8,cellPadding:1.7,minCellHeight:7.4,lineColor:[225,230,238],lineWidth:.2,textColor:[33,45,64]},headStyles:{fillColor:navy,textColor:255,fontStyle:'bold'},columnStyles:{0:{cellWidth:61},1:{cellWidth:21},2:{cellWidth:21},3:{cellWidth:31},4:{cellWidth:56}},didParseCell(h){if(h.section==='body'&&h.column.index===4){const st=data[h.row.index].status;h.cell.styles.textColor=st==='green'?[20,118,74]:st==='yellow'?[176,113,18]:st==='red'?[185,48,52]:[103,113,128];h.cell.styles.fontStyle='bold';}}});
 let y=doc.lastAutoTable.finalY+7;doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.setFontSize(10);doc.text('INTERPRETACION INDIVIDUAL',13,y);y+=6;doc.setFont('helvetica','normal');doc.setTextColor(30,43,61);
 let msg='';
 if(data.every(x=>x.a===10&&x.b===10))msg='Desempeno academico sobresaliente: el alumno obtuvo 10 en septiembre y octubre en todas las materias registradas. Tiene asegurada la acreditacion del trimestre. No presenta pendientes academicos en estos resultados; se recomienda mantener su excelente nivel de aprovechamiento.';
@@ -109,7 +114,7 @@ if(pending.length)advice+=' Confirmar directamente con el docente las calificaci
 y=drawLines(doc,advice,13,y,190,8.5,4.2);
 const footY=Math.max(243,Math.min(y+6,251));doc.setFontSize(7.2);doc.setTextColor(90,100,115);
 drawLines(doc,'Nota: los minimos de noviembre son calculos matematicos, no calificaciones ya obtenidas. La informacion pendiente no se considera cero. Consultar las calificaciones oficiales en Systelar.',13,footY,190,7.2,3.6);
-doc.setDrawColor(130,140,154);doc.line(13,266,83,266);doc.line(133,266,203,266);doc.setFontSize(7);doc.text('Firma del titular',30,270);doc.text('Firma de madre, padre o tutor',141,270);
+doc.setDrawColor(130,140,154);doc.line(22,266,125,266);doc.setFontSize(8);doc.setTextColor(...navy);doc.text('Firma de enterado: madre, padre o tutor',73.5,271,{align:'center'});doc.setFontSize(8);doc.text('Fecha de entrega: '+new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'}),203,266,{align:'right'});
 doc.setFillColor(...navy);doc.rect(0,275,215.9,4.4,'F');
 return {blob:doc.output('blob'),name:'Seguimiento_3A_'+norm(name).replace(/[^a-z0-9]+/gi,'_')+'.pdf'};
 }

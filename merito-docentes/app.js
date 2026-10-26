@@ -211,12 +211,6 @@ async function checkDevice(){
  // Datos móviles pueden indicar "en línea" mientras el servidor todavía responde lento.
  // Abre la sesión ya verificada y vuelve a validarla sin bloquear la pantalla inicial.
  if(cached){staff=cached;showCapture();updateOfflineUI()}
- if(!navigator.onLine){
-  if(cached)return;
-  showActivation();
-  $('#activationStatus').innerHTML='<span class="error">Necesitas internet para el primer acceso en este dispositivo.</span>';
-  return;
- }
  try{
   const d=await rpc('merit_device_info',{p_token:token});
   if(!d?.ok){

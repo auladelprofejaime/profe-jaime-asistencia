@@ -103,7 +103,7 @@ async function rpc(name,args={}){
   })(),new Promise((_,reject)=>{timer=setTimeout(()=>{controller.abort();reject(new Error('La conexión tardó demasiado.'))},8000)})]);
  }catch(e){
   if(e?.name==='AbortError')throw new Error('La conexión tardó demasiado.');
-  if(!navigator.onLine)throw new Error('No hay conexión a internet.');
+
   throw e;
  }finally{clearTimeout(timer)}
 }

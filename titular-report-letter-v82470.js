@@ -81,12 +81,8 @@ const concerns=data.filter(x=>x.needed!==null&&x.needed>0).sort((a,b)=>b.needed-
 const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'letter',compress:true});
 const navy=[9,43,98];
 doc.setTextColor(...navy);
-doc.setFont('helvetica','bold');doc.setFontSize(17);
-doc.text('La',64,16,{align:'right'});doc.text('Salle',89,16);
-doc.setDrawColor(188,25,51);doc.setLineWidth(1.15);
-const star=[];for(let i=0;i<10;i++){let a=-Math.PI/2+i*Math.PI/5,rad=i%2===0?10:4.3;star.push([76+Math.cos(a)*rad,12+Math.sin(a)*rad]);}
-for(let i=0;i<10;i++)doc.line(...star[i],...star[(i+1)%10]);
-doc.setFontSize(9);doc.text('Galicia-Mixcoac',76,26,{align:'center'});
+const officialLogo=document.getElementById('jaimeLasalleOfficialLogo');
+if(officialLogo&&officialLogo.complete&&officialLogo.naturalWidth){doc.addImage(officialLogo,'PNG',72,3,72,26);}else{doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('La Salle Galicia-Mixcoac',108,17,{align:'center'});}
 doc.setDrawColor(...navy);doc.setLineWidth(.5);doc.line(13,30,203,30);
 doc.setFontSize(15);doc.text('REPORTE DE TRIMESTRE',108,39,{align:'center'});
 doc.setFontSize(9);doc.text('Seguimiento academico individual · 3.º A',108,45,{align:'center'});

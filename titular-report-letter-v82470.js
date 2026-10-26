@@ -107,7 +107,7 @@ else{
  if(green.length)msg+='La acreditacion del trimestre ya esta asegurada en '+green.length+' materia(s), incluso sin puntos adicionales en noviembre. ';
  if(top.length)msg+='Destaca el alto desempeno en '+top.slice(0,3).map(x=>x.subject).join(', ')+'. ';
  if(concerns.length)msg+='Para acreditar las materias restantes, noviembre es decisivo: '+concerns.slice(0,4).map(x=>x.subject+' requiere '+x.needed).join('; ')+'. ';
- if(red.length)msg+='En '+red.map(x=>x.subject).join(', ')+' no es matematicamente posible llegar a 18 puntos con un maximo de 10 en noviembre; es necesario hablar con el docente sobre la situacion. ';
+ if(red.some(x=>x.needed<=10))msg+='Poner atencion en '+red.filter(x=>x.needed<=10).map(x=>x.subject+' (requiere '+x.needed+')').join(', ')+': aun puede acreditar, pero necesita una calificacion mayor a 5 en noviembre. ';if(red.some(x=>x.needed>10))msg+='En '+red.filter(x=>x.needed>10).map(x=>x.subject).join(', ')+' no es posible alcanzar los 18 puntos aun con 10 en noviembre; consultar al docente. ';
  if(pending.length)msg+='En '+pending.map(x=>x.subject).join(', ')+' la calificacion esta pendiente de confirmacion; no significa cero ni reprobacion. ';
  if(!concerns.length&&!red.length&&!pending.length)msg+='Los resultados actuales permiten acreditar todas las materias. Conviene mantener el buen rendimiento y la constancia.';
 }

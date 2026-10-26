@@ -249,7 +249,7 @@ async function boot(){
  };
  if(await requireSession()){$("#loginGate").classList.add("hidden");$("#appShell").classList.remove("hidden");await startData()}
  else{$("#loginGate").classList.remove("hidden");$("#appShell").classList.add("hidden")}
- if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js?v=12",{updateViaCache:'none'}).catch(()=>{});
+ if("serviceWorker" in navigator)navigator.serviceWorker.register("./service-worker.js?v=13",{updateViaCache:'none'}).catch(()=>{});
 }
 async function startData(){
  const benefits=loadMeritBenefits();

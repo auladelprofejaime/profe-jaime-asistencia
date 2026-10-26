@@ -1,4 +1,4 @@
-const CACHE='app-docente-v8-24-80-delivery-date';
+const CACHE='app-docente-v8-24-81-merit-period-calendar';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[

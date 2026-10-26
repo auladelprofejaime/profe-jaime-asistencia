@@ -438,7 +438,7 @@ async function refreshTieVotes(){
        ?'<div class="tie-voted success">✓ Voto registrado: Grupo '+escapeHtml(issue.my_vote||'')+'</div>'
        :'<div class="tie-vote-options">'+(issue.candidates||[]).map(c=>'<button type="button" class="secondary tieVoteChoice" data-issue="'+escapeHtml(issue.issue_id)+'" data-group="'+escapeHtml(c.group_code)+'">Grupo '+escapeHtml(c.group_code)+'</button>').join('')+'</div>')+
     '</div>').join('')+'</div>').join('');
-  $('.tieVoteChoice').forEach(b=>b.onclick=()=>castTieVote(b.dataset.issue,b.dataset.group));
+  $$('.tieVoteChoice').forEach(b=>b.onclick=()=>castTieVote(b.dataset.issue,b.dataset.group));
   if(st)st.textContent='';
  }catch(e){
   if(st)st.innerHTML='<span class="error">No se pudo consultar la votación: '+escapeHtml(e.message||e)+'</span>';
@@ -591,7 +591,7 @@ if(pointButtonContainer)pointButtonContainer.addEventListener('click',event=>{
  if(!b||!pointButtonContainer.contains(b))return;
  event.preventDefault();
  points=b.dataset.points===''?null:Number(b.dataset.points);
- $('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
+ $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
  $('#reasonWrap')?.classList.toggle('hidden',points===null);
 });
 
@@ -681,7 +681,7 @@ $('#cancelConfirm').onclick=closeCaptureConfirmation;
 
 function resetCapture(){
  points=null;
- $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));
+ $$$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));
  $('#reason').value='';$('#reasonWrap').classList.add('hidden');
  $$('#criteria input').forEach(x=>x.checked=false);
 }
@@ -818,7 +818,7 @@ async function loadTodayMovementsForReview(){
     (crit?'<br><span class="muted">Reconocimientos: '+escapeHtml(crit)+'</span>':'')+
     (m.review_pending?'<br><span class="success">✓ Ya enviaste una solicitud para este movimiento.</span>':'')+'</label>';
   }).join('');
-  $('.movementReviewChoice').forEach(x=>x.onchange=()=>{movementReviewSelected=x.value});
+  $$('.movementReviewChoice').forEach(x=>x.onchange=()=>{movementReviewSelected=x.value});
  }catch(e){if(box)box.innerHTML='';if(st)st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>'}
 }
 async function notifyAdminReviewRequest(requestId){

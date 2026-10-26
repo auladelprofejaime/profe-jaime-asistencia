@@ -74,7 +74,7 @@ const rows=[...table.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorA
 if(!rows.length)throw Error('La tabla no tiene resultados');
 const selected=area.querySelector('select');const name=selected?.selectedOptions?.[0]?.textContent?.trim()||'Alumno seleccionado';
 const id=(area.innerText.match(/Matr[ií]cula:\s*(\d+)/i)||[])[1]||'';
-const data=rows.map(r=>{const a=n(r[1]),b=n(r[2]);let needed=a===null||b===null?null:Math.max(0,Math.round((18-a-b)*10)/10);let status=needed===null?'pending':needed>10?'red':needed<=0?'green':'yellow';return {subject:r[0],a,b,needed,status};});
+const data=rows.map(r=>{const a=n(r[1]),b=n(r[2]);let needed=a===null||b===null?null:Math.max(0,Math.round((18-a-b)*10)/10);let status=needed===null?'pending':needed>10?'red':needed>5?'red':needed<=0?'green':'yellow';return {subject:r[0],a,b,needed,status};});
 const pending=data.filter(x=>x.status==='pending'),red=data.filter(x=>x.status==='red'),yellow=data.filter(x=>x.status==='yellow'),green=data.filter(x=>x.status==='green');
 const top=data.filter(x=>x.a!==null&&x.b!==null&&x.a>=9&&x.b>=9);
 const concerns=data.filter(x=>x.needed!==null&&x.needed>0).sort((a,b)=>b.needed-a.needed);

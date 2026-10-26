@@ -69,7 +69,7 @@ function n(s){const t=norm(s).replace(',','.');if(!t||/sin informaci|pendiente|�
 function words(doc,t,w){return doc.splitTextToSize(t,w);}
 function drawLines(doc,t,x,y,w,size=8.7,line=4.2){doc.setFontSize(size);const lines=words(doc,t,w);doc.text(lines,x,y);return y+lines.length*line;}
 function make(area){
-const table=area.querySelector('table');if(!table)throw Error('No se encontro la tabla de calificaciones');
+const table=area.querySelector('table');if(!table)throw Error('No se encontro la tabla de calificaciónes');
 const rows=[...table.querySelectorAll('tbody tr')].map(tr=>[...tr.querySelectorAll('td')].map(td=>td.innerText.trim())).filter(x=>x.length>=3);
 if(!rows.length)throw Error('La tabla no tiene resultados');
 const selected=area.querySelector('select');const name=selected?.selectedOptions?.[0]?.textContent?.trim()||'Alumno seleccionado';
@@ -86,38 +86,38 @@ doc.setTextColor(...navy);
 if(window.JAIME_LASALLE_LOGO_JPEG){doc.addImage(window.JAIME_LASALLE_LOGO_JPEG,'JPEG',82,2,52,23);}else{doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('La Salle Galicia-Mixcoac',108,17,{align:'center'});}
 doc.setDrawColor(...navy);doc.setLineWidth(.5);doc.line(13,31,203,31);
 doc.setFontSize(15);doc.text('REPORTE DE TRIMESTRE',108,39,{align:'center'});
-doc.setFontSize(9);doc.text('Seguimiento academico individual · 3.º A',108,45,{align:'center'});
+doc.setFontSize(9);doc.text('Seguimiento académico individual · 3.º A',108,45,{align:'center'});
 doc.setFillColor(242,246,252);doc.roundedRect(13,49,190,17,2,2,'F');doc.setTextColor(25,40,65);
-doc.setFontSize(10);doc.text('Alumno: '+name.slice(0,65),17,56);doc.setFontSize(8.5);doc.text('Matricula: '+id+'     Grupo: 3.º A',17,62);
+doc.setFontSize(10);doc.text('Alumno: '+name.slice(0,65),17,56);doc.setFontSize(8.5);doc.text('Matrícula: '+id+'     Grupo: 3.º A',17,62);
 doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Para acreditar el trimestre se requieren 18 puntos entre septiembre, octubre y noviembre.',13,71);
-const cards=[['ACREDITACION ASEGURADA',green.length,[20,118,74]],['ALCANZABLE',yellow.length,[176,113,18]],['PONER ATENCION',red.length,[185,48,52]],['POR CONFIRMAR',pending.length,[103,113,128]]];
+const cards=[['ACREDITACIÓN ASEGURADA',green.length,[20,118,74]],['ALCANZABLE',yellow.length,[176,113,18]],['PONER ATENCIÓN',red.length,[185,48,52]],['POR CONFIRMAR',pending.length,[103,113,128]]];
 cards.forEach((c,i)=>{let x=13+i*48;doc.setFillColor(245,247,251);doc.roundedRect(x,75,45.5,17,1.5,1.5,'F');doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(...c[2]);doc.text(String(c[1]),x+4,83);doc.setFontSize(6.2);doc.text(c[0],x+4,88.7);});
 doc.autoTable({startY:97,margin:{left:13,right:13},tableWidth:190,
-head:[['MATERIA','SEPT.','OCT.','ACUM.','NECESITA NOV.','SITUACION']],
-body:data.map(x=>[x.subject,x.a===null?'—':String(x.a),x.b===null?'—':String(x.b),x.a===null||x.b===null?'—':String(Math.round((x.a+x.b)*10)/10),x.needed===null?'Por confirmar':x.needed===0?'0':String(x.needed),x.status==='green'?'ASEGURADA':x.status==='yellow'?'ALCANZABLE':x.status==='red'?(x.needed>10?'NO ALCANZABLE':'PONER ATENCION'):'POR CONFIRMAR']),
+head:[['MATERIA','SEPT.','OCT.','ACUM.','NECESITA NOV.','SITUACIÓN']],
+body:data.map(x=>[x.subject,x.a===null?'—':String(x.a),x.b===null?'—':String(x.b),x.a===null||x.b===null?'—':String(Math.round((x.a+x.b)*10)/10),x.needed===null?'Por confirmar':x.needed===0?'0':String(x.needed),x.status==='green'?'ASEGURADA':x.status==='yellow'?'ALCANZABLE':x.status==='red'?(x.needed>10?'NO ALCANZABLE':'PONER ATENCIÓN'):'POR CONFIRMAR']),
 theme:'grid',styles:{fontSize:7.2,cellPadding:1.4,minCellHeight:7.2,lineColor:[218,226,235],lineWidth:.2,textColor:[33,45,64]},
 headStyles:{fillColor:navy,textColor:255,fontStyle:'bold',fontSize:7.1},
 columnStyles:{0:{cellWidth:49},1:{cellWidth:17},2:{cellWidth:17},3:{cellWidth:20},4:{cellWidth:32},5:{cellWidth:55}},
 didParseCell(h){if(h.section==='body'&&h.column.index===5){const st=data[h.row.index].status;const col=st==='green'?[20,118,74]:st==='yellow'?[176,113,18]:st==='red'?[185,48,52]:[103,113,128];h.cell.styles.textColor=col;h.cell.styles.fillColor=st==='green'?[230,246,235]:st==='yellow'?[255,246,224]:st==='red'?[255,234,235]:[239,241,245];h.cell.styles.fontStyle='bold';}}
 });
-let y=doc.lastAutoTable.finalY+7;doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.setFontSize(10);doc.text('INTERPRETACION INDIVIDUAL',13,y);y+=6;doc.setFont('helvetica','normal');doc.setTextColor(30,43,61);
+let y=doc.lastAutoTable.finalY+7;doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.setFontSize(10);doc.text('INTERPRETACIÓN INDIVIDUAL',13,y);y+=6;doc.setFont('helvetica','normal');doc.setTextColor(30,43,61);
 let msg='';
-if(data.every(x=>x.a===10&&x.b===10))msg='Desempeno academico sobresaliente: el alumno obtuvo 10 en septiembre y octubre en todas las materias registradas. Tiene asegurada la acreditacion del trimestre. No presenta pendientes academicos en estos resultados; se recomienda mantener su excelente nivel de aprovechamiento.';
+if(data.every(x=>x.a===10&&x.b===10))msg='Desempeño académico sobresaliente: el alumno obtuvo 10 en septiembre y octubre en todas las materias registradas. Tiene asegurada la acreditación del trimestre. No presenta pendientes académicos en estos resultados; se recomienda mantener su excelente nivel de aprovechamiento.';
 else{
- if(green.length)msg+='La acreditacion del trimestre ya esta asegurada en '+green.length+' materia(s), incluso sin puntos adicionales en noviembre. ';
- if(top.length)msg+='Destaca el alto desempeno en '+top.slice(0,3).map(x=>x.subject).join(', ')+'. ';
+ if(green.length)msg+='La acreditación del trimestre ya está asegurada en '+green.length+' materia(s), incluso sin puntos adicionales en noviembre. ';
+ if(top.length)msg+='Destaca el alto desempeño en '+top.slice(0,3).map(x=>x.subject).join(', ')+'. ';
  if(concerns.length)msg+='Para acreditar las materias restantes, noviembre es decisivo: '+concerns.slice(0,4).map(x=>x.subject+' requiere '+x.needed).join('; ')+'. ';
- if(red.some(x=>x.needed<=10))msg+='Poner atencion en '+red.filter(x=>x.needed<=10).map(x=>x.subject+' (requiere '+x.needed+')').join(', ')+': aun puede acreditar, pero necesita una calificacion mayor a 5 en noviembre. ';if(red.some(x=>x.needed>10))msg+='En '+red.filter(x=>x.needed>10).map(x=>x.subject).join(', ')+' no es posible alcanzar los 18 puntos aun con 10 en noviembre; consultar al docente. ';
- if(pending.length)msg+='En '+pending.map(x=>x.subject).join(', ')+' la calificacion esta pendiente de confirmacion; no significa cero ni reprobacion. ';
+ if(red.some(x=>x.needed<=10))msg+='Poner atención en '+red.filter(x=>x.needed<=10).map(x=>x.subject+' (requiere '+x.needed+')').join(', ')+': aún puede acreditar, pero necesita una calificación mayor a 5 en noviembre. ';if(red.some(x=>x.needed>10))msg+='En '+red.filter(x=>x.needed>10).map(x=>x.subject).join(', ')+' no es posible alcanzar los 18 puntos aun con 10 en noviembre; consultar al docente. ';
+ if(pending.length)msg+='En '+pending.map(x=>x.subject).join(', ')+' la calificación está pendiente de confirmacion; no significa cero ni reprobacion. ';
  if(!concerns.length&&!red.length&&!pending.length)msg+='Los resultados actuales permiten acreditar todas las materias. Conviene mantener el buen rendimiento y la constancia.';
 }
 y=drawLines(doc,msg,13,y,190,8.7,4.25)+6;
 doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.setFontSize(10);doc.text('ORIENTACIONES PARA LA FAMILIA',13,y);y+=6;doc.setFont('helvetica','normal');doc.setTextColor(30,43,61);
-let advice=red.length?'Dar seguimiento prioritario a las materias en rojo. Si necesitan hasta 10 puntos en noviembre, todavia pueden acreditarse; si necesitan mas de 10, consultar al docente sobre alternativas institucionales.':concerns.length?'Dar seguimiento a las materias que requieren una calificacion especifica en noviembre y verificar las evaluaciones programadas.':'Mantener los habitos de estudio y la entrega oportuna de actividades; no se identifican materias que requieran recuperacion en los registros disponibles.';
-if(pending.length)advice+=' Confirmar directamente con el docente las calificaciones que aun no aparecen registradas.';
+let advice=red.length?'Dar seguimiento prioritario a las materias en rojo. Si necesitan hasta 10 puntos en noviembre, todavía pueden acreditarse; si necesitan más de 10, consultar al docente sobre alternativas institucionales.':concerns.length?'Dar seguimiento a las materias que requieren una calificación especifica en noviembre y verificar las evaluaciones programadas.':'Mantener los hábitos de estudio y la entrega oportuna de actividades; no se identifican materias que requieran recuperación en los registros disponibles.';
+if(pending.length)advice+=' Confirmar directamente con el docente las calificaciónes que aun no aparecen registradas.';
 y=drawLines(doc,advice,13,y,190,8.5,4.2);
 const footY=Math.max(241,Math.min(y+6,250));doc.setFontSize(7.2);doc.setTextColor(90,100,115);
-drawLines(doc,'Nota: los minimos de noviembre son calculos matematicos, no calificaciones ya obtenidas. La informacion pendiente no se considera cero. Consultar las calificaciones oficiales en Systelar.',13,footY,190,7.2,3.6);
+drawLines(doc,'Nota: los mínimos de noviembre son cálculos matematicos, no calificaciónes ya obtenidas. La información pendiente no se considera cero. Consultar las calificaciónes oficiales en Systelar.',13,footY,190,7.2,3.6);
 doc.setFontSize(8);doc.setTextColor(...navy);
 if(copyIndex===1){doc.setDrawColor(130,140,154);doc.line(22,266,125,266);doc.text('Firma de enterado: madre, padre o tutor',73.5,271,{align:'center'});}
 else{doc.text('COPIA PARA LA FAMILIA',13,266);}

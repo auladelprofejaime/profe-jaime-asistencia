@@ -93,11 +93,11 @@ doc.setFontSize(9);doc.text('Seguimiento academico individual · 3.º A',108,45,
 doc.setFillColor(242,246,252);doc.roundedRect(13,49,190,17,2,2,'F');doc.setTextColor(25,40,65);
 doc.setFontSize(10);doc.text('Alumno: '+name.slice(0,65),17,56);doc.setFontSize(8.5);doc.text('Matricula: '+id+'     Grupo: 3.º A',17,62);
 doc.setFont('helvetica','normal');doc.setFontSize(8);doc.text('Para acreditar el trimestre se requieren 18 puntos entre septiembre, octubre y noviembre.',13,71);
-const cards=[['ACREDITACION ASEGURADA',green.length,[20,118,74]],['REQUIEREN MEJORA',yellow.length,[176,113,18]],['RIESGO DE NO ACREDITAR',red.length,[185,48,52]],['POR CONFIRMAR',pending.length,[103,113,128]]];
+const cards=[['ACREDITACION ASEGURADA',green.length,[20,118,74]],['ALCANZABLE',yellow.length,[176,113,18]],['NO ALCANZABLE',red.length,[185,48,52]],['POR CONFIRMAR',pending.length,[103,113,128]]];
 cards.forEach((c,i)=>{let x=13+i*48;doc.setFillColor(245,247,251);doc.roundedRect(x,75,45.5,17,1.5,1.5,'F');doc.setFont('helvetica','bold');doc.setFontSize(15);doc.setTextColor(...c[2]);doc.text(String(c[1]),x+4,83);doc.setFontSize(6.2);doc.text(c[0],x+4,88.7);});
 doc.autoTable({startY:97,margin:{left:13,right:13},tableWidth:190,
 head:[['MATERIA','SEPT.','OCT.','ACUM.','NECESITA NOV.','SITUACION']],
-body:data.map(x=>[x.subject,x.a===null?'—':String(x.a),x.b===null?'—':String(x.b),x.a===null||x.b===null?'—':String(Math.round((x.a+x.b)*10)/10),x.needed===null?'Por confirmar':x.needed===0?'0':String(x.needed),x.status==='green'?'Acreditacion asegurada':x.status==='yellow'?'En atencion':x.status==='red'?'No alcanzable':'Por confirmar']),
+body:data.map(x=>[x.subject,x.a===null?'—':String(x.a),x.b===null?'—':String(x.b),x.a===null||x.b===null?'—':String(Math.round((x.a+x.b)*10)/10),x.needed===null?'Por confirmar':x.needed===0?'0':String(x.needed),x.status==='green'?'ASEGURADA':x.status==='yellow'?'ALCANZABLE':x.status==='red'?'NO ALCANZABLE':'POR CONFIRMAR']),
 theme:'grid',styles:{fontSize:7.2,cellPadding:1.4,minCellHeight:7.2,lineColor:[218,226,235],lineWidth:.2,textColor:[33,45,64]},
 headStyles:{fillColor:navy,textColor:255,fontStyle:'bold',fontSize:7.1},
 columnStyles:{0:{cellWidth:49},1:{cellWidth:17},2:{cellWidth:17},3:{cellWidth:20},4:{cellWidth:32},5:{cellWidth:55}},

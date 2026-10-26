@@ -79,6 +79,8 @@ const pending=data.filter(x=>x.status==='pending'),red=data.filter(x=>x.status==
 const top=data.filter(x=>x.a!==null&&x.b!==null&&x.a>=9&&x.b>=9);
 const concerns=data.filter(x=>x.needed!==null&&x.needed>0).sort((a,b)=>b.needed-a.needed);
 const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'letter',compress:true});
+for(let copyIndex=0;copyIndex<2;copyIndex++){
+if(copyIndex===1)doc.addPage('letter','portrait');
 const navy=[9,43,98];
 doc.setTextColor(...navy);
 if(window.JAIME_LASALLE_LOGO_JPEG){doc.addImage(window.JAIME_LASALLE_LOGO_JPEG,'JPEG',82,2,52,23);}else{doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('La Salle Galicia-Mixcoac',108,17,{align:'center'});}
@@ -116,8 +118,12 @@ if(pending.length)advice+=' Confirmar directamente con el docente las calificaci
 y=drawLines(doc,advice,13,y,190,8.5,4.2);
 const footY=Math.max(241,Math.min(y+6,250));doc.setFontSize(7.2);doc.setTextColor(90,100,115);
 drawLines(doc,'Nota: los minimos de noviembre son calculos matematicos, no calificaciones ya obtenidas. La informacion pendiente no se considera cero. Consultar las calificaciones oficiales en Systelar.',13,footY,190,7.2,3.6);
-doc.setDrawColor(130,140,154);doc.line(22,266,125,266);doc.setFontSize(8);doc.setTextColor(...navy);doc.text('Firma de enterado: madre, padre o tutor',73.5,271,{align:'center'});doc.setFontSize(8);doc.text('Fecha de entrega: '+new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'}),203,266,{align:'right'});
+doc.setFontSize(8);doc.setTextColor(...navy);
+if(copyIndex===1){doc.setDrawColor(130,140,154);doc.line(22,266,125,266);doc.text('Firma de enterado: madre, padre o tutor',73.5,271,{align:'center'});}
+else{doc.text('COPIA PARA LA FAMILIA',13,266);}
+doc.text('Fecha de entrega: '+new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'}),203,266,{align:'right'});
 doc.setFillColor(...navy);doc.rect(0,275,215.9,4.4,'F');
+}
 return {blob:doc.output('blob'),name:'Seguimiento_3A_'+norm(name).replace(/[^a-z0-9]+/gi,'_')+'.pdf'};
 }
 function show(result){

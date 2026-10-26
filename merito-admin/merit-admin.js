@@ -58,10 +58,17 @@
       const rowsRaw=await rpc('teacher_merit_periods',{});
       const rows=Array.isArray(rowsRaw)?rowsRaw:(Array.isArray(rowsRaw?.periods)?rowsRaw.periods:[]);
       window.meritPeriodsCache=rows;
-      ['meritRankingPeriod','meritMovementPeriod','meritWeeklyPeriod'].forEach(id=>fillSelect($('#'+id),rows));
+      ['meritRankingPeriod','meritMovementPeriod','meritWeeklyPeriod','meritBenefitsPeriod'].forEach(id=>fillSelect($('#'+id),rows));
       const monthlyRows=rows.filter(p=>!String(p.label||'').trim().toLowerCase().startsWith('tramo final'));
       ['meritMonthlyPeriod','meritBitacoraPeriod'].forEach(id=>fillSelect($('#'+id),monthlyRows));
       renderPeriodList(rows);
+      const benefitsSelect=$('#meritBenefitsPeriod');
+      if(benefitsSelect && rows.length){
+        const today=new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date());
+        const current=rows.find(p=>today>=String(p.starts_at||'')&&today<=String(p.ends_at||'')&&!String(p.label||'').toLowerCase().startsWith('prueba'));
+        if(current && !benefitsSelect.dataset.periodInitialized){benefitsSelect.value=String(current.id);benefitsSelect.dataset.periodInitialized='1';}
+        if($('#merit-benefits')?.classList.contains('active') && typeof window.loadMeritBenefits==='function')window.loadMeritBenefits().catch(()=>{});
+      }
       if(configStatus && rows.length)configStatus.textContent='✓ '+rows.length+' periodo'+(rows.length===1?'':'s')+' disponible'+(rows.length===1?'':'s')+'.';
       if($('#meritBitacoras')?.classList.contains('active'))setTimeout(loadBitacoraMatrix,40);
       return rows;

@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='82';
+const MERIT_APP_VERSION='83';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
@@ -860,7 +860,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
 if('serviceWorker'in navigator){
- navigator.serviceWorker.register('service-worker.js?v=82',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
+ navigator.serviceWorker.register('service-worker.js?v=83',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
  navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='MERIT_APP_UPDATED')checkMeritUpdate()});
  navigator.serviceWorker.addEventListener('controllerchange',()=>checkMeritUpdate());
 }

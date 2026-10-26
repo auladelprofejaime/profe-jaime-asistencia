@@ -119,9 +119,9 @@ y=drawLines(doc,advice,13,y,190,8.5,4.2);
 const footY=Math.max(241,Math.min(y+6,250));doc.setFontSize(7.2);doc.setTextColor(90,100,115);
 drawLines(doc,'Nota: los mínimos de noviembre son cálculos matematicos, no calificaciónes ya obtenidas. La información pendiente no se considera cero. Consultar las calificaciónes oficiales en Systelar.',13,footY,190,7.2,3.6);
 doc.setFontSize(8);doc.setTextColor(...navy);
-if(copyIndex===1){doc.setDrawColor(130,140,154);doc.line(22,266,125,266);doc.text('Firma de enterado: madre, padre o tutor',73.5,271,{align:'center'});}
+if(copyIndex===1){doc.setDrawColor(130,140,154);doc.line(22,265,110,265);doc.text('Firma de enterado: madre, padre o tutor',66,270,{align:'center'});doc.text('Fecha de entrega: ____ / ____ / ______',131,265);}
 else{doc.text('COPIA PARA LA FAMILIA',13,266);}
-doc.text('Fecha de entrega: '+new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'}),203,266,{align:'right'});
+doc.text('Reporte generado: '+new Date().toLocaleDateString('es-MX',{day:'2-digit',month:'2-digit',year:'numeric'}),203,273,{align:'right'});
 doc.setFillColor(...navy);doc.rect(0,275,215.9,4.4,'F');
 }
 return {blob:doc.output('blob'),name:'Seguimiento_3A_'+norm(name).replace(/[^a-z0-9]+/gi,'_')+'.pdf'};

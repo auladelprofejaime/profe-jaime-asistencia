@@ -590,7 +590,17 @@ function renderGroups(){
  }
 }
 
-$$('#pointButtons button').forEach(b=>b.onclick=()=>{
+// Delegated handler also works when the interface is refreshed or restored.
+const pointButtonContainer=$('#pointButtons');
+if(pointButtonContainer)pointButtonContainer.addEventListener('click',event=>{
+ const b=event.target.closest('button[data-points]');
+ if(!b||!pointButtonContainer.contains(b))return;
+ event.preventDefault();
+ points=b.dataset.points===''?null:Number(b.dataset.points);
+ $('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
+ $('#reasonWrap')?.classList.toggle('hidden',points===null);
+});
+
  points=b.dataset.points===''?null:Number(b.dataset.points);
  $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
  $('#reasonWrap').classList.toggle('hidden',points===null);

@@ -255,7 +255,7 @@ function showActivation(invite=false){
  const st=$('#activationStatus');
  if(invite&&st)st.innerHTML='<div style="margin-top:14px;padding:18px;border:2px solid #c9962d;border-radius:18px;background:linear-gradient(135deg,#fff7d8,#fffdf5);color:#071a36;text-align:center;box-shadow:0 8px 22px rgba(7,26,54,.12)"><div style="font-size:2.2rem">🏆✨</div><div style="font-size:1.12rem;font-weight:900;margin:5px 0">¿Quieres participar en Mérito Gabino A. Palma?</div><div style="line-height:1.45">¡Nos dará mucho gusto contar contigo! Acércate o escríbele al <b>Profr. Jaime</b> para que te dé acceso.</div></div>';
 }
-function showCapture(){setTimeout(configureSubdireccionPoints,0);
+function showCapture(){
  window.__meritStartupComplete=true;document.getElementById('meritBootRecovery')?.remove();
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
  const pending=$('#accessPendingCard'),workspace=$('#captureWorkspace');
@@ -589,29 +589,10 @@ function renderGroups(){
   box.appendChild(b);
  }
 }
-function configureSubdireccionPoints(){
- const box=$('#pointButtons');if(!box)return;
- let extra=$('#subdireccionPoints');
- if(!['700047','700001'].includes(String(staff?.staff_code))){if(extra)extra.remove();return;}
- if(extra)return;
- extra=document.createElement('div');extra.id='subdireccionPoints';
- extra.style.cssText='margin-top:14px;padding:12px;border:1px solid #d5ad45;border-radius:12px;background:#fff8df';
- extra.innerHTML='<label style="display:block;font-weight:700">Puntaje especial <input id="subdireccionPointsInput" type="number" step="1" placeholder="Ej. -10 o 15" style="display:block;width:100%;margin-top:7px"></label><button type="button" class="point" id="subdireccionPointsApply" style="margin-top:9px">Usar este puntaje</button><p class="muted">Disponible para las cuentas autorizadas. Escribe un número positivo o negativo diferente de cero.</p>';
- box.after(extra);
- $('#subdireccionPointsApply').onclick=()=>{
-  const raw=$('#subdireccionPointsInput').value.trim(),v=Number(raw);
-  if(!raw||!Number.isSafeInteger(v)||v===0||Math.abs(v)>2147483647){alert('Escribe un número entero distinto de cero.');return;}
-  points=v;
-  $$('#pointButtons button').forEach(btn=>btn.classList.remove('active'));
-  $('#subdireccionPointsApply').classList.add('active');
-  $('#reasonWrap').classList.remove('hidden');
- };
-}
 
 $('#pointButtons button').forEach(b=>b.onclick=()=>{
  points=b.dataset.points===''?null:Number(b.dataset.points);
  $('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
- $('#subdireccionPointsApply')?.classList.remove('active');
  $('#reasonWrap').classList.toggle('hidden',points===null);
 });
 const criteriaNames={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};

@@ -595,10 +595,6 @@ if(pointButtonContainer)pointButtonContainer.addEventListener('click',event=>{
  $('#reasonWrap')?.classList.toggle('hidden',points===null);
 });
 
- points=b.dataset.points===''?null:Number(b.dataset.points);
- $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
- $('#reasonWrap').classList.toggle('hidden',points===null);
-});
 const criteriaNames={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
 function selectedCriteria(){return $$('#criteria input:checked').map(x=>x.value)}
 

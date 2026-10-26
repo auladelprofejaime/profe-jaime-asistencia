@@ -1,9 +1,9 @@
-const CACHE='app-docente-v8-24-78-two-copies';
+const CACHE='app-docente-v8-24-79-red-attention';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
  './lasalle-logo-official-data.js?v=82476',
- './titular-report-letter-v82470.js?v=82478',
+ './titular-report-letter-v82470.js?v=82479',
  './portal-access-fast-v82463.js?v=82463',
  './book-payment-fulfillment-labels-v82462.js?v=82462',
  './book-report-multistatus-v82461.js?v=82461',

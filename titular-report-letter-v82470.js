@@ -81,7 +81,7 @@ const concerns=data.filter(x=>x.needed!==null&&x.needed>0).sort((a,b)=>b.needed-
 const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'letter',compress:true});
 const navy=[9,43,98];
 doc.setTextColor(...navy);
-if(window.JAIME_LASALLE_LOGO){doc.addImage(window.JAIME_LASALLE_LOGO,'PNG',82,2,52,23);}else{doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('La Salle Galicia-Mixcoac',108,17,{align:'center'});}
+if(window.JAIME_LASALLE_LOGO_JPEG){doc.addImage(window.JAIME_LASALLE_LOGO_JPEG,'JPEG',82,2,52,23);}else{doc.setFont('helvetica','bold');doc.setFontSize(12);doc.text('La Salle Galicia-Mixcoac',108,17,{align:'center'});}
 doc.setDrawColor(...navy);doc.setLineWidth(.5);doc.line(13,31,203,31);
 doc.setFontSize(15);doc.text('REPORTE DE TRIMESTRE',108,39,{align:'center'});
 doc.setFontSize(9);doc.text('Seguimiento academico individual · 3.º A',108,45,{align:'center'});

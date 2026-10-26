@@ -113,7 +113,7 @@ else{
 }
 y=drawLines(doc,msg,13,y,190,8.7,4.25)+6;
 doc.setFont('helvetica','bold');doc.setTextColor(...navy);doc.setFontSize(10);doc.text('ORIENTACIONES PARA LA FAMILIA',13,y);y+=6;doc.setFont('helvetica','normal');doc.setTextColor(30,43,61);
-let advice=red.length?'Solicitar una entrevista con los docentes de las materias en rojo para conocer las alternativas institucionales.':concerns.length?'Dar seguimiento a las materias que requieren una calificacion especifica en noviembre y verificar las evaluaciones programadas.':'Mantener los habitos de estudio y la entrega oportuna de actividades; no se identifican materias que requieran recuperacion en los registros disponibles.';
+let advice=red.length?'Dar seguimiento prioritario a las materias en rojo. Si necesitan hasta 10 puntos en noviembre, todavia pueden acreditarse; si necesitan mas de 10, consultar al docente sobre alternativas institucionales.':concerns.length?'Dar seguimiento a las materias que requieren una calificacion especifica en noviembre y verificar las evaluaciones programadas.':'Mantener los habitos de estudio y la entrega oportuna de actividades; no se identifican materias que requieran recuperacion en los registros disponibles.';
 if(pending.length)advice+=' Confirmar directamente con el docente las calificaciones que aun no aparecen registradas.';
 y=drawLines(doc,advice,13,y,190,8.5,4.2);
 const footY=Math.max(241,Math.min(y+6,250));doc.setFontSize(7.2);doc.setTextColor(90,100,115);

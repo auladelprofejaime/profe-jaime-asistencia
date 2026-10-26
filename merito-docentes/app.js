@@ -238,7 +238,7 @@ async function checkDevice(){
   syncPending();
  }catch(e){
   if(cached){staff=cached;showCapture();updateOfflineUI()}
-  else showActivation();
+  else {showActivation(); const status=$('#activationStatus');if(status)status.textContent='No se pudo contactar el servidor. Intenta nuevamente; tus credenciales no han sido modificadas.';}
  }
 }
 

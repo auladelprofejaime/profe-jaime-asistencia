@@ -590,9 +590,9 @@ function renderGroups(){
  }
 }
 
-$('#pointButtons button').forEach(b=>b.onclick=()=>{
+$$('#pointButtons button').forEach(b=>b.onclick=()=>{
  points=b.dataset.points===''?null:Number(b.dataset.points);
- $('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
+ $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
  $('#reasonWrap').classList.toggle('hidden',points===null);
 });
 const criteriaNames={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
@@ -681,7 +681,7 @@ $('#cancelConfirm').onclick=closeCaptureConfirmation;
 
 function resetCapture(){
  points=null;
- $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));
+ $$$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));
  $('#reason').value='';$('#reasonWrap').classList.add('hidden');
  $$('#criteria input').forEach(x=>x.checked=false);
 }

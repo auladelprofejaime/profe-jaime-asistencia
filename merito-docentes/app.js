@@ -681,7 +681,7 @@ $('#cancelConfirm').onclick=closeCaptureConfirmation;
 
 function resetCapture(){
  points=null;
- $$$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));
+ $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));
  $('#reason').value='';$('#reasonWrap').classList.add('hidden');
  $$('#criteria input').forEach(x=>x.checked=false);
 }

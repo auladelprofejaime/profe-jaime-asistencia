@@ -860,7 +860,7 @@ $('#movementReviewSend')?.addEventListener('click',async()=>{
 $('#enableNotificationsBtn')?.addEventListener('click',enableMeritNotifications);
 if($('#rememberSession'))$('#rememberSession').checked=rememberSession||(!rememberedToken&&!sessionToken);
 if('serviceWorker'in navigator){
- navigator.serviceWorker.register('service-worker.js?v=78',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
+ navigator.serviceWorker.register('service-worker.js?v=79',{updateViaCache:'none'}).then(reg=>{meritWorkerRegistration=reg}).catch(()=>{});
  navigator.serviceWorker.addEventListener('message',e=>{if(e.data?.type==='MERIT_APP_UPDATED')checkMeritUpdate()});
  navigator.serviceWorker.addEventListener('controllerchange',()=>checkMeritUpdate());
 }

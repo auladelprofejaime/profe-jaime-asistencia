@@ -34,6 +34,23 @@ async function pull(force=false){
   methods=mm.map(r=>({...r.data,id:r.id,group:r.group_name,shift:r.shift,month:r.month,cycle:r.cycle,quarter:r.quarter,closed:!!r.closed}));
   // Cache reads only. Do not enqueue writes or recalculate any saved grades.
   for(const a of activities)await req(store('activities','readwrite').put(a));
+  // 3A vespertino: hydrate local IndexedDB from the authoritative server records.
+  // The grid renders IndexedDB, not the delivered column directly.
+  if(window.ProfeSupabase){
+    const remote=await window.ProfeSupabase.rpc('teacher_activity_records_audit',{p_group_name:'3A'});
+    if(Array.isArray(remote)){
+      const allowed=new Set(activities.filter(a=>String(a.group)==='3A'&&String(a.shift).toLowerCase()==='vespertino').map(a=>String(a.id)));
+      for(const row of remote){
+        const aid=String(row.activity_id||''),sid=String(row.student_id||'');
+        if(!allowed.has(aid)||!/^301\\d{3}$/.test(sid))continue;
+        const key=aid+'|'+sid;
+        const record={key,activityId:aid,studentId:sid,status:row.delivered===true?'yes':row.delivered===false?'no':undefined,timestamp:row.updated_at||row.delivery_date||new Date().toISOString()};
+        if(typeof row.score==='number')record.score=row.score;
+        await req(store('activityRecords','readwrite').put(record));
+      }
+    }
+  }
+
   for(const m of methods)await req(store('methodologies','readwrite').put(m));
   lastRead=Date.now();
  })();

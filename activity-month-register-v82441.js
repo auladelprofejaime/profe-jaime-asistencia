@@ -42,7 +42,7 @@ async function pull(force=false){
       const allowed=new Set(activities.filter(a=>String(a.group)==='3A'&&String(a.shift).toLowerCase()==='vespertino').map(a=>String(a.id)));
       for(const row of remote){
         const aid=String(row.activity_id||''),sid=String(row.student_id||'');
-        if(!allowed.has(aid)||!/^301\\d{3}$/.test(sid))continue;
+        if(!allowed.has(aid)||!/^301[0-9]{3}$/.test(sid))continue;
         const key=aid+'|'+sid;
         const record={key,activityId:aid,studentId:sid,status:row.delivered===true?'yes':row.delivered===false?'no':undefined,timestamp:row.updated_at||row.delivery_date||new Date().toISOString()};
         if(typeof row.score==='number')record.score=row.score;

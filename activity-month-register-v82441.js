@@ -36,7 +36,7 @@ async function pull(force=false){
   for(const a of activities)await req(store('activities','readwrite').put(a));
   // 3A vespertino: hydrate local IndexedDB from the authoritative server records.
   // The grid renders IndexedDB, not the delivered column directly.
-  if(window.ProfeSupabase){
+  try { if(window.ProfeSupabase){
     const remote=await window.ProfeSupabase.rpc('teacher_activity_records_audit',{p_group_name:'3A'});
     if(Array.isArray(remote)){
       const allowed=new Set(activities.filter(a=>String(a.group)==='3A'&&String(a.shift).toLowerCase()==='vespertino').map(a=>String(a.id)));
@@ -49,7 +49,7 @@ async function pull(force=false){
         await req(store('activityRecords','readwrite').put(record));
       }
     }
-  }
+  }} catch(syncError){console.warn('Sincronización 3A pendiente:',syncError)}
 
   for(const m of methods)await req(store('methodologies','readwrite').put(m));
   lastRead=Date.now();

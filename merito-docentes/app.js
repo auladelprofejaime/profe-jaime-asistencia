@@ -215,6 +215,7 @@ async function checkDevice(){
   const d=await rpc('merit_device_info',{p_token:token});
   if(!d?.ok){
    const invite=['trial_expired','not_confirmed','unauthorized'].includes(d?.reason);
+   if(d?.reason!=='unauthorized'&&d?.reason!=='staff_inactive'){if(cached){staff=cached;showCapture()}return;}
    clearSessionToken();token='';
    localStorage.removeItem(STAFF_CACHE_KEY);sessionStorage.removeItem(STAFF_CACHE_KEY);
    localStorage.removeItem(SETUP_CACHE_KEY);sessionStorage.removeItem(SETUP_CACHE_KEY);
@@ -249,7 +250,22 @@ function showActivation(invite=false){
  const st=$('#activationStatus');
  if(invite&&st)st.innerHTML='<div style="margin-top:14px;padding:18px;border:2px solid #c9962d;border-radius:18px;background:linear-gradient(135deg,#fff7d8,#fffdf5);color:#071a36;text-align:center;box-shadow:0 8px 22px rgba(7,26,54,.12)"><div style="font-size:2.2rem">🏆✨</div><div style="font-size:1.12rem;font-weight:900;margin:5px 0">¿Quieres participar en Mérito Gabino A. Palma?</div><div style="line-height:1.45">¡Nos dará mucho gusto contar contigo! Acércate o escríbele al <b>Profr. Jaime</b> para que te dé acceso.</div></div>';
 }
+const ISABEL_UNLIMITED_ID='b9fa8d3c-2e56-4dbe-b77f-8eb0483b4acb';
+function configureMeritPoints(){
+ const box=$('#pointButtons');if(!box)return;
+ const unlimited=String(staff?.id||'')===ISABEL_UNLIMITED_ID;
+ box.querySelectorAll('button[data-points]').forEach(b=>{b.classList.toggle('hidden',unlimited);b.disabled=unlimited});
+ let panel=$('#unlimitedMeritPoints');
+ if(!panel){panel=document.createElement('div');panel.id='unlimitedMeritPoints';panel.innerHTML='<label style="display:block;font-weight:800">Puntos a otorgar o descontar (sin límite)<input id="unlimitedMeritAmount" type="number" step="1" inputmode="numeric" placeholder="Ejemplo: +15 o -20" style="width:100%;margin-top:8px"></label><button type="button" id="unlimitedMeritClear" class="secondary">Sin puntos (solo reconocimiento)</button>';
+ box.after(panel);
+ $('#unlimitedMeritAmount').addEventListener('input',e=>{const raw=e.target.value.trim(),n=Number(raw);points=raw!==''&&Number.isSafeInteger(n)&&n!==0?n:null;$('#reasonWrap')?.classList.toggle('hidden',points===null)});
+ $('#unlimitedMeritClear').addEventListener('click',()=>{$('#unlimitedMeritAmount').value='';points=null;$('#reasonWrap')?.classList.add('hidden')});
+ }
+ panel.classList.toggle('hidden',!unlimited);
+ if(!unlimited){points=null;$('#reasonWrap')?.classList.add('hidden')}
+}
 function showCapture(){
+ configureMeritPoints();
  window.__meritStartupComplete=true;document.getElementById('meritBootRecovery')?.remove();
  $('#activation').classList.add('hidden');$('#capture').classList.remove('hidden');
  const pending=$('#accessPendingCard'),workspace=$('#captureWorkspace');
@@ -660,7 +676,7 @@ $('#reviewBtn').onclick=async()=>{
   try{
    const d=reviewedDevice;
    if(!d?.ok){
-    closeCaptureConfirmation();clearSessionToken();token='';showActivation();$('#activationStatus').textContent=friendlyReason(d);return;
+    closeCaptureConfirmation();if(d?.reason==='unauthorized'||d?.reason==='staff_inactive'){clearSessionToken();token='';showActivation();$('#activationStatus').textContent=friendlyReason(d)}else captureNotice(friendlyReason(d));return;
    }
    staff=d.staff;accessState=d.access||null;cacheSession(!!d.must_change_pin);
    if(accessState?.can_capture===false){closeCaptureConfirmation();captureNotice(accessState.message||'Tu cuenta no tiene autorización para registrar en este periodo. Consulta al Profr. Jaime.');return;}
@@ -681,6 +697,7 @@ $('#cancelConfirm').onclick=closeCaptureConfirmation;
 
 function resetCapture(){
  points=null;
+ if($('#unlimitedMeritAmount'))$('#unlimitedMeritAmount').value='';
  $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x.dataset.points===''));
  $('#reason').value='';$('#reasonWrap').classList.add('hidden');
  $$('#criteria input').forEach(x=>x.checked=false);

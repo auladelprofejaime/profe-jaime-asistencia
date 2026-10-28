@@ -231,6 +231,7 @@ async function checkDevice(){
   }
   if(!cached)showCapture();
   else{
+   configureMeritPoints();
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
    updateOfflineUI();checkSystemReady();syncPending();
@@ -254,7 +255,7 @@ const ISABEL_UNLIMITED_ID='b9fa8d3c-2e56-4dbe-b77f-8eb0483b4acb';
 function configureMeritPoints(){
  const box=$('#pointButtons');if(!box)return;
  const unlimited=String(staff?.id||'')===ISABEL_UNLIMITED_ID;
- box.querySelectorAll('button[data-points]').forEach(b=>{b.classList.toggle('hidden',unlimited);b.disabled=unlimited});
+ box.querySelectorAll('button[data-points]').forEach(b=>{b.classList.toggle('hidden',unlimited);b.style.setProperty('display',unlimited?'none':'','important');b.disabled=unlimited});
  let panel=$('#unlimitedMeritPoints');
  if(!panel){panel=document.createElement('div');panel.id='unlimitedMeritPoints';panel.innerHTML='<label style="display:block;font-weight:800">Puntos a otorgar o descontar (sin límite)<input id="unlimitedMeritAmount" type="number" step="1" inputmode="numeric" placeholder="Ejemplo: +15 o -20" style="width:100%;margin-top:8px"></label><button type="button" id="unlimitedMeritClear" class="secondary">Sin puntos (solo reconocimiento)</button>';
  box.after(panel);
@@ -262,6 +263,7 @@ function configureMeritPoints(){
  $('#unlimitedMeritClear').addEventListener('click',()=>{$('#unlimitedMeritAmount').value='';points=null;$('#reasonWrap')?.classList.add('hidden')});
  }
  panel.classList.toggle('hidden',!unlimited);
+ panel.style.setProperty('display',unlimited?'block':'none','important');
  if(!unlimited){points=null;$('#reasonWrap')?.classList.add('hidden')}
 }
 function showCapture(){
@@ -642,6 +644,7 @@ $('#reviewBtn').onclick=async()=>{
  try{
  if(!group){captureNotice('Selecciona un grupo.');return;}
  const cs=selectedCriteria(),reason=$('#reason').value.trim();
+ if(String(staff?.id||'')===ISABEL_UNLIMITED_ID){const raw=$('#unlimitedMeritAmount')?.value.trim()||'';if(raw!==''&&(!/^[+-]?[0-9]+$/.test(raw)||!Number.isSafeInteger(Number(raw))||Number(raw)===0)){captureNotice('Escribe una cantidad entera distinta de cero, positiva o negativa.');return;}points=raw===''?null:Number(raw);}
  if(points!==null&&!reason){captureNotice('Escribe el motivo de los puntos.');return;}
  if(points===null&&!cs.length){captureNotice('Selecciona puntos o al menos un reconocimiento.');return;}
  $('#confirmSummary').innerHTML=`<p><b>Grupo:</b> ${group}</p><p><b>Puntos:</b> ${points===null?'Sin puntos':points>0?'+'+points:points}</p><p role="status">Comprobando tu acceso… Todavía no se han registrado puntos.</p>`;

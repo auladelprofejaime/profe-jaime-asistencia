@@ -15,12 +15,12 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='86';
+const MERIT_APP_VERSION='89';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
   !!$('#reason')?.value.trim()||!!$('#activationCode')?.value||!!$('#staffCode')?.value||
-  $$('#pointButtons button.active').some(b=>b.dataset.points!=='')||!!$('#criteria input:checked');
+  $('#pointButtons button.active').some(b=>b.dataset.points!=='')||!!$('#unlimitedMeritAmount')?.value.trim()||!!$('#criteria input:checked');
 }
 function applyMeritUpdate(fromReview=false){
  if(!meritUpdatePending||meritUpdateReloading||!navigator.onLine||document.visibilityState==='hidden'||(!fromReview&&meritCaptureInProgress()))return false;
@@ -893,6 +893,6 @@ setTimeout(checkMeritUpdate,1000);
 setInterval(checkMeritUpdate,30000);
 window.addEventListener('online',checkMeritUpdate);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')checkMeritUpdate()});
-document.addEventListener('input',()=>{if(meritUpdatePending)setTimeout(applyMeritUpdate,1000)});
-document.addEventListener('click',()=>{if(meritUpdatePending)setTimeout(applyMeritUpdate,1000)});
+document.addEventListener('input',()=>{if(meritUpdatePending&&!meritCaptureInProgress())setTimeout(applyMeritUpdate,1000)});
+document.addEventListener('click',()=>{if(meritUpdatePending&&!meritCaptureInProgress())setTimeout(applyMeritUpdate,1000)});
 

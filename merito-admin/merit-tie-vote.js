@@ -54,7 +54,7 @@
   async function closeTieVote(){
     const id=periodId(),st=$m('#meritTieVoteAdminStatus'),btn=$m('#meritTieVoteCloseBtn');
     if(!id)return;
-    if(!confirm('¿Cerrar la votación con los votos registrados hasta este momento?\n\nSi aún existe empate, el Comité deberá resolverlo.'))return;
+    if(!confirm('¿Cerrar la votación con los votos registrados hasta este momento?\n\nSi vuelve a existir empate, el sistema lo resolverá automáticamente con el desempeño integral del mes.'))return;
     if(btn)btn.disabled=true;if(st)st.textContent='Cerrando votación…';
     try{
       const d=await rpc('teacher_merit_close_tie_vote',{p_period_id:id,p_committee_resolutions:{}});
@@ -65,11 +65,7 @@
         try{if(typeof window.loadMeritMonthlyPreview==='function')await window.loadMeritMonthlyPreview()}catch(_){}
         return;
       }
-      if(d?.reason==='committee_required'){
-        if(st)st.textContent='La votación terminó empatada. Se requiere resolución del Comité.';
-        await refreshTieVoteStatus();return;
-      }
-      throw new Error(d?.reason||'No se pudo cerrar la votación.');
+            throw new Error(d?.reason||'No se pudo cerrar la votación.');
     }catch(e){if(st)st.textContent='No se pudo cerrar la votación: '+(e.message||e)}
     finally{if(btn)btn.disabled=false}
   }
@@ -103,10 +99,10 @@
     try{
       const preview=await rpc('teacher_merit_close_preview',{p_period_id:id});
       if(!preview?.ok)throw new Error(preview?.reason||'No se pudo revisar el cierre.');
-      if(preview.has_ties){
+      if(preview?.overall?.tied){
         const opened=await rpc('teacher_merit_open_tie_vote',{p_period_id:id});
         if(!opened?.ok)throw new Error(opened?.reason||'No se pudo abrir la votación.');
-        if(st)st.textContent='Empate detectado. ✓ La votación se abrió automáticamente para el personal autorizado.';
+        if(st)st.textContent='Empate detectado en el Mérito Gabino A. Palma. ✓ La votación de desempate se abrió automáticamente.';
         if(opened?.opened){
           try{await window.ProfeSupabase.edge('merit-push',{event:'merit_vote_open',period_id:id})}
           catch(e){console.warn('No se pudo enviar la notificación de votación',e)}

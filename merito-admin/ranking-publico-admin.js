@@ -4,6 +4,8 @@
  async function load(){
   try{
    const periods=await window.ProfeSupabase.rpc('teacher_merit_periods',{});
+   const schedule=await window.ProfeSupabase.rpc('merit_get_public_schedule',{});
+   if(schedule?.counting){const date=new Date(schedule.reveal_at);const day=date.toLocaleDateString('es-MX',{timeZone:'America/Mexico_City',day:'numeric',month:'long'});const hour=date.toLocaleTimeString('es-MX',{timeZone:'America/Mexico_City',hour:'numeric',minute:'2-digit'});document.body.classList.add('meritCounting');$('#periodName').textContent='El gran anuncio se acerca';$('#updated').textContent='';$('#leaderNow').innerHTML='<div class="countStage"><div class="countSeal">MÉRITO GABINO A. PALMA</div><div class="countCrown">♛</div><div class="countKicker">LA ESPERA ESTÁ POR TERMINAR</div><h2>¿Quién se llevará<br><em>la corona?</em></h2><p class="countSubtitle">El conteo final está en marcha. Los resultados permanecen bajo reserva hasta revelar al grupo ganador del Mérito del Mes.</p><div class="countReveal"><span>GRAN REVELACIÓN</span><strong>'+esc(day)+'</strong><small>'+esc(hour)+'</small></div><p class="countFooter">Muy pronto conocerás al grupo ganador.</p></div>';$('#ranking').innerHTML='';$('#remainingRanking').style.display='none';$('#categories').innerHTML='';return;}document.body.classList.remove('meritCounting');
    if(!Array.isArray(periods))throw new Error('No se autorizó la consulta administrativa.');
    const nowMX=new Date().toLocaleDateString('en-CA',{timeZone:'America/Mexico_City'});
    const current=periods.filter(p=>p.starts_at<=nowMX&&p.ends_at>=nowMX&&['open','frozen','closed','published'].includes(p.status));

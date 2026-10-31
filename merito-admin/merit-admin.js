@@ -179,8 +179,8 @@
             '<td class="bitQualityValue27">'+(qadj>0?'+'+qadj:String(qadj))+'</td>'+
             '<td class="bitFinal27">'+(d===null?'—':base+d+qadj)+'</td></tr>';
         }).join('')+'</tbody></table>';
-      $('.bitObs27').forEach(i=>i.addEventListener('input',()=>refreshBitRow(i.closest('.bitRow27'))));
-      $('.bitQualityBtn27').forEach(b=>b.addEventListener('click',()=>{
+      $$('.bitObs27').forEach(i=>i.addEventListener('input',()=>refreshBitRow(i.closest('.bitRow27'))));
+      $$('.bitQualityBtn27').forEach(b=>b.addEventListener('click',()=>{
         const row=b.closest('.bitRow27');if(!row)return;
         row.dataset.quality=String(Number(b.dataset.quality||0));
         row.querySelectorAll('.bitQualityBtn27').forEach(x=>{x.classList.toggle('primary',x===b);x.classList.toggle('secondary',x!==b)});

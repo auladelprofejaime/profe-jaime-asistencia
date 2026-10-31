@@ -2,7 +2,9 @@ const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co",SUPABASE_KEY="sb_p
 const $=s=>document.querySelector(s);let data=null;
 async function rpc(name,args={}){const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{method:'POST',cache:'no-store',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(args)});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(t||r.status);return d}
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-function render(){
+function countPending(){return new Intl.DateTimeFormat('sv-SE',{timeZone:'America/Mexico_City',year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit',hourCycle:'h23'}).format(new Date())<'2026-11-03 07:30'}
+function countView(){ $('#periodName').textContent='Conteo final · Octubre 2026';$('#updated').textContent='Publicación: 3 de noviembre, 7:30 a. m.';$('#leaderNow').innerHTML='<div class="empty"><h2>Estamos en conteo de puntos</h2><p>Espera el 3 de noviembre para conocer el resultado.</p><p>A partir de las 7:30 de la mañana.</p></div>';$('#ranking').innerHTML='';$('#categories').innerHTML='';$('#remainingRanking').classList.add('hidden')}
+function render(){if(countPending()){countView();return;}
  $('#periodName').textContent=data?.period?.label||'Sin periodo abierto';
  const rows=Array.isArray(data?.ranking)?data.ranking:[],cats=Array.isArray(data?.category_leaders)?data.category_leaders:[];
  if(data?.state==='results_in_process'){ $('#leaderNow').innerHTML='<div class="empty"><div class="leaderCrown">🔒</div><h2>Se están contando los puntos</h2><p>La clasificación está temporalmente bloqueada mientras se revisan los movimientos y se determina el resultado.</p></div>';$('#ranking').innerHTML='';$('#categories').innerHTML='';$('#remainingRanking').classList.add('hidden');return }
@@ -21,6 +23,6 @@ function render(){
 }
 function formatMeritTime(v){if(!v)return'—';const[hh,mm]=String(v).slice(0,5).split(':').map(Number),d=new Date();d.setHours(hh,mm,0,0);return d.toLocaleTimeString('es-MX',{hour:'numeric',minute:'2-digit'})}
 async function checkAccess(){try{const a=await rpc('merit_public_access_status'),block=$('#schoolHoursBlock'),main=$('#publicMain');if(a?.blocked){$('#schoolHoursTitle').textContent=a.message_title||'¡Ahora no, joven!';$('#schoolHoursMessage').textContent='Este portal está diseñado para consultarse fuera del horario de clases. Durante la jornada escolar, tu atención debe estar en tus clases, actividades y profesores, no en el celular.';$('#schoolHoursOpenTime').textContent=formatMeritTime(a.next_open);block.classList.remove('hidden');main.classList.add('hidden');return false}block.classList.add('hidden');main.classList.remove('hidden');return true}catch{return false}}
-async function load(){if(!await checkAccess())return;try{data=await rpc('merit_live_ranking');render()}catch(e){$('#leaderNow').innerHTML='<div class="empty">No se pudo actualizar el ranking.</div>'}}
+async function load(){if(countPending()){ $('#schoolHoursBlock')?.classList.add('hidden');$('#publicMain')?.classList.remove('hidden');countView();return;}if(!await checkAccess())return;try{data=await rpc('merit_live_ranking');render()}catch(e){$('#leaderNow').innerHTML='<div class="empty">No se pudo actualizar el ranking.</div>'}}
 load();setInterval(load,15000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load()});
 if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker-v15.js?v=18').catch(()=>{});

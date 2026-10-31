@@ -98,11 +98,11 @@
       pane.id='merit-bitacoras';pane.className='merit-pane card';
       pane.innerHTML=`
         <div class="section"><div><h2>Revisión mensual de bitácoras</h2>
-        <p class="hint">Captura únicamente el total de observaciones de cada grupo. El descuento se calcula automáticamente y se aplica al resultado mensual final.</p></div>
+        <p class="hint">Captura las observaciones del grupo y, aparte, valora el cuidado y seguimiento de su bitácora. Ambos ajustes se reflejan en el cierre mensual.</p></div>
         <button id="meritBitacoraRefresh27" class="secondary" type="button">Actualizar</button></div>
         <label>Periodo<select id="meritBitacoraPeriod"></select></label>
         <div style="padding:10px 12px;border-radius:12px;background:#fffaf0;margin:10px 0">
-          <b>Escala:</b> 0–2 = 0 · 3–4 = −2 · 5–6 = −5 · 7–9 = −8 · 10 o más = −10
+          <b>Observaciones:</b> 0–2 = 0 · 3–4 = −2 · 5–6 = −5 · 7–9 = −8 · 10 o más = −10<br><b>Calidad de bitácora:</b> +20 = excelente seguimiento · 0 = sin ajuste · −10 = maltratada o con seguimiento deficiente
         </div>
         <p id="meritBitacoraSummary27" class="message"></p>
         <div id="meritBitacoraMatrix27" class="tablewrap"></div>
@@ -135,11 +135,14 @@
   function refreshBitRow(row){
     const input=row.querySelector('.bitObs27');
     const dcell=row.querySelector('.bitDed27');
+    const qcell=row.querySelector('.bitQualityValue27');
     const fcell=row.querySelector('.bitFinal27');
-    const base=Number(row.dataset.base||0),raw=input.value.trim();
-    if(raw===''){dcell.textContent='—';fcell.textContent='—';return;}
+    const base=Number(row.dataset.base||0),raw=input.value.trim(),quality=Number(row.dataset.quality||0);
+    if(raw===''){dcell.textContent='—';qcell.textContent=quality>0?'+'+quality:String(quality);fcell.textContent='—';return;}
     const n=Math.max(0,parseInt(raw,10)||0),d=deduction(n);
-    dcell.textContent=d===0?'0':String(d);fcell.textContent=String(base+d);
+    dcell.textContent=d===0?'0':String(d);
+    qcell.textContent=quality>0?'+'+quality:String(quality);
+    fcell.textContent=String(base+d+quality);
   }
 
   async function loadBitacoraMatrix(){
@@ -165,14 +168,24 @@
       if(!m.required)sum.innerHTML='<span class="success">Este periodo de prueba no requiere revisión de bitácoras.</span>';
       else if(m.complete)sum.innerHTML='<span class="success">✓ Revisión completa: '+m.saved_groups+' de '+m.total_groups+' grupos.</span>';
       else sum.innerHTML='<b>Pendiente:</b> '+m.saved_groups+' de '+m.total_groups+'. Debes capturar los 18 grupos, incluso con 0 observaciones.';
-      box.innerHTML='<table><thead><tr><th>Grupo</th><th>Puntos</th><th>Observaciones</th><th>Descuento</th><th>Final estimado</th></tr></thead><tbody>'+
+      box.innerHTML='<table><thead><tr><th>Grupo</th><th>Puntos</th><th>Observaciones</th><th>Descuento</th><th>Calidad de bitácora</th><th>Ajuste</th><th>Final estimado</th></tr></thead><tbody>'+
         rows.map(x=>{
-          const base=byGroup[String(x.group_code)]||0,val=x.saved?Number(x.observation_count):'',d=x.saved?Number(x.deduction||0):null;
-          return '<tr class="bitRow27" data-group="'+esc(x.group_code)+'" data-base="'+base+'"><td><b>'+esc(x.group_code)+'</b></td><td>'+base+'</td>'+
+          const base=byGroup[String(x.group_code)]||0,val=x.saved?Number(x.observation_count):'',d=x.saved?Number(x.deduction||0):null,qadj=Number(x.quality_adjustment||0);
+          const btn=(value,label)=>'<button type="button" class="secondary bitQualityBtn27 '+(qadj===value?'active':'')+'" data-quality="'+value+'" '+(editable?'':'disabled')+'>'+label+'</button>';
+          return '<tr class="bitRow27" data-group="'+esc(x.group_code)+'" data-base="'+base+'" data-quality="'+qadj+'"><td><b>'+esc(x.group_code)+'</b></td><td>'+base+'</td>'+
             '<td><input class="bitObs27" type="number" min="0" step="1" inputmode="numeric" value="'+val+'" '+(editable?'':'disabled')+' style="width:90px"></td>'+
-            '<td class="bitDed27">'+(d===null?'—':d)+'</td><td class="bitFinal27">'+(d===null?'—':base+d)+'</td></tr>';
+            '<td class="bitDed27">'+(d===null?'—':d)+'</td>'+
+            '<td><div class="actions" style="gap:5px;flex-wrap:wrap">'+btn(20,'+20 Excelente')+btn(0,'0 Sin ajuste')+btn(-10,'−10 Deficiente')+'</div></td>'+
+            '<td class="bitQualityValue27">'+(qadj>0?'+'+qadj:String(qadj))+'</td>'+
+            '<td class="bitFinal27">'+(d===null?'—':base+d+qadj)+'</td></tr>';
         }).join('')+'</tbody></table>';
-      $$('.bitObs27').forEach(i=>i.addEventListener('input',()=>refreshBitRow(i.closest('.bitRow27'))));
+      $('.bitObs27').forEach(i=>i.addEventListener('input',()=>refreshBitRow(i.closest('.bitRow27'))));
+      $('.bitQualityBtn27').forEach(b=>b.addEventListener('click',()=>{
+        const row=b.closest('.bitRow27');if(!row)return;
+        row.dataset.quality=String(Number(b.dataset.quality||0));
+        row.querySelectorAll('.bitQualityBtn27').forEach(x=>x.classList.toggle('active',x===b));
+        refreshBitRow(row);
+      }));
       const save=$('#meritBitacoraSave27'); if(save)save.disabled=!editable||!m.required;
       if(st)st.textContent=!editable?'Este periodo ya no admite cambios.':(m.required?'Escribe 0 cuando el grupo no tenga observaciones.':'No se requiere captura en este periodo de prueba.');
     }catch(e){
@@ -191,8 +204,12 @@
       if(st)st.textContent='Faltan '+missing.length+' grupo(s). Escribe 0 cuando no haya observaciones.';
       missing[0].querySelector('.bitObs27')?.focus();return;
     }
-    const payload=rows.map(r=>({group_code:r.dataset.group,observation_count:Math.max(0,parseInt(r.querySelector('.bitObs27').value,10)||0)}));
-    if(!confirm('¿Guardar la revisión de las 18 bitácoras?\n\nLa aplicación calculará automáticamente los descuentos.'))return;
+    const payload=rows.map(r=>({
+      group_code:r.dataset.group,
+      observation_count:Math.max(0,parseInt(r.querySelector('.bitObs27').value,10)||0),
+      quality_adjustment:Number(r.dataset.quality||0)
+    }));
+    if(!confirm('¿Guardar la revisión de las 18 bitácoras?\n\nSe aplicará el descuento por observaciones y también el ajuste de calidad (+20, 0 o −10) de cada grupo.'))return;
     if(btn)btn.disabled=true;if(st)st.textContent='Guardando…';
     try{
       const d=await rpc('teacher_merit_save_bitacora_matrix',{p_period_id:id,p_rows:payload});

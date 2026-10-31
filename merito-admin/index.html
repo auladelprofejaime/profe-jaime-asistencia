@@ -75,6 +75,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 <button class="secondary meritNav" data-merit-pane="monthly">📅 Cierre mensual</button>
 <button class="secondary meritNav" data-merit-pane="annual">📊 Acumulado anual</button>
 <button class="secondary meritNav" data-merit-pane="publication">📢 Publicar ganador</button>
+<button class="secondary meritNav" data-merit-pane="teacher-notice">📣 Aviso a docentes</button>
 <button class="secondary meritNav" data-merit-pane="config">⚙️ Configuración</button>
 </div>
 
@@ -103,6 +104,23 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 <div id="merit-annual" class="merit-pane card"><div class="section"><div><h2>Acumulado anual</h2><p class="hint">Suma únicamente los meses cerrados.</p></div><button id="meritAnnualRefresh" class="secondary" onclick="loadMeritAnnualRanking()">Actualizar</button></div><label>Ciclo escolar<input id="meritAnnualCycle" value="2026-2027"></label><div id="meritAnnualTable" class="tablewrap"></div></div>
 
 <div id="merit-publication" class="merit-pane card"><h2>Conteo y publicación del ganador</h2><p>Configura cuándo se revelará el resultado en el ranking público. Hasta esa fecha los puntos permanecen ocultos.</p><section class="card" style="margin:16px 0;padding:16px;border:2px solid #c6a24a"><h3>Publicación del resultado del Mérito</h3><p>Mientras no llegue esta fecha y hora, el ranking público mostrará únicamente el aviso de conteo.</p><label>Fecha de publicación <input type="date" id="meritRevealDate" value="2026-11-03"></label> <label>Hora <input type="time" id="meritRevealTime" value="07:30"></label> <button type="button" class="primary" id="meritRevealSave">Guardar fecha de publicación</button><p id="meritRevealStatus" class="message"></p></section></div>
+<div id="merit-teacher-notice" class="merit-pane card">
+<h2>Aviso en la app de docentes</h2>
+<p class="hint">Este aviso aparece dentro de Mérito Docentes. Puedes activarlo, desactivarlo y cambiar el texto sin modificar las cuentas de los maestros.</p>
+<div class="card" style="margin:14px 0;padding:16px;border:2px solid #c6a24a">
+<label style="display:flex;align-items:center;gap:10px;font-weight:800"><input id="meritTeacherNoticeActive" type="checkbox" style="width:20px;height:20px"> Mostrar aviso a docentes</label>
+<label>Título<input id="meritTeacherNoticeTitle" maxlength="100" placeholder="Ejemplo: Cierre de mes en proceso"></label>
+<label>Mensaje<textarea id="meritTeacherNoticeMessage" rows="4" maxlength="500" placeholder="Escribe el mensaje que verán los docentes"></textarea></label>
+<div class="actions"><button id="meritTeacherNoticeSave" class="primary" type="button">Guardar aviso</button></div>
+<p id="meritTeacherNoticeStatus" class="message"></p>
+</div>
+<div class="card" style="padding:16px">
+<h3>Estado de captura</h3>
+<p id="meritManualPeriodState" class="hint">Consultando…</p>
+<p class="hint">Los periodos ya no se abrirán automáticamente por fecha. La apertura y el cierre se harán manualmente cuando lo indiques.</p>
+</div>
+</div>
+
 <div id="merit-config" class="merit-pane card"><h2>Configuración</h2><form id="meritPeriodForm" class="formgrid"><label>Ciclo escolar<input id="meritSchoolYear" value="2026-2027" required></label><label>Mes<select id="meritMonthNumber"><option value="8">Agosto</option><option value="9">Septiembre</option><option value="10">Octubre</option><option value="11">Noviembre</option><option value="12">Diciembre</option><option value="1">Enero</option><option value="2">Febrero</option><option value="3">Marzo</option><option value="4">Abril</option><option value="5">Mayo</option><option value="6">Junio</option><option value="7">Julio</option></select></label><label>Nombre del periodo<input id="meritPeriodLabel" required></label><label>Inicio<input id="meritPeriodStart" type="date" required></label><label>Fin<input id="meritPeriodEnd" type="date" required></label><div class="actions"><button class="primary" type="submit">Guardar y abrir periodo</button></div></form><p id="meritConfigStatus" class="message"></p><div id="meritPeriodsList" class="tablewrap"></div></div>
 <div class="brand-footer">Aula del Profe Jaime · Creado por Profesor Jaime Armando</div>
 </section>
@@ -123,4 +141,5 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 <script src="./merit-tie-vote.js?v=2"></script>
 <script src="./merit-admin.js?v=13"></script>
 <script src="./merit-annual.js?v=2"></script><script src="./merit-public-preview.js?v=3"></script>
-<script src="./merit-public-schedule.js?v=2"></script><script>document.querySelectorAll("#merit .meritNav").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#merit .meritNav").forEach(x=>x.classList.remove("active"));document.querySelectorAll("#merit .merit-pane").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("merit-"+b.dataset.meritPane)?.classList.add("active")}));</script><script>document.getElementById("meritGoPublication")?.addEventListener("click",()=>document.querySelector(".meritNav[data-merit-pane=publication]")?.click());</script></body></html>
+<script src="./merit-public-schedule.js?v=2"></script>
+<script src="./merit-teacher-notice.js?v=1"></script><script>document.querySelectorAll("#merit .meritNav").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#merit .meritNav").forEach(x=>x.classList.remove("active"));document.querySelectorAll("#merit .merit-pane").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("merit-"+b.dataset.meritPane)?.classList.add("active")}));</script><script>document.getElementById("meritGoPublication")?.addEventListener("click",()=>document.querySelector(".meritNav[data-merit-pane=publication]")?.click());</script></body></html>

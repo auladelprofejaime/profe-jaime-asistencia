@@ -1,4 +1,4 @@
-const C='merito-docentes-v1-92';
+const C='merito-docentes-v1-93';
 const A=['./','index.html','styles.css?v=32','app.js?v=92','logo-merito.jpeg','icon-192.png','icon-512.png','manifest.webmanifest','version.json','layout-v52.css?v=62'];
 async function boundedFetch(request){
  const controller=new AbortController();let timer;
@@ -10,12 +10,12 @@ self.addEventListener('install',e=>{self.skipWaiting();e.waitUntil((async()=>{
 })())});
 self.addEventListener('activate',e=>e.waitUntil((async()=>{
  const c=await caches.open(C);
- if(await c.match(new URL('index.html',self.registration.scope).href)&&await c.match(new URL('app.js?v=89',self.registration.scope).href)){
+ if(await c.match(new URL('index.html',self.registration.scope).href)&&await c.match(new URL('app.js?v=92',self.registration.scope).href)){
   const keys=await caches.keys();await Promise.all(keys.filter(k=>k.startsWith('merito-docentes-')&&k!==C).map(k=>caches.delete(k)));
  }
  await self.clients.claim();
  const windows=await self.clients.matchAll({type:'window',includeUncontrolled:true});
- for(const client of windows)if(client.url.startsWith(self.registration.scope))client.postMessage({type:'MERIT_APP_UPDATED',version:'86'});
+ for(const client of windows)if(client.url.startsWith(self.registration.scope))client.postMessage({type:'MERIT_APP_UPDATED',version:'92'});
 })()));
 self.addEventListener('fetch',e=>{
  const request=e.request,url=new URL(request.url);

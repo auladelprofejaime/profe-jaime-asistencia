@@ -1,4 +1,4 @@
-const CACHE='app-docente-v8-24-83-task-followup';
+const CACHE='app-docente-v8-24-84-task-date-edit';
 const APP_CACHE_PREFIX='app-docente-';
 const ROOT_PATH=new URL('./',self.location.href).pathname;
 const LOCAL=[
@@ -9,7 +9,7 @@ const LOCAL=[
  './book-report-multistatus-v82461.js?v=82461',
  './book-editorial-calculator-v82460.js?v=82460',
  './daily-missing-zip-v82459.js?v=82459',
- './daily-task-review-v82452.js?v=82483',
+ './daily-task-review-v82452.js?v=82484',
  './daily-weekly-family-report-v82483.js?v=82483',
  './methodology-individual-zip-v82451.js?v=82459',
  './methodology-report-points-v82449.js?v=82459',

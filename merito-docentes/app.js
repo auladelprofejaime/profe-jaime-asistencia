@@ -282,7 +282,14 @@ function showCapture(){
      if(!keep)el.classList.add('hidden');
    });
    refreshTieVotes();updateOfflineUI();
+ }else if(!canCapture && mode==='no_open_period' && staff?.confirmed){
+   pending?.classList.add('hidden');workspace?.classList.remove('hidden');
+   $('#monthCloseNotice')?.classList.remove('hidden');
+   $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
+   $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
+   checkSystemReady();updateOfflineUI();refreshTieVotes();loadTeacherRanking();
  }else if(!canCapture){
+   $('#monthCloseNotice')?.classList.add('hidden');
    pending?.classList.remove('hidden');workspace?.classList.add('hidden');
    if(mode==='school_recess'){
      $('#accessPendingTitle').textContent='Receso escolar';
@@ -295,6 +302,7 @@ function showCapture(){
        '. Acércate con el <b>Profr. Jaime</b> para confirmar tu participación.';
    }
  }else{
+   $('#monthCloseNotice')?.classList.add('hidden');
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));

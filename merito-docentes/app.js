@@ -244,6 +244,18 @@ async function checkDevice(){
  }
 }
 
+async function loadTeacherNotice(){
+ const card=$('#monthCloseNotice');if(!card)return;
+ try{
+  const d=await rpc('merit_teacher_notice',{});
+  if(!d?.ok){card.classList.add('hidden');return;}
+  card.classList.toggle('hidden',!d.active);
+  const h=card.querySelector('h2'),ps=card.querySelectorAll('p');
+  if(h)h.textContent=d.title||'Aviso';
+  if(ps[0])ps[0].textContent=d.message||'';
+ }catch(_){}
+}
+
 function mustCompleteFormalSetup(){return !!(needsProfileSetup() || (cachedMustChange() && !(staff?.is_placeholder && !staff?.confirmed)))}
 function showActivation(invite=false){
  window.__meritStartupComplete=true;document.getElementById('meritBootRecovery')?.remove();
@@ -287,7 +299,7 @@ function showCapture(){
    $('#monthCloseNotice')?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
-   checkSystemReady();updateOfflineUI();refreshTieVotes();loadTeacherRanking();
+   checkSystemReady();updateOfflineUI();refreshTieVotes();loadTeacherRanking();loadTeacherNotice();
  }else if(!canCapture){
    $('#monthCloseNotice')?.classList.add('hidden');
    pending?.classList.remove('hidden');workspace?.classList.add('hidden');
@@ -306,7 +318,7 @@ function showCapture(){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
    $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
-   restoreMeritUpdateDraft();checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit().finally(()=>maybeShowWelcome());loadTeacherRanking();setTimeout(ensureNotificationGate,120);
+   restoreMeritUpdateDraft();checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit().finally(()=>maybeShowWelcome());loadTeacherRanking();loadTeacherNotice();setTimeout(ensureNotificationGate,120);
  }
 }
 

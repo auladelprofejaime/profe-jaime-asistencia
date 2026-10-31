@@ -39,13 +39,14 @@ function renderSummary(){
  (tasks.length?'<div class="weekly-task-list">'+tasks.map(t=>'<article class="weekly-task-row" data-weekly-task="'+esc(t.id)+'"><div><b>'+esc(t.subject)+(t.variant?' · '+esc(t.variant):'')+'</b><div>'+esc(t.title)+'</div><small>Asignada: '+esc(fmt(t.assigned_date,true))+' · Entrega: '+esc(fmt(t.due_date,true))+'</small></div><label>En el reporte<select data-weekly-mode="'+esc(t.id)+'"><option value="include" '+(t.report_mode==='include'?'selected':'')+'>Incluir</option><option value="consult_student" '+(t.report_mode==='consult_student'?'selected':'')+'>Consultar con el alumno</option><option value="omit" '+(t.report_mode==='omit'?'selected':'')+'>Eliminar del reporte</option></select></label></article>').join(''):'<p>No hay tareas cargadas en este periodo. Los días sin foto simplemente no aparecen.</p>');
 }
 async function loadWeekly(){
- if(busy)return;busy=true;const st=q('weeklyTaskStatus');if(st)st.textContent='Cargando semana…';
+ if(busy)return false;busy=true;const st=q('weeklyTaskStatus');if(st)st.textContent='Cargando semana…';
  try{
   const out=await rpc('teacher_daily_task_weekly_load',{p_reference_date:localDate()});
   if(!out?.week_start)throw Error('No se pudo calcular la semana.');
   weekly=out;renderSummary();
   if(st)st.textContent='Semana lista. Los días sin foto no generan ningún registro.';
- }catch(e){if(st)st.textContent='No se pudo cargar el seguimiento semanal: '+e.message}
+  return true;
+ }catch(e){if(st)st.textContent='No se pudo cargar el seguimiento semanal: '+e.message;return false}
  finally{busy=false}
 }
 async function changeMode(id,mode,select){
@@ -93,10 +94,11 @@ function addReport(doc,student,x,y,w,h){
  doc.setFontSize(5.8);doc.setTextColor(100);doc.text('Reporte generado automáticamente el '+fmtShort(weekly.generated_for)+'.',left,y+h-4);
 }
 async function generatePdf(){
- const st=q('weeklyTaskStatus');if(busy)return;busy=true;
+ const st=q('weeklyTaskStatus');if(busy)return;
+ // Actualizar SIEMPRE antes de imprimir, incluyendo fotos guardadas hace unos segundos.
+ const loaded=await loadWeekly();if(!loaded||!weekly)return;
+ busy=true;
  try{
-  if(!weekly)await loadWeekly();
-  if(!weekly)throw Error('No hay información semanal.');
   if(!window.jspdf?.jsPDF)throw Error('No se cargó el generador de PDF.');
   const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:'portrait'});
   const pageW=215.9,pageH=279.4,outer=8,gap=4,half=(pageH-outer*2-gap)/2;
@@ -107,7 +109,7 @@ async function generatePdf(){
   });
   const name='Seguimiento_tareas_3A_'+weekly.week_start+'_a_'+weekly.week_end+'.pdf';
   doc.save(name);
-  if(st)st.textContent='✓ PDF semanal generado: '+weekly.roster.length+' reportes personalizados, dos por hoja.';
+  if(st)st.textContent='✓ PDF semanal generado: '+weekly.roster.length+' reportes personalizados, dos por hoja; '+weekly.tasks.length+' actividades registradas en el periodo.';
  }catch(e){if(st)st.textContent='No se pudo generar el PDF: '+e.message}
  finally{busy=false}
 }

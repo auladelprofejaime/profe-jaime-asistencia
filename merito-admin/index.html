@@ -116,7 +116,7 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 </div>
 <div class="card" style="padding:16px">
 <h3>Estado de captura</h3>
-<p id="meritManualPeriodState" class="hint">Consultando…</p>
+<p id="meritManualPeriodState" class="hint">Consultando…</p><label>Periodo<select id="meritManualPeriodSelect"></select></label><div class="actions"><button id="meritManualPeriodOpen" class="primary" type="button">Iniciar mes</button><button id="meritManualPeriodClose" class="secondary" type="button">Cerrar captura</button></div><p id="meritManualPeriodActionStatus" class="message"></p>
 <p class="hint">Los periodos ya no se abrirán automáticamente por fecha. La apertura y el cierre se harán manualmente cuando lo indiques.</p>
 </div>
 </div>
@@ -142,4 +142,4 @@ main{max-width:1180px;margin:0 auto;padding:14px}
 <script src="./merit-admin.js?v=13"></script>
 <script src="./merit-annual.js?v=2"></script><script src="./merit-public-preview.js?v=3"></script>
 <script src="./merit-public-schedule.js?v=2"></script>
-<script src="./merit-teacher-notice.js?v=1"></script><script>document.querySelectorAll("#merit .meritNav").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#merit .meritNav").forEach(x=>x.classList.remove("active"));document.querySelectorAll("#merit .merit-pane").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("merit-"+b.dataset.meritPane)?.classList.add("active")}));</script><script>document.getElementById("meritGoPublication")?.addEventListener("click",()=>document.querySelector(".meritNav[data-merit-pane=publication]")?.click());</script></body></html>
+<script src="./merit-teacher-notice.js?v=2"></script><script>document.querySelectorAll("#merit .meritNav").forEach(b=>b.addEventListener("click",()=>{document.querySelectorAll("#merit .meritNav").forEach(x=>x.classList.remove("active"));document.querySelectorAll("#merit .merit-pane").forEach(x=>x.classList.remove("active"));b.classList.add("active");document.getElementById("merit-"+b.dataset.meritPane)?.classList.add("active")}));</script><script>document.getElementById("meritGoPublication")?.addEventListener("click",()=>document.querySelector(".meritNav[data-merit-pane=publication]")?.click());</script></body></html>

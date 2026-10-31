@@ -14,18 +14,10 @@ function fmt(v,weekday=false){
 function fmtShort(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return '—';const [y,m,d]=v.split('-');return d+'/'+m+'/'+y}
 function profileFor(id){return weekly?.profiles?.find(p=>p.student_id===id)||{english:'',art:''}}
 function applies(t,p){return !t.variant||t.variant===p.english||t.variant===p.art}
-function reviewResult(studentId,t){
- const row=(weekly?.reviews||[]).find(r=>r.student_id===studentId&&r.review_date===t.due_date);
- return row?.results?.find(x=>String(x.task_id)===String(t.id))||null;
-}
-function taskState(student,t){
- if(t.report_mode==='consult_student')return {key:'consult',text:'Consulte con el alumno si cumplió con esta indicación.'};
- if(t.due_date>weekly.generated_for)return {key:'pending',text:'Pendiente · se entrega '+fmt(t.due_date,true)+'.'};
- const r=reviewResult(student.student_id,t);
- if(r?.status==='presented')return {key:'presented',text:'Cumplió.'};
- if(r?.status==='missing')return {key:'missing',text:'No presentó.'};
- if(r?.status==='unverified')return {key:'unverified',text:'Pendiente de confirmar.'};
- return {key:'unreviewed',text:'Pendiente de revisión.'};
+function taskPresentation(t){
+ if(t.report_mode==='consult_student')return {kind:'consult',text:'Consulte con el alumno si cumplió con esta indicación.'};
+ if(t.due_in_period)return {kind:'verify',text:''};
+ return {kind:'future',text:'Se entrega: '+fmt(t.due_date,true)+'.'};
 }
 function visibleTasks(student){
  const p=profileFor(student.student_id);
@@ -35,7 +27,7 @@ function renderSummary(){
  const box=q('weeklyTaskSummary');if(!box||!weekly)return;
  const tasks=weekly.tasks||[];
  box.innerHTML='<p><b>Periodo automático:</b> '+esc(fmt(weekly.week_start))+' al '+esc(fmt(weekly.week_end))+'.</p>'+
- '<p><b>'+tasks.length+' actividad(es) detectada(s).</b> Revisa una sola vez qué debe aparecer en los reportes.</p>'+
+ '<p><b>'+tasks.length+' actividad(es) para este reporte.</b> Las que vencen dentro del periodo llevarán las opciones Entregada / No entregada / Realizada, pendiente de revisión. Las que vencen después solo mostrarán su fecha de entrega.</p>'+
  (tasks.length?'<div class="weekly-task-list">'+tasks.map(t=>'<article class="weekly-task-row" data-weekly-task="'+esc(t.id)+'"><div><b>'+esc(t.subject)+(t.variant?' · '+esc(t.variant):'')+'</b><div>'+esc(t.title)+'</div><small>Asignada: '+esc(fmt(t.assigned_date,true))+' · Entrega: '+esc(fmt(t.due_date,true))+'</small></div><label>En el reporte<select data-weekly-mode="'+esc(t.id)+'"><option value="include" '+(t.report_mode==='include'?'selected':'')+'>Incluir</option><option value="consult_student" '+(t.report_mode==='consult_student'?'selected':'')+'>Consultar con el alumno</option><option value="omit" '+(t.report_mode==='omit'?'selected':'')+'>Eliminar del reporte</option></select></label></article>').join(''):'<p>No hay tareas cargadas en este periodo. Los días sin foto simplemente no aparecen.</p>');
 }
 async function loadWeekly(){
@@ -75,19 +67,33 @@ function addReport(doc,student,x,y,w,h){
  doc.setDrawColor(220);doc.line(left,cy,right,cy);cy+=4;
  if(!tasks.length){doc.setFontSize(7.5);doc.text('No hay actividades incluidas en el reporte de esta semana.',left,cy);cy+=5}
  for(const t of tasks){
-   const state=taskState(student,t);
+   const view=taskPresentation(t);
    const title=(t.subject+(t.variant?' ('+t.variant+')':'')+': '+t.title);
    const lines=doc.splitTextToSize(title,maxW);
-   const statusLines=doc.splitTextToSize(state.text,maxW);
-   const need=lines.length*3.1+3.2+statusLines.length*3.1+3.3;
+   const extra=view.kind==='verify'?10:view.kind==='consult'?7:6;
+   const need=lines.length*3.1+3.2+extra;
    if(cy+need>y+h-16){
      doc.setFont('helvetica','italic');doc.setFontSize(6.4);
      doc.text('Continúa en el reverso/hoja siguiente por cantidad de actividades.',left,y+h-10);
      break;
    }
    doc.setFont('helvetica','bold');doc.setFontSize(7.1);doc.text(lines,left,cy);cy+=lines.length*3.1;
-   doc.setFont('helvetica','normal');doc.setFontSize(6.6);doc.text('Asignada: '+fmtShort(t.assigned_date)+' · Entrega: '+fmtShort(t.due_date),left,cy);cy+=3.2;
-   doc.setFont('helvetica',state.key==='missing'?'bold':'normal');doc.setFontSize(6.8);doc.text(statusLines,left,cy);cy+=statusLines.length*3.1+3;
+   doc.setFont('helvetica','normal');doc.setFontSize(6.6);
+   doc.text('Asignada: '+fmtShort(t.assigned_date)+' · Entrega: '+fmtShort(t.due_date),left,cy);cy+=3.5;
+   if(view.kind==='verify'){
+     doc.setFontSize(6.8);
+     const labels=['Entregada','No entregada','Realizada, pendiente de revisión'];
+     let xx=left;
+     for(const label of labels){
+       doc.rect(xx,cy-2.3,2.8,2.8);
+       doc.text(label,xx+4,cy);
+       xx+=label==='Realizada, pendiente de revisión'?0:label==='No entregada'?36:31;
+     }
+     cy+=6.5;
+   }else{
+     const lines2=doc.splitTextToSize(view.text,maxW);
+     doc.setFontSize(6.8);doc.text(lines2,left,cy);cy+=lines2.length*3.1+3;
+   }
  }
  const fy=y+h-13;doc.setDrawColor(170);doc.line(left,fy,right-55,fy);doc.line(right-48,fy,right,fy);
  doc.setFont('helvetica','normal');doc.setFontSize(6.3);doc.text('Firma del padre/madre/tutor',left,fy+3);doc.text('Fecha de entrega',right-48,fy+3);

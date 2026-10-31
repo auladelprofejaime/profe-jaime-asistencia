@@ -171,7 +171,7 @@
       box.innerHTML='<table><thead><tr><th>Grupo</th><th>Puntos</th><th>Observaciones</th><th>Descuento</th><th>Calidad de bitácora</th><th>Ajuste</th><th>Final estimado</th></tr></thead><tbody>'+
         rows.map(x=>{
           const base=byGroup[String(x.group_code)]||0,val=x.saved?Number(x.observation_count):'',d=x.saved?Number(x.deduction||0):null,qadj=Number(x.quality_adjustment||0);
-          const btn=(value,label)=>'<button type="button" class="secondary bitQualityBtn27 '+(qadj===value?'active':'')+'" data-quality="'+value+'" '+(editable?'':'disabled')+'>'+label+'</button>';
+          const btn=(value,label)=>'<button type="button" class="'+(qadj===value?'primary':'secondary')+' bitQualityBtn27" data-quality="'+value+'" '+(editable?'':'disabled')+'>'+label+'</button>';
           return '<tr class="bitRow27" data-group="'+esc(x.group_code)+'" data-base="'+base+'" data-quality="'+qadj+'"><td><b>'+esc(x.group_code)+'</b></td><td>'+base+'</td>'+
             '<td><input class="bitObs27" type="number" min="0" step="1" inputmode="numeric" value="'+val+'" '+(editable?'':'disabled')+' style="width:90px"></td>'+
             '<td class="bitDed27">'+(d===null?'—':d)+'</td>'+
@@ -183,7 +183,7 @@
       $('.bitQualityBtn27').forEach(b=>b.addEventListener('click',()=>{
         const row=b.closest('.bitRow27');if(!row)return;
         row.dataset.quality=String(Number(b.dataset.quality||0));
-        row.querySelectorAll('.bitQualityBtn27').forEach(x=>x.classList.toggle('active',x===b));
+        row.querySelectorAll('.bitQualityBtn27').forEach(x=>{x.classList.toggle('primary',x===b);x.classList.toggle('secondary',x!==b)});
         refreshBitRow(row);
       }));
       const save=$('#meritBitacoraSave27'); if(save)save.disabled=!editable||!m.required;

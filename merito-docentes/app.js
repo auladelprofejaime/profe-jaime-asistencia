@@ -233,7 +233,7 @@ async function checkDevice(){
   else{
    configureMeritPoints();
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
-   $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
+   $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);$('#staffIdVisible').textContent='ID: '+(staff?.staff_code||'—');
    updateOfflineUI();checkSystemReady();syncPending();
   }
   if(d.must_change_pin && !(staff?.is_placeholder&&!staff?.confirmed))setTimeout(()=>openPinDialog(false),80);
@@ -288,7 +288,7 @@ function showCapture(){
  if(!canCapture && mode==='annual_close'){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
-   $('#staffRole').textContent='Cierre anual · solo votación';
+   $('#staffRole').textContent='Cierre anual · solo votación';$('#staffIdVisible').textContent='ID: '+(staff?.staff_code||'—');
    [...workspace.children].forEach((el,idx)=>{
      const keep=idx<3 || el.id==='tieVoteCard';
      if(!keep)el.classList.add('hidden');
@@ -298,8 +298,8 @@ function showCapture(){
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#monthCloseNotice')?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
-   $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);
-   checkSystemReady();updateOfflineUI();refreshTieVotes();refreshCategoryRatification();loadTeacherRanking();loadTeacherNotice();
+   $('#staffRole').textContent=staff?.subject_area||roleLabel(staff?.role_type);$('#staffIdVisible').textContent='ID: '+(staff?.staff_code||'—');
+   checkSystemReady();updateOfflineUI();refreshTieVotes();loadTeacherRanking();loadTeacherNotice();
  }else if(!canCapture){
    $('#monthCloseNotice')?.classList.add('hidden');
    pending?.classList.remove('hidden');workspace?.classList.add('hidden');
@@ -317,8 +317,8 @@ function showCapture(){
    $('#monthCloseNotice')?.classList.add('hidden');
    pending?.classList.add('hidden');workspace?.classList.remove('hidden');
    $('#staffName').textContent=staff?.display_name||('ID '+(staff?.staff_code||''));
-   $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));
-   restoreMeritUpdateDraft();checkSystemReady();updateOfflineUI();refreshTieVotes();refreshCategoryRatification();loadMonthlyBenefit().finally(()=>maybeShowWelcome());loadTeacherRanking();loadTeacherNotice();setTimeout(ensureNotificationGate,120);
+   $('#staffRole').textContent=mode==='trial'?'Acceso de prueba · Consejo Técnico':(staff?.subject_area||roleLabel(staff?.role_type));$('#staffIdVisible').textContent='ID: '+(staff?.staff_code||'—');
+   restoreMeritUpdateDraft();checkSystemReady();updateOfflineUI();refreshTieVotes();loadMonthlyBenefit().finally(()=>maybeShowWelcome());loadTeacherRanking();loadTeacherNotice();setTimeout(ensureNotificationGate,120);
  }
 }
 
@@ -484,60 +484,6 @@ async function refreshTieVotes(){
 }
 
 
-
-async function castCategoryRatificationVote(sessionId,criterionCode,agree){
- const st=$('#categoryRatificationStatus');
- let proposal=null;
- if(!agree){
-   const sel=document.querySelector('[data-category-proposal="'+criterionCode+'"]');
-   proposal=sel?.value||'';
-   if(!proposal){if(st)st.innerHTML='<span class="error">Selecciona el grupo que propones.</span>';return}
- }
- if(!confirm(agree?'¿Confirmas que estás de acuerdo con el grupo propuesto?':'¿Confirmas tu propuesta de cambio para esta categoría?'))return;
- try{
-   if(st)st.textContent='Registrando voto…';
-   const d=await rpc('merit_cast_category_ratification_vote',{
-     p_token:token,p_session_id:sessionId,p_criterion_code:criterionCode,p_agree:agree,p_proposed_group_code:proposal||null
-   });
-   if(!d?.ok){
-     const msgs={already_voted:'Ya registraste tu voto en esta categoría.',vote_closed:'La votación ya cerró.',invalid_group:'Selecciona un grupo válido.',not_eligible:'Tu acceso no está habilitado para esta votación.'};
-     throw new Error(msgs[d?.reason]||d?.reason||'No se pudo registrar el voto.');
-   }
-   if(st)st.innerHTML='<span class="success">✓ Voto registrado.</span>';
-   await refreshCategoryRatification();
- }catch(e){if(st)st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>'}
-}
-async function refreshCategoryRatification(){
- const card=$('#categoryRatificationCard'),box=$('#categoryRatificationContent'),st=$('#categoryRatificationStatus');
- if(!card||!box||!token)return;
- try{
-   const d=await rpc('merit_pending_category_ratification',{p_token:token});
-   const sess=d?.session;
-   if(!d?.ok||!sess){card.classList.add('hidden');box.innerHTML='';return}
-   const groups=Array.isArray(sess.groups)?sess.groups:[];
-   const items=Array.isArray(sess.items)?sess.items:[];
-   if(!items.length){card.classList.add('hidden');return}
-   card.classList.remove('hidden');
-   box.innerHTML=items.map(i=>{
-     const voted=i.has_voted;
-     const result=voted?(i.agree?'✓ Ratificaste al Grupo '+escapeHtml(i.proposed_group):'✓ Propusiste al Grupo '+escapeHtml(i.my_proposal||'')):'';
-     const opts=groups.filter(g=>String(g.group_code)!==String(i.proposed_group)).map(g=>'<option value="'+escapeHtml(g.group_code)+'">Grupo '+escapeHtml(g.group_code)+'</option>').join('');
-     return '<div class="card" style="padding:14px;margin:10px 0;background:#fff">'+
-       '<div style="display:flex;justify-content:space-between;gap:12px;align-items:center"><div><b>'+escapeHtml(i.label)+'</b><div class="muted">Propuesta actual: <b>Grupo '+escapeHtml(i.proposed_group)+'</b></div></div></div>'+
-       (voted?'<div class="success" style="margin-top:10px">'+result+'</div>':
-       '<div class="actions" style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap"><button class="primary categoryAgreeBtn" type="button" data-session="'+escapeHtml(sess.id)+'" data-code="'+escapeHtml(i.criterion_code)+'">Estoy de acuerdo</button>'+
-       '<select data-category-proposal="'+escapeHtml(i.criterion_code)+'" style="min-width:150px"><option value="">Proponer otro grupo…</option>'+opts+'</select>'+
-       '<button class="secondary categoryChangeBtn" type="button" data-session="'+escapeHtml(sess.id)+'" data-code="'+escapeHtml(i.criterion_code)+'">Proponer cambio</button></div>')+
-       '</div>';
-   }).join('');
-   $('.categoryAgreeBtn').forEach(b=>b.onclick=()=>castCategoryRatificationVote(b.dataset.session,b.dataset.code,true));
-   $('.categoryChangeBtn').forEach(b=>b.onclick=()=>castCategoryRatificationVote(b.dataset.session,b.dataset.code,false));
-   if(st)st.textContent='';
- }catch(e){
-   card.classList.add('hidden');
-   if(st)st.innerHTML='<span class="error">'+escapeHtml(e.message||e)+'</span>';
- }
-}
 
 function urlBase64ToUint8Array(base64String){
  const padding='='.repeat((4-base64String.length%4)%4);

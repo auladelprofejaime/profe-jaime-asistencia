@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='89';
+const MERIT_APP_VERSION='90';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||

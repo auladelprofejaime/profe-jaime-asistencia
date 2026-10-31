@@ -29,13 +29,13 @@ async function loadBallot(){
   const items=Array.isArray(session.items)?session.items:[];
   $("#cards").innerHTML=items.map(i=>{
     if(i.has_voted){
-      const txt=i.agree?'Ratificaste al Grupo '+esc(i.proposed_group):'Propusiste al Grupo '+esc(i.my_proposal||"");
+      const txt=i.agree?'Votaste por el Grupo '+esc(i.proposed_group):'Votaste por el Grupo '+esc(i.my_proposal||"");
       return '<article class="vote-card"><h3>'+esc(i.label)+'</h3><div class="proposed">Grupo '+esc(i.proposed_group)+'</div><div class="done">✓ '+txt+'</div></article>';
     }
     const options=groups.filter(g=>String(g.group_code)!==String(i.proposed_group)).map(g=>'<option value="'+esc(g.group_code)+'">Grupo '+esc(g.group_code)+'</option>').join('');
     return '<article class="vote-card"><h3>'+esc(i.label)+'</h3><div class="muted">Propuesta actual</div><div class="proposed">Grupo '+esc(i.proposed_group)+'</div>'+
-      '<div class="actions"><button class="primary agreeBtn" data-code="'+esc(i.criterion_code)+'">Estoy de acuerdo</button></div>'+
-      '<div class="choiceRow"><select data-select="'+esc(i.criterion_code)+'"><option value="">Proponer otro grupo…</option>'+options+'</select></div>'+
+      '<div class="actions"><button class="primary agreeBtn" data-code="'+esc(i.criterion_code)+'">Votar por Grupo '+esc(i.proposed_group)+'</button></div>'+
+      '<div class="choiceRow"><select data-select="'+esc(i.criterion_code)+'"><option value="">Votar por otro grupo…</option>'+options+'</select></div><div class="choiceRow"><textarea data-reason="'+esc(i.criterion_code)+'" rows="3" placeholder="¿Por qué consideras que ese grupo merece esta categoría?" style="width:100%;padding:12px;border:1px solid #cfd6df;border-radius:13px;font:inherit;resize:vertical"></textarea></div>'+
       '<div class="actions" style="margin-top:8px"><button class="secondary changeBtn" data-code="'+esc(i.criterion_code)+'">Votar por otro grupo</button></div>'+
       '</article>';
   }).join('');
@@ -43,11 +43,13 @@ async function loadBallot(){
   document.querySelectorAll(".changeBtn").forEach(b=>b.onclick=()=>vote(b.dataset.code,false));
 }
 async function vote(code,agree){
-  const st=$("#ballotStatus");let proposal=null;
+  const st=$("#ballotStatus");let proposal=null,justification=null;
   if(!agree){
     const sel=document.querySelector('[data-select="'+code+'"]');
     proposal=sel?.value||"";
-    if(!proposal){st.innerHTML='<span class="error">Selecciona primero el grupo que propones.</span>';return}
+    justification=document.querySelector('[data-reason="'+code+'"]')?.value.trim()||"";
+    if(!proposal){st.innerHTML='<span class="error">Selecciona primero el grupo por el que quieres votar.</span>';return}
+    if(justification.length<5){st.innerHTML='<span class="error">Escribe brevemente por qué consideras que ese grupo merece la categoría.</span>';return}
   }
   const msg=agree?"¿Confirmas que estás de acuerdo con el grupo propuesto?":"¿Confirmas tu voto por el grupo seleccionado?";
   if(!confirm(msg))return;
@@ -58,7 +60,8 @@ async function vote(code,agree){
       p_session_id:session.id,
       p_criterion_code:code,
       p_agree:agree,
-      p_proposed_group_code:proposal||null
+      p_proposed_group_code:proposal||null,
+      p_justification:justification||null
     });
     if(!d?.ok)throw new Error(reason(d?.reason));
     st.innerHTML='<span class="success">✓ Voto registrado correctamente.</span>';

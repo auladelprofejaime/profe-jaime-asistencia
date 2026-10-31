@@ -59,6 +59,7 @@
     try{
       const d=await rpc('teacher_merit_close_tie_vote',{p_period_id:id,p_committee_resolutions:{}});
       if(d?.ok&&d.applied){
+        try{await rpc('teacher_merit_apply_category_vote_results',{p_period_id:id})}catch(_){ }
         if(st)st.textContent='✓ Votación cerrada y desempate aplicado. El mes quedó cerrado.';
         await refreshTieVoteStatus();
         try{if(typeof window.loadMeritMonthlyPreview==='function')await window.loadMeritMonthlyPreview()}catch(_){}
@@ -87,6 +88,7 @@
     try{
       const d=await rpc('teacher_merit_close_tie_vote',{p_period_id:id,p_committee_resolutions:resolutions});
       if(!d?.ok)throw new Error(d?.reason||'No se pudo aplicar la resolución.');
+      try{await rpc('teacher_merit_apply_category_vote_results',{p_period_id:id})}catch(_){ }
       if(st)st.textContent='✓ Resolución registrada. El mes quedó cerrado.';
       await refreshTieVoteStatus();
       try{if(typeof window.loadMeritMonthlyPreview==='function')await window.loadMeritMonthlyPreview()}catch(_){}
@@ -116,6 +118,7 @@
       if(!confirm('No hay empates. ¿Cerrar definitivamente este periodo?'))return;
       const d=await rpc('teacher_merit_close_month',{p_period_id:id,p_resolutions:{}});
       if(!d?.ok)throw new Error(d?.reason||'No se pudo cerrar el mes.');
+      try{await rpc('teacher_merit_apply_category_vote_results',{p_period_id:id})}catch(_){ }
       if(st)st.textContent='✓ Mes cerrado correctamente. No fue necesaria una votación.';
       try{if(typeof window.loadMeritMonthlyPreview==='function')await window.loadMeritMonthlyPreview()}catch(_){}
     }catch(e){if(st)st.textContent='No se pudo cerrar: '+(e.message||e)}

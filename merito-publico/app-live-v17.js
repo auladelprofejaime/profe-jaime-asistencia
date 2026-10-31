@@ -2,7 +2,7 @@ const SUPABASE_URL="https://xqeyyjakmeiaahecfdmc.supabase.co",SUPABASE_KEY="sb_p
 const $=s=>document.querySelector(s);let data=null,scheduledReveal='2026-11-03T07:30:00-06:00';
 async function rpc(name,args={}){const r=await fetch(`${SUPABASE_URL}/rest/v1/rpc/${name}`,{method:'POST',cache:'no-store',headers:{apikey:SUPABASE_KEY,Authorization:`Bearer ${SUPABASE_KEY}`,'Content-Type':'application/json'},body:JSON.stringify(args)});const t=await r.text();let d;try{d=t?JSON.parse(t):null}catch{d=t}if(!r.ok)throw new Error(t||r.status);return d}
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
-function countPending(){return Date.now()<new Date(scheduledReveal).getTime()}).format(new Date())<'2026-11-03 07:30'}
+function countPending(){return Date.now()<new Date(scheduledReveal).getTime()}
 function countView(){const d=new Date(scheduledReveal),dateLabel=d.toLocaleDateString('es-MX',{timeZone:'America/Mexico_City',day:'numeric',month:'long'}),timeLabel=d.toLocaleTimeString('es-MX',{timeZone:'America/Mexico_City',hour:'numeric',minute:'2-digit'}); $('#periodName').textContent='Conteo final · Octubre 2026';$('#updated').textContent='Publicación: '+dateLabel+', '+timeLabel;$('#leaderNow').innerHTML='<div class="empty"><h2>Estamos en conteo de puntos</h2><p>Espera el '+dateLabel+' para conocer el resultado.</p><p>A partir de las '+timeLabel+'.</p></div>';$('#ranking').innerHTML='';$('#categories').innerHTML='';$('#remainingRanking').classList.add('hidden')}
 function render(){if(countPending()){countView();return;}
  $('#periodName').textContent=data?.period?.label||'Sin periodo abierto';

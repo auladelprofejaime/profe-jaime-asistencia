@@ -16,22 +16,37 @@
    keep.push({reason:'Otros movimientos',points:sum(rest)});
    return keep;
  }
- function analysisText(g){
+ function ordinalRank(n){
+   n=Number(n||0);
+   return n===1?'1.er lugar':n+'.º lugar';
+ }
+ function strengthsText(g){
    const pos=Array.isArray(g.positive_reasons)?g.positive_reasons:[];
+   const strengths=pos.slice(0,3).map(x=>clean(x.reason)).filter(Boolean);
+   if(strengths.length)return strengths.join(', ');
+   return 'la participación y el esfuerzo sostenido del grupo';
+ }
+ function motivationalText(g){
+   const rank=Number(g.rank||0);
+   if(rank===1)return '¡Felicidades! Su constancia los llevó al primer lugar. El reto ahora es mantener ese nivel y demostrar que pueden sostenerlo durante el siguiente periodo.';
+   if(rank<=3)return 'Estuvieron muy cerca de la cima. Mantengan sus fortalezas y trabajen en los puntos que todavía pueden mejorar; tienen todo para seguir avanzando.';
+   if(Number(g.final_score||0)>=0)return 'El grupo mostró avances importantes. Si mantienen sus fortalezas y corrigen los aspectos señalados, pueden subir posiciones durante el próximo mes.';
+   return 'Este resultado no define al grupo. Es una oportunidad para reorganizarse, mejorar el seguimiento y demostrar cuánto pueden avanzar durante el próximo periodo.';
+ }
+ function analysisText(g){
    const neg=Array.isArray(g.negative_reasons)?g.negative_reasons:[];
    const b=g.bitacora||{};
    const follow=Number(b.quality_adjustment||0)+Number(b.followup_extra||0);
    const loss=Number(b.loss_adjustment||0);
    const obs=Number(b.deduction||0);
-   const strengths=pos.slice(0,2).map(x=>clean(x.reason)).filter(Boolean);
    const issues=neg.slice(0,2).map(x=>clean(x.reason)).filter(Boolean);
    if(obs<0)issues.push('observaciones de bitácora');
    if(follow<0)issues.push('seguimiento de bitácora');
    if(loss<0)issues.push('no entrega o extravío de bitácora');
-   let t='El grupo cerró el periodo con '+signed(g.final_score)+' puntos.';
-   if(strengths.length)t+=' Sus principales fortalezas estuvieron en '+strengths.join(' y ')+'.';
-   if(issues.length)t+=' Perdió puntos principalmente por '+[...new Set(issues)].slice(0,3).join(', ')+'.';
-   else t+=' Mantengan las acciones que permitieron conservar un balance favorable.';
+   let t='El grupo cerró el periodo en '+ordinalRank(g.rank)+' con '+signed(g.final_score)+' puntos.';
+   t+=' Entre sus fortalezas destacaron '+strengthsText(g)+'.';
+   if(issues.length)t+=' Para avanzar, necesitan trabajar principalmente en '+[...new Set(issues)].slice(0,3).join(', ')+'.';
+   else t+=' El principal reto será mantener la constancia y seguir participando con la misma actitud.';
    return t;
  }
  async function imageData(url){
@@ -78,14 +93,16 @@
 
    doc.setFillColor(251,247,236);doc.roundedRect(16,54,184,27,3,3,'F');
    doc.setTextColor(139,107,32);doc.setFont('helvetica','bold');doc.setFontSize(9);
-   doc.text('PUNTUACIÓN FINAL',24,63);doc.text('POSICIÓN GENERAL',114,63);
+   doc.text('PUNTUACIÓN FINAL',24,63);doc.text('LUGAR OBTENIDO',114,63);
    doc.setTextColor(11,29,58);doc.setFontSize(18);
-   doc.text(signed(g.final_score)+' pts',24,73);doc.text(String(g.rank||'—'),114,73);
+   doc.text(signed(g.final_score)+' pts',24,73);doc.text(ordinalRank(g.rank),114,73);
 
    let y=91;
-   y=blockTitle(doc,'¿Cómo estuvo el mes?',y);
+   y=blockTitle(doc,'Así cerró tu grupo este mes',y);
    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(21,32,51);
    const ana=doc.splitTextToSize(analysisText(g),184);doc.text(ana,16,y);y+=ana.length*4+4;
+   doc.setFont('helvetica','bold');doc.setTextColor(139,107,32);
+   const mot=doc.splitTextToSize(motivationalText(g),184);doc.text(mot,16,y);y+=mot.length*4+5;
 
    y=blockTitle(doc,'Movimientos que sumaron puntos',y);
    y=reasonList(doc,g.positive_reasons,18,y,178,5)+3;
@@ -113,9 +130,13 @@
    const rec=doc.splitTextToSize(clean(g.recommendation)||'Mantengan el seguimiento del grupo y trabajen en reducir las situaciones que generaron descuentos.',184);
    doc.text(rec,16,y);
 
-   doc.setDrawColor(220,226,236);doc.line(16,H-18,200,H-18);
-   doc.setFontSize(7.5);doc.setTextColor(102,112,133);
-   doc.text('Este reporte resume los registros del periodo. No identifica a los docentes que otorgaron o descontaron puntos.',16,H-12);
+   doc.setDrawColor(220,226,236);doc.line(16,H-30,200,H-30);
+   doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(11,29,58);
+   doc.text('Administración del proyecto Mérito Gabino A. Palma',16,H-23);
+   doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(21,32,51);
+   doc.text('Jaime Armando Pérez Vázquez',16,H-18);
+   doc.setFontSize(7.2);doc.setTextColor(102,112,133);
+   doc.text('Este reporte resume los registros del periodo y busca orientar al grupo para seguir mejorando.',16,H-11);
  }
  async function generate(){
    const btn=$('#meritMonthlyGroupPdfBtn'),st=$('#meritMonthlyStatus'),sel=$('#meritMonthlyPeriod');

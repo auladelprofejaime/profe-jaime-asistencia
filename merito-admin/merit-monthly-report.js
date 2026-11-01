@@ -6,6 +6,17 @@
    return window.ProfeSupabase.rpc(name,args);
  }
  function clean(v){return String(v??'').replace(/\s+/g,' ').trim()}
+ function shortText(v,max=92){
+   const s=clean(v);
+   return s.length<=max?s:s.slice(0,max-1).trim()+'…';
+ }
+ function limitedLines(doc,text,width,maxLines){
+   const lines=doc.splitTextToSize(clean(text),width);
+   if(lines.length<=maxLines)return lines;
+   const out=lines.slice(0,maxLines);
+   out[maxLines-1]=String(out[maxLines-1]).replace(/[.…\s]+$/,'')+'…';
+   return out;
+ }
  function signed(n){n=Number(n||0);return (n>0?'+':'')+n}
  function sum(list){return (Array.isArray(list)?list:[]).reduce((a,x)=>a+Number(x.points||0),0)}
  function normalizedReason(reason){
@@ -29,7 +40,7 @@
  }
  function strengthsText(g){
    const pos=Array.isArray(g.positive_reasons)?g.positive_reasons:[];
-   const strengths=pos.slice(0,3).map(x=>clean(x.reason)).filter(Boolean);
+   const strengths=pos.slice(0,3).map(x=>shortText(x.reason,48)).filter(Boolean);
    if(strengths.length)return strengths.join(', ');
    return 'la participación y el esfuerzo sostenido del grupo';
  }
@@ -48,7 +59,7 @@
    const follow=Number(b.quality_adjustment||0)+Number(b.followup_extra||0);
    const loss=Number(b.loss_adjustment||0);
    const obs=Number(b.deduction||0);
-   const issues=neg.slice(0,2).map(x=>clean(x.reason)).filter(Boolean);
+   const issues=neg.slice(0,2).map(x=>shortText(x.reason,54)).filter(Boolean);
    if(obs<0)issues.push('observaciones de bitácora');
    if(follow<0)issues.push('seguimiento de bitácora');
    if(loss<0)issues.push('no entrega o extravío de bitácora');
@@ -72,17 +83,17 @@
    doc.setDrawColor(201,164,73);doc.setLineWidth(.5);doc.line(16,y+2,200,y+2);
    return y+7;
  }
- function reasonList(doc,list,x,y,w,max=6){
+ function reasonList(doc,list,x,y,w,max=4){
    const rows=compactReasons(list,max);
-   doc.setFontSize(8.5);
-   if(!rows.length){doc.setFont('helvetica','normal');doc.setTextColor(102,112,133);doc.text('Sin movimientos registrados.',x,y);return y+5}
+   doc.setFontSize(8.2);
+   if(!rows.length){doc.setFont('helvetica','normal');doc.setTextColor(102,112,133);doc.text('Sin movimientos registrados.',x,y);return y+4.5}
    rows.forEach(r=>{
      doc.setFont('helvetica','normal');doc.setTextColor(21,32,51);
-     const txt=doc.splitTextToSize(clean(r.reason),w-25);
+     const txt=limitedLines(doc,shortText(r.reason,105),w-25,1);
      doc.text(txt,x,y);
      doc.setFont('helvetica','bold');
      doc.text(signed(r.points),x+w,y,{align:'right'});
-     y+=Math.max(4,txt.length*3.6);
+     y+=4.1;
    });
    return y;
  }
@@ -109,24 +120,24 @@
    let y=91;
    y=blockTitle(doc,'Así cerró tu grupo este mes',y);
    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(21,32,51);
-   const ana=doc.splitTextToSize(analysisText(g),184);doc.text(ana,16,y);y+=ana.length*4+4;
+   const ana=limitedLines(doc,analysisText(g),184,4);doc.text(ana,16,y);y+=ana.length*3.8+3;
    doc.setFont('helvetica','bold');doc.setTextColor(139,107,32);
-   const mot=doc.splitTextToSize(motivationalText(g),184);doc.text(mot,16,y);y+=mot.length*4+5;
+   const mot=limitedLines(doc,motivationalText(g),184,3);doc.text(mot,16,y);y+=mot.length*3.8+4;
 
    y=blockTitle(doc,'Movimientos que sumaron puntos',y);
-   y=reasonList(doc,g.positive_reasons,18,y,178,5)+3;
+   y=reasonList(doc,g.positive_reasons,18,y,178,4)+2;
 
    y=blockTitle(doc,'Movimientos que restaron puntos',y);
-   y=reasonList(doc,g.negative_reasons,18,y,178,5)+2;
+   y=reasonList(doc,g.negative_reasons,18,y,178,4)+1.5;
    const generalConv=(Array.isArray(g.negative_reasons)?g.negative_reasons:[]).some(x=>clean(x.reason)==='Descuento general de 15 puntos por situaciones recientes de indisciplina a nivel escolar');
    if(generalConv){
-     doc.setFillColor(247,248,250);doc.roundedRect(16,y,184,16,2,2,'F');
+     doc.setFillColor(247,248,250);doc.roundedRect(16,y,184,14,2,2,'F');
      doc.setFont('helvetica','bold');doc.setFontSize(8.3);doc.setTextColor(11,29,58);
-     doc.text('Ajuste general del periodo',20,y+6);
+     doc.text('Ajuste general del periodo',20,y+5);
      doc.setFont('helvetica','normal');doc.setFontSize(7.8);doc.setTextColor(21,32,51);
-     const convivencia=doc.splitTextToSize('Se aplicó un ajuste general de -15 puntos a todos los grupos por situaciones de convivencia escolar a nivel general. Este ajuste no corresponde a una falta específica de este grupo.',174);
-     doc.text(convivencia,20,y+11);
-     y+=19;
+     const convivencia=limitedLines(doc,'Se aplicó un ajuste general de -15 puntos a todos los grupos por situaciones de convivencia escolar. No corresponde a una falta específica de este grupo.',174,2);
+     doc.text(convivencia,20,y+9.5);
+     y+=16;
    }else y+=1;
 
    const b=g.bitacora||{};
@@ -142,12 +153,12 @@
      'No entrega o extravío: '+signed(loss),
      'Resultado total de bitácora: '+signed(bitTotal)+' puntos'
    ];
-   bitLines.forEach((t,i)=>{if(i===4)doc.setFont('helvetica','bold');doc.text(t,18,y);y+=4.2});
+   bitLines.forEach((t,i)=>{if(i===4)doc.setFont('helvetica','bold');doc.text(t,18,y);y+=3.9});
 
-   y+=2;y=blockTitle(doc,'Recomendación para el próximo mes',y);
-   doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(21,32,51);
+   y+=1.5;y=blockTitle(doc,'Recomendación para el próximo mes',y);
+   doc.setFont('helvetica','normal');doc.setFontSize(8.6);doc.setTextColor(21,32,51);
    const recBase=clean(g.recommendation)||'Mantengan el buen trabajo en equipo y concéntrense en los aspectos que pueden ayudarles a seguir avanzando el próximo mes.';
-   const rec=doc.splitTextToSize(recBase+' Confíen en el trabajo del grupo: con constancia y organización pueden mejorar su resultado.',184);
+   const rec=limitedLines(doc,recBase+' Confíen en el trabajo del grupo: con constancia y organización pueden mejorar su resultado.',184,3);
    doc.text(rec,16,y);
 
    doc.setDrawColor(220,226,236);doc.line(16,H-30,200,H-30);

@@ -46,7 +46,8 @@
     '<p><b>Cierre programado:</b> '+esc(parts.date)+' · '+esc(parts.time)+' h</p>'+
     '<p><b>Docentes que han participado:</b> '+Number(d.teachers_participating||0)+' · <b>Votos registrados:</b> '+Number(d.votes_cast||0)+'</p>'+
     '<p><b>Enlace permanente:</b><br><a href="'+LINK+'" target="_blank" rel="noopener">'+LINK+'</a></p>'+
-    (res.length?'<div class="tablewrap"><table><thead><tr><th>Categoría</th><th>Ganador</th><th>Votos</th><th>Resolución</th></tr></thead><tbody>'+res.map(r=>'<tr><td>'+esc(r.criterion_code)+'</td><td>Grupo '+esc(r.winner_group)+'</td><td>'+Number(r.votes||0)+'</td><td>'+esc(r.resolution_note||'')+'</td></tr>').join('')+'</tbody></table></div>':'');
+    ((Array.isArray(d.live_standings)&&d.live_standings.length)?'<h4>Avance provisional por categoría</h4><div class="tablewrap"><table><thead><tr><th>Categoría</th><th>Grupo</th><th>Puntos categoría</th><th>Votos</th><th>Total</th></tr></thead><tbody>'+d.live_standings.map(r=>'<tr><td>'+esc(r.category||r.criterion_code)+'</td><td>Grupo '+esc(r.group_code)+'</td><td>'+Number(r.category_score||0)+'</td><td>+'+Number(r.votes||0)+'</td><td><b>'+Number(r.total_score||0)+'</b></td></tr>').join('')+'</tbody></table></div>':'')+
+    (res.length?'<h4>Resultados finales</h4><div class="tablewrap"><table><thead><tr><th>Categoría</th><th>Ganador</th><th>Votos</th><th>Resolución</th></tr></thead><tbody>'+res.map(r=>'<tr><td>'+esc(r.criterion_code)+'</td><td>Grupo '+esc(r.winner_group)+'</td><td>'+Number(r.votes||0)+'</td><td>'+esc(r.resolution_note||'')+'</td></tr>').join('')+'</tbody></table></div>':'');
    if(st)st.textContent='';
   }catch(e){if(st)st.textContent='No se pudo consultar la votación: '+(e.message||e)}
  }

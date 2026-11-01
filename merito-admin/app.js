@@ -167,8 +167,14 @@ async function loadMeritMonthlyPreview(){
  try{
   const d=await rpc("teacher_merit_close_preview",{p_period_id:id});
   if(!d?.ok)throw new Error(d?.reason||"No se pudo revisar.");
-  const rows=Array.isArray(d.ranking)?d.ranking:(Array.isArray(d.rows)?d.rows:[]);
-  box.innerHTML='<p><b>Empates:</b> '+(d.has_ties?"Sí":"No")+'</p><table><thead><tr><th>Lugar</th><th>Grupo</th><th>Puntos</th></tr></thead><tbody>'+rows.map(r=>'<tr><td>'+esc(r.rank||"")+'</td><td><b>'+esc(r.group_code||r.group||"")+'</b></td><td>'+esc(r.score??r.points??0)+'</td></tr>').join("")+'</tbody></table>';
+  const overall=d.overall||{};
+  const rows=Array.isArray(overall.candidates)?overall.candidates:[];
+  const tied=!!overall.tied;
+  box.innerHTML='<p><b>Empate en primer lugar:</b> '+(tied?"Sí":"No")+'</p>'+
+    '<table><thead><tr><th>Lugar</th><th>Grupo</th><th>Puntos finales</th></tr></thead><tbody>'+
+    rows.map(r=>'<tr><td>1.º</td><td><b>'+esc(r.group_code||"")+'</b></td><td>'+esc(r.score??overall.top_score??0)+'</td></tr>').join("")+
+    '</tbody></table>'+
+    '<p class="hint" style="margin-top:10px">Las categorías se definen en el apartado <b>Votaciones</b>; esta vista previa corresponde al resultado general del Mérito del Mes.</p>';
   st.textContent="Vista previa del cierre actualizada.";
  }catch(e){st.textContent="No se pudo cargar el cierre: "+(e.message||e)}
 }

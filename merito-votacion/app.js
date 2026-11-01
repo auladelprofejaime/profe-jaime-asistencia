@@ -16,7 +16,7 @@ async function rpc(name,args={}){
 }
 function esc(v){return String(v??"").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]))}
 function reason(r){
-  return ({invalid_id:"ID no reconocido. Revisa el número e inténtalo de nuevo.",vote_closed:"La votación ya cerró.",already_voted:"Este ID ya registró su voto en esta categoría.",invalid_group:"Selecciona un grupo válido."})[r]||r||"No se pudo completar la operación.";
+  return ({invalid_id:"ID no reconocido. Revisa el número e inténtalo de nuevo.",vote_closed:"La votación ya cerró.",already_voted:"Este ID ya registró su voto en esta categoría.",invalid_group:"Selecciona un grupo válido.",group_not_eligible:"Ese grupo no participa en esta categoría."})[r]||r||"No se pudo completar la operación.";
 }
 async function loadBallot(){
   const d=await rpc("merit_public_category_ballot",{p_staff_code:staffCode});
@@ -32,7 +32,8 @@ async function loadBallot(){
       const txt=i.agree?'Votaste por el Grupo '+esc(i.proposed_group):'Votaste por el Grupo '+esc(i.my_proposal||"");
       return '<article class="vote-card"><h3>'+esc(i.label)+'</h3><div class="proposed">Grupo '+esc(i.proposed_group)+'</div><div class="done">✓ '+txt+'</div></article>';
     }
-    const options=groups.filter(g=>String(g.group_code)!==String(i.proposed_group)).map(g=>'<option value="'+esc(g.group_code)+'">Grupo '+esc(g.group_code)+'</option>').join('');
+    const excluded=new Set((Array.isArray(i.excluded_groups)?i.excluded_groups:[]).map(String));
+    const options=groups.filter(g=>String(g.group_code)!==String(i.proposed_group)&&!excluded.has(String(g.group_code))).map(g=>'<option value="'+esc(g.group_code)+'">Grupo '+esc(g.group_code)+'</option>').join('');
     return '<article class="vote-card"><h3>'+esc(i.label)+'</h3><div class="muted">Propuesta actual</div><div class="proposed">Grupo '+esc(i.proposed_group)+'</div>'+
       '<div class="actions"><button class="primary agreeBtn" data-code="'+esc(i.criterion_code)+'">Votar por Grupo '+esc(i.proposed_group)+'</button></div>'+
       '<div class="choiceRow"><select data-select="'+esc(i.criterion_code)+'"><option value="">Votar por otro grupo…</option>'+options+'</select></div><div class="choiceRow"><textarea data-reason="'+esc(i.criterion_code)+'" rows="3" placeholder="¿Por qué consideras que ese grupo merece esta categoría?" style="width:100%;padding:12px;border:1px solid #cfd6df;border-radius:13px;font:inherit;resize:vertical"></textarea></div>'+

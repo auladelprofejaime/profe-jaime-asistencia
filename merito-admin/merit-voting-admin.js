@@ -12,7 +12,10 @@
  function deadlineIso(){
   const date=$('#meritVotingCloseDate')?.value,time=$('#meritVotingCloseTime')?.value;
   if(!date||!time)throw new Error('Selecciona fecha y hora de cierre.');
-  return date+'T'+time+':00-06:00';
+  const d=new Date(date+'T'+time+':00');
+  if(Number.isNaN(d.getTime()))throw new Error('La fecha u hora de cierre no es válida.');
+  if(d.getTime()<=Date.now())throw new Error('La fecha y hora de cierre deben ser posteriores a la hora actual.');
+  return d.toISOString();
  }
  function esc(v){return String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
  async function loadPeriods(){

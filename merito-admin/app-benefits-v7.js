@@ -232,14 +232,44 @@ async function loadMeritMonthlyPreview(){
         note:r.resolution_note||""
       }));
     }else{
-      catRows=(Array.isArray(vote.live_standings)?vote.live_standings:[])
-        .filter(r=>Number(r.position||0)===1)
-        .map(r=>({
-          category:r.category||labels[r.criterion_code]||r.criterion_code,
-          group:r.group_code,
-          total:Number(r.total_score||0),
-          note:Number(r.category_score||0)+" de categoría + "+Number(r.votes||0)+" voto(s)"
-        }));
+      const order=["cleanliness","uniform","punctuality","coexistence","responsibility","attitude","institutional_participation"];
+      const all=Array.isArray(vote.live_standings)?vote.live_standings:[];
+      const used=new Set();
+      catRows=[];
+      for(const code of order){
+        const candidates=all.filter(r=>r.criterion_code===code&&!used.has(String(r.group_code)))
+          .sort((a,b)=>{
+            const t=Number(b.total_score||0)-Number(a.total_score||0);
+            if(t)return t;
+            const g=Number(b.general_score||0)-Number(a.general_score||0);
+            if(g)return g;
+            return String(a.group_code||"").localeCompare(String(b.group_code||""),"es",{numeric:true});
+          });
+        if(!candidates.length)continue;
+        const selected=candidates[0];
+        const originalTop=all.filter(r=>r.criterion_code===code)
+          .sort((a,b)=>{
+            const t=Number(b.total_score||0)-Number(a.total_score||0);
+            if(t)return t;
+            const g=Number(b.general_score||0)-Number(a.general_score||0);
+            if(g)return g;
+            return String(a.group_code||"").localeCompare(String(b.group_code||""),"es",{numeric:true});
+          })[0];
+        const tiedTotal=candidates.filter(r=>Number(r.total_score||0)===Number(selected.total_score||0));
+        let extra="";
+        if(originalTop&&String(originalTop.group_code)!==String(selected.group_code)){
+          extra=" · Reacomodado: el líder ya obtuvo otra categoría";
+        }else if(tiedTotal.length>1){
+          extra=" · Desempate por puntaje general";
+        }
+        used.add(String(selected.group_code));
+        catRows.push({
+          category:selected.category||labels[code]||code,
+          group:selected.group_code,
+          total:Number(selected.total_score||0),
+          note:Number(selected.category_score||0)+" de categoría + "+Number(selected.votes||0)+" voto(s)"+extra
+        });
+      }
     }
   }
   box.innerHTML='<h3 style="margin:0 0 8px">Resultado general</h3>'+

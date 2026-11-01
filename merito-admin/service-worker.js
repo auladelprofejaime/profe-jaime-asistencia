@@ -1,10 +1,10 @@
-const CACHE="merito-admin-v1-15-monthly-report";
+const CACHE="merito-admin-v1-16-monthly-report-motivational";
 const ASSETS=[
  "./","./index.html","./styles.css?v=2","./app-benefits-v7.js?v=15","./supabase-admin.js?v=2",
  "./merit-staff-provision.js?v=2","./merit-movements.js?v=2","./merit-corrections.js?v=2",
  "./merit-ranking.js?v=2","./merit-staff-period.js?v=2","./merit-tie-vote.js?v=3",
  "./merit-admin.js?v=14.1","./merit-annual.js?v=2","./manifest.webmanifest?v=3",
- "./merit-monthly-report.js?v=1","./merit-voting-admin.js?v=3","./icon-192.png","./icon-512.png"
+ "./merit-monthly-report.js?v=2","./merit-voting-admin.js?v=3","./icon-192.png","./icon-512.png"
 ];
 self.addEventListener("install",event=>{
  event.waitUntil(caches.open(CACHE).then(cache=>cache.addAll(ASSETS)).then(()=>self.skipWaiting()));

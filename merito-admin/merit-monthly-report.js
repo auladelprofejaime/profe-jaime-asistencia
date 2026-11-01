@@ -35,13 +35,15 @@
  }
  function motivationalText(g){
    const rank=Number(g.rank||0);
-   if(rank===1)return '¡Felicidades! Su constancia los llevó al primer lugar. El reto ahora es mantener ese nivel y demostrar que pueden sostenerlo durante el siguiente periodo.';
-   if(rank<=3)return 'Estuvieron muy cerca de la cima. Mantengan sus fortalezas y trabajen en los puntos que todavía pueden mejorar; tienen todo para seguir avanzando.';
-   if(Number(g.final_score||0)>=0)return 'El grupo mostró avances importantes. Si mantienen sus fortalezas y corrigen los aspectos señalados, pueden subir posiciones durante el próximo mes.';
-   return 'Este resultado no define al grupo. Es una oportunidad para reorganizarse, mejorar el seguimiento y demostrar cuánto pueden avanzar durante el próximo periodo.';
+   if(rank===1)return '¡Felicidades! Su constancia los llevó al primer lugar. Sigan cuidando lo que ya hacen bien y busquen superarse todavía más el próximo mes.';
+   if(rank<=3)return 'Van por muy buen camino. Mantengan sus fortalezas, sigan participando y trabajen en los pequeños detalles que pueden llevarlos todavía más arriba.';
+   if(Number(g.final_score||0)>=0)return 'El grupo tiene elementos positivos sobre los cuales seguir construyendo. Con constancia, organización y trabajo en equipo pueden subir posiciones el próximo mes.';
+   return 'Hay mucho margen para crecer. Organícense, trabajen como equipo y tomen este resultado como un punto de partida para demostrar de lo que son capaces el próximo mes.';
  }
  function analysisText(g){
-   const neg=(Array.isArray(g.negative_reasons)?g.negative_reasons:[]).map(x=>({...x,reason:normalizedReason(x.reason)}));
+   const neg=(Array.isArray(g.negative_reasons)?g.negative_reasons:[])
+     .filter(x=>clean(x.reason)!=='Descuento general de 15 puntos por situaciones recientes de indisciplina a nivel escolar')
+     .map(x=>({...x,reason:normalizedReason(x.reason)}));
    const b=g.bitacora||{};
    const follow=Number(b.quality_adjustment||0)+Number(b.followup_extra||0);
    const loss=Number(b.loss_adjustment||0);
@@ -52,8 +54,8 @@
    if(loss<0)issues.push('no entrega o extravío de bitácora');
    let t='El grupo cerró el periodo en '+ordinalRank(g.rank)+' con '+signed(g.final_score)+' puntos.';
    t+=' Entre sus fortalezas destacaron '+strengthsText(g)+'.';
-   if(issues.length)t+=' Para avanzar, necesitan trabajar principalmente en '+[...new Set(issues)].slice(0,3).join(', ')+'.';
-   else t+=' El principal reto será mantener la constancia y seguir participando con la misma actitud.';
+   if(issues.length)t+=' El próximo mes pueden enfocarse especialmente en '+[...new Set(issues)].slice(0,3).join(', ')+'.';
+   else t+=' El reto para el próximo mes será mantener la constancia y seguir participando con la misma actitud.';
    return t;
  }
  async function imageData(url){
@@ -118,13 +120,13 @@
    y=reasonList(doc,g.negative_reasons,18,y,178,5)+2;
    const generalConv=(Array.isArray(g.negative_reasons)?g.negative_reasons:[]).some(x=>clean(x.reason)==='Descuento general de 15 puntos por situaciones recientes de indisciplina a nivel escolar');
    if(generalConv){
-     doc.setFillColor(247,248,250);doc.roundedRect(16,y,184,19,2,2,'F');
+     doc.setFillColor(247,248,250);doc.roundedRect(16,y,184,16,2,2,'F');
      doc.setFont('helvetica','bold');doc.setFontSize(8.3);doc.setTextColor(11,29,58);
-     doc.text('Sobre el ajuste general de convivencia',20,y+6);
+     doc.text('Ajuste general del periodo',20,y+6);
      doc.setFont('helvetica','normal');doc.setFontSize(7.8);doc.setTextColor(21,32,51);
-     const convivencia=doc.splitTextToSize('Este ajuste de -15 puntos fue aplicado a todos los grupos como una medida general de convivencia escolar. Se recomienda cuidar la convivencia en receso, pasillos y espacios comunes, así como trabajar de forma respetuosa con alumnos de otros grupos.',174);
+     const convivencia=doc.splitTextToSize('Se aplicó un ajuste general de -15 puntos a todos los grupos por situaciones de convivencia escolar a nivel general. Este ajuste no corresponde a una falta específica de este grupo.',174);
      doc.text(convivencia,20,y+11);
-     y+=22;
+     y+=19;
    }else y+=1;
 
    const b=g.bitacora||{};
@@ -144,7 +146,8 @@
 
    y+=2;y=blockTitle(doc,'Recomendación para el próximo mes',y);
    doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(21,32,51);
-   const rec=doc.splitTextToSize(clean(g.recommendation)||'Mantengan el seguimiento del grupo y trabajen en reducir las situaciones que generaron descuentos.',184);
+   const recBase=clean(g.recommendation)||'Mantengan el buen trabajo en equipo y concéntrense en los aspectos que pueden ayudarles a seguir avanzando el próximo mes.';
+   const rec=doc.splitTextToSize(recBase+' Confíen en el trabajo del grupo: con constancia y organización pueden mejorar su resultado.',184);
    doc.text(rec,16,y);
 
    doc.setDrawColor(220,226,236);doc.line(16,H-30,200,H-30);

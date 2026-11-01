@@ -211,16 +211,47 @@ async function setPublicState(state){
 async function loadMeritMonthlyPreview(){
  const id=$("#meritMonthlyPeriod").value,box=$("#meritMonthlyPreview"),st=$("#meritMonthlyStatus");if(!id)return;
  try{
-  const d=await rpc("teacher_merit_close_preview",{p_period_id:id});
+  const [d,vote]=await Promise.all([
+   rpc("teacher_merit_close_preview",{p_period_id:id}),
+   rpc("teacher_merit_category_vote_status",{p_period_id:id})
+  ]);
   if(!d?.ok)throw new Error(d?.reason||"No se pudo revisar.");
   const overall=d.overall||{};
   const rows=Array.isArray(overall.candidates)?overall.candidates:[];
   const tied=!!overall.tied;
-  box.innerHTML='<p><b>Empate en primer lugar:</b> '+(tied?"Sí":"No")+'</p>'+
+  const labels={cleanliness:"Limpieza",uniform:"Uniforme",punctuality:"Puntualidad",coexistence:"Convivencia",responsibility:"Responsabilidad",attitude:"Actitud",institutional_participation:"Participación"};
+  let catRows=[];
+  let catState="Sin votación de categorías";
+  if(vote?.exists){
+    catState=vote.status==="closed"?"Resultados definitivos":"Resultados provisionales";
+    if(vote.status==="closed"){
+      catRows=(Array.isArray(vote.results)?vote.results:[]).map(r=>({
+        category:labels[r.criterion_code]||r.criterion_code,
+        group:r.winner_group,
+        total:"—",
+        note:r.resolution_note||""
+      }));
+    }else{
+      catRows=(Array.isArray(vote.live_standings)?vote.live_standings:[])
+        .filter(r=>Number(r.position||0)===1)
+        .map(r=>({
+          category:r.category||labels[r.criterion_code]||r.criterion_code,
+          group:r.group_code,
+          total:Number(r.total_score||0),
+          note:Number(r.category_score||0)+" de categoría + "+Number(r.votes||0)+" voto(s)"
+        }));
+    }
+  }
+  box.innerHTML='<h3 style="margin:0 0 8px">Resultado general</h3>'+
+    '<p><b>Empate en primer lugar:</b> '+(tied?"Sí":"No")+'</p>'+
     '<table><thead><tr><th>Lugar</th><th>Grupo</th><th>Puntos finales</th></tr></thead><tbody>'+
     rows.map(r=>'<tr><td>1.º</td><td><b>'+esc(r.group_code||"")+'</b></td><td>'+esc(r.score??overall.top_score??0)+'</td></tr>').join("")+
     '</tbody></table>'+
-    '<p class="hint" style="margin-top:10px">Esta vista corresponde únicamente al resultado general del Mérito del Mes. Las categorías se definen en Votaciones.</p>';
+    '<h3 style="margin:22px 0 8px">Categorías · '+esc(catState)+'</h3>'+
+    (catRows.length?'<table><thead><tr><th>Categoría</th><th>Grupo</th><th>Total</th><th>Detalle</th></tr></thead><tbody>'+
+      catRows.map(r=>'<tr><td>'+esc(r.category)+'</td><td><b>Grupo '+esc(r.group)+'</b></td><td>'+esc(r.total)+'</td><td>'+esc(r.note)+'</td></tr>').join("")+
+      '</tbody></table>':'<p class="hint">Todavía no hay resultados de categorías disponibles.</p>')+
+    '<p class="hint" style="margin-top:10px">El mes solo puede cerrarse cuando la votación de categorías haya finalizado y sus 7 resultados estén definidos.</p>';
   st.textContent="Vista previa del cierre actualizada.";
  }catch(e){st.textContent="No se pudo cargar el cierre: "+(e.message||e)}
 }

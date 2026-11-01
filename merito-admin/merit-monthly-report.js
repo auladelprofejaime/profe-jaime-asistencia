@@ -8,8 +8,15 @@
  function clean(v){return String(v??'').replace(/\s+/g,' ').trim()}
  function signed(n){n=Number(n||0);return (n>0?'+':'')+n}
  function sum(list){return (Array.isArray(list)?list:[]).reduce((a,x)=>a+Number(x.points||0),0)}
+ function normalizedReason(reason){
+   const r=clean(reason);
+   if(r==='Descuento general de 15 puntos por situaciones recientes de indisciplina a nivel escolar'){
+     return 'Ajuste general de convivencia escolar';
+   }
+   return r;
+ }
  function compactReasons(list,limit=5){
-   const a=Array.isArray(list)?list:[];
+   const a=(Array.isArray(list)?list:[]).map(x=>({...x,reason:normalizedReason(x.reason)}));
    if(a.length<=limit)return a;
    const keep=a.slice(0,limit);
    const rest=a.slice(limit);
@@ -34,7 +41,7 @@
    return 'Este resultado no define al grupo. Es una oportunidad para reorganizarse, mejorar el seguimiento y demostrar cuánto pueden avanzar durante el próximo periodo.';
  }
  function analysisText(g){
-   const neg=Array.isArray(g.negative_reasons)?g.negative_reasons:[];
+   const neg=(Array.isArray(g.negative_reasons)?g.negative_reasons:[]).map(x=>({...x,reason:normalizedReason(x.reason)}));
    const b=g.bitacora||{};
    const follow=Number(b.quality_adjustment||0)+Number(b.followup_extra||0);
    const loss=Number(b.loss_adjustment||0);
@@ -108,7 +115,17 @@
    y=reasonList(doc,g.positive_reasons,18,y,178,5)+3;
 
    y=blockTitle(doc,'Movimientos que restaron puntos',y);
-   y=reasonList(doc,g.negative_reasons,18,y,178,5)+3;
+   y=reasonList(doc,g.negative_reasons,18,y,178,5)+2;
+   const generalConv=(Array.isArray(g.negative_reasons)?g.negative_reasons:[]).some(x=>clean(x.reason)==='Descuento general de 15 puntos por situaciones recientes de indisciplina a nivel escolar');
+   if(generalConv){
+     doc.setFillColor(247,248,250);doc.roundedRect(16,y,184,19,2,2,'F');
+     doc.setFont('helvetica','bold');doc.setFontSize(8.3);doc.setTextColor(11,29,58);
+     doc.text('Sobre el ajuste general de convivencia',20,y+6);
+     doc.setFont('helvetica','normal');doc.setFontSize(7.8);doc.setTextColor(21,32,51);
+     const convivencia=doc.splitTextToSize('Este ajuste de -15 puntos fue aplicado a todos los grupos como una medida general de convivencia escolar. Se recomienda cuidar la convivencia en receso, pasillos y espacios comunes, así como trabajar de forma respetuosa con alumnos de otros grupos.',174);
+     doc.text(convivencia,20,y+11);
+     y+=22;
+   }else y+=1;
 
    const b=g.bitacora||{};
    const follow=Number(b.quality_adjustment||0)+Number(b.followup_extra||0);

@@ -97,6 +97,22 @@
     if(!id){if(st)st.textContent='Selecciona un periodo.';return}
     if(btn)btn.disabled=true;if(st)st.textContent='Revisando cierre…';
     try{
+      let categoryVote=await rpc('teacher_merit_category_vote_status',{p_period_id:id});
+      if(categoryVote?.exists&&categoryVote.status==='open'){
+        const closesAt=new Date(categoryVote.closes_at).getTime();
+        if(Date.now()<closesAt){
+          if(st)st.textContent='La votación de categorías sigue abierta. El mes podrá cerrarse cuando finalice.';
+          return;
+        }
+        const closedCategories=await rpc('teacher_merit_close_category_vote_manual',{p_period_id:id});
+        if(!closedCategories?.ok)throw new Error(closedCategories?.reason||'No se pudieron cerrar las categorías.');
+        categoryVote=await rpc('teacher_merit_category_vote_status',{p_period_id:id});
+      }
+      if(!categoryVote?.exists||categoryVote.status!=='closed'||!Array.isArray(categoryVote.results)||categoryVote.results.length!==7){
+        if(st)st.textContent='Faltan resultados definitivos de las 7 categorías. Revisa la votación antes de cerrar el mes.';
+        return;
+      }
+
       const preview=await rpc('teacher_merit_close_preview',{p_period_id:id});
       if(!preview?.ok)throw new Error(preview?.reason||'No se pudo revisar el cierre.');
       if(preview?.overall?.tied){
@@ -115,7 +131,7 @@
       const d=await rpc('teacher_merit_close_month',{p_period_id:id,p_resolutions:{}});
       if(!d?.ok)throw new Error(d?.reason||'No se pudo cerrar el mes.');
       try{await rpc('teacher_merit_apply_category_vote_results',{p_period_id:id})}catch(_){ }
-      if(st)st.textContent='✓ Mes cerrado correctamente. No fue necesaria una votación.';
+      if(st)st.textContent='✓ Mes cerrado correctamente con resultado general y categorías definitivas.';
       try{if(typeof window.loadMeritMonthlyPreview==='function')await window.loadMeritMonthlyPreview()}catch(_){}
     }catch(e){if(st)st.textContent='No se pudo cerrar: '+(e.message||e)}
     finally{if(btn)btn.disabled=false}

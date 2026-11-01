@@ -20,11 +20,18 @@
  function signed(n){n=Number(n||0);return (n>0?'+':'')+n}
  function sum(list){return (Array.isArray(list)?list:[]).reduce((a,x)=>a+Number(x.points||0),0)}
  function normalizedReason(reason){
-   const r=clean(reason);
+   let r=clean(reason);
    if(r==='Descuento general de 15 puntos por situaciones recientes de indisciplina a nivel escolar'){
      return 'Ajuste general de convivencia escolar';
    }
-   return r;
+   r=r
+     .replace(/,?\s*de acuerdo con el reporte del profesor[^.]*\.?/gi,'')
+     .replace(/,?\s*de acuerdo con el reporte de la profesora[^.]*\.?/gi,'')
+     .replace(/,?\s*según el reporte del profesor[^.]*\.?/gi,'')
+     .replace(/,?\s*según el reporte de la profesora[^.]*\.?/gi,'')
+     .replace(/,?\s*reportado por el profesor[^.]*\.?/gi,'')
+     .replace(/,?\s*reportado por la profesora[^.]*\.?/gi,'');
+   return clean(r).replace(/[,.]\s*$/,'');
  }
  function compactReasons(list,limit=5){
    const a=(Array.isArray(list)?list:[]).map(x=>({...x,reason:normalizedReason(x.reason)}));

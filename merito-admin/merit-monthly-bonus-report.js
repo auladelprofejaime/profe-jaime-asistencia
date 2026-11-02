@@ -66,8 +66,8 @@
      doc.text('Categoría',18,y);doc.text('Grupo ganador',95,y);y+=5;
      categories.forEach(cat=>{
        doc.setFont('helvetica','normal');doc.setTextColor(21,32,51);
-       doc.text(labels[cat.criterion_code]||cat.label||cat.criterion_code,18,y);
-       doc.setFont('helvetica','bold');doc.text('Grupo '+clean(cat.group_code||cat.winner_group||''),95,y);
+       doc.text(clean(labels[cat.criterion_code]||cat.label||cat.criterion_code||'Categoría'),18,y);
+       doc.setFont('helvetica','bold');doc.text('Grupo '+clean(cat.group_code||cat.winner_group||'—'),95,y);
        y+=6;
      });
      y+=4;
@@ -86,8 +86,8 @@
        doc.text('Lugar',18,y);doc.text('Grupo',52,y);doc.text('Puntaje',100,y);doc.text('Bono',150,y);y+=5;
        awards.filter(a=>a.grade===g).forEach(a=>{
          doc.setFont('helvetica','normal');doc.setTextColor(21,32,51);
-         doc.text(ordinal(a.grade_rank)+' lugar',18,y);
-         doc.setFont('helvetica','bold');doc.text('Grupo '+a.group_code,52,y);
+         doc.text(clean(ordinal(a.grade_rank)+' lugar'),18,y);
+         doc.setFont('helvetica','bold');doc.text('Grupo '+clean(a.group_code),52,y);
          doc.setFont('helvetica','normal');doc.text(String(a.score),104,y);
          doc.setFont('helvetica','bold');doc.setTextColor(139,107,32);doc.text('+'+a.bonus+' puntos',150,y);
          y+=6;

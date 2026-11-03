@@ -80,6 +80,8 @@
      doc.text(intro,16,y);y+=intro.length*4+6;
 
      [1,2,3].forEach(g=>{
+       // Reserve the full grade table and the fixed footer before drawing anything.
+       if(y+43>H-35){doc.addPage('letter','portrait');y=20;}
        doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(11,29,58);
        doc.text(g===1?'1.er grado':g===2?'2.º grado':'3.er grado',16,y);y+=4;
        doc.setDrawColor(220,226,236);doc.line(16,y,200,y);y+=5;

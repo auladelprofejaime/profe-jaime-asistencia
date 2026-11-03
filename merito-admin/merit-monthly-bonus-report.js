@@ -41,69 +41,67 @@
      const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
      const W=215.9,H=279.4;
      const label=(sel.options[sel.selectedIndex]?.textContent||'Periodo').split(' · ')[0];
-
-     doc.setFillColor(11,29,58);doc.rect(0,0,W,30,'F');
-     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(16);
-     doc.text('MÉRITO GABINO A. PALMA',16,12);
-     doc.setFontSize(10);doc.setFont('helvetica','normal');
-     doc.text('Reporte final del cierre mensual',16,20);
-     doc.text(label,16,26);
-
-     let y=42;
-
-     doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(139,107,32);
-     doc.text('Ganador del Mérito del Mes',16,y);y+=7;
-     doc.setFillColor(251,247,236);doc.roundedRect(16,y-2,184,22,3,3,'F');
-     doc.setTextColor(11,29,58);doc.setFontSize(18);
-     doc.text('Grupo '+clean(d.overall.group),24,y+9);
-     doc.setFontSize(10);doc.setFont('helvetica','normal');
-     doc.text('Puntaje final: '+String(d.overall.score??'—')+' puntos',120,y+9);
-     y+=30;
-
-     doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(139,107,32);
+     // Embed the existing official app icon; never redraw or modify the logo.
+     const logo=await new Promise((resolve,reject)=>{
+       const img=new Image();
+       img.onload=()=>{try{const c=document.createElement('canvas');c.width=img.naturalWidth;c.height=img.naturalHeight;c.getContext('2d').drawImage(img,0,0);resolve(c.toDataURL('image/png'))}catch(e){reject(e)}};
+       img.onerror=()=>reject(new Error('No se pudo cargar el logo del Mérito.'));
+       img.src='./icon-192.png';
+     });
+     doc.setFillColor(11,29,58);doc.rect(0,0,W,29,'F');
+     doc.addImage(logo,'PNG',15,4,21,21);
+     doc.setTextColor(255,255,255);doc.setFont('helvetica','bold');doc.setFontSize(15);
+     doc.text('MÉRITO GABINO A. PALMA',42,12);
+     doc.setFont('helvetica','normal');doc.setFontSize(9);
+     doc.text('Reporte final del cierre mensual · '+clean(label),42,20);
+     let y=36;
+     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(139,107,32);
+     doc.text('Ganador del Mérito del Mes',16,y);y+=4;
+     doc.setFillColor(251,247,236);doc.roundedRect(16,y,184,19,3,3,'F');
+     doc.setTextColor(11,29,58);doc.setFontSize(16);
+     doc.text('Grupo '+clean(d.overall.group),23,y+12);
+     doc.setFont('helvetica','normal');doc.setFontSize(9.5);
+     doc.text('Puntaje final: '+String(d.overall.score??'—')+' puntos',120,y+12);
+     y+=26;
+     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(139,107,32);
      doc.text('Ganadores por categoría',16,y);y+=5;
-     doc.setDrawColor(201,164,73);doc.line(16,y,200,y);y+=6;
-     doc.setFontSize(9);doc.setTextColor(11,29,58);
-     doc.text('Categoría',18,y);doc.text('Grupo ganador',95,y);y+=5;
+     doc.setDrawColor(201,164,73);doc.line(16,y,200,y);y+=5;
+     doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(11,29,58);
+     doc.text('Categoría',18,y);doc.text('Grupo ganador',105,y);y+=4.5;
      categories.forEach(cat=>{
-       doc.setFont('helvetica','normal');doc.setTextColor(21,32,51);
+       doc.setFont('helvetica','normal');doc.setTextColor(21,32,51);doc.setFontSize(9);
        doc.text(clean(labels[cat.criterion_code]||cat.label||cat.criterion_code||'Categoría'),18,y);
-       doc.setFont('helvetica','bold');doc.text('Grupo '+clean(cat.winner_group||cat.group_code||'—'),95,y);
-       y+=6;
+       doc.setFont('helvetica','bold');doc.text('Grupo '+clean(cat.winner_group||cat.group_code||'—'),105,y);
+       y+=5;
      });
      y+=4;
-
-     doc.setFont('helvetica','bold');doc.setFontSize(12);doc.setTextColor(139,107,32);
-     doc.text('Reconocimiento por grado y bono de arranque',16,y);y+=6;
-     doc.setFont('helvetica','normal');doc.setFontSize(8.7);doc.setTextColor(21,32,51);
-     const intro=doc.splitTextToSize('Se reconoce a los tres grupos con mejor puntaje final de cada grado. El 1.er lugar inicia el siguiente mes con +10 puntos, el 2.º con +7 y el 3.º con +5. Los bonos no se acumulan por otros reconocimientos.',184);
-     doc.text(intro,16,y);y+=intro.length*4+6;
-
+     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(139,107,32);
+     doc.text('Reconocimiento por grado y bono de arranque',16,y);y+=5;
+     doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(21,32,51);
+     const intro=doc.splitTextToSize('Los tres mejores grupos de cada grado iniciarán el siguiente mes con +10, +7 y +5 puntos, respectivamente. Los bonos no son acumulables.',184);
+     doc.text(intro,16,y);y+=intro.length*3.5+5;
      [1,2,3].forEach(g=>{
-       // Reserve the full grade table and the fixed footer before drawing anything.
-       if(y+43>H-35){doc.addPage('letter','portrait');y=20;}
-       doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(11,29,58);
+       doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(11,29,58);
        doc.text(g===1?'1.er grado':g===2?'2.º grado':'3.er grado',16,y);y+=4;
-       doc.setDrawColor(220,226,236);doc.line(16,y,200,y);y+=5;
-       doc.setFontSize(8.7);
-       doc.text('Lugar',18,y);doc.text('Grupo',52,y);doc.text('Puntaje',100,y);doc.text('Bono',150,y);y+=5;
+       doc.setDrawColor(220,226,236);doc.line(16,y,200,y);y+=4;
+       doc.setFontSize(8);doc.text('Lugar',18,y);doc.text('Grupo',54,y);doc.text('Puntaje',108,y);doc.text('Bono',158,y);y+=4;
        awards.filter(a=>a.grade===g).forEach(a=>{
-         doc.setFont('helvetica','normal');doc.setTextColor(21,32,51);
+         doc.setFont('helvetica','normal');doc.setTextColor(21,32,51);doc.setFontSize(8.6);
          doc.text(clean(ordinal(a.grade_rank)+' lugar'),18,y);
-         doc.setFont('helvetica','bold');doc.text('Grupo '+clean(a.group_code),52,y);
-         doc.setFont('helvetica','normal');doc.text(String(a.score),104,y);
-         doc.setFont('helvetica','bold');doc.setTextColor(139,107,32);doc.text('+'+a.bonus+' puntos',150,y);
-         y+=6;
+         doc.setFont('helvetica','bold');doc.text('Grupo '+clean(a.group_code),54,y);
+         doc.setFont('helvetica','normal');doc.text(String(a.score),110,y);
+         doc.setFont('helvetica','bold');doc.setTextColor(139,107,32);doc.text('+'+a.bonus+' puntos',158,y);
+         y+=5;
        });
        y+=4;
      });
-
-     doc.setDrawColor(220,226,236);doc.line(16,H-30,200,H-30);
-     doc.setFont('helvetica','bold');doc.setFontSize(8.5);doc.setTextColor(11,29,58);
+     if(y>H-32)throw new Error('El contenido excede una hoja; se canceló para evitar superposiciones.');
+     doc.setDrawColor(220,226,236);doc.line(16,H-29,200,H-29);
+     doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(11,29,58);
      doc.text('Administración del proyecto Mérito Gabino A. Palma',16,H-23);
      doc.setFont('helvetica','normal');doc.setFontSize(8);doc.setTextColor(21,32,51);
      doc.text('Jaime Armando Pérez Vázquez',16,H-18);
-     doc.setFontSize(7.2);doc.setTextColor(102,112,133);
+     doc.setFontSize(7);doc.setTextColor(102,112,133);
      doc.text('Documento generado con base en el cierre oficial del periodo.',16,H-11);
 
      const name='Cierre_Merito_'+clean(label).replace(/\s+/g,'_')+'.pdf';

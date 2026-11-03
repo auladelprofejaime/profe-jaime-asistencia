@@ -16,11 +16,12 @@
    if(btn)btn.disabled=true;
    if(st)st.textContent='Generando reporte final del cierre mensual…';
    try{
-     const d=await rpc('teacher_merit_monthly_result',{p_period_id:sel.value});
-     if(!d?.overall?.group)throw new Error('El mes todavía no está cerrado.');
-     const ranking=Array.isArray(d.ranking)?d.ranking:[];
-     const categories=Array.isArray(d.categories)?d.categories:[];
-     if(!ranking.length)throw new Error('No hay ranking mensual cerrado.');
+     const [d,groupData,vote]=await Promise.all([rpc('teacher_merit_monthly_result',{p_period_id:sel.value}),rpc('teacher_merit_monthly_group_report_data',{p_period_id:sel.value}),rpc('teacher_merit_category_vote_status',{p_period_id:sel.value})]);
+     if(!d?.ok||!d?.overall?.group)throw new Error('El resultado oficial del mes aún no está disponible.');
+     if(!Array.isArray(groupData)||groupData.length<18)throw new Error('No están disponibles los 18 resultados grupales.');
+     if(vote?.status!=='closed'||!Array.isArray(vote.results)||vote.results.length!==7)throw new Error('Faltan los siete resultados definitivos de categorías.');
+     const ranking=groupData.map(g=>({group_code:g.group_code,score:g.final_score}));
+     const categories=vote.results;
 
      const rows=ranking.map(r=>({
        group_code:r.group_code,
@@ -67,7 +68,7 @@
      categories.forEach(cat=>{
        doc.setFont('helvetica','normal');doc.setTextColor(21,32,51);
        doc.text(clean(labels[cat.criterion_code]||cat.label||cat.criterion_code||'Categoría'),18,y);
-       doc.setFont('helvetica','bold');doc.text('Grupo '+clean(cat.group_code||cat.winner_group||'—'),95,y);
+       doc.setFont('helvetica','bold');doc.text('Grupo '+clean(cat.winner_group||cat.group_code||'—'),95,y);
        y+=6;
      });
      y+=4;

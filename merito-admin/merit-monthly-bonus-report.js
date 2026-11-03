@@ -17,7 +17,7 @@
    if(st)st.textContent='Generando reporte final del cierre mensual…';
    try{
      const [d,groupData,vote]=await Promise.all([rpc('teacher_merit_monthly_result',{p_period_id:sel.value}),rpc('teacher_merit_monthly_group_report_data',{p_period_id:sel.value}),rpc('teacher_merit_category_vote_status',{p_period_id:sel.value})]);
-     if(!d?.ok||!d?.overall?.group)throw new Error('El resultado oficial del mes aún no está disponible.');
+     if(!d?.overall?.group)throw new Error('No se encontró el ganador oficial del mes.');
      if(!Array.isArray(groupData)||groupData.length<18)throw new Error('No están disponibles los 18 resultados grupales.');
      if(vote?.status!=='closed'||!Array.isArray(vote.results)||vote.results.length!==7)throw new Error('Faltan los siete resultados definitivos de categorías.');
      const ranking=groupData.map(g=>({group_code:g.group_code,score:g.final_score}));

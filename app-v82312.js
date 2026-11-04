@@ -3701,12 +3701,49 @@ async function renderMethodologyAssignments(){
   let id=$('#calcMethodology').value,box=$('#methodologyAssignments');
   if(!id){box.className='list empty';box.textContent='Selecciona una metodología.';$('#methodologyResults').innerHTML='<div class="empty">Pulsa Calcular.</div>';$('#methodologyMonthActions').classList.add('hidden');return}
   let m=await req(store('methodologies').get(id)),
-      acts=(await all('activities')).filter(a=>sameShift(a.shift,m.shift)&&sameGroup(a.group,m.group)).sort(activitySort);
+      allActs=await all('activities'),
+      acts=allActs.filter(a=>sameShift(a.shift,m.shift)&&((Array.isArray(a.groups)&&a.groups.some(g=>sameGroup(g,m.group)))||sameGroup(a.group,m.group))).sort(activitySort),
+      methods=await all('methodologies');
+  const prior=methods.filter(x=>x.id!==m.id&&x.closed&&sameShift(x.shift,m.shift)&&sameGroup(x.group,m.group)&&String(x.cycle||'')===String(m.cycle||''));
+  const usedBy=new Map();
+  for(const pm of prior){
+    for(const aid of Object.keys(pm.assignments||{})){
+      if(!usedBy.has(aid))usedBy.set(aid,[]);
+      usedBy.get(aid).push(pm.month||pm.name||'evaluación anterior');
+    }
+  }
+  const unlocked=m.unlockedUsedActivities||{};
   $('#methodologyMonthActions').classList.remove('hidden');
   $('#closeMethodologyMonthBtn').textContent=m.closed?'Reabrir mes':'Cerrar mes';
   if(!acts.length){box.className='list empty';box.textContent='No hay actividades creadas para este grupo.';return}
   box.className='list';
-  box.innerHTML=acts.map(a=>`<div class="assignment-row"><div><strong>${safe(a.name)} <span class="activity-mode ${a.evaluationMode||'delivery'}">${(a.evaluationMode||'delivery')==='numeric'?'Numérica 0–10':'Entrega 1/0'}</span></strong><small>${safe(a.week)} · ${safe(a.date)} · ${safe(a.type||'Actividad')}</small></div><select data-assignment="${a.id}" ${m.closed?'disabled':''}><option value="">Sin asignar</option>${m.criteria.map(c=>`<option value="${c.id}" ${m.assignments?.[a.id]===c.id?'selected':''}>${safe(c.name)} (${c.percent}%)</option>`).join('')}</select></div>`).join('');
+  box.innerHTML=acts.map(a=>{
+    const months=[...new Set(usedBy.get(String(a.id))||[])];
+    const previouslyUsed=months.length>0;
+    const isUnlocked=!!unlocked[a.id];
+    const locked=!m.closed&&previouslyUsed&&!isUnlocked;
+    const badge=previouslyUsed
+      ? `<span class="month-closed" style="margin-left:6px">Ya utilizada en ${safe(months.join(', '))}</span>`
+      : '';
+    const unlockAction=(!m.closed&&previouslyUsed)
+      ? `<button type="button" class="secondary methodologyReuseToggle" data-activity-id="${safe(a.id)}" data-unlocked="${isUnlocked?'true':'false'}">${isUnlocked?'Volver a bloquear':'Desbloquear'}</button>`
+      : '';
+    const note=locked
+      ? '<small class="hint">Bloqueada para evitar reutilizarla en esta evaluación. Desbloquéala solo si deseas volver a tomarla en cuenta.</small>'
+      : (isUnlocked&&previouslyUsed?'<small class="hint">Desbloqueada manualmente para poder reutilizarla.</small>':'');
+    return `<div class="assignment-row ${locked?'methodology-used-locked':''}"><div><strong>${safe(a.name)} <span class="activity-mode ${a.evaluationMode||'delivery'}">${(a.evaluationMode||'delivery')==='numeric'?'Numérica 0–10':'Entrega 1/0'}</span>${badge}</strong><small>${safe(a.week)} · ${safe(a.date)} · ${safe(a.type||'Actividad')}</small>${note}</div><div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap"><select data-assignment="${a.id}" ${(m.closed||locked)?'disabled':''}><option value="">Sin asignar</option>${m.criteria.map(c=>`<option value="${c.id}" ${m.assignments?.[a.id]===c.id?'selected':''}>${safe(c.name)} (${c.percent}%)</option>`).join('')}</select>${unlockAction}</div></div>`;
+  }).join('');
+  $('.methodologyReuseToggle').forEach(b=>b.onclick=()=>toggleMethodologyActivityReuse(b.dataset.activityId,b.dataset.unlocked==='true'));
+}
+async function toggleMethodologyActivityReuse(activityId,isCurrentlyUnlocked){
+  const id=$('#calcMethodology').value;if(!id)return;
+  const m=await req(store('methodologies').get(id));if(!m||m.closed)return;
+  m.unlockedUsedActivities={...(m.unlockedUsedActivities||{})};
+  if(isCurrentlyUnlocked)delete m.unlockedUsedActivities[activityId];
+  else m.unlockedUsedActivities[activityId]=true;
+  m.updated=new Date().toISOString();
+  await put('methodologies',m);
+  await renderMethodologyAssignments();
 }
 async function saveAssignments(){
   let id=$('#calcMethodology').value;if(!id)return alert('Selecciona una metodología.');

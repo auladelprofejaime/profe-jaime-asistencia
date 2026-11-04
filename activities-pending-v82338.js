@@ -183,9 +183,15 @@
         const btn=byId('activityPendingDeliverSelected'); if(btn)btn.disabled=true;
         try{
           const stamp=new Date().toISOString();
-          await Promise.all(selected.map(activityId=>put('activityRecords',{key:activityId+'|'+id,activityId,studentId:id,status:'yes',timestamp:stamp,deliveryDate:stamp})));
+          const localRecords=selected.map(activityId=>({key:activityId+'|'+id,activityId,studentId:id,status:'yes',timestamp:stamp,deliveryDate:stamp}));
+          if(!window.ProfeSupabase)throw new Error('No se pudo conectar con Supabase.');
+          const rows=localRecords.map(r=>({activity_id:String(r.activityId),student_id:String(r.studentId),delivered:true,score:null,delivery_date:stamp,observations:null,data:r}));
+          const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:rows});
+          if(out?.ok===false||Number(out?.merged||0)!==rows.length)throw new Error(out?.error||out?.reason||'Supabase no confirmó todos los registros.');
+          const localPut=window.__activityOriginalPut||put;
+          await Promise.all(localRecords.map(r=>localPut('activityRecords',r)));
           pendingChecks.filter(x=>x.checked).forEach(ch=>{const row=ch.closest('.activity-pending-row');if(row)row.remove();});
-          if(status){status.className='message good';status.textContent='✓ '+selected.length+' actividad'+(selected.length===1?'':'es')+' registrada'+(selected.length===1?'':'s')+' como entregada'+(selected.length===1?'':'s')+'. Actualizando…';}
+          if(status){status.className='message good';status.textContent='✓ '+selected.length+' actividad'+(selected.length===1?'':'es')+' registrada'+(selected.length===1?'':'s')+' como entregada'+(selected.length===1?'':'s')+'.';}
           if(input){input.value=id;setTimeout(()=>lookupPendingActivities(),0);}
         }catch(e){console.error('Entrega múltiple desde pendientes:',e);if(status){status.className='message bad';status.textContent='No se completó el registro: '+(e?.message||e)}}finally{if(btn)btn.disabled=false;}
       });

@@ -62,8 +62,21 @@
 
       const result=await Promise.all([all('activities'),all('activityRecords')]);
       const activities=result[0]||[],records=result[1]||[];
+      const from=String(byId('activityPendingFrom')?.value||'').trim();
+      const to=String(byId('activityPendingTo')?.value||'').trim();
+      if(from&&to&&from>to){
+        if(status){status.className='message bad';status.textContent='El rango de fechas no es válido.'}
+        return;
+      }
+      const inRange=a=>{
+        const d=String(a.date||a.dueDate||'').slice(0,10);
+        if(!d)return !from&&!to;
+        if(from&&d<from)return false;
+        if(to&&d>to)return false;
+        return true;
+      };
       const assigned=activities
-        .filter(a=>shiftMatches(a.shift,student.shift)&&groupMatches(a.group,student.group))
+        .filter(a=>shiftMatches(a.shift,student.shift)&&groupMatches(a.group,student.group)&&inRange(a))
         .sort((a,b)=>String(a.dueDate||a.date||'').localeCompare(String(b.dueDate||b.date||''))||String(a.name||'').localeCompare(String(b.name||''),'es',{sensitivity:'base'}));
       const recordMap=new Map(records.map(r=>[String(r.activityId)+'|'+String(r.studentId),r]));
 
@@ -93,7 +106,8 @@
         student.shift||'',
         student.group?('Grupo '+student.group):'',
         student.number!=null&&student.number!==''?('Lista '+student.number):'',
-        'ID '+id
+        'ID '+id,
+        (from||to)?('Rango '+(from?fmtDate(from):'inicio')+' – '+(to?fmtDate(to):'hoy')):''
       ].filter(Boolean).join(' · ');
 
       let summary='<div class="activity-pending-summary">';
@@ -187,6 +201,11 @@
 
   function bindPendingActivities(){
     const input=byId('activityPendingScan');
+    const from=byId('activityPendingFrom'),to=byId('activityPendingTo');
+    const now=new Date();
+    const localIso=d=>{const y=d.getFullYear(),m=String(d.getMonth()+1).padStart(2,'0'),day=String(d.getDate()).padStart(2,'0');return y+'-'+m+'-'+day};
+    if(from&&!from.value)from.value=localIso(new Date(now.getFullYear(),now.getMonth(),1));
+    if(to&&!to.value)to.value=localIso(now);
     const button=byId('activityPendingSearch');
     if(!input||!button)return;
     button.type='button';

@@ -76,7 +76,10 @@
         return true;
       };
       const assigned=activities
-        .filter(a=>shiftMatches(a.shift,student.shift)&&groupMatches(a.group,student.group)&&inRange(a))
+        .filter(a=>{
+          const groups=Array.isArray(a.groups)&&a.groups.length?a.groups:[a.group];
+          return shiftMatches(a.shift,student.shift)&&groups.some(g=>groupMatches(g,student.group))&&inRange(a);
+        })
         .sort((a,b)=>String(a.dueDate||a.date||'').localeCompare(String(b.dueDate||b.date||''))||String(a.name||'').localeCompare(String(b.name||''),'es',{sensitivity:'base'}));
       const recordMap=new Map(records.map(r=>[String(r.activityId)+'|'+String(r.studentId),r]));
 

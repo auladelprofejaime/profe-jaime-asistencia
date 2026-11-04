@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='92';
+const MERIT_APP_VERSION='93';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
@@ -623,16 +623,28 @@ function renderGroups(){
  }
 }
 
-// Delegated handler also works when the interface is refreshed or restored.
-const pointButtonContainer=$('#pointButtons');
-if(pointButtonContainer)pointButtonContainer.addEventListener('click',event=>{
- const b=event.target.closest('button[data-points]');
- if(!b||!pointButtonContainer.contains(b))return;
- event.preventDefault();
+function selectMeritPointButton(b){
+ if(!b||b.disabled)return;
  points=b.dataset.points===''?null:Number(b.dataset.points);
- $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
+ $('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
  $('#reasonWrap')?.classList.toggle('hidden',points===null);
-});
+}
+// Keep delegation, but also bind each button directly. Some installed iOS PWAs can
+// preserve an older event tree after an app update; the direct handler self-heals
+// point selection without changing or revoking the saved teacher session.
+const pointButtonContainer=$('#pointButtons');
+if(pointButtonContainer){
+ pointButtonContainer.addEventListener('click',event=>{
+  const b=event.target.closest('button[data-points]');
+  if(!b||!pointButtonContainer.contains(b))return;
+  event.preventDefault();selectMeritPointButton(b);
+ });
+ pointButtonContainer.querySelectorAll('button[data-points]').forEach(b=>{
+  b.addEventListener('pointerup',event=>{
+   if(event.pointerType==='touch'||event.pointerType==='pen'){event.preventDefault();selectMeritPointButton(b)}
+  });
+ });
+}
 
 const criteriaNames={cleanliness:'Limpieza',uniform:'Uniforme',punctuality:'Puntualidad',coexistence:'Convivencia',responsibility:'Responsabilidad',attitude:'Actitud',institutional_participation:'Participación institucional'};
 function selectedCriteria(){return $$('#criteria input:checked').map(x=>x.value)}

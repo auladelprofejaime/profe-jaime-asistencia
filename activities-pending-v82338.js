@@ -60,8 +60,12 @@
         return;
       }
 
-      const result=await Promise.all([all('activities'),all('activityRecords')]);
-      const activities=result[0]||[],records=result[1]||[];
+      const result=await Promise.all([all('activities'),all('activityRecords'),all('methodologies')]);
+      const activities=result[0]||[],records=result[1]||[],methodologies=result[2]||[];
+      const evaluatedActivityIds=new Set();
+      methodologies
+        .filter(m=>m.closed&&shiftMatches(m.shift,student.shift)&&groupMatches(m.group,student.group))
+        .forEach(m=>Object.keys(m.assignments||{}).forEach(aid=>evaluatedActivityIds.add(String(aid))));
       const from=String(byId('activityPendingFrom')?.value||'').trim();
       const to=String(byId('activityPendingTo')?.value||'').trim();
       if(from&&to&&from>to){
@@ -78,7 +82,7 @@
       const assigned=activities
         .filter(a=>{
           const groups=Array.isArray(a.groups)&&a.groups.length?a.groups:[a.group];
-          return shiftMatches(a.shift,student.shift)&&groups.some(g=>groupMatches(g,student.group))&&inRange(a);
+          return shiftMatches(a.shift,student.shift)&&groups.some(g=>groupMatches(g,student.group))&&inRange(a)&&!evaluatedActivityIds.has(String(a.id));
         })
         .sort((a,b)=>String(a.dueDate||a.date||'').localeCompare(String(b.dueDate||b.date||''))||String(a.name||'').localeCompare(String(b.name||''),'es',{sensitivity:'base'}));
       const recordMap=new Map(records.map(r=>[String(r.activityId)+'|'+String(r.studentId),r]));

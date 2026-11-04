@@ -626,7 +626,7 @@ function renderGroups(){
 function selectMeritPointButton(b){
  if(!b||b.disabled)return;
  points=b.dataset.points===''?null:Number(b.dataset.points);
- $('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
+ $$('#pointButtons button').forEach(x=>x.classList.toggle('active',x===b));
  $('#reasonWrap')?.classList.toggle('hidden',points===null);
 }
 // Keep delegation, but also bind each button directly. Some installed iOS PWAs can

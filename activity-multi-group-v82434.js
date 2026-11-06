@@ -9,27 +9,20 @@ async function refreshGridWeeks(){let acts=await all('activities'),shift=$('#gri
 async function currentWeekActivities(){let shift=$('#gridShift').value,group=$('#gridGroup').value,week=$('#gridWeek').value;return (await all('activities')).filter(x=>sameShift(x.shift,shift)&&activityMatchesGroup(x,group)&&x.week===week).sort(activitySort)}
 async function reportRangeActivities(fromDate,toDate){
  const shift=$('#gridShift').value,group=$('#gridGroup').value;
- const [remoteActs,remoteMethods]=window.ProfeSupabase?await Promise.all([
-  ProfeSupabase.select('activities','select=*&order=activity_date.desc'),
-  ProfeSupabase.select('methodologies','select=*&order=created_at.desc')
- ]):[null,null];
- const source=Array.isArray(remoteActs)?remoteActs.map(r=>({...r.data,id:r.id,name:r.title??r.data?.name,date:r.activity_date??r.data?.date,group:r.group_name,shift:r.shift})):await all('activities');
- const methods=Array.isArray(remoteMethods)?remoteMethods.map(r=>({...r.data,id:r.id,group:r.group_name,shift:r.shift,month:r.month,cycle:r.cycle})):await all('methodologies');
- const monthNames=['enero','febrero','marzo','abril','mayo','junio','julio','agosto','septiembre','octubre','noviembre','diciembre'];
- const periodFor=a=>{
-  if(/^\\d{4}-\\d{2}$/.test(a.evaluationPeriod||''))return a.evaluationPeriod;
-  const m=methods.find(m=>m.assignments?.[a.id]&&sameShift(m.shift,a.shift)&&activityMatchesGroup(a,m.group));
-  if(m){
-   const index=monthNames.indexOf(String(m.month||'').toLowerCase()),year=Number(String(m.cycle||'').slice(0,4));
-   if(index>=0&&year)return String(index<7?year+1:year)+'-'+String(index+1).padStart(2,'0');
-  }
-  return String(a.date||'').slice(0,7);
- };
- const firstMonth=fromDate.slice(0,7),lastMonth=toDate.slice(0,7);
- return source.filter(a=>sameShift(a.shift,shift)&&activityMatchesGroup(a,group)&&(
-  (a.date&&a.date>=fromDate&&a.date<=toDate)||
-  (periodFor(a)>=firstMonth&&periodFor(a)<=lastMonth)
- )).sort(activitySort);
+ // The monthly grid is the source of truth for the currently selected evaluation month.
+ // Include its visible activities even if their capture dates differ from the PDF range.
+ const selectedMonth=$('#gridWeek')?.value||'';
+ const monthCovered=selectedMonth&&selectedMonth>=fromDate.slice(0,7)&&selectedMonth<=toDate.slice(0,7);
+ const gridActs=monthCovered&&typeof currentWeekActivities==='function'?await currentWeekActivities():[];
+ const local=await all('activities');
+ const byId=new Map();
+ for(const a of local){
+  if(sameShift(a.shift,shift)&&activityMatchesGroup(a,group)&&a.date&&a.date>=fromDate&&a.date<=toDate)byId.set(String(a.id),a);
+ }
+ for(const a of gridActs){
+  if(sameShift(a.shift,shift)&&activityMatchesGroup(a,group))byId.set(String(a.id),a);
+ }
+ return [...byId.values()].sort(activitySort);
 }
 async function renderMethodologyAssignments(){
   let id=$('#calcMethodology').value,box=$('#methodologyAssignments');

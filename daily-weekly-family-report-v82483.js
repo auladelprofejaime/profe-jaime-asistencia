@@ -136,18 +136,43 @@ async function generatePdf(){
  }catch(e){if(st)st.textContent='No se pudo generar el PDF: '+e.message}
  finally{busy=false}
 }
+
+async function generateIndividualZip(){
+ const st=q('weeklyTaskStatus');if(busy)return;
+ const loaded=await loadWeekly();if(!loaded||!weekly)return;
+ busy=true;
+ try{
+  if(!window.jspdf?.jsPDF)throw Error('No se cargó el generador de PDF.');
+  if(!window.DailyMissingReports?.zipArchive)throw Error('No se cargó el generador de archivos ZIP.');
+  const used=new Set(),files=[];
+  for(const student of weekly.roster){
+   const doc=new window.jspdf.jsPDF({unit:'mm',format:[139.7,215.9],orientation:'portrait'});
+   addReport(doc,student,2,2,135.7,211.9);
+   let stem=String(student.name||student.student_id||'Alumno').normalize('NFC').replace(/[<>:"/\\|?*\x00-\x1f]/g,' ').replace(/\s+/g,' ').trim().slice(0,110)||'Alumno';
+   let name=stem+'.pdf',n=2;
+   while(used.has(name.toLocaleLowerCase('es'))){name=stem+' '+n+'.pdf';n++}
+   used.add(name.toLocaleLowerCase('es'));
+   files.push({name,bytes:new Uint8Array(doc.output('arraybuffer'))});
+  }
+  const blob=window.DailyMissingReports.zipArchive(files);
+  const filename='Seguimiento_tareas_3A_individual_'+weekly.week_start+'_a_'+weekly.week_end+'.zip';
+  const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(url),3000);
+  if(st)st.textContent='✓ ZIP generado: '+files.length+' PDFs individuales, uno por alumno, listos para enviar por correo.';
+ }catch(e){if(st)st.textContent='No se pudo generar el ZIP individual: '+e.message}
+ finally{busy=false}
+}
 function init(){
  const host=q('daily-task-review');if(!host||q('weeklyTaskPanel'))return;
  const first=host.querySelector('.card');
  const panel=document.createElement('div');panel.id='weeklyTaskPanel';panel.className='card';
- panel.innerHTML='<div class="section"><div><h2>Reporte semanal para familias</h2><p class="hint">Incluye la semana seleccionada y la anterior, para que no se omitan las tareas capturadas desde el viernes previo.</p></div><button type="button" id="weeklyTaskRefresh">Actualizar semana</button></div><div id="weeklyTaskSummary"></div><div class="daily-toolbar"><button type="button" id="weeklyTaskPdf" class="primary">Generar reportes semanales</button></div><p id="weeklyTaskStatus" role="status" aria-live="polite"></p>';
+ panel.innerHTML='<div class="section"><div><h2>Reporte semanal para familias</h2><p class="hint">Incluye la semana seleccionada y la anterior, para que no se omitan las tareas capturadas desde el viernes previo.</p></div><button type="button" id="weeklyTaskRefresh">Actualizar semana</button></div><div id="weeklyTaskSummary"></div><div class="daily-toolbar"><button type="button" id="weeklyTaskPdf" class="primary">Generar reportes semanales</button><button type="button" id="weeklyTaskIndividualZip" class="secondary">PDF individual por alumno (ZIP)</button></div><p id="weeklyTaskStatus" role="status" aria-live="polite"></p>';
  host.insertBefore(panel,first||host.firstChild);
  const dateControl=document.createElement('label');dateControl.textContent='Semana de referencia (incluye esta semana y la anterior): ';
  const dateInput=document.createElement('input');dateInput.type='date';dateInput.id='weeklyReferenceDate';dateInput.value=localDate();dateControl.appendChild(dateInput);
  panel.insertBefore(dateControl,q('weeklyTaskSummary'));
  dateInput.addEventListener('change',loadWeekly);
  const style=document.createElement('style');style.textContent='#weeklyTaskPanel .weekly-task-list{display:grid;gap:10px;margin:12px 0}#weeklyTaskPanel .weekly-task-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,260px);gap:12px;align-items:end;border:1px solid #ddd5bf;border-radius:12px;padding:12px;background:#fffdf7}#weeklyTaskPanel .weekly-task-row small{display:block;margin-top:5px;color:#69645a}#weeklyTaskPanel select{width:100%}@media(max-width:720px){#weeklyTaskPanel .weekly-task-row{grid-template-columns:1fr}}';document.head.append(style);
- q('weeklyTaskRefresh').addEventListener('click',loadWeekly);q('weeklyTaskPdf').addEventListener('click',generatePdf);
+ q('weeklyTaskRefresh').addEventListener('click',loadWeekly);q('weeklyTaskPdf').addEventListener('click',generatePdf);q('weeklyTaskIndividualZip').addEventListener('click',generateIndividualZip);
  panel.addEventListener('change',e=>{const id=e.target.dataset.weeklyMode;if(id)changeMode(id,e.target.value,e.target)});
  document.querySelector('[data-view="daily-task-review"]')?.addEventListener('click',()=>setTimeout(loadWeekly,80));
  loadWeekly();

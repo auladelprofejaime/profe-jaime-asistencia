@@ -1,6 +1,12 @@
 // Ensure the report renderer receives the exact selected activities from the monthly grid.
 // Loaded after all other activity modules so later overrides cannot replace this reconciliation.
 (function(){
+ // A PDF is read-only. The legacy report path re-uploaded every activity and
+ // all its delivery records, serially, before rendering. Regular editing and
+ // delivery actions retain their own persistence paths.
+ if(typeof syncReportTruthToPortals==='function'){
+   syncReportTruthToPortals=async function(){};
+ }
  if(typeof weeklyReportData!=='function'||typeof currentWeekActivities!=='function')return;
  const original=weeklyReportData;
  weeklyReportData=async function(selectedIds=null,fromDate=null,toDate=null){

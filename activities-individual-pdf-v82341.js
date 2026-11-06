@@ -76,6 +76,13 @@
       const from=$('#weeklyReportFrom').value,to=$('#weeklyReportTo').value,box=$('#weeklyReportActivities');
       if(!from||!to||from>to){box.innerHTML='<p class="hint">Revisa las fechas del rango.</p>';return}
       const acts=await reportRangeActivities(from,to);
+      // Include exactly the activities currently visible in the monthly grid.
+      const month=$('#gridWeek')?.value||'';
+      if(month&&month>=from.slice(0,7)&&month<=to.slice(0,7)&&typeof currentWeekActivities==='function'){
+        const visible=await currentWeekActivities();
+        const seen=new Set(acts.map(a=>String(a.id)));
+        for(const a of visible)if(!seen.has(String(a.id))){acts.push(a);seen.add(String(a.id))}
+      }
       box.innerHTML=acts.length?acts.map((a,i)=>`<label class="report-option"><input type="checkbox" data-report-act="${a.id}" checked><span><strong>${i+1}. ${safe(a.name)}</strong><br><small>${safe(a.date)} · ${safe(a.type||'Actividad')}</small></span></label>`).join(''):'<p class="hint">No hay actividades en este rango.</p>';
     };
 

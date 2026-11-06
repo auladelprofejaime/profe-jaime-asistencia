@@ -3,7 +3,7 @@
 const IDS=['76612d86-3b73-422d-9e5d-0ab6561c0bd3','3d1ec97e-85e2-4fd8-8d21-12b49a5f0071'];
 let running=false;
 async function sync(){
- if(running||!window.ProfeSupabase||typeof store!=='function'||typeof req!=='function')return;
+ if(running||!window.ProfeSupabase||typeof db==='undefined'||!db)return;
  running=true;
  try{
   for(const id of IDS){
@@ -14,7 +14,7 @@ async function sync(){
     if(row.score!==null&&row.score!==undefined)rec.score=Number(row.score);
     if(row.delivered===true)rec.status='yes';
     else if(row.delivered===false)rec.status='no';
-    await req(store('activityRecords','readwrite').put(rec));
+    await new Promise((resolve,reject)=>{const tx=db.transaction('activityRecords','readwrite');tx.objectStore('activityRecords').put(rec);tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error);});
    }
   }
   if(typeof renderActivityGrid==='function')await renderActivityGrid();

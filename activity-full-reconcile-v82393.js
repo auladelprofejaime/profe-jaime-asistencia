@@ -137,7 +137,7 @@
       // actividad de entrega ni oculte un grupo que sí existe en Supabase.
       await syncSeptemberExamFromServer();
       const [localActsAll,localRecsAll]=await Promise.all([all('activities'),all('activityRecords')]);
-      const localActs=(localActsAll||[]).filter(relevantActivity);
+      const localActs=(localActsAll||[]).filter(relevantActivity).filter(a=>!["76612d86-3b73-422d-9e5d-0ab6561c0bd3","3d1ec97e-85e2-4fd8-8d21-12b49a5f0071"].includes(String(a.id)));
       const localIds=new Set(localActs.map(a=>String(a.id)));
       // Acepta tanto el formato IndexedDB (activityId/studentId) como el formato
       // normalizado (activity_id/student_id). Así no se pierden registros históricos.
@@ -146,7 +146,7 @@
         activityId:String(r.activityId||r.activity_id||String(r.key||'').split('|')[0]||''),
         studentId:String(r.studentId||r.student_id||String(r.key||'').split('|')[1]||'')
       }));
-      const localRecs=normalizedLocalRecs.filter(r=>localIds.has(String(r.activityId||''))&&comparableLocal(r));
+      const localRecs=normalizedLocalRecs.filter(r=>localIds.has(String(r.activityId||''))&&comparableLocal(r)).filter(r=>!["76612d86-3b73-422d-9e5d-0ab6561c0bd3","3d1ec97e-85e2-4fd8-8d21-12b49a5f0071"].includes(String(r.activityId)));
       // Compatibilidad histórica: versiones antiguas podían conservar estados dentro
       // de la propia actividad sin crear activityRecords. Recuperar SOLO estados
       // explícitos almacenados; nunca convertir ausencia en "No entregada".

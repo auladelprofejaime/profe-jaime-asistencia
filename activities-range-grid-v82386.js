@@ -7,6 +7,21 @@
   const sameS=(a,b)=>{try{return typeof sameShift==='function'?sameShift(a,b):norm(a)===norm(b)}catch(_){return norm(a)===norm(b)}};
   const key=(a,s)=>String(a)+'|'+String(s);
   let current={activities:[],students:[],records:new Map()};
+  let subjectAssignments=new Map();
+  async function loadSubjectAssignments(){
+    if(!window.ProfeSupabase)return;
+    const rows=await ProfeSupabase.select('student_subject_assignments','select=student_id,english_level,arts_workshop');
+    if(!Array.isArray(rows))throw Error('No se pudieron consultar los niveles de 3A.');
+    subjectAssignments=new Map(rows.map(r=>[String(r.student_id),r]));
+  }
+  function eligible(a,s){
+    const target=a.subjectTarget||a.data?.subjectTarget||'';
+    if(!target||!sameS(s.shift,'Vespertino')||!same(s.group||s.group_name,'3A'))return true;
+    const assignment=subjectAssignments.get(String(s.id));
+    if(!assignment)return false;
+    const [subject,level]=target.split(':');
+    return subject==='Inglés'?assignment.english_level===level:subject==='Artes'?assignment.arts_workshop===level:true;
+  }
 
   function monthBounds(date=new Date()){
     const y=date.getFullYear(),m=date.getMonth();
@@ -93,6 +108,7 @@
 
     try{
       if(typeof ensureDB==='function')await ensureDB();
+      await loadSubjectAssignments();
       const [acts,sts,recs]=await Promise.all([
         all('activities'),
         typeof students==='function'?students():all('students'),
@@ -127,6 +143,7 @@
         const sid=String(st.id);
         html+='<tr><td class="range-num">'+esc(st.number??st.list_number??'—')+'</td><td class="range-student">'+esc(studentLabel(st))+'</td>';
         for(const a of filteredActs){
+          if(!eligible(a,st)){html+='<td title="No corresponde a su nivel o taller">—</td>';continue;}
           const aid=String(a.id),r=map.get(key(aid,sid));
           if((a.evaluationMode||'delivery')==='numeric'){
             const val=(r&&typeof r.score==='number'&&Number.isFinite(r.score))?String(r.score):'';

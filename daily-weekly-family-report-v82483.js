@@ -107,7 +107,7 @@ function addReport(doc,student,x,y,w,h){
      doc.setFont('helvetica','normal');doc.setFontSize(layout.size);
      doc.text(entry.lines,left+4,cy);cy+=entry.lines.length*layout.leading;
      doc.setFontSize(Math.max(4.2,layout.size-0.7));
-     doc.text(entry.note,left+4,cy+0.4);cy+=layout.size*0.36+2.2;
+     if(entry.note==='E / NE / PR'){let xx=left+4;for(const label of ['Entregada','No entregada','Pendiente de revisión']){doc.rect(xx,cy-1.1,1.8,1.8);doc.text(label,xx+2.5,cy+0.4);xx+=label==='Pendiente de revisión'?0:label==='Entregada'?27:31}}else doc.text(entry.note,left+4,cy+0.4);cy+=layout.size*0.36+2.2;
    }
    cy+=1.3;
  }

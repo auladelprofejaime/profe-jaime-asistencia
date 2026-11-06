@@ -577,7 +577,7 @@
  <div id="act-manage" class="actpane">
   <form id="activityForm" class="card formgrid"><h2 id="activityFormTitle">Crear actividad</h2><input type="hidden" id="editActivityId"><label>Turno<select id="newActShift"></select></label><label class="wide">Grupos
   <select id="newActGroup" class="hidden" aria-hidden="true"></select>
-  <div id="newActGroupChoices" class="activity-group-choices"></div>
+  <div id="newActGroupChoices" class="activity-group-choices"></div><label class="wide">Destinatarios de 3.º A (Inglés / Artes)<select id="newActSubjectTarget"><option value="">Todo el grupo / actividad general</option><option value="Inglés:Upper">Inglés · Upper</option><option value="Inglés:Inter">Inglés · Inter</option><option value="Inglés:Pre">Inglés · Pre</option><option value="Artes:Teatro">Artes · Teatro</option><option value="Artes:Danza">Artes · Danza</option><option value="Artes:Música">Artes · Música</option></select></label>
   <p id="newActGroupHelp" class="hint">Puedes seleccionar uno, varios o todos los grupos.</p>
 </label><label>Asignada<input id="newActDate" type="date" required></label><label>Fecha de entrega<input id="newActDueDate" type="date" required></label><label>Semana<select id="newActWeek" required></select></label><label class="wide">Nombre de la actividad<input id="newActName" placeholder="Ej. Dictado 1" required></label><label>Tipo<select id="newActType"><option>Actividad</option><option>Cuaderno</option><option>Tarea</option><option>Dictado</option><option>Proyecto</option><option>Examen</option><option>Otro</option></select></label>
 <label>Forma de evaluación<select id="newActEvaluation" required><option value="delivery">Entrega: círculo verde o rojo</option><option value="numeric">Calificación numérica de 0 a 10</option></select></label>
@@ -1633,7 +1633,8 @@
  function signature(a){return JSON.stringify([a.name,a.shift,a.date,a.dueDate,a.week,a.type,a.evaluationMode,[...(a.groups||[])].sort()])}
  async function save(form,ticket){
   const groups=[...q('#newActGroupChoices').querySelectorAll('input.new-act-group-check:checked')].map(x=>x.value);
-  const base={shift:v('#newActShift'),groups,group:groups[0],name:v('#newActName'),date:v('#newActDate'),dueDate:v('#newActDueDate'),week:v('#newActWeek'),type:v('#newActType')||'Actividad',evaluationMode:v('#newActEvaluation')||'delivery'};
+  const base={shift:v('#newActShift'),groups,group:groups[0],name:v('#newActName'),date:v('#newActDate'),dueDate:v('#newActDueDate'),week:v('#newActWeek'),type:v('#newActType')||'Actividad',evaluationMode:v('#newActEvaluation')||'delivery',subjectTarget:v('#newActSubjectTarget')};
+  if(base.subjectTarget&&(base.shift.toLowerCase()!=='vespertino'||groups.length!==1||groups[0].toLowerCase()!=='3a'))throw new Error('Los niveles de Inglés y Artes solo pueden asignarse a 3A vespertino.');
   const editId=v('#editActivityId');
   if(!groups.length||!base.shift||!base.name||!base.date||!base.dueDate)throw new Error('Completa turno, grupos, nombre y fechas.');
   if(!window.ProfeSupabase)throw new Error('No hay conexión con el servidor.');

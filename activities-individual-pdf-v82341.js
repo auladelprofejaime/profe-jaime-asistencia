@@ -1,5 +1,26 @@
 // App Docente v8.23.41 · Actividades · PDF individual por alumno
 (function(){
+  // Keep the PDF's activity set identical to the checkboxes selected by the teacher.
+  // The legacy weeklyReportData filters by capture date again, discarding evaluated-month items.
+  if(typeof weeklyReportData==='function'&&typeof currentWeekActivities==='function'){
+    const originalWeeklyReportData=weeklyReportData;
+    weeklyReportData=async function(selectedIds=null,fromDate=null,toDate=null){
+      const result=await originalWeeklyReportData.apply(this,arguments);
+      if(!Array.isArray(selectedIds)||!selectedIds.length)return result;
+      const ids=new Set(selectedIds.map(String));
+      const selectedMonth=$('#gridWeek')?.value||'';
+      const monthCovered=selectedMonth&&(!fromDate||selectedMonth>=String(fromDate).slice(0,7))&&(!toDate||selectedMonth<=String(toDate).slice(0,7));
+      const [visible,local]=await Promise.all([
+        monthCovered?currentWeekActivities():Promise.resolve([]),
+        all('activities')
+      ]);
+      const existing=new Set((result.acts||[]).map(a=>String(a.id)));
+      const additional=[...(visible||[]),...(local||[])].filter(a=>ids.has(String(a.id))&&!existing.has(String(a.id)));
+      const unique=new Map(additional.map(a=>[String(a.id),a]));
+      result.acts=[...(result.acts||[]),...unique.values()];
+      return result;
+    };
+  }
   async function selectedGroupStudents(){
     const shift=$('#gridShift')?.value||'';
     const group=$('#gridGroup')?.value||'';

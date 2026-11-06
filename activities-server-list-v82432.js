@@ -28,16 +28,6 @@ async function pullActivities(force=false){
  })();
  try{return await readPromise}finally{readPromise=null}
 }
-for(const name of ['refreshActivitySelectors','refreshGridWeeks']){
- // The core declares mutable functions; wrap both entry points so scanner and
- // weekly grid get the same server activity cache as the management list.
- const old=name==='refreshActivitySelectors'?refreshActivitySelectors:refreshGridWeeks;
- const wrapped=async function(){
-  try{await pullActivities()}catch(e){info('No se pudieron cargar las actividades: '+(e.message||e),true)}
-  return old.apply(this,arguments);
- };
- if(name==='refreshActivitySelectors')refreshActivitySelectors=wrapped;else refreshGridWeeks=wrapped;
-}
 renderActivities=async function(){
  const box=document.getElementById('activitiesList');if(!box)return;
  const ticket=++request;

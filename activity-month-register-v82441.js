@@ -32,26 +32,51 @@ async function pull(force=false){
   if(typeof ensureDB==='function')await ensureDB();
   activities=aa.map(r=>({...r.data,id:r.id,name:r.title??r.data?.name,date:r.activity_date??r.data?.date,dueDate:r.due_date??r.data?.dueDate,group:r.group_name,shift:r.shift,evaluationMode:r.evaluation_type||r.data?.evaluationMode||'delivery',closed:!!r.closed}));
   methods=mm.map(r=>({...r.data,id:r.id,group:r.group_name,shift:r.shift,month:r.month,cycle:r.cycle,quarter:r.quarter,closed:!!r.closed}));
-  // Cache reads only. Do not enqueue writes or recalculate any saved grades.
-  for(const a of activities)await req(store('activities','readwrite').put(a));
-  // 3A vespertino: hydrate local IndexedDB from the authoritative server records.
-  // The grid renders IndexedDB, not the delivered column directly.
-  try { if(window.ProfeSupabase){
-    const remote=await window.ProfeSupabase.rpc('teacher_activity_records_audit',{p_group_name:'3A'});
-    if(Array.isArray(remote)){
+  // Batch local writes; never wait for the 3A audit before showing the month.
+  await new Promise((resolve,reject)=>{
+    try{
+      const first=store('activities','readwrite');
+      const tx=first.transaction;
+      for(const a of activities)first.put(a);
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error||new Error('No se pudo guardar la caché de actividades'));
+      tx.onabort=()=>reject(tx.error||new Error('Se canceló la caché de actividades'));
+    }catch(e){reject(e)}
+  });
+  await new Promise((resolve,reject)=>{
+    try{
+      const first=store('methodologies','readwrite');
+      const tx=first.transaction;
+      for(const m of methods)first.put(m);
+      tx.oncomplete=()=>resolve();
+      tx.onerror=()=>reject(tx.error||new Error('No se pudo guardar la caché de metodologías'));
+      tx.onabort=()=>reject(tx.error||new Error('Se canceló la caché de metodologías'));
+    }catch(e){reject(e)}
+  });
+  // The audit is a background reconciliation, never a prerequisite for the selector.
+  Promise.resolve().then(async()=>{
+    try{
+      const remote=await window.ProfeSupabase?.rpc('teacher_activity_records_audit',{p_group_name:'3A'});
+      if(!Array.isArray(remote))return;
       const allowed=new Set(activities.filter(a=>String(a.group)==='3A'&&String(a.shift).toLowerCase()==='vespertino').map(a=>String(a.id)));
+      const records=[];
       for(const row of remote){
         const aid=String(row.activity_id||''),sid=String(row.student_id||'');
         if(!allowed.has(aid)||!/^301[0-9]{3}$/.test(sid))continue;
-        const key=aid+'|'+sid;
-        const record={key,activityId:aid,studentId:sid,status:row.delivered===true?'yes':row.delivered===false?'no':undefined,timestamp:row.updated_at||row.delivery_date||new Date().toISOString()};
+        const record={key:aid+'|'+sid,activityId:aid,studentId:sid,status:row.delivered===true?'yes':row.delivered===false?'no':undefined,timestamp:row.updated_at||row.delivery_date||new Date().toISOString()};
         if(typeof row.score==='number')record.score=row.score;
-        await req(store('activityRecords','readwrite').put(record));
+        records.push(record);
       }
-    }
-  }} catch(syncError){console.warn('Sincronización 3A pendiente:',syncError)}
-
-  for(const m of methods)await req(store('methodologies','readwrite').put(m));
+      if(!records.length)return;
+      await new Promise((resolve,reject)=>{
+        const first=store('activityRecords','readwrite'),tx=first.transaction;
+        for(const record of records)first.put(record);
+        tx.oncomplete=()=>resolve();
+        tx.onerror=()=>reject(tx.error);
+        tx.onabort=()=>reject(tx.error);
+      });
+    }catch(e){console.warn('Auditoría de 3A no bloqueante:',e)}
+  });
   lastRead=Date.now();
  })();
  try{await inflight}finally{inflight=null}

@@ -26,16 +26,28 @@ function visibleTasks(student){
 function renderSummary(){
  const box=q('weeklyTaskSummary');if(!box||!weekly)return;
  const tasks=weekly.tasks||[];
- box.innerHTML='<p><b>Periodo automático:</b> '+esc(fmt(weekly.week_start))+' al '+esc(fmt(weekly.week_end))+'.</p>'+
+ box.innerHTML='<p><b>Periodo de seguimiento:</b> '+esc(fmt(weekly.week_start))+' al '+esc(fmt(weekly.week_end))+'.</p>'+
  '<p><b>'+tasks.length+' actividad(es) para este reporte.</b> Las que vencen dentro del periodo llevarán las opciones Entregada / No entregada / Realizada, pendiente de revisión. Las que vencen después solo mostrarán su fecha de entrega.</p>'+
  (tasks.length?'<div class="weekly-task-list">'+tasks.map(t=>'<article class="weekly-task-row" data-weekly-task="'+esc(t.id)+'"><div><b>'+esc(t.subject)+(t.variant?' · '+esc(t.variant):'')+'</b><div>'+esc(t.title)+'</div><small>Asignada: '+esc(fmt(t.assigned_date,true))+' · Entrega: '+esc(fmt(t.due_date,true))+'</small></div><label>En el reporte<select data-weekly-mode="'+esc(t.id)+'"><option value="include" '+(t.report_mode==='include'?'selected':'')+'>Incluir</option><option value="consult_student" '+(t.report_mode==='consult_student'?'selected':'')+'>Consultar con el alumno</option><option value="omit" '+(t.report_mode==='omit'?'selected':'')+'>Eliminar del reporte</option></select></label></article>').join(''):'<p>No hay tareas cargadas en este periodo. Los días sin foto simplemente no aparecen.</p>');
 }
 async function loadWeekly(){
  if(busy)return false;busy=true;const st=q('weeklyTaskStatus');if(st)st.textContent='Cargando semana…';
  try{
-  const out=await rpc('teacher_daily_task_weekly_load',{p_reference_date:(q('weeklyReferenceDate')?.value||localDate())});
-  if(!out?.week_start)throw Error('No se pudo calcular la semana.');
-  weekly=out;renderSummary();
+  const reference=q('weeklyReferenceDate')?.value||localDate();
+  const previous=parseDate(reference);previous.setUTCDate(previous.getUTCDate()-7);
+  const previousDate=previous.toISOString().slice(0,10);
+  const [out,prior]=await Promise.all([
+    rpc('teacher_daily_task_weekly_load',{p_reference_date:reference}),
+    rpc('teacher_daily_task_weekly_load',{p_reference_date:previousDate})
+  ]);
+  if(!out?.week_start||!prior?.week_start)throw Error('No se pudieron cargar ambos periodos.');
+  const seen=new Set();const tasks=[];
+  for(const t of [...(prior.tasks||[]),...(out.tasks||[])]){
+    const id=String(t.id||t.activity_id||JSON.stringify(t));
+    if(seen.has(id))continue;seen.add(id);tasks.push(t);
+  }
+  tasks.sort((a,b)=>String(a.assigned_date||'').localeCompare(String(b.assigned_date||''))||String(a.subject||'').localeCompare(String(b.subject||'')));
+  weekly={...out,week_start:prior.week_start,tasks};renderSummary();
   if(st)st.textContent='Semana lista. Los días sin foto no generan ningún registro.';
   return true;
  }catch(e){if(st)st.textContent='No se pudo cargar el seguimiento semanal: '+e.message;return false}
@@ -141,9 +153,9 @@ function init(){
  const host=q('daily-task-review');if(!host||q('weeklyTaskPanel'))return;
  const first=host.querySelector('.card');
  const panel=document.createElement('div');panel.id='weeklyTaskPanel';panel.className='card';
- panel.innerHTML='<div class="section"><div><h2>Reporte semanal para familias</h2><p class="hint">El periodo se calcula solo de viernes a jueves. Solo aparecen los días en los que cargaste tareas.</p></div><button type="button" id="weeklyTaskRefresh">Actualizar semana</button></div><div id="weeklyTaskSummary"></div><div class="daily-toolbar"><button type="button" id="weeklyTaskPdf" class="primary">Generar reportes semanales</button></div><p id="weeklyTaskStatus" role="status" aria-live="polite"></p>';
+ panel.innerHTML='<div class="section"><div><h2>Reporte semanal para familias</h2><p class="hint">Incluye la semana seleccionada y la anterior, para que no se omitan las tareas capturadas desde el viernes previo.</p></div><button type="button" id="weeklyTaskRefresh">Actualizar semana</button></div><div id="weeklyTaskSummary"></div><div class="daily-toolbar"><button type="button" id="weeklyTaskPdf" class="primary">Generar reportes semanales</button></div><p id="weeklyTaskStatus" role="status" aria-live="polite"></p>';
  host.insertBefore(panel,first||host.firstChild);
- const dateControl=document.createElement('label');dateControl.textContent='Semana que deseas imprimir (selecciona cualquier fecha de esa semana): ';
+ const dateControl=document.createElement('label');dateControl.textContent='Semana de referencia (incluye esta semana y la anterior): ';
  const dateInput=document.createElement('input');dateInput.type='date';dateInput.id='weeklyReferenceDate';dateInput.value=localDate();dateControl.appendChild(dateInput);
  panel.insertBefore(dateControl,q('weeklyTaskSummary'));
  dateInput.addEventListener('change',loadWeekly);

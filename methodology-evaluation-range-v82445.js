@@ -4,7 +4,7 @@
 const q=id=>document.getElementById(id);
 let ticket=0,busy=false;
 const date=x=>/^\d{4}-\d{2}-\d{2}$/.test(String(x||'').slice(0,10))?String(x).slice(0,10):'';
-function range(m,sid){return m.evaluationRanges?.[sid]||null}
+function range(m,sid){const r=m.evaluationRanges?.[sid]||null;if(!r)return null;const month=String(m.month||'').toLowerCase();if(month==='octubre'&&r.end&&r.end<'2026-10-01')return null;return r}
 function applicable(m,sid,a){
  const r=range(m,sid);if(!r)return true;
  const d=date(a.date||a.activity_date);if(!d)return true;
@@ -64,7 +64,7 @@ const oldCalculate=calculateMethodology;
 calculateMethodology=async function(){
  const id=q('calcMethodology')?.value;if(!id)return oldCalculate.apply(this,arguments);
  const m=await remote(id);await req(store('methodologies','readwrite').put(m));
- if(!Object.keys(m.evaluationRanges||{}).length)return oldCalculate.apply(this,arguments);
+ if(!Object.keys(m.evaluationRanges||{}).some(sid=>range(m,sid)))return oldCalculate.apply(this,arguments);
  if(m.closed)throw Error('Reabre el mes para recalcular las fechas individuales.');
  const total=m.criteria.reduce((s,c)=>s+Number(c.percent),0);if(Math.abs(total-100)>0.001)throw Error('Los criterios deben sumar 100%.');
  const acts=(await all('activities')).filter(a=>m.assignments?.[a.id]);if(!acts.length)throw Error('Asigna al menos una actividad a un criterio.');

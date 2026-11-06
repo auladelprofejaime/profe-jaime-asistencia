@@ -23,7 +23,15 @@ async function pullActivities(force=false){
   if(!Array.isArray(rows))throw new Error('El servidor no devolvió la lista de actividades.');
   const acts=rows.map(normalize).sort((a,b)=>b.date.localeCompare(a.date)||a.name.localeCompare(b.name,'es',{sensitivity:'base'}));
   if(typeof ensureDB==='function')await ensureDB();
-  for(const a of acts)await req(store('activities','readwrite').put(a));
+  await new Promise((resolve,reject)=>{
+   try{
+    const os=store('activities','readwrite'),tx=os.transaction;
+    for(const a of acts)os.put(a);
+    tx.oncomplete=resolve;
+    tx.onerror=()=>reject(tx.error||new Error('Error al actualizar caché'));
+    tx.onabort=()=>reject(tx.error||new Error('Actualización cancelada'));
+   }catch(e){reject(e)}
+  });
   cached=acts;lastRead=Date.now();return acts;
  })();
  try{return await readPromise}finally{readPromise=null}

@@ -31,9 +31,27 @@
         await window.ProfeSupabase.upsert('activities',[activityRow(value)],'id');
       }else if(store==='activityRecords'){
         if(!window.ProfeSupabase)throw new Error('NO GUARDADO: sin conexión con Supabase.');
-        const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:[recordRow(value)]});
-        if(out?.ok===false||Number(out?.merged||0)!==1)throw new Error(out?.error||out?.reason||'Supabase no confirmó el registro.');
-        notifyActivityDelivered(value).catch(e=>console.error('Push actividad entregada',e));
+        const key=String(value.key||((value.activityId||value.activity_id)+'|'+(value.studentId||value.student_id)));
+        let previous=null;
+        try{previous=await new Promise((resolve,reject)=>{const rq=store==='activityRecords'?window.db.transaction('activityRecords','readonly').objectStore('activityRecords').get(key):null;if(!rq)return resolve(null);rq.onsuccess=()=>resolve(rq.result||null);rq.onerror=()=>reject(rq.error)})}catch(_){}
+        await originalPut(store,value);
+        Promise.resolve().then(async()=>{
+          try{
+            const out=await window.ProfeSupabase.rpc('teacher_activity_records_merge_safe',{p_rows:[recordRow(value)]});
+            if(out?.ok===false||Number(out?.merged||0)!==1)throw new Error(out?.error||out?.reason||'Supabase no confirmó el registro.');
+            notifyActivityDelivered(value).catch(e=>console.error('Push actividad entregada',e));
+          }catch(e){
+            console.error('NO GUARDADO remoto de actividad',e);
+            try{
+              if(previous)await originalPut('activityRecords',previous);
+              else await originalDel('activityRecords',key);
+              if(typeof window.refreshActivityStats==='function')window.refreshActivityStats().catch(()=>{});
+              if(typeof window.renderActivityGrid==='function')window.renderActivityGrid().catch(()=>{});
+            }catch(_){}
+            try{alert('NO GUARDADO. El registro se revirtió porque Supabase no lo confirmó: '+(e?.message||e))}catch(_){}
+          }
+        });
+        return value;
       }
       return originalPut(store,value);
     };

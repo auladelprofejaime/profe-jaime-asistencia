@@ -64,59 +64,56 @@ async function changeMode(id,mode,select){
  finally{busy=false;select.disabled=false}
 }
 
-function addReport(doc,student,x,y,w,h,startAt=0){
+function addReport(doc,student,x,y,w,h){
  const tasks=visibleTasks(student),margin=5,left=x+margin,right=x+w-margin,maxW=w-margin*2;
+ const groups=new Map();
+ for(const t of tasks){const subject=String(t.subject||'Sin materia').trim();const key=subject+'|'+String(t.variant||'');if(!groups.has(key))groups.set(key,{label:subject+(t.variant?' ('+t.variant+')':''),items:[]});groups.get(key).items.push(t)}
+ const grouped=[...groups.values()];
+ const top=y+31,bottom=y+h-19,available=bottom-top;
+ let layout=null;
+ for(let size=7.4;size>=4.4;size-=0.25){
+   const leading=size*0.43,spacing=size*0.36,blocks=[];let height=0;
+   for(const group of grouped){
+     doc.setFont('helvetica','bold');doc.setFontSize(size+0.5);
+     const heading=doc.splitTextToSize(group.label,maxW);
+     const entries=[];let blockHeight=heading.length*leading+1.1;
+     for(const t of group.items){
+       doc.setFont('helvetica','normal');doc.setFontSize(size);
+       const due='Entrega '+fmtShort(t.due_date);
+       const lines=doc.splitTextToSize(String(t.title||'')+' · '+due,maxW-5);
+       const view=taskPresentation(t);
+       const note=view.kind==='consult'?'Consultar con alumno':view.kind==='future'?'Entrega posterior':'E / NE / PR';
+       const rowHeight=lines.length*leading+spacing+2.2;
+       entries.push({t,lines,note,rowHeight});blockHeight+=rowHeight;
+     }
+     blockHeight+=1.3;blocks.push({heading,entries,blockHeight});height+=blockHeight;
+   }
+   if(height<=available){layout={size,leading,blocks};break}
+ }
+ if(!layout)throw Error('Las actividades de '+student.name+' no caben legiblemente en media carta. No se omitió ninguna.');
  doc.setDrawColor(205);doc.rect(x,y,w,h);
  const logo=window.JAIME_LASALLE_LOGO_JPEG||window.JAIME_LASALLE_LOGO;
  if(logo){try{doc.addImage(logo,'JPEG',left,y+4,20,9)}catch(_){try{doc.addImage(logo,'PNG',left,y+4,20,9)}catch(__){}}}
- doc.setTextColor(25);doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Seguimiento semanal de tareas · 3.º A',left+23,y+8);
- doc.setFont('helvetica','normal');doc.setFontSize(7.3);
- doc.text('Periodo: '+fmtShort(weekly.week_start)+' al '+fmtShort(weekly.week_end),left+23,y+12);
- doc.setFont('helvetica','bold');doc.setFontSize(8.6);
- const nameLines=doc.splitTextToSize(student.name,maxW);doc.text(nameLines,left,y+19);
- let cy=y+19+nameLines.length*3.6;
- doc.setFont('helvetica','normal');doc.setFontSize(7.2);doc.text('Matrícula: '+student.student_id+'   ·   No. '+student.list_number,left,cy);cy+=5;
- doc.setDrawColor(220);doc.line(left,cy,right,cy);cy+=4;
- if(!tasks.length){doc.setFontSize(7.5);doc.text('No hay actividades incluidas en el reporte de esta semana.',left,cy);cy+=5}
- for(let taskIndex=startAt;taskIndex<tasks.length;taskIndex++){
-   const t=tasks[taskIndex];
-   const view=taskPresentation(t);
-   const title=(t.subject+(t.variant?' ('+t.variant+')':'')+': '+t.title);
-   const lines=doc.splitTextToSize(title,maxW);
-   const extra=view.kind==='verify'?10:view.kind==='consult'?7:6;
-   const need=lines.length*3.1+3.2+extra+3;
-   if(cy+need>y+h-21){
-     if(taskIndex===startAt)throw Error('Una actividad es demasiado larga para el espacio disponible.');
-     doc.setFont('helvetica','italic');doc.setFontSize(6.4);
-     doc.text('Continúa en una hoja adicional.',left,y+h-19);
-     drawFooter();
-     return taskIndex;
+ doc.setTextColor(25);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Seguimiento de tareas · 3.º A',left+22,y+8);
+ doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.text('Periodo: '+fmtShort(weekly.week_start)+' al '+fmtShort(weekly.week_end),left+22,y+12);
+ doc.setFont('helvetica','bold');doc.setFontSize(8.2);doc.text(doc.splitTextToSize(student.name,maxW),left,y+19);
+ doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.text('Matrícula: '+student.student_id+' · No. '+student.list_number,left,y+27);
+ doc.setDrawColor(220);doc.line(left,y+29,right,y+29);
+ let cy=top;
+ for(const block of layout.blocks){
+   doc.setFont('helvetica','bold');doc.setFontSize(layout.size+0.5);
+   doc.text(block.heading,left,cy);cy+=block.heading.length*layout.leading+1.1;
+   for(const entry of block.entries){
+     doc.setFont('helvetica','normal');doc.setFontSize(layout.size);
+     doc.text(entry.lines,left+4,cy);cy+=entry.lines.length*layout.leading;
+     doc.setFontSize(Math.max(4.2,layout.size-0.7));
+     doc.text(entry.note,left+4,cy+0.4);cy+=layout.size*0.36+2.2;
    }
-   doc.setFont('helvetica','bold');doc.setFontSize(7.1);doc.text(lines,left,cy);cy+=lines.length*3.1;
-   doc.setFont('helvetica','normal');doc.setFontSize(6.6);
-   doc.text('Asignada: '+fmtShort(t.assigned_date)+' · Entrega: '+fmtShort(t.due_date),left,cy);cy+=3.5;
-   if(view.kind==='verify'){
-     doc.setFontSize(6.8);
-     const labels=['Entregada','No entregada','Realizada, pendiente de revisión'];
-     let xx=left;
-     for(const label of labels){
-       doc.rect(xx,cy-2.3,2.8,2.8);
-       doc.text(label,xx+4,cy);
-       xx+=label==='Realizada, pendiente de revisión'?0:label==='No entregada'?36:31;
-     }
-     cy+=6.5;
-   }else{
-     const lines2=doc.splitTextToSize(view.text,maxW);
-     doc.setFontSize(6.8);doc.text(lines2,left,cy);cy+=lines2.length*3.1+3;
-   }
+   cy+=1.3;
  }
- drawFooter();
- return tasks.length;
- function drawFooter(){
- const fy=y+h-13;doc.setDrawColor(170);doc.line(left,fy,right-55,fy);doc.line(right-48,fy,right,fy);
- doc.setFont('helvetica','normal');doc.setFontSize(6.3);doc.text('Firma del padre/madre/tutor',left,fy+3);doc.text('Fecha de entrega',right-48,fy+3);
- doc.setFontSize(5.8);doc.setTextColor(100);doc.text('Reporte generado automáticamente el '+fmtShort(weekly.generated_for)+'.',left,y+h-4);
- }
+ const fy=y+h-12;doc.setDrawColor(170);doc.line(left,fy,right-48,fy);doc.line(right-43,fy,right,fy);
+ doc.setFont('helvetica','normal');doc.setFontSize(6);doc.text('Firma del padre/madre/tutor',left,fy+3);doc.text('Fecha',right-43,fy+3);
+ doc.setFontSize(5.5);doc.setTextColor(100);doc.text('E: entregada · NE: no entregada · PR: pendiente de revisión',left,y+h-4);
 }
 async function generatePdf(){
  const st=q('weeklyTaskStatus');if(busy)return;
@@ -128,20 +125,14 @@ async function generatePdf(){
   // Dos medias cartas VERTICALES sobre una hoja carta horizontal.
   const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:'landscape'});
   const pageW=279.4,pageH=215.9,outer=5,gap=4,half=(pageW-outer*2-gap)/2;
-  const queue=weekly.roster.map(student=>({student,next:0}));
-  let slot=0,continuationCount=0;
-  while(queue.length){
-    const item=queue.shift();
-    if(slot===2){doc.addPage();slot=0;}
-    const x=outer+slot*(half+gap),previous=item.next;
-    const next=addReport(doc,item.student,x,outer,half,pageH-outer*2,previous);
-    if(next<=previous&&next<visibleTasks(item.student).length)throw Error('Una actividad no cabe en el reporte.');
-    if(next<visibleTasks(item.student).length){queue.push({student:item.student,next});continuationCount++;}
-    slot++;
-  }
+  weekly.roster.forEach((student,i)=>{
+    if(i>0&&i%2===0)doc.addPage();
+    const slot=i%2,x=outer+slot*(half+gap);
+    addReport(doc,student,x,outer,half,pageH-outer*2);
+  });
   const name='Seguimiento_tareas_3A_'+weekly.week_start+'_a_'+weekly.week_end+'.pdf';
   doc.save(name);
-  if(st)st.textContent='✓ PDF semanal generado: '+weekly.roster.length+' reportes personalizados, dos medias cartas verticales por hoja; '+weekly.tasks.length+' actividades del periodo; '+continuationCount+' continuaciones.';
+  if(st)st.textContent='✓ PDF semanal generado: '+weekly.roster.length+' reportes personalizados, dos medias cartas verticales por hoja; '+weekly.tasks.length+' actividades del periodo; sin continuaciones.';
  }catch(e){if(st)st.textContent='No se pudo generar el PDF: '+e.message}
  finally{busy=false}
 }

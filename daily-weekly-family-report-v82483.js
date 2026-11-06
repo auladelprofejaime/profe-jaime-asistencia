@@ -33,7 +33,7 @@ function renderSummary(){
 async function loadWeekly(){
  if(busy)return false;busy=true;const st=q('weeklyTaskStatus');if(st)st.textContent='Cargando semana…';
  try{
-  const out=await rpc('teacher_daily_task_weekly_load',{p_reference_date:localDate()});
+  const out=await rpc('teacher_daily_task_weekly_load',{p_reference_date:(q('weeklyReferenceDate')?.value||localDate())});
   if(!out?.week_start)throw Error('No se pudo calcular la semana.');
   weekly=out;renderSummary();
   if(st)st.textContent='Semana lista. Los días sin foto no generan ningún registro.';
@@ -52,7 +52,7 @@ async function changeMode(id,mode,select){
  finally{busy=false;select.disabled=false}
 }
 
-function addReport(doc,student,x,y,w,h){
+function addReport(doc,student,x,y,w,h,startAt=0){
  const tasks=visibleTasks(student),margin=5,left=x+margin,right=x+w-margin,maxW=w-margin*2;
  doc.setDrawColor(205);doc.rect(x,y,w,h);
  const logo=window.JAIME_LASALLE_LOGO_JPEG||window.JAIME_LASALLE_LOGO;
@@ -66,16 +66,19 @@ function addReport(doc,student,x,y,w,h){
  doc.setFont('helvetica','normal');doc.setFontSize(7.2);doc.text('Matrícula: '+student.student_id+'   ·   No. '+student.list_number,left,cy);cy+=5;
  doc.setDrawColor(220);doc.line(left,cy,right,cy);cy+=4;
  if(!tasks.length){doc.setFontSize(7.5);doc.text('No hay actividades incluidas en el reporte de esta semana.',left,cy);cy+=5}
- for(const t of tasks){
+ for(let taskIndex=startAt;taskIndex<tasks.length;taskIndex++){
+   const t=tasks[taskIndex];
    const view=taskPresentation(t);
    const title=(t.subject+(t.variant?' ('+t.variant+')':'')+': '+t.title);
    const lines=doc.splitTextToSize(title,maxW);
    const extra=view.kind==='verify'?10:view.kind==='consult'?7:6;
-   const need=lines.length*3.1+3.2+extra;
-   if(cy+need>y+h-16){
+   const need=lines.length*3.1+3.2+extra+3;
+   if(cy+need>y+h-21){
+     if(taskIndex===startAt)throw Error('Una actividad es demasiado larga para el espacio disponible.');
      doc.setFont('helvetica','italic');doc.setFontSize(6.4);
-     doc.text('Continúa en el reverso/hoja siguiente por cantidad de actividades.',left,y+h-10);
-     break;
+     doc.text('Continúa en una hoja adicional.',left,y+h-19);
+     drawFooter();
+     return taskIndex;
    }
    doc.setFont('helvetica','bold');doc.setFontSize(7.1);doc.text(lines,left,cy);cy+=lines.length*3.1;
    doc.setFont('helvetica','normal');doc.setFontSize(6.6);
@@ -95,9 +98,13 @@ function addReport(doc,student,x,y,w,h){
      doc.setFontSize(6.8);doc.text(lines2,left,cy);cy+=lines2.length*3.1+3;
    }
  }
+ drawFooter();
+ return tasks.length;
+ function drawFooter(){
  const fy=y+h-13;doc.setDrawColor(170);doc.line(left,fy,right-55,fy);doc.line(right-48,fy,right,fy);
  doc.setFont('helvetica','normal');doc.setFontSize(6.3);doc.text('Firma del padre/madre/tutor',left,fy+3);doc.text('Fecha de entrega',right-48,fy+3);
  doc.setFontSize(5.8);doc.setTextColor(100);doc.text('Reporte generado automáticamente el '+fmtShort(weekly.generated_for)+'.',left,y+h-4);
+ }
 }
 async function generatePdf(){
  const st=q('weeklyTaskStatus');if(busy)return;
@@ -108,11 +115,22 @@ async function generatePdf(){
   if(!window.jspdf?.jsPDF)throw Error('No se cargó el generador de PDF.');
   const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:'portrait'});
   const pageW=215.9,pageH=279.4,outer=8,gap=4,half=(pageH-outer*2-gap)/2;
+  const continuations=[];
   weekly.roster.forEach((student,i)=>{
     if(i>0&&i%2===0)doc.addPage();
     const slot=i%2,y=outer+slot*(half+gap);
-    addReport(doc,student,outer,y,pageW-outer*2,half);
+    const next=addReport(doc,student,outer,y,pageW-outer*2,half);
+    if(next<visibleTasks(student).length)continuations.push({student,next});
   });
+  for(const item of continuations){
+    let next=item.next;
+    while(next<visibleTasks(item.student).length){
+      doc.addPage();
+      const previous=next;
+      next=addReport(doc,item.student,outer,outer,pageW-outer*2,half,next);
+      if(next<=previous)throw Error('No se pudo distribuir la continuación del reporte.');
+    }
+  }
   const name='Seguimiento_tareas_3A_'+weekly.week_start+'_a_'+weekly.week_end+'.pdf';
   doc.save(name);
   if(st)st.textContent='✓ PDF semanal generado: '+weekly.roster.length+' reportes personalizados, dos por hoja; '+weekly.tasks.length+' actividades registradas en el periodo.';
@@ -125,6 +143,10 @@ function init(){
  const panel=document.createElement('div');panel.id='weeklyTaskPanel';panel.className='card';
  panel.innerHTML='<div class="section"><div><h2>Reporte semanal para familias</h2><p class="hint">El periodo se calcula solo de viernes a jueves. Solo aparecen los días en los que cargaste tareas.</p></div><button type="button" id="weeklyTaskRefresh">Actualizar semana</button></div><div id="weeklyTaskSummary"></div><div class="daily-toolbar"><button type="button" id="weeklyTaskPdf" class="primary">Generar reportes semanales</button></div><p id="weeklyTaskStatus" role="status" aria-live="polite"></p>';
  host.insertBefore(panel,first||host.firstChild);
+ const dateControl=document.createElement('label');dateControl.textContent='Semana que deseas imprimir (selecciona cualquier fecha de esa semana): ';
+ const dateInput=document.createElement('input');dateInput.type='date';dateInput.id='weeklyReferenceDate';dateInput.value=localDate();dateControl.appendChild(dateInput);
+ panel.insertBefore(dateControl,q('weeklyTaskSummary'));
+ dateInput.addEventListener('change',loadWeekly);
  const style=document.createElement('style');style.textContent='#weeklyTaskPanel .weekly-task-list{display:grid;gap:10px;margin:12px 0}#weeklyTaskPanel .weekly-task-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,260px);gap:12px;align-items:end;border:1px solid #ddd5bf;border-radius:12px;padding:12px;background:#fffdf7}#weeklyTaskPanel .weekly-task-row small{display:block;margin-top:5px;color:#69645a}#weeklyTaskPanel select{width:100%}@media(max-width:720px){#weeklyTaskPanel .weekly-task-row{grid-template-columns:1fr}}';document.head.append(style);
  q('weeklyTaskRefresh').addEventListener('click',loadWeekly);q('weeklyTaskPdf').addEventListener('click',generatePdf);
  panel.addEventListener('change',e=>{const id=e.target.dataset.weeklyMode;if(id)changeMode(id,e.target.value,e.target)});

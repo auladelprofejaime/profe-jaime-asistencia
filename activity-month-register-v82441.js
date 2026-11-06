@@ -138,7 +138,7 @@ const originalMethods=renderMethodologies;
 renderMethodologies=async function(){try{await pull()}catch(e){console.warn(e.message)}return originalMethods.apply(this,arguments)};
 // Creation/edit already reads the server before listing. Invalidate this cache too.
 const originalActivities=renderActivities;
-renderActivities=async function(){lastRead=0;const result=await originalActivities.apply(this,arguments);await pull(true);return result};
+renderActivities=async function(){return originalActivities.apply(this,arguments)};
 function bind(){
  for(const id of ['actShift','gridShift','calcMetShift']){
   const prefix=id.replace('Shift',''),el=q(id);if(el)el.onchange=()=>fillGroups(prefix).catch(console.error);

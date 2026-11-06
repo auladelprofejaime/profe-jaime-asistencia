@@ -9,7 +9,9 @@ async function refreshGridWeeks(){let acts=await all('activities'),shift=$('#gri
 async function currentWeekActivities(){let shift=$('#gridShift').value,group=$('#gridGroup').value,week=$('#gridWeek').value;return (await all('activities')).filter(x=>sameShift(x.shift,shift)&&activityMatchesGroup(x,group)&&x.week===week).sort(activitySort)}
 async function reportRangeActivities(fromDate,toDate){
  const shift=$('#gridShift').value,group=$('#gridGroup').value;
- return (await all('activities')).filter(a=>sameShift(a.shift,shift)&&activityMatchesGroup(a,group)&&a.date&&a.date>=fromDate&&a.date<=toDate).sort(activitySort);
+ const rows=window.ProfeSupabase?await ProfeSupabase.select('activities','select=*&order=activity_date.desc'):null;
+ const source=Array.isArray(rows)?rows.map(r=>({...r.data,id:r.id,name:r.title??r.data?.name,date:r.activity_date??r.data?.date,group:r.group_name,shift:r.shift})):await all('activities');
+ return source.filter(a=>sameShift(a.shift,shift)&&activityMatchesGroup(a,group)&&a.date&&a.date>=fromDate&&a.date<=toDate).sort(activitySort);
 }
 async function renderMethodologyAssignments(){
   let id=$('#calcMethodology').value,box=$('#methodologyAssignments');

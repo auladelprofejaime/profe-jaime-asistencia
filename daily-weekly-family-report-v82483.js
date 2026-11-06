@@ -125,27 +125,23 @@ async function generatePdf(){
  busy=true;
  try{
   if(!window.jspdf?.jsPDF)throw Error('No se cargó el generador de PDF.');
-  const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:'portrait'});
-  const pageW=215.9,pageH=279.4,outer=8,gap=4,half=(pageH-outer*2-gap)/2;
-  const continuations=[];
-  weekly.roster.forEach((student,i)=>{
-    if(i>0&&i%2===0)doc.addPage();
-    const slot=i%2,y=outer+slot*(half+gap);
-    const next=addReport(doc,student,outer,y,pageW-outer*2,half);
-    if(next<visibleTasks(student).length)continuations.push({student,next});
-  });
-  for(const item of continuations){
-    let next=item.next;
-    while(next<visibleTasks(item.student).length){
-      doc.addPage();
-      const previous=next;
-      next=addReport(doc,item.student,outer,outer,pageW-outer*2,half,next);
-      if(next<=previous)throw Error('No se pudo distribuir la continuación del reporte.');
-    }
+  // Dos medias cartas VERTICALES sobre una hoja carta horizontal.
+  const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:'landscape'});
+  const pageW=279.4,pageH=215.9,outer=5,gap=4,half=(pageW-outer*2-gap)/2;
+  const queue=weekly.roster.map(student=>({student,next:0}));
+  let slot=0,continuationCount=0;
+  while(queue.length){
+    const item=queue.shift();
+    if(slot===2){doc.addPage();slot=0;}
+    const x=outer+slot*(half+gap),previous=item.next;
+    const next=addReport(doc,item.student,x,outer,half,pageH-outer*2,previous);
+    if(next<=previous&&next<visibleTasks(item.student).length)throw Error('Una actividad no cabe en el reporte.');
+    if(next<visibleTasks(item.student).length){queue.push({student:item.student,next});continuationCount++;}
+    slot++;
   }
   const name='Seguimiento_tareas_3A_'+weekly.week_start+'_a_'+weekly.week_end+'.pdf';
   doc.save(name);
-  if(st)st.textContent='✓ PDF semanal generado: '+weekly.roster.length+' reportes personalizados, dos por hoja; '+weekly.tasks.length+' actividades registradas en el periodo.';
+  if(st)st.textContent='✓ PDF semanal generado: '+weekly.roster.length+' reportes personalizados, dos medias cartas verticales por hoja; '+weekly.tasks.length+' actividades del periodo; '+continuationCount+' continuaciones.';
  }catch(e){if(st)st.textContent='No se pudo generar el PDF: '+e.message}
  finally{busy=false}
 }

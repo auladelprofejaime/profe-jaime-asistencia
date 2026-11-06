@@ -21,7 +21,7 @@ async function reportRangeActivities(fromDate,toDate){
   const m=methods.find(m=>m.assignments?.[a.id]&&sameShift(m.shift,a.shift)&&activityMatchesGroup(a,m.group));
   if(m){
    const index=monthNames.indexOf(String(m.month||'').toLowerCase()),year=Number(String(m.cycle||'').slice(0,4));
-   if(index>=0&&year)return String(index<6?year+1:year)+'-'+String(index+1).padStart(2,'0');
+   if(index>=0&&year)return String(index<7?year+1:year)+'-'+String(index+1).padStart(2,'0');
   }
   return String(a.date||'').slice(0,7);
  };

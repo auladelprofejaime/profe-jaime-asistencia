@@ -42,6 +42,12 @@ async function restoreGrades(options={}){
  const records=await all('activityRecords'),recordMap=new Map(records.map(r=>[r.key,r]));
  const names=new Map(roster.map(st=>[String(st.id),st]));
  const rows=[];
+ let balances=new Map();
+ if(m.shift==='Matutino'){
+  try{const bank=await ProfeSupabase.rpc('teacher_group_points',{p_shift:m.shift,p_group:m.group});
+   balances=new Map((bank||[]).map(x=>[String(x.student_id),Number(x.balance||0)]));
+  }catch(err){console.warn('No se pudo consultar saldo acumulado:',err)}
+ }
  for(const [sid,g] of entries){
   const st=names.get(sid)||{id:sid,name:sid,number:''};
   const criterionGrades={};
@@ -55,8 +61,8 @@ async function restoreGrades(options={}){
   rows.push({student:st,criterionGrades,base:Number(g.base||0),manualExtra:Number(g.manualExtra||0),
    pointsUsed:used,final:average,finalDecimal:average,obtainedAverage:average,
    rounded:g.rounded??g.monthlyGrade,monthlyGrade:g.rounded??g.monthlyGrade,
-   pointsGenerated:Number(g.pointsGenerated||0),pointsAvailable:Math.max(0,Number(ledger.available||0)-used),
-   pointsTotalBefore:Number(ledger.available||0)});
+   pointsGenerated:Number(g.pointsGenerated||0),pointsAvailable:balances.has(String(sid))?Math.max(0,balances.get(String(sid))):Math.max(0,Number(ledger.available||0)-used),
+   pointsTotalBefore:balances.has(String(sid))?balances.get(String(sid))+used:Number(ledger.available||0)});
  }
  rows.sort((a,b)=>compareStudentsForList(a.student,b.student));
  if(ticket!==seq||byId('calcMethodology').value!==id)return;

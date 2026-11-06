@@ -135,3 +135,27 @@ window.addEventListener('load',()=>setInterval(refreshAppliedPoints,10000));
 document.addEventListener('visibilitychange',()=>{if(!document.hidden)refreshAppliedPoints()});
 window.addEventListener('focus',refreshAppliedPoints);
 })();
+
+
+/* Server-authoritative cleanup for stale duplicate October methodologies. */
+(()=>{
+let syncingOctober=false;
+async function syncOctoberMethodologies(){
+ if(syncingOctober||!window.ProfeSupabase||typeof db==='undefined'||!db)return;
+ syncingOctober=true;
+ try{
+  const remote=await ProfeSupabase.select('methodologies','select=*&shift=eq.Matutino&cycle=eq.2026-2027&month=eq.Octubre');
+  if(!Array.isArray(remote))return;
+  const valid=new Set(remote.map(r=>String(r.id)));
+  const local=(await all('methodologies')).filter(m=>m.shift==='Matutino'&&m.cycle==='2026-2027'&&m.month==='Octubre');
+  for(const m of local)if(!valid.has(String(m.id)))await req(store('methodologies','readwrite').delete(m.id));
+  for(const row of remote)await req(store('methodologies','readwrite').put({...row.data,id:row.id,group:row.group_name,shift:row.shift,month:row.month,cycle:row.cycle,quarter:row.quarter,closed:row.closed}));
+  const sel=document.getElementById('calcMethodology');
+  if(sel)[...sel.options].forEach(o=>{if(o.value&&/octubre/i.test(o.textContent||'')&&!valid.has(String(o.value)))o.remove()});
+ }catch(e){console.warn('No se pudo sincronizar metodologías de octubre:',e)}
+ finally{syncingOctober=false}
+}
+window.addEventListener('load',()=>setTimeout(syncOctoberMethodologies,800));
+window.addEventListener('focus',syncOctoberMethodologies);
+document.addEventListener('visibilitychange',()=>{if(!document.hidden)syncOctoberMethodologies()});
+})();

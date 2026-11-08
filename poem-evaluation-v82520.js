@@ -1,7 +1,7 @@
 (()=>{
 'use strict';
 const q=id=>document.getElementById(id),esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const LINK='https://auladelprofejaime.github.io/profe-jaime-asistencia/poemas-evaluacion/';
+const LINK='https://auladelprofejaime.github.io/profe-jaime-asistencia/acceso/';
 const criteria=[['dominio','Dominio del contenido'],['expresion','Expresión oral'],['interpretacion','Interpretación'],['postura','Postura y lenguaje corporal'],['estilo','Originalidad y estilo']];
 const teacherDesc={
  dominio:{4:'Conoce a fondo el poema, sin errores ni titubeos; demuestra comprensión y significado profundo del texto.',3:'Conoce el poema, con uno o dos errores menores que no afectan el sentido general; comprensión adecuada del texto.',2:'Presenta algunos errores o titubeos que limitan la comprensión total del poema.',1:'No demuestra conocimiento adecuado del poema; errores graves y confusión evidente.'},

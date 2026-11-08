@@ -25,7 +25,7 @@ function render(){
  const sessions=ctx.sessions||[];
  for(const s of sessions){
   const open=s.is_open;
-  const eligible=(s.presenters||[]).filter(p=>p.presented&&!p.self);
+  const eligible=(s.presenters||[]).filter(p=>p.presented&&!p.self&&!p.peer_done_by_me);
   const own=(s.presenters||[]).find(p=>p.self);
   const self=(s.presenters||[]).find(p=>p.self&&p.presented);
   const ownAbsent=!!(own&&own.presentation_status==='absent');

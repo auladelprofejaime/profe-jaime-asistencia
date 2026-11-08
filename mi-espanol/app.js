@@ -713,6 +713,7 @@ function quarterSummaryHtml(q){
      <p>Proyecto integrador · 35%: <b>${project.toFixed(2)} / 35</b> · ${delivered} de ${total} trabajos registrados</p>
      <p>Examen trimestral · 22%: <b>${Number.isFinite(exam)?exam.toFixed(1):'—'}</b></p>
      <p>Responsabilidad escolar · 13%: <b>${Number.isFinite(resp)?resp.toFixed(1):'—'}</b></p>
+     ${Number(q.quarter_points?.used||0)>0?`<p>Beneficio Mérito Gabino A. Palma: <b>+${Number(q.quarter_points.used).toFixed(2)} puntos</b> aplicados directamente al trimestre.</p>`:''}
    </div>
    ${provisional?'<p class="muted">La calificación trimestral puede actualizarse automáticamente si cambia una calificación mensual antes del cierre del periodo.</p>':''}
    ${q.preview?'<p class="muted"><b>Vista MONITOR:</b> esta tarjeta es una muestra del formato que reciben alumnos y familias.</p>':''}
@@ -918,15 +919,18 @@ async function studentPointsRpc(name,args={}){
 async function refreshStudentPoints(render=true){
  const token=currentToken;if(!token)return;
  const out=await studentPointsRpc('portal_points_bundle');if(currentToken!==token)return;
+ let quarterOut=null;try{quarterOut=await studentPointsRpc('portal_quarter_points_bundle')}catch(_){quarterOut=null}
  studentPointSnapshot={id:currentId,balance:Number(out.balance||0)};renderSummary();
  if(!render)return;
  const p=out.period,open=p?.state==='open';
- $('#studentPointsContent').innerHTML='<div class="card"><h3>Saldo disponible</h3><h1>'+Number(out.balance||0).toFixed(2)+'</h1><p>Los puntos que conserves permanecen en tu saldo.</p></div>'+
+ $('#studentPointsContent').innerHTML='<div class="card"><h3>Saldo disponible</h3><h1>'+Number(out.balance||0).toFixed(2)+'</h1><p>Es el mismo saldo para usar en el mes, donar o, si perteneces al grupo 22, aplicar hasta 3 puntos al trimestre.</p></div>'+
  '<div class="card"><h3>Dinámica del mes</h3>'+(p?'<p><b>'+esc(p.month)+' · Grupo '+esc(p.group_name)+'</b></p><p>'+esc(new Date(p.opens_at).toLocaleString('es-MX'))+' → '+esc(new Date(p.closes_at).toLocaleString('es-MX'))+'</p><p>'+esc(open?'Abierta para usar o donar puntos.':'La dinámica está programada; todavía no abre.')+'</p>':'<p>Tu profesor todavía no ha abierto una dinámica para tu grupo.</p>')+'</div>'+
- (open?'<form id="studentPointsUse" class="card"><h3>Usar en mi calificación</h3><p>Actualmente aplicados: '+Number(p.points_used||0).toFixed(2)+'. Máximo para llegar a 10: '+Number(p.max_applicable||0).toFixed(2)+'.</p><label>Puntos adicionales a aplicar<input id="studentPointsUseAmount" type="number" min="0.01" step="0.01" value="" required></label><button type="submit">Sumar puntos a mi calificación</button></form><form id="studentPointsDonate" class="card"><h3>Donar a un compañero de mi grupo</h3><label>ID de 5 dígitos del compañero<input id="studentPointsRecipient" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required></label><label>Puntos a donar<input id="studentPointsDonation" type="number" min="0.01" step="0.01" required></label><button type="submit">Donar puntos</button></form>':'')+
+ (open?'<form id="studentPointsUse" class="card"><h3>Usar en mi calificación mensual</h3><p>Actualmente aplicados: '+Number(p.points_used||0).toFixed(2)+'. Máximo para llegar a 10: '+Number(p.max_applicable||0).toFixed(2)+'.</p><label>Puntos adicionales a aplicar<input id="studentPointsUseAmount" type="number" min="0.01" step="0.01" value="" required></label><button type="submit">Sumar puntos a mi calificación mensual</button></form><form id="studentPointsDonate" class="card"><h3>Donar a un compañero de mi grupo</h3><label>ID de 5 dígitos del compañero<input id="studentPointsRecipient" inputmode="numeric" pattern="[0-9]{5}" maxlength="5" required></label><label>Puntos a donar<input id="studentPointsDonation" type="number" min="0.01" step="0.01" required></label><button type="submit">Donar puntos</button></form>':'')+
+ (quarterOut?.eligible?'<form id="studentQuarterPointsUse" class="card" style="border:2px solid #f5c400"><h3>Beneficio Mérito · usar puntos en el trimestre</h3><p>Puedes aplicar del mismo saldo hasta <b>3 puntos</b> directamente a tu calificación trimestral. Actualmente aplicados: <b>'+Number(quarterOut.used||0).toFixed(2)+'</b>.</p><p>Calificación antes de estos puntos: <b>'+(quarterOut.base_grade==null?'—':Number(quarterOut.base_grade).toFixed(2))+'</b> · máximo que puedes aplicar ahora: <b>'+Number(quarterOut.max_applicable||0).toFixed(2)+'</b>.</p><label>Total de puntos que quieres dejar aplicados al trimestre<input id="studentQuarterPointsAmount" type="number" min="0" max="'+Number(quarterOut.max_applicable||0).toFixed(2)+'" step="0.01" value="'+Number(quarterOut.used||0).toFixed(2)+'" required></label><button type="submit">Guardar puntos del trimestre</button><p class="muted">Puedes cambiar esta cantidad; si la reduces, los puntos regresan a tu saldo.</p></form>':'')+
  '<div class="card"><h3>Movimientos recientes</h3>'+out.transactions.map(t=>'<p><b>'+Number(t.amount).toFixed(2)+'</b> · '+esc(t.reason||t.type)+'<br><small>'+esc(new Date(t.created_at).toLocaleString('es-MX'))+'</small></p>').join('')+'</div>';
  $('#studentPointsUse')?.addEventListener('submit',e=>studentPointsAction(e,'portal_add_grade_points',{p_period_id:p.id,p_amount:Number($('#studentPointsUseAmount').value)},'Sumar estos puntos a los que ya aplicaste a tu calificación'));
  $('#studentPointsDonate')?.addEventListener('submit',e=>studentPointsAction(e,'portal_donate_points',{p_period_id:p.id,p_recipient_id:$('#studentPointsRecipient').value.trim(),p_amount:Number($('#studentPointsDonation').value)},'Donar '+$('#studentPointsDonation').value+' puntos al ID '+$('#studentPointsRecipient').value));
+ $('#studentQuarterPointsUse')?.addEventListener('submit',e=>studentPointsAction(e,'portal_set_quarter_points',{p_amount:Number($('#studentQuarterPointsAmount').value)},'Guardar esta cantidad de puntos aplicada a tu calificación trimestral'));
 }
 let studentPointsBusy=false;
 async function studentPointsAction(e,name,args,label){
@@ -941,6 +945,7 @@ async function studentPointsAction(e,name,args,label){
    await studentPointsRpc(name,{...args,p_request_id:pending.id});sessionStorage.removeItem(key);
   }else await studentPointsRpc(name,args);
   confirmed=true;if(name==='portal_add_grade_points'&&$('#studentPointsUseAmount'))$('#studentPointsUseAmount').value='';
+  if(name==='portal_set_quarter_points'){const fresh=await portalGetBundle(currentToken);if(fresh?.ok){bundle=fresh;renderGrades();renderSummary();}}
   await refreshStudentPoints();$('#studentPointsMessage').textContent='✓ Operación guardada.';
  }catch(error){
   $('#studentPointsMessage').textContent=confirmed?'✓ Operación guardada. No se pudo refrescar la vista; pulsa Actualizar para consultar el saldo.':'No se pudo confirmar: '+error.message+'. Actualiza el saldo antes de volver a intentar.';

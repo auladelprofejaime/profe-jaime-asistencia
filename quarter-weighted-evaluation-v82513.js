@@ -46,8 +46,10 @@ function calc(sid){
  const exam=rec.exam===''||rec.exam==null?null:Number(rec.exam),resp=rec.responsibility===''||rec.responsibility==null?null:Number(rec.responsibility);
  const monthlyContribution=monthlyAvg==null?0:monthlyAvg*.30,projectContribution=projectPct/10,examContribution=Number.isFinite(exam)?exam*.22:0,respContribution=Number.isFinite(resp)?resp*.13:0;
  const complete=monthlyAvg!=null&&items.length>0&&Number.isFinite(exam)&&Number.isFinite(resp);
- const finalDecimal=Math.min(10,monthlyContribution+projectContribution+examContribution+respContribution);
- return {rec,items,statuses,delivered,lateCount,months,monthlyAvg,projectPct,exam,resp,monthlyContribution,projectContribution,examContribution,respContribution,complete,finalDecimal,rounded:schoolRound(finalDecimal)}
+ const quarterPoints=Number(state?.quarter_points?.[sid]||0);
+ const baseDecimal=Math.min(10,monthlyContribution+projectContribution+examContribution+respContribution);
+ const finalDecimal=Math.min(10,baseDecimal+quarterPoints);
+ return {rec,items,statuses,delivered,lateCount,months,monthlyAvg,projectPct,exam,resp,monthlyContribution,projectContribution,examContribution,respContribution,quarterPoints,baseDecimal,complete,finalDecimal,rounded:schoolRound(finalDecimal)}
 }
 function ensureUI(){
  const pane=$('met-quarter');if(!pane)return null;
@@ -76,14 +78,14 @@ function render(){
  '<div><b>Proyecto integrador · 35%</b><p>'+c.delivered.size+' de '+c.items.length+' trabajos'+(c.lateCount?' · '+c.lateCount+' extemporáneo'+(c.lateCount===1?'':'s'):'')+' → '+c.projectPct.toFixed(2)+' / 35%</p></div></div>'+
  '<h3>Trabajos entregados</h3><p class="hint">Regístralos arriba, en el apartado rápido por alumno.</p>'+
  '<div class="grid2"><label>Examen trimestral · 22%<input id="quarterExam" type="number" min="0" max="10" step="0.1" value="'+(Number.isFinite(c.exam)?c.exam:'')+'" placeholder="0 a 10"></label><label>Responsabilidad escolar · 13%<input id="quarterResponsibility" type="number" min="0" max="10" step="0.1" value="'+(Number.isFinite(c.resp)?c.resp:'')+'" placeholder="0 a 10"></label></div>'+
- '<div class="percentage-total" style="margin-top:12px">Resultado actual: <strong>'+c.finalDecimal.toFixed(2)+'</strong> / 10 · Calificación: <strong>'+(c.complete?c.rounded:'Pendiente')+'</strong></div><p id="quarterSaveStatus" class="hint">'+(c.complete?'Todos los criterios capturados.':'Faltan datos para cerrar la calificación.')+'</p></div>':'');
+ '+(c.quarterPoints>0?'<div class="card" style="margin-top:12px"><b>Beneficio Mérito Gabino A. Palma</b><p>+'+c.quarterPoints.toFixed(2)+' puntos del saldo aplicados directamente a la calificación trimestral.</p></div>':'')+'<div class="percentage-total" style="margin-top:12px">Resultado actual: <strong>'+c.finalDecimal.toFixed(2)+'</strong> / 10 · Calificación: <strong>'+(c.complete?c.rounded:'Pendiente')+'</strong></div><p id="quarterSaveStatus" class="hint">'+(c.complete?'Todos los criterios capturados.':'Faltan datos para cerrar la calificación.')+'</p></div>':'');
  bind();
  renderSummary();
 }
 function renderSummary(){
  const out=$('quarterResults');if(!out||!state)return;
  if(!roster.length){out.innerHTML='<div class="empty">No hay alumnos.</div>';return}
- out.innerHTML='<table><thead><tr><th>No.</th><th>Alumno</th><th>Mensual 30%</th><th>Proyecto 35%</th><th>Examen 22%</th><th>Resp. 13%</th><th>Final</th></tr></thead><tbody>'+roster.map(s=>{const c=calc(String(s.id));return '<tr><td>'+esc(s.number??s.list_number??'')+'</td><td>'+esc(displayName(s))+'</td><td>'+(c.monthlyAvg==null?'—':c.monthlyAvg.toFixed(2))+'</td><td>'+c.projectPct.toFixed(2)+'%</td><td>'+(Number.isFinite(c.exam)?c.exam.toFixed(1):'—')+'</td><td>'+(Number.isFinite(c.resp)?c.resp.toFixed(1):'—')+'</td><td><b>'+(c.complete?c.rounded:'—')+'</b></td></tr>'}).join('')+'</tbody></table>';
+ out.innerHTML='<table><thead><tr><th>No.</th><th>Alumno</th><th>Mensual 30%</th><th>Proyecto 35%</th><th>Examen 22%</th><th>Resp. 13%</th><th>Puntos trimestre</th><th>Final</th></tr></thead><tbody>'+roster.map(s=>{const c=calc(String(s.id));return '<tr><td>'+esc(s.number??s.list_number??'')+'</td><td>'+esc(displayName(s))+'</td><td>'+(c.monthlyAvg==null?'—':c.monthlyAvg.toFixed(2))+'</td><td>'+c.projectPct.toFixed(2)+'%</td><td>'+(Number.isFinite(c.exam)?c.exam.toFixed(1):'—')+'</td><td>'+(Number.isFinite(c.resp)?c.resp.toFixed(1):'—')+'</td><td><b>'+(c.complete?c.rounded:'—')+'</b></td></tr>'}).join('')+'</tbody></table>';
 }
 async function saveRecord(statusOverride=null){
  if(!activeStudent||!state)return;
@@ -271,7 +273,8 @@ async function generateQuarterPdf(){
        ['Promedio mensual · 30%',c.monthlyAvg==null?'Pendiente':c.monthlyAvg.toFixed(2),c.monthlyContribution.toFixed(2)+' pts',monthlyLabel],
        ['Proyecto integrador · 35%',c.projectPct.toFixed(2)+' / 35',c.projectContribution.toFixed(2)+' pts',c.delivered.size+' de '+c.items.length+' trabajos registrados'],
        ['Examen trimestral · 22%',Number.isFinite(c.exam)?c.exam.toFixed(1):'Pendiente',c.examContribution.toFixed(2)+' pts',''],
-       ['Responsabilidad escolar · 13%',Number.isFinite(c.resp)?c.resp.toFixed(1):'Pendiente',c.respContribution.toFixed(2)+' pts','']
+       ['Responsabilidad escolar · 13%',Number.isFinite(c.resp)?c.resp.toFixed(1):'Pendiente',c.respContribution.toFixed(2)+' pts',''],
+       ['Beneficio Mérito · puntos al trimestre',c.quarterPoints?('+'+c.quarterPoints.toFixed(2)):'0.00',c.quarterPoints.toFixed(2)+' pts',c.quarterPoints?'Descontados del saldo general · máximo 3 puntos para grupo 22':'Sin puntos aplicados']
      ];
      doc.autoTable({startY:y,head:[['Componente','Resultado','Aporte','Detalle']],body:summaryRows,margin:{left:margin,right:margin},styles:{fontSize:7.5,cellPadding:1.5},headStyles:{fillColor:[20,48,86]},theme:'grid'});
      y=doc.lastAutoTable.finalY+5;

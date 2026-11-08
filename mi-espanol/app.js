@@ -696,7 +696,33 @@ function renderAttendance(){
  }).join('');
 }
 
-function renderGrades(){let m=currentGradeMethodology(),g=currentGrade(),pct=g?Math.min(100,(Number(g.finalDecimal||0)/10)*100):0;$('#gradeContent').innerHTML=`<div class="card"><h3>Calificación ${m&&!m.closed?'provisional':'actual'}</h3><p>${esc(m?.month||'')}</p>${m&&!m.closed?'<p>El mes sigue abierto. Puedes usar tus puntos antes del cierre; el promedio puede cambiar.</p>':''}<h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><div class="progress"><i style="width:${pct}%"></i></div><p>Redondeada: <b>${g?.rounded??'—'}</b></p><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>`}
+function quarterSummaryHtml(q){
+ if(!q)return '<div class="card muted">Todavía no hay una calificación trimestral publicada.</div>';
+ const months=Array.isArray(q.monthly)?q.monthly:[];
+ const monthlyText=months.length?months.map(x=>`${esc(x.month)}: <b>${Number(x.grade).toFixed(1)}</b>${x.closed?'':' (provisional)'}`).join(' · '):'Sin meses disponibles';
+ const project=Number(q.project?.score_out_of_35||0),exam=Number(q.exam?.grade),resp=Number(q.responsibility?.grade),avg=Number(q.monthly_average);
+ const delivered=(q.project?.items||[]).filter(x=>x.status&&x.status!=='missing').length,total=(q.project?.items||[]).length;
+ const provisional=months.some(x=>!x.closed);
+ return `<div class="card" style="border:2px solid #f5c400">
+   <div style="font-size:.78rem;font-weight:900;letter-spacing:.12em;color:#f5c400">CALIFICACIÓN TRIMESTRAL</div>
+   <h1 style="font-size:3rem;margin:.35rem 0">${q.final_decimal==null?'—':Number(q.final_decimal).toFixed(2)}</h1>
+   <p>Calificación final: <b>${q.final_rounded??'—'}</b></p>
+   <div class="card" style="margin-top:12px">
+     <b>¿Cómo se obtuvo?</b>
+     <p>Promedio mensual · 30%: ${Number.isFinite(avg)?avg.toFixed(2):'—'} <small>(${monthlyText})</small></p>
+     <p>Proyecto integrador · 35%: <b>${project.toFixed(2)} / 35</b> · ${delivered} de ${total} trabajos registrados</p>
+     <p>Examen trimestral · 22%: <b>${Number.isFinite(exam)?exam.toFixed(1):'—'}</b></p>
+     <p>Responsabilidad escolar · 13%: <b>${Number.isFinite(resp)?resp.toFixed(1):'—'}</b></p>
+   </div>
+   ${provisional?'<p class="muted">La calificación trimestral puede actualizarse automáticamente si cambia una calificación mensual antes del cierre del periodo.</p>':''}
+   ${q.preview?'<p class="muted"><b>Vista MONITOR:</b> esta tarjeta es una muestra del formato que reciben alumnos y familias.</p>':''}
+ </div>`;
+}
+function renderGrades(){
+ let m=currentGradeMethodology(),g=currentGrade(),pct=g?Math.min(100,(Number(g.finalDecimal||0)/10)*100):0;
+ const q=(bundle.quarterSummaries||[]).slice().sort((a,b)=>Number(b.quarter||0)-Number(a.quarter||0))[0]||null;
+ $('#gradeContent').innerHTML=`<div class="card"><div style="font-size:.78rem;font-weight:900;letter-spacing:.08em">CALIFICACIÓN MENSUAL</div><h3>${esc(m?.month||'')}</h3>${m&&!m.closed?'<p>El mes sigue abierto. Puedes usar tus puntos antes del cierre; el promedio puede cambiar.</p>':''}<h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><div class="progress"><i style="width:${pct}%"></i></div><p>Redondeada: <b>${g?.rounded??'—'}</b></p><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>${quarterSummaryHtml(q)}`;
+}
 function renderMaterials(){
  $('#materialCards').innerHTML=bundle.materials.length?bundle.materials.map(m=>`<button class="card action" data-material="${esc(m.id)}"><b>${esc(m.title)}</b><p class="muted">${esc(m.type)} · ${m.source==='file'?'Archivo':'Enlace'}</p>${m.fileName?`<small class="muted">${esc(m.fileName)}</small>`:''}</button>`).join(''):'<div class="card muted">Sin materiales publicados.</div>';
  $$('[data-material]').forEach(b=>b.onclick=()=>openMaterial(b.dataset.material));

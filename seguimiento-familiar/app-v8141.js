@@ -848,6 +848,30 @@ function grade(){
  return m?.gradeRecords?.[id]||null;
 }
 
+function familyQuarterHtml(q){
+ if(!q)return '<div class="card muted">Todavía no hay una calificación trimestral publicada.</div>';
+ const months=Array.isArray(q.monthly)?q.monthly:[];
+ const monthlyText=months.length?months.map(x=>`${esc(x.month)}: <b>${Number(x.grade).toFixed(1)}</b>${x.closed?'':' (provisional)'}`).join(' · '):'Sin meses disponibles';
+ const avg=Number(q.monthly_average),project=Number(q.project?.score_out_of_35||0),exam=Number(q.exam?.grade),resp=Number(q.responsibility?.grade);
+ const items=q.project?.items||[],delivered=items.filter(x=>x.status&&x.status!=='missing').length,total=items.length;
+ const provisional=months.some(x=>!x.closed);
+ return `<div class="card" style="border:2px solid #173457">
+   <div style="font-size:.78rem;font-weight:900;letter-spacing:.12em;color:#173457">CALIFICACIÓN TRIMESTRAL</div>
+   <h2 style="margin:.4rem 0">Trimestre ${esc(q.quarter||'—')}</h2>
+   <h1 style="font-size:3rem;margin:.35rem 0">${q.final_decimal==null?'—':Number(q.final_decimal).toFixed(2)}</h1>
+   <p>Calificación final: <b>${q.final_rounded??'—'}</b></p>
+   <div class="card" style="margin-top:12px">
+     <b>¿Cómo se obtuvo?</b>
+     <p>Promedio mensual · 30%: ${Number.isFinite(avg)?avg.toFixed(2):'—'} <small>(${monthlyText})</small></p>
+     <p>Proyecto integrador · 35%: <b>${project.toFixed(2)} / 35</b> · ${delivered} de ${total} trabajos registrados</p>
+     <p>Examen trimestral · 22%: <b>${Number.isFinite(exam)?exam.toFixed(1):'—'}</b></p>
+     <p>Responsabilidad escolar · 13%: <b>${Number.isFinite(resp)?resp.toFixed(1):'—'}</b></p>
+   </div>
+   ${provisional?'<p class="muted">La calificación trimestral puede actualizarse automáticamente si cambia una calificación mensual antes del cierre del periodo.</p>':''}
+   ${q.preview?'<p class="muted"><b>Vista MONITOR:</b> esta tarjeta es una muestra del formato que reciben las familias.</p>':''}
+ </div>`;
+}
+
 function renderAll(){
  let g=grade(),att=bundle.attendance,map=new Map((bundle.activityRecords||[]).map(r=>[r.key,r]));
  let pending=(bundle.activities||[]).filter(a=>{
@@ -900,20 +924,12 @@ function renderAll(){
        <p>Redondeada: <b>${x.rounded??'—'}</b></p>
      </div>`;
    }).join('');
-   const quarters=gm.quarters.map(m=>{
-     const x=m.gradeRecords?.[id];
-     return `<div class="card">
-       <h3 style="margin-top:0">Trimestre ${esc(m.quarter||'—')}</h3>
-       <p class="muted">${esc(m.cycle||'')}</p>
-       <h1 style="margin-bottom:4px">${Number(x.finalDecimal).toFixed(2)}</h1>
-       <p>Calificación trimestral redondeada: <b>${x.rounded??'—'}</b></p>
-     </div>`;
-   }).join('');
+   const q=(bundle.quarterSummaries||[]).slice().sort((a,b)=>Number(b.quarter||0)-Number(a.quarter||0))[0]||null;
    $('#familyGrades').innerHTML=`
      <h3>Calificaciones mensuales</h3>
      ${months||'<div class="card muted">Todavía no hay una calificación mensual calculada.</div>'}
-     <h3 style="margin-top:22px">Calificación trimestral</h3>
-     ${quarters||'<div class="card muted">Aparecerá cuando el profesor calcule el cierre del trimestre.</div>'}`;
+     <h2 style="margin-top:26px">Calificación trimestral</h2>
+     ${familyQuarterHtml(q)}`;
  }
  $('#familyReports').innerHTML=bundle.reports.length?bundle.reports.map(r=>`<button class="big-button" data-r="${r.id}"><b>📄</b><span>${esc(r.title)}${r.report_date?`<small>${esc(portalDate(r.report_date))}</small>`:''}</span></button>`).join(''):'<div class="card muted">Sin reportes disponibles.</div>';
  $$('[data-r]').forEach(b=>b.onclick=()=>openReport(b.dataset.r));

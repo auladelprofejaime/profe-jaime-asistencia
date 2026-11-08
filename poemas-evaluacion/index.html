@@ -28,7 +28,7 @@ function render(){q('loginCard').classList.add('hidden');q('app').classList.remo
    (open?'<p><b>Coevaluaciones:</b> '+s.peer_done+'/'+s.peer_required+'</p>':'')+
    (open&&eligible.length?'<div>'+eligible.map(p=>'<div class="presenter"><b>'+esc(p.name)+'</b><div class="meta">'+esc(p.poem)+'</div><button class="primary peerBtn" data-session="'+esc(s.id)+'" data-id="'+esc(p.student_id)+'" data-name="'+esc(p.name)+'">Evaluar compañero</button></div>').join('')+'</div>':'')+
    (open&&self?'<div class="presenter"><b>Tu autoevaluación</b><div class="meta">'+esc(self.poem)+'</div><button class="primary selfBtn" data-session="'+esc(s.id)+'" data-id="'+esc(self.student_id)+'">Realizar autoevaluación</button></div>':'')+
-   (open?ownBlock:'');
+   ownBlock;
   box.appendChild(card)
  }
  document.querySelectorAll('.peerBtn').forEach(b=>b.onclick=()=>openForm('peer',b.dataset.session,b.dataset.id,b.dataset.name));

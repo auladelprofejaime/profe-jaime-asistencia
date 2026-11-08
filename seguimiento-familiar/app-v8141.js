@@ -866,6 +866,7 @@ function familyQuarterHtml(q){
      <p>Proyecto integrador · 35%: <b>${project.toFixed(2)} / 35</b> · ${delivered} de ${total} trabajos registrados</p>
      <p>Examen trimestral · 22%: <b>${Number.isFinite(exam)?exam.toFixed(1):'—'}</b></p>
      <p>Responsabilidad escolar · 13%: <b>${Number.isFinite(resp)?resp.toFixed(1):'—'}</b></p>
+     ${Number(q.quarter_points?.used||0)>0?`<p>Beneficio Mérito Gabino A. Palma: <b>+${Number(q.quarter_points.used).toFixed(2)} puntos</b> aplicados directamente al trimestre.</p>`:''}
    </div>
    ${provisional?'<p class="muted">La calificación trimestral puede actualizarse automáticamente si cambia una calificación mensual antes del cierre del periodo.</p>':''}
    ${q.preview?'<p class="muted"><b>Vista MONITOR:</b> esta tarjeta es una muestra del formato que reciben las familias.</p>':''}

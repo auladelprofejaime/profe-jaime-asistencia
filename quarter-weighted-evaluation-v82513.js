@@ -136,6 +136,156 @@ function bind(){
   try{const out=await rpc('teacher_set_quarter_items',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_items:items,p_subject:p.subject});state.evaluation=out.evaluation;$('quarterItemsStatus').textContent='Trabajos guardados.';render()}catch(e){$('quarterItemsStatus').textContent=e.message||e}
  };
 }
+
+function qpdfStatus(t){
+ let el=$('quarterPdfStatus');
+ if(!el){el=document.createElement('p');el.id='quarterPdfStatus';el.className='hint';$('quarterResults')?.before(el)}
+ if(el)el.textContent=t||'';
+}
+function recordKey(r){return r?.key||((r?.activityId||r?.activity_id)+'|'+(r?.studentId||r?.student_id))}
+function activityName(a){return a?.name||a?.title||'Actividad'}
+function activityMode(a){return a?.evaluationMode||a?.evaluation_type||'delivery'}
+function monthDataFromRow(row){return {...(row?.data||{}),id:row.id,month:row.month,group:row.group_name,shift:row.shift,cycle:row.cycle,quarter:row.quarter,closed:row.closed}}
+function monthlyCriterionModel(m,sid,acts,recMap){
+ const criteria=m.criteria||[],assigned=m.assignments||{},out=[];
+ for(const c of criteria){
+   const ca=acts.filter(a=>assigned[a.id]===c.id&&(!window.StudentEvaluationRange||StudentEvaluationRange.applicable(m,sid,a)));
+   let total=ca.length,done=0,sum=0;
+   const details=ca.map(a=>{
+     const r=recMap.get(a.id+'|'+sid),mode=activityMode(a);
+     let delivered=false,value=0,label='No entregado';
+     if(mode==='numeric'){
+       delivered=typeof r?.score==='number';
+       value=delivered?Number(r.score):0;
+       label=delivered?('Calificación '+Number(r.score).toFixed(1)):'Sin calificación';
+     }else{
+       delivered=r?.status==='yes'||r?.delivered===true;
+       value=delivered?10:0;
+       label=delivered?'Entregado':'No entregado';
+     }
+     if(delivered)done++;
+     sum+=value;
+     return {name:activityName(a),delivered,label,value,criterion:c.name||'Criterio'};
+   });
+   out.push({criterion:c,grade:total?sum/total:null,total,done,missing:total-done,details});
+ }
+ return out;
+}
+async function generateQuarterPdf(){
+ if(!state||!roster.length){qpdfStatus('Primero selecciona el grupo y pulsa Calcular trimestre.');return}
+ if(!window.jspdf?.jsPDF){qpdfStatus('No está disponible el generador de PDF. Recarga la app y vuelve a intentar.');return}
+ const btn=$('quarterPdfBtn'),old=btn?.textContent;if(btn){btn.disabled=true;btn.textContent='Generando PDF…'}
+ qpdfStatus('Preparando reporte trimestral detallado…');
+ try{
+   const p=cfg();
+   const methRows=await ProfeSupabase.select('methodologies','select=*&shift=eq.'+encodeURIComponent(p.shift)+'&group_name=eq.'+encodeURIComponent(p.group)+'&cycle=eq.'+encodeURIComponent(p.cycle)+'&quarter=eq.'+encodeURIComponent(p.quarter)+'&subject=eq.'+encodeURIComponent(p.subject));
+   const months=(methRows||[]).map(monthDataFromRow).filter(m=>['Septiembre','Octubre'].includes(m.month)).sort((a,b)=>['Septiembre','Octubre'].indexOf(a.month)-['Septiembre','Octubre'].indexOf(b.month));
+   if(!months.length)throw Error('No se encontraron las evaluaciones de septiembre y octubre para este grupo.');
+   const acts=await all('activities');
+   const recs=await all('activityRecords');
+   const recMap=new Map((recs||[]).map(r=>[recordKey(r),r]));
+   const {jsPDF}=window.jspdf;
+   const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+   const pageW=doc.internal.pageSize.getWidth(),pageH=doc.internal.pageSize.getHeight();
+   const margin=12;
+   const addHeader=(student,c,continuation=false)=>{
+     doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text('Reporte trimestral de Español',margin,14);
+     doc.setFont('helvetica','normal');doc.setFontSize(9);
+     doc.text('Ciclo '+p.cycle+' · Primer trimestre · Grupo '+p.group+(continuation?' · Continuación':''),margin,20);
+     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text((student.number??student.list_number??'')+'. '+displayName(student),margin,27);
+     doc.setFont('helvetica','normal');doc.setFontSize(8.5);doc.text('Ponderación trimestral: mensual 30% · proyecto integrador 35% · examen 22% · responsabilidad 13%',margin,32);
+     return 37;
+   };
+   const footer=()=>{doc.setFontSize(7.5);doc.setTextColor(90);doc.text('Reporte generado desde la App Docente · '+new Date().toLocaleDateString('es-MX'),margin,pageH-7);doc.setTextColor(0)};
+   const ensureSpace=(y,need,student,c)=>{if(y+need>pageH-15){footer();doc.addPage();return addHeader(student,c,true)}return y};
+
+   roster.forEach((student,si)=>{
+     if(si>0)doc.addPage();
+     const sid=String(student.id),c=calc(sid);
+     let y=addHeader(student,c,false);
+
+     for(const m of months){
+       y=ensureSpace(y,34,student,c);
+       const gm=m.gradeRecords?.[sid]||{};
+       const finalMonth=Number(gm.monthlyGrade??gm.rounded??gm.finalDecimal??gm.obtainedAverage);
+       doc.setFillColor(238,243,248);doc.rect(margin,y-4,pageW-margin*2,8,'F');
+       doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.text(m.month+' · '+(m.closed?'Mes cerrado':'Mes aún abierto'),margin+2,y+1);
+       doc.setFont('helvetica','normal');doc.setFontSize(8.5);
+       doc.text('Calificación mensual: '+(Number.isFinite(finalMonth)?finalMonth.toFixed(1):'Pendiente'),pageW-margin-2,y+1,{align:'right'});
+       y+=8;
+
+       const cm=monthlyCriterionModel(m,sid,acts,recMap);
+       const critRows=cm.map(x=>[
+         (x.criterion.name||'Criterio')+' ('+Number(x.criterion.percent||0)+'%)',
+         x.grade==null?'—':x.grade.toFixed(2),
+         x.done+' / '+x.total,
+         x.missing?x.missing+' pendiente'+(x.missing===1?'':'s'):'Completo'
+       ]);
+       doc.autoTable({startY:y,head:[['Criterio','Calif.','Entregadas','Pendientes']],body:critRows,margin:{left:margin,right:margin},styles:{fontSize:7.5,cellPadding:1.5},headStyles:{fillColor:[20,48,86]},theme:'grid'});
+       y=doc.lastAutoTable.finalY+3;
+
+       const detailRows=[];
+       for(const x of cm)for(const d of x.details)detailRows.push([x.criterion.name||'Criterio',d.name,d.label]);
+       doc.autoTable({startY:y,head:[['Criterio','Actividad','Estado / resultado']],body:detailRows,margin:{left:margin,right:margin},styles:{fontSize:6.8,cellPadding:1.2},headStyles:{fillColor:[74,91,117]},columnStyles:{0:{cellWidth:40},2:{cellWidth:38}},theme:'grid',didDrawPage:()=>{}});
+       y=doc.lastAutoTable.finalY+3;
+
+       const missing=cm.flatMap(x=>x.details.filter(d=>!d.delivered).map(d=>d.name));
+       y=ensureSpace(y,14,student,c);
+       doc.setFontSize(7.5);doc.setFont('helvetica','bold');doc.text('Actividades pendientes:',margin,y);
+       doc.setFont('helvetica','normal');
+       const missText=missing.length?missing.join(' · '):'Ninguna.';
+       const lines=doc.splitTextToSize(missText,pageW-margin*2);
+       doc.text(lines,margin,y+4);y+=5+lines.length*3.2;
+     }
+
+     y=ensureSpace(y,34,student,c);
+     doc.setFillColor(231,246,236);doc.rect(margin,y-4,pageW-margin*2,8,'F');
+     doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.text('Proyecto integrador · 35%',margin+2,y+1);y+=8;
+     const projectRows=c.items.map((it,i)=>{
+       const st=c.statuses[String(it.id)]||'';
+       const full=35/c.items.length;
+       const earned=(st==='on_time'||st==='justified')?full:st==='late'?full*Number(it.lateFactor??(20/35)):0;
+       let label='No entregado';
+       if(st==='on_time')label='Entregado en tiempo';
+       if(st==='justified')label='Extemporáneo con justificante · valor completo';
+       if(st==='late')label='Extemporáneo sin justificante · valor reducido';
+       return [(i+1)+'. '+it.name,label,earned.toFixed(2)+' / '+full.toFixed(2)];
+     });
+     doc.autoTable({startY:y,head:[['Trabajo','Estado','Valor dentro del 35%']],body:projectRows,margin:{left:margin,right:margin},styles:{fontSize:7.4,cellPadding:1.5},headStyles:{fillColor:[32,94,65]},columnStyles:{2:{cellWidth:36}},theme:'grid'});
+     y=doc.lastAutoTable.finalY+3;
+     if(c.lateCount){
+       y=ensureSpace(y,14,student,c);doc.setFontSize(7.3);doc.setFont('helvetica','normal');
+       const note='Nota: los trabajos marcados como extemporáneos sin justificante aplican la regla de entrega tardía: el proyecto completo tendría un valor máximo de 20% en lugar de 35%; cada trabajo recibe la parte proporcional de ese 20%.';
+       const lines=doc.splitTextToSize(note,pageW-margin*2);doc.text(lines,margin,y);y+=lines.length*3.2+2;
+     }
+     if(c.rec?.projectJustified){
+       y=ensureSpace(y,10,student,c);doc.setFontSize(7.3);
+       const lines=doc.splitTextToSize('Se presentó justificante. Las entregas extemporáneas justificadas conservan el valor completo que les corresponde dentro del 35%.',pageW-margin*2);doc.text(lines,margin,y);y+=lines.length*3.2+2;
+     }
+
+     y=ensureSpace(y,34,student,c);
+     doc.setFillColor(244,246,249);doc.rect(margin,y-4,pageW-margin*2,8,'F');
+     doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.text('Resumen del trimestre',margin+2,y+1);y+=8;
+     const monthlyLabel=c.months.length?c.months.map(x=>x.month+': '+x.value.toFixed(1)).join(' · '):'Sin meses cerrados';
+     const summaryRows=[
+       ['Promedio mensual · 30%',c.monthlyAvg==null?'Pendiente':c.monthlyAvg.toFixed(2),c.monthlyContribution.toFixed(2)+' pts',monthlyLabel],
+       ['Proyecto integrador · 35%',c.projectPct.toFixed(2)+' / 35',c.projectContribution.toFixed(2)+' pts',c.delivered.size+' de '+c.items.length+' trabajos registrados'],
+       ['Examen trimestral · 22%',Number.isFinite(c.exam)?c.exam.toFixed(1):'Pendiente',c.examContribution.toFixed(2)+' pts',''],
+       ['Responsabilidad escolar · 13%',Number.isFinite(c.resp)?c.resp.toFixed(1):'Pendiente',c.respContribution.toFixed(2)+' pts','']
+     ];
+     doc.autoTable({startY:y,head:[['Componente','Resultado','Aporte','Detalle']],body:summaryRows,margin:{left:margin,right:margin},styles:{fontSize:7.5,cellPadding:1.5},headStyles:{fillColor:[20,48,86]},theme:'grid'});
+     y=doc.lastAutoTable.finalY+5;
+     doc.setFont('helvetica','bold');doc.setFontSize(12);
+     doc.text('Calificación trimestral: '+(c.complete?c.rounded:'Pendiente')+(c.complete?'  ('+c.finalDecimal.toFixed(2)+' sin redondear)':''),margin,y);
+     footer();
+   });
+
+   doc.save('Reporte_trimestral_'+p.group+'_'+p.cycle+'.pdf');
+   qpdfStatus('PDF trimestral generado con detalle de septiembre, octubre y proyecto integrador.');
+ }catch(e){
+   console.error('PDF trimestral',e);qpdfStatus('No se pudo generar el PDF: '+(e.message||e));
+ }finally{if(btn){btn.disabled=false;btn.textContent=old||'Generar PDF'}}
+}
 async function load(){
  if(loading)return;const p=cfg();if(!p.shift||!p.group||!p.cycle){state=null;render();return}
  loading=true;
@@ -153,6 +303,7 @@ window.addEventListener('load',()=>{
  if(!document.getElementById('quarterQuickStyles')){const st=document.createElement('style');st.id='quarterQuickStyles';st.textContent='#quarterWeightedPanel .quarter-student-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:thin}#quarterWeightedPanel .quarter-person,#quarterWeightedPanel .quarter-work{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;padding:13px;border-radius:12px;background:#fff1e9;border:1px solid #ddc8bb;color:#4a3024}#quarterWeightedPanel .quarter-person.quarter-done,#quarterWeightedPanel .quarter-work.quarter-done{background:#e4f4e8;border-color:#98c8a4;color:#1a5e36}#quarterWeightedPanel .quarter-person.quarter-late,#quarterWeightedPanel .quarter-work.quarter-late{background:#fff3cd;border-color:#d9b968;color:#725500}#quarterWeightedPanel .quarter-person span,#quarterWeightedPanel .quarter-work span{font-size:.85em}#quarterWeightedPanel .quarter-project-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-bottom:14px}';document.head.appendChild(st)}
 
  const btn=$('calculateQuarterBtn');if(btn)btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();load()},true);
+ const pdfBtn=$('quarterPdfBtn');if(pdfBtn)pdfBtn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();generateQuarterPdf()},true);
  document.querySelector('[data-mettab="quarter"]')?.addEventListener('click',()=>setTimeout(load,100));
  ['quarterShift','quarterGroup','quarterNumber'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(load,0)));
  $('quarterCycle')?.addEventListener('change',()=>setTimeout(load,0));

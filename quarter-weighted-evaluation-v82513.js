@@ -14,7 +14,7 @@ function mxToday(){return new Intl.DateTimeFormat('en-CA',{timeZone:'America/Mex
 function isLateItem(it){return !!it?.dueDate&&mxToday()>String(it.dueDate)}
 function itemStatus(rec,it){
  const m=rec?.projectDeliveryStatus||{},id=String(it.id);
- if(m[id]==='on_time'||m[id]==='late')return m[id];
+ if(m[id]==='on_time'||m[id]==='late'||m[id]==='justified')return m[id];
  return (rec?.projectDelivered||[]).map(String).includes(id)?'on_time':null;
 }
 function projectStatuses(rec,items){
@@ -40,7 +40,7 @@ function calc(sid){
  let projectPct=0,lateCount=0;
  for(const it of items){
    const st=statuses[String(it.id)];
-   if(st==='on_time')projectPct+=fullShare;
+   if(st==='on_time'||st==='justified')projectPct+=fullShare;
    else if(st==='late'){projectPct+=fullShare*Number(it.lateFactor??(20/35));lateCount++}
  }
  const exam=rec.exam===''||rec.exam==null?null:Number(rec.exam),resp=rec.responsibility===''||rec.responsibility==null?null:Number(rec.responsibility);
@@ -68,7 +68,7 @@ function render(){
  '<div class="stats"><div><b>35%</b><span>Proyecto integrador</span></div><div><b>30%</b><span>Promedio mensual</span></div><div><b>22%</b><span>Examen trimestral</span></div><div><b>13%</b><span>Responsabilidad</span></div></div>'+
  '<div class="card" style="margin:12px 0"><h3>Registro rápido del Proyecto integrador</h3><p class="hint">Revisa un folder por alumno. Selecciona al alumno y toca únicamente los trabajos que entregó.</p>'+
  (roster.length?'<div class="quarter-student-strip">'+roster.map(s=>'<button type="button" class="'+(String(s.id)===String(activeStudent)?'primary':'secondary')+'" data-quick-student-select="'+esc(s.id)+'">'+esc((s.number??s.list_number??'')+'. '+displayName(s))+'</button>').join('')+'</div>':'')+
- (student?'<div style="margin-top:14px"><h4 style="margin-bottom:8px">'+esc(displayName(student))+'</h4><div class="quarter-project-buttons">'+items.map((it,i)=>{const st=c.statuses[String(it.id)]||'',share=35/items.length,earned=st==='on_time'?share:st==='late'?share*Number(it.lateFactor??(20/35)):0;return '<button type="button" class="quarter-work '+(st==='on_time'?'quarter-done':st==='late'?'quarter-late':'')+'" data-project-item="'+esc(it.id)+'"><b>'+(i+1)+'. '+esc(it.name)+'</b><span>'+(st==='on_time'?'✓ En tiempo · '+earned.toFixed(2)+' pts':st==='late'?'✓ Extemporáneo · '+earned.toFixed(2)+' pts':'Pendiente')+'</span></button>'}).join('')+'</div><p id="quarterQuickStatus" class="hint"></p></div>':'')+
+ (student?'<div style="margin-top:14px"><h4 style="margin-bottom:8px">'+esc(displayName(student))+'</h4><button type="button" id="quarterJustificationBtn" class="'+(c.rec?.projectJustified?'primary':'secondary')+'" style="margin-bottom:10px">'+(c.rec?.projectJustified?'✓ Justificante presentado':'Justificante presentado')+'</button><div class="quarter-project-buttons">+items.map((it,i)=>{const st=c.statuses[String(it.id)]||'',share=35/items.length,earned=(st==='on_time'||st==='justified')?share:st==='late'?share*Number(it.lateFactor??(20/35)):0;return '<button type="button" class="quarter-work '+((st==='on_time'||st==='justified')?'quarter-done':st==='late'?'quarter-late':'')+'" data-project-item="'+esc(it.id)+'"><b>'+(i+1)+'. '+esc(it.name)+'</b><span>'+(st==='on_time'?'✓ En tiempo · '+earned.toFixed(2)+' pts':st==='justified'?'✓ Extemporáneo justificado · valor completo':st==='late'?'✓ Extemporáneo sin justificante · '+earned.toFixed(2)+' pts':'Pendiente')+'</span></button>'}).join('')+'</div><p id="quarterQuickStatus" class="hint"></p></div>':'')+
  '</div>'+'<div class="card" style="margin:12px 0"><h3>Trabajos del Proyecto integrador</h3><p class="hint">Todos los trabajos entregados en tiempo se reparten el 35%. Los extemporáneos conservan un valor reducido equivalente al 20% total si todo se entregara tarde.</p><textarea id="quarterItemsText" rows="5" placeholder="Trabajo 1\nTrabajo 2\nTrabajo 3">'+esc(items.map(x=>x.name).join('\n'))+'</textarea><div class="actions"><button id="quarterSaveItems" class="secondary" type="button">Guardar nombres de trabajos</button></div><p id="quarterItemsStatus" class="hint"></p></div>'+
  (roster.length?'<label>Alumno<select id="quarterStudent">'+roster.map(s=>'<option value="'+esc(s.id)+'" '+(String(s.id)===String(activeStudent)?'selected':'')+'>'+esc((s.number??s.list_number??'')+' · '+displayName(s))+'</option>').join('')+'</select></label>':'<p>No hay alumnos en este grupo.</p>')+
  (student?'<div class="card" style="margin-top:12px"><h3>'+esc(displayName(student))+'</h3>'+
@@ -92,26 +92,40 @@ async function saveRecord(statusOverride=null){
  if(exam!=null&&(exam<0||exam>10)||responsibility!=null&&(responsibility<0||responsibility>10)){if($('quarterSaveStatus'))$('quarterSaveStatus').textContent='Las calificaciones deben estar entre 0 y 10.';return}
  const statuses=statusOverride||c.statuses,delivered=Object.keys(statuses);
  const p=cfg();if($('quarterSaveStatus'))$('quarterSaveStatus').textContent='Guardando…';
- const out=await rpc('teacher_save_quarter_record',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_student_id:activeStudent,p_record:{projectDelivered:delivered,projectDeliveryStatus:statuses,exam,responsibility},p_subject:p.subject});
+ const out=await rpc('teacher_save_quarter_record',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_student_id:activeStudent,p_record:{projectDelivered:delivered,projectDeliveryStatus:statuses,projectJustified:!!c.rec?.projectJustified,exam,responsibility},p_subject:p.subject});
  state.evaluation=out.evaluation;render();
 }
 async function toggleProjectForStudent(studentId,itemId,fromQuick=false){
  const items=state?.evaluation?.project_items||[],it=items.find(x=>String(x.id)===String(itemId));if(!it)return;
  const rec=state?.evaluation?.records?.[studentId]||{},statuses=projectStatuses(rec,items),old=statuses[String(itemId)];
  if(old){delete statuses[String(itemId)]}
- else statuses[String(itemId)]=isLateItem(it)?'late':'on_time';
+ else statuses[String(itemId)]=isLateItem(it)?(rec.projectJustified?'justified':'late'):'on_time';
  const exam=rec.exam??null,responsibility=rec.responsibility??null,p=cfg(),target=fromQuick?$('quarterQuickStatus'):$('quarterSaveStatus');
  if(target)target.textContent='Guardando…';
- const out=await rpc('teacher_save_quarter_record',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_student_id:String(studentId),p_record:{projectDelivered:Object.keys(statuses),projectDeliveryStatus:statuses,exam,responsibility},p_subject:p.subject});
+ const out=await rpc('teacher_save_quarter_record',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_student_id:String(studentId),p_record:{projectDelivered:Object.keys(statuses),projectDeliveryStatus:statuses,projectJustified:!!rec.projectJustified,exam,responsibility},p_subject:p.subject});
  state.evaluation=out.evaluation;
  if(target)target.textContent=old?'Registro retirado.':(statuses[String(itemId)]==='late'?'✓ Entrega registrada como extemporánea.':'✓ Entrega registrada en tiempo.');
  render();
+}
+async function toggleProjectJustification(){
+ if(!activeStudent||!state)return;
+ const items=state?.evaluation?.project_items||[],rec=state?.evaluation?.records?.[activeStudent]||{},statuses=projectStatuses(rec,items);
+ const next=!rec.projectJustified;
+ for(const id of Object.keys(statuses)){
+   if(next&&statuses[id]==='late')statuses[id]='justified';
+   else if(!next&&statuses[id]==='justified')statuses[id]='late';
+ }
+ const p=cfg();
+ if($('quarterQuickStatus'))$('quarterQuickStatus').textContent='Guardando justificante…';
+ const out=await rpc('teacher_save_quarter_record',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_student_id:activeStudent,p_record:{projectDelivered:Object.keys(statuses),projectDeliveryStatus:statuses,projectJustified:next,exam:rec.exam??null,responsibility:rec.responsibility??null},p_subject:p.subject});
+ state.evaluation=out.evaluation;render();
 }
 function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveRecord().catch(e=>{if($('quarterSaveStatus'))$('quarterSaveStatus').textContent=e.message||e}),250)}
 function bind(){
  const st=$('quarterStudent');if(st)st.onchange=()=>{activeStudent=st.value;render()};
  document.querySelectorAll('[data-quick-student-select]').forEach(b=>b.onclick=()=>{activeStudent=b.dataset.quickStudentSelect;render()});
  document.querySelectorAll('[data-project-item]').forEach(b=>b.onclick=()=>toggleProjectForStudent(activeStudent,b.dataset.projectItem,true).catch(e=>{if($('quarterQuickStatus'))$('quarterQuickStatus').textContent=e.message||e}));
+ if($('quarterJustificationBtn'))$('quarterJustificationBtn').onclick=()=>toggleProjectJustification().catch(e=>{if($('quarterQuickStatus'))$('quarterQuickStatus').textContent=e.message||e});
  if($('quarterExam'))$('quarterExam').onchange=scheduleSave;
  if($('quarterResponsibility'))$('quarterResponsibility').onchange=scheduleSave;
  if($('quarterSaveItems'))$('quarterSaveItems').onclick=async()=>{

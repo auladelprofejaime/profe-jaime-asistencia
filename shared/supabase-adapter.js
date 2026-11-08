@@ -33,6 +33,11 @@ export async function updateFamilyProfile(token,phone,birthdate){
 export async function portalGetBundle(token){
   const raw=await request('/rest/v1/rpc/portal_get_bundle',{method:'POST',body:{p_token:token}});
   if(!raw?.ok)return raw;
+  let quarterSummaries=[];
+  try{
+    const q=await request('/rest/v1/rpc/portal_quarter_summaries',{method:'POST',body:{p_token:token}});
+    if(q?.ok&&Array.isArray(q.summaries))quarterSummaries=q.summaries;
+  }catch(e){console.warn('No se pudo consultar el resumen trimestral',e)}
   const studentRaw=raw.student||{};
   const student={id:studentRaw.id,name:studentRaw.name,shift:studentRaw.shift,group:studentRaw.group_name,number:studentRaw.list_number,guardian:studentRaw.tutor_name||'',phone:studentRaw.tutor_phone||'',birthdate:studentRaw.birth_date||''};
   const attendance=(raw.attendance||[]).map(a=>({...a,studentId:a.student_id,date:a.attendance_date}));
@@ -53,7 +58,7 @@ export async function portalGetBundle(token){
   const reports=(raw.reports||[]).map(r=>({id:r.id,studentId:r.student_id,title:r.title,created:r.created_at,reportDate:r.report_date,storagePath:r.storage_path}));
   const availabilityRaw=raw.availability||{};
   const availability={id:'main',days:availabilityRaw.working_days||[1,2,3,4,5],start:(availabilityRaw.start_time||'12:00').slice(0,5),end:(availabilityRaw.end_time||'15:00').slice(0,5),vacationStart:availabilityRaw.vacation_start||'',vacationEnd:availabilityRaw.vacation_end||'',technicalCouncilDates:availabilityRaw.suspension_dates||[],suspended:!!availabilityRaw.suspended,temporaryNotice:availabilityRaw.temporary_notice||'',contactOverrideOpen:!!availabilityRaw.contact_override_open,studentChatOverride:availabilityRaw.student_chat_override||'auto',studentChatOverrideDate:availabilityRaw.student_chat_override_date||''};
-  return {ok:true,role:raw.role,student,attendance,activities,activityRecords,methodologies,notices,materials,studyTopics,reports,messages:raw.messages||[],availability};
+  return {ok:true,role:raw.role,student,attendance,activities,activityRecords,methodologies,quarterSummaries,notices,materials,studyTopics,reports,messages:raw.messages||[],availability};
 }
 export const WEB_PUSH_VAPID_PUBLIC_KEY="BNPj-HUZsEtLYTsRcRdqyYIqhq4hqjRno0QmNbHhSVe5wHeBiqnVnwMx5RU8lxyz-mNhvqbjQRLqsmhqBTdZkWg";
 export async function registerPortalPush(token,subscription){

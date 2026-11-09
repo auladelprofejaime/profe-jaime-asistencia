@@ -39,9 +39,10 @@ async function loadWeekly(){
   const fromDate=parseDate(from),toDate=parseDate(to);
   const days=Math.round((toDate-fromDate)/86400000);
   if(days>83)throw Error('Selecciona un periodo de hasta 12 semanas.');
+  // Consultar tambien tareas anteriores cuya fecha de entrega sigue vigente.
   const dates=[];
-  for(let offset=0;offset<=days;offset+=7){
-    const d=new Date(fromDate);d.setUTCDate(d.getUTCDate()+offset);
+  const lookback=new Date(fromDate);lookback.setUTCDate(lookback.getUTCDate()-84);
+  for(let d=new Date(lookback);d<=toDate;d.setUTCDate(d.getUTCDate()+7)){
     dates.push(d.toISOString().slice(0,10));
   }
   const weeks=await Promise.all(dates.map(d=>rpc('teacher_daily_task_weekly_load',{p_reference_date:d})));
@@ -49,7 +50,9 @@ async function loadWeekly(){
   const out=weeks[0];
   const seen=new Set(),tasks=[];
   for(const w of weeks)for(const t of (w.tasks||[])){
-    if(String(t.assigned_date||'')<from||String(t.assigned_date||'')>to)continue;
+    const assigned=String(t.assigned_date||''),due=String(t.due_date||'');
+    // Incluir asignadas en el rango y pendientes de semanas anteriores.
+    if(!((assigned>=from&&assigned<=to)||(assigned<from&&due>=from)))continue;
     const id=String(t.id||t.activity_id||JSON.stringify(t));
     if(seen.has(id))continue;
     seen.add(id);

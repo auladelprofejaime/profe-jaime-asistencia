@@ -282,31 +282,18 @@ async function generateQuarterPdf(){
      });
      y=doc.lastAutoTable.finalY+2;
 
-     const details=[];
-     for(const v of cm)for(const d of v.details)details.push([d.name,d.label]);
-     doc.autoTable({
-       startY:y,head:[['Actividad','Estado / resultado']],body:details,
-       margin:{left:x,right:pageW-(x+colW)},tableWidth:colW,
-       styles:{fontSize:5.35,cellPadding:.7,valign:'middle',lineColor:[230,230,230],lineWidth:.12,overflow:'linebreak'},
-       headStyles:{fillColor:yellow,textColor:dark,fontStyle:'bold',fontSize:5.5},
-       alternateRowStyles:{fillColor:light},
-       columnStyles:{0:{cellWidth:colW-35},1:{cellWidth:35}},
-       theme:'grid',
-       didParseCell:data=>{
-         if(data.section!=='body'||data.column.index!==1)return;
-         const txt=String(data.cell.raw||'').toLowerCase();
-         if(txt.includes('no entregado')||txt.includes('sin calificación'))data.cell.styles.textColor=[196,35,42];
-         else if(txt.includes('entregado')||txt.includes('calificación'))data.cell.styles.textColor=[24,142,76];
-       }
-     });
-     y=doc.lastAutoTable.finalY+1.5;
+     // El resumen por criterio ya cuenta todas las entregas. Para evitar duplicados
+     // y garantizar una hoja, detallar únicamente lo que falta.
      const missing=cm.flatMap(v=>v.details.filter(d=>!d.delivered).map(d=>d.name));
-     doc.setFont('helvetica','bold');doc.setFontSize(5.7);doc.text('Pendientes:',x,y+2.5);
-     doc.setFont('helvetica','normal');doc.setFontSize(5.5);
-     const txt=missing.length?missing.join(' · '):'Ninguna.';
-     const lines=doc.splitTextToSize(txt,colW-18);
-     doc.text(lines,x+17,y+2.5);
-     return y+Math.max(5,lines.length*2.4+2);
+     const txt=missing.length?missing.join(' · '):'Ninguna';
+     doc.setFont('helvetica','bold');doc.setFontSize(6.1);doc.setTextColor(...dark);
+     doc.text('ACTIVIDADES NO ENTREGADAS',x,y+2.5);
+     doc.setFont('helvetica','normal');doc.setFontSize(5.9);
+     doc.setTextColor(missing.length?196:24,missing.length?35:142,missing.length?42:76);
+     const lines=doc.splitTextToSize(txt,colW-2);
+     doc.text(lines,x,y+6.1);
+     doc.setTextColor(0);
+     return y+8+lines.length*2.5;
    };
 
    roster.forEach((student,si)=>{
@@ -332,16 +319,10 @@ async function generateQuarterPdf(){
 
      const sep=months.find(m=>m.month==='Septiembre')||null;
      const oct=months.find(m=>m.month==='Octubre')||null;
+     // El desglose mensual muestra solo faltantes; el resto se contabiliza arriba.
      const ySep=monthBlock(sep,sid,left,top);
      const yOct=monthBlock(oct,sid,right,top);
      let y=Math.max(ySep,yOct)+3;
-
-     // Reserva inferior para proyecto + resumen. Si el detalle de meses creció demasiado,
-     // se comprime el bloque inferior pero permanece en la misma hoja.
-     const bottomLimit=pageH-11;
-     const available=Math.max(34,bottomLimit-y);
-     const projectH=Math.min(22,available*.42);
-     const summaryY=y+projectH+2;
 
      sectionBar(margin,y,pageW-margin*2,'Proyecto integrador · 35%',
        c.items.length?(c.delivered.size+' de '+c.items.length+' trabajos registrados · '+c.projectPct.toFixed(2)+' / 35'):'Sin trabajos configurados');

@@ -64,28 +64,58 @@ function render(){
  if(!items.some(x=>String(x.id)===String(activeProjectItem)))activeProjectItem=items[0]?String(items[0].id):'';
  const student=roster.find(s=>String(s.id)===String(activeStudent))||roster[0];if(student)activeStudent=String(student.id);
  const c=student?calc(activeStudent):null;
- const activeItem=items.find(x=>String(x.id)===String(activeProjectItem));
 
- box.innerHTML='<h2>Evaluación trimestral</h2>'+
- '<div class="stats"><div><b>35%</b><span>Proyecto integrador</span></div><div><b>30%</b><span>Promedio mensual</span></div><div><b>22%</b><span>Examen trimestral</span></div><div><b>13%</b><span>Responsabilidad</span></div></div>'+
- '<div class="card" style="margin:12px 0"><h3>Registro rápido del Proyecto integrador</h3><p class="hint">Revisa un folder por alumno. Selecciona al alumno y toca únicamente los trabajos que entregó.</p>'+
- (roster.length?'<div class="quarter-student-strip">'+roster.map(s=>'<button type="button" class="'+(String(s.id)===String(activeStudent)?'primary':'secondary')+'" data-quick-student-select="'+esc(s.id)+'">'+esc((s.number??s.list_number??'')+'. '+displayName(s))+'</button>').join('')+'</div>':'')+
- (student?'<div style="margin-top:14px"><h4 style="margin-bottom:8px">'+esc(displayName(student))+'</h4><button type="button" id="quarterJustificationBtn" class="'+(c.rec?.projectJustified?'primary':'secondary')+'" style="margin-bottom:10px">'+(c.rec?.projectJustified?'✓ Justificante presentado':'Justificante presentado')+'</button><div class="quarter-project-buttons">+items.map((it,i)=>{const st=c.statuses[String(it.id)]||'',share=35/items.length,earned=(st==='on_time'||st==='justified')?share:st==='late'?share*Number(it.lateFactor??(20/35)):0;return '<button type="button" class="quarter-work '+((st==='on_time'||st==='justified')?'quarter-done':st==='late'?'quarter-late':'')+'" data-project-item="'+esc(it.id)+'"><b>'+(i+1)+'. '+esc(it.name)+'</b><span>'+(st==='on_time'?'✓ En tiempo · '+earned.toFixed(2)+' pts':st==='justified'?'✓ Extemporáneo justificado · valor completo':st==='late'?'✓ Extemporáneo sin justificante · '+earned.toFixed(2)+' pts':'Pendiente')+'</span></button>'}).join('')+'</div><p id="quarterQuickStatus" class="hint"></p></div>':'')+
- '</div>'+'<div class="card" style="margin:12px 0"><h3>Trabajos del Proyecto integrador</h3><p class="hint">Todos los trabajos entregados en tiempo se reparten el 35%. Los extemporáneos conservan un valor reducido equivalente al 20% total si todo se entregara tarde.</p><textarea id="quarterItemsText" rows="5" placeholder="Trabajo 1\nTrabajo 2\nTrabajo 3">'+esc(items.map(x=>x.name).join('\n'))+'</textarea><div class="actions"><button id="quarterSaveItems" class="secondary" type="button">Guardar nombres de trabajos</button></div><p id="quarterItemsStatus" class="hint"></p></div>'+
- (roster.length?'<label>Alumno<select id="quarterStudent">'+roster.map(s=>'<option value="'+esc(s.id)+'" '+(String(s.id)===String(activeStudent)?'selected':'')+'>'+esc((s.number??s.list_number??'')+' · '+displayName(s))+'</option>').join('')+'</select></label>':'<p>No hay alumnos en este grupo.</p>')+
- (student?'<div class="card" style="margin-top:12px"><h3>'+esc(displayName(student))+'</h3>'+
- '<div class="grid2"><div><b>Promedio mensual · 30%</b><p>'+(c.monthlyAvg==null?'Pendiente de cerrar evaluaciones mensuales':c.monthlyAvg.toFixed(2)+' → aporta '+c.monthlyContribution.toFixed(2)+' puntos')+'</p><small>'+esc(c.months.map(x=>x.month+': '+x.value.toFixed(1)).join(' · ')||'Sin meses cerrados')+'</small></div>'+
- '<div><b>Proyecto integrador · 35%</b><p>'+c.delivered.size+' de '+c.items.length+' trabajos'+(c.lateCount?' · '+c.lateCount+' extemporáneo'+(c.lateCount===1?'':'s'):'')+' → '+c.projectPct.toFixed(2)+' / 35%</p></div></div>'+
- '<h3>Trabajos entregados</h3><p class="hint">Regístralos arriba, en el apartado rápido por alumno.</p>'+
- '<div class="grid2"><label>Examen trimestral · 22%<input id="quarterExam" type="number" min="0" max="10" step="0.1" value="'+(Number.isFinite(c.exam)?c.exam:'')+'" placeholder="0 a 10"></label><label>Responsabilidad escolar · 13%<input id="quarterResponsibility" type="number" min="0" max="10" step="0.1" value="'+(Number.isFinite(c.resp)?c.resp:'')+'" placeholder="0 a 10"></label></div>'+
- '+(c.quarterPoints>0?'<div class="card" style="margin-top:12px"><b>Beneficio Mérito Gabino A. Palma</b><p>+'+c.quarterPoints.toFixed(2)+' puntos del saldo aplicados directamente a la calificación trimestral.</p></div>':'')+'<div class="percentage-total" style="margin-top:12px">Resultado actual: <strong>'+c.finalDecimal.toFixed(2)+'</strong> / 10 · Calificación: <strong>'+(c.complete?c.rounded:'Pendiente')+'</strong></div><p id="quarterSaveStatus" class="hint">'+(c.complete?'Todos los criterios capturados.':'Faltan datos para cerrar la calificación.')+'</p></div>':'');
+ const studentStrip=roster.length
+   ? '<div class="quarter-student-strip">'+roster.map(s=>'<button type="button" class="'+(String(s.id)===String(activeStudent)?'primary':'secondary')+'" data-quick-student-select="'+esc(s.id)+'">'+esc((s.number??s.list_number??'')+'. '+displayName(s))+'</button>').join('')+'</div>'
+   : '';
+
+ const projectButtons=(student&&c)
+   ? '<div style="margin-top:14px"><h4 style="margin-bottom:8px">'+esc(displayName(student))+'</h4>'+
+     '<button type="button" id="quarterJustificationBtn" class="'+(c.rec?.projectJustified?'primary':'secondary')+'" style="margin-bottom:10px">'+(c.rec?.projectJustified?'✓ Justificante presentado':'Justificante presentado')+'</button>'+
+     '<div class="quarter-project-buttons">'+items.map((it,i)=>{
+       const st=c.statuses[String(it.id)]||'',share=items.length?35/items.length:0;
+       const earned=(st==='on_time'||st==='justified')?share:st==='late'?share*Number(it.lateFactor??(20/35)):0;
+       return '<button type="button" class="quarter-work '+((st==='on_time'||st==='justified')?'quarter-done':st==='late'?'quarter-late':'')+'" data-project-item="'+esc(it.id)+'">'+
+         '<b>'+(i+1)+'. '+esc(it.name)+'</b>'+
+         '<span>'+(st==='on_time'?'✓ En tiempo · '+earned.toFixed(2)+' pts':st==='justified'?'✓ Extemporáneo justificado · valor completo':st==='late'?'✓ Extemporáneo sin justificante · '+earned.toFixed(2)+' pts':'Pendiente')+'</span></button>';
+     }).join('')+'</div><p id="quarterQuickStatus" class="hint"></p></div>'
+   : '';
+
+ const studentSelect=roster.length
+   ? '<label>Alumno<select id="quarterStudent">'+roster.map(s=>'<option value="'+esc(s.id)+'" '+(String(s.id)===String(activeStudent)?'selected':'')+'>'+esc((s.number??s.list_number??'')+' · '+displayName(s))+'</option>').join('')+'</select></label>'
+   : '<p>No hay alumnos en este grupo.</p>';
+
+ const studentDetail=(student&&c)
+   ? '<div class="card" style="margin-top:12px"><h3>'+esc(displayName(student))+'</h3>'+
+     '<div class="grid2"><div><b>Promedio mensual · 30%</b><p>'+(c.monthlyAvg==null?'Pendiente de evaluaciones mensuales':c.monthlyAvg.toFixed(2)+' → aporta '+c.monthlyContribution.toFixed(2)+' puntos')+'</p>'+
+     '<small>'+esc(c.months.map(x=>x.month+': '+x.value.toFixed(1)).join(' · ')||'Sin meses disponibles')+'</small></div>'+
+     '<div><b>Proyecto integrador · 35%</b><p>'+c.delivered.size+' de '+c.items.length+' trabajos'+(c.lateCount?' · '+c.lateCount+' extemporáneo'+(c.lateCount===1?'':'s'):'')+' → '+c.projectPct.toFixed(2)+' / 35%</p></div></div>'+
+     '<h3>Trabajos entregados</h3><p class="hint">Regístralos arriba, en el apartado rápido por alumno.</p>'+
+     '<div class="grid2"><label>Examen trimestral · 22%<input id="quarterExam" type="number" min="0" max="10" step="0.1" value="'+(Number.isFinite(c.exam)?c.exam:'')+'" placeholder="0 a 10"></label>'+
+     '<label>Responsabilidad escolar · 13%<input id="quarterResponsibility" type="number" min="0" max="10" step="0.1" value="'+(Number.isFinite(c.resp)?c.resp:'')+'" placeholder="0 a 10"></label></div>'+
+     (c.quarterPoints>0?'<div class="card" style="margin-top:12px"><b>Beneficio Mérito Gabino A. Palma</b><p>+'+c.quarterPoints.toFixed(2)+' puntos del saldo aplicados directamente a la calificación trimestral.</p></div>':'')+
+     '<div class="percentage-total" style="margin-top:12px">Resultado actual: <strong>'+c.finalDecimal.toFixed(2)+'</strong> / 10 · Calificación: <strong>'+(c.complete?c.rounded:'Pendiente')+'</strong></div>'+
+     '<p id="quarterSaveStatus" class="hint">'+(c.complete?'Todos los criterios capturados.':'Faltan datos para cerrar la calificación.')+'</p></div>'
+   : '';
+
+ box.innerHTML=
+   '<h2>Evaluación trimestral</h2>'+
+   '<div class="stats"><div><b>35%</b><span>Proyecto integrador</span></div><div><b>30%</b><span>Promedio mensual</span></div><div><b>22%</b><span>Examen trimestral</span></div><div><b>13%</b><span>Responsabilidad</span></div></div>'+
+   '<div class="card" style="margin:12px 0"><h3>Registro rápido del Proyecto integrador</h3><p class="hint">Revisa un folder por alumno. Selecciona al alumno y toca únicamente los trabajos que entregó.</p>'+
+   studentStrip+projectButtons+'</div>'+
+   '<div class="card" style="margin:12px 0"><h3>Trabajos del Proyecto integrador</h3><p class="hint">Todos los trabajos entregados en tiempo se reparten el 35%. Los extemporáneos conservan un valor reducido equivalente al 20% total si todo se entregara tarde.</p>'+
+   '<textarea id="quarterItemsText" rows="5" placeholder="Trabajo 1\nTrabajo 2\nTrabajo 3">'+esc(items.map(x=>x.name).join('\n'))+'</textarea>'+
+   '<div class="actions"><button id="quarterSaveItems" class="secondary" type="button">Guardar nombres de trabajos</button></div><p id="quarterItemsStatus" class="hint"></p></div>'+
+   studentSelect+studentDetail;
  bind();
  renderSummary();
 }
 function renderSummary(){
  const out=$('quarterResults');if(!out||!state)return;
  if(!roster.length){out.innerHTML='<div class="empty">No hay alumnos.</div>';return}
- out.innerHTML='<table><thead><tr><th>No.</th><th>Alumno</th><th>Mensual 30%</th><th>Proyecto 35%</th><th>Examen 22%</th><th>Resp. 13%</th><th>Puntos trimestre</th><th>Final</th></tr></thead><tbody>'+roster.map(s=>{const c=calc(String(s.id));return '<tr><td>'+esc(s.number??s.list_number??'')+'</td><td>'+esc(displayName(s))+'</td><td>'+(c.monthlyAvg==null?'—':c.monthlyAvg.toFixed(2))+'</td><td>'+c.projectPct.toFixed(2)+'%</td><td>'+(Number.isFinite(c.exam)?c.exam.toFixed(1):'—')+'</td><td>'+(Number.isFinite(c.resp)?c.resp.toFixed(1):'—')+'</td><td><b>'+(c.complete?c.rounded:'—')+'</b></td></tr>'}).join('')+'</tbody></table>';
+ out.innerHTML='<table><thead><tr><th>No.</th><th>Alumno</th><th>Mensual 30%</th><th>Proyecto 35%</th><th>Examen 22%</th><th>Resp. 13%</th><th>Puntos trimestre</th><th>Final</th></tr></thead><tbody>'+
+ roster.map(s=>{const c=calc(String(s.id));return '<tr><td>'+esc(s.number??s.list_number??'')+'</td><td>'+esc(displayName(s))+'</td><td>'+(c.monthlyAvg==null?'—':c.monthlyAvg.toFixed(2))+'</td><td>'+c.projectPct.toFixed(2)+'%</td><td>'+(Number.isFinite(c.exam)?c.exam.toFixed(1):'—')+'</td><td>'+(Number.isFinite(c.resp)?c.resp.toFixed(1):'—')+'</td><td>'+(c.quarterPoints?('+'+c.quarterPoints.toFixed(2)):'0.00')+'</td><td><b>'+(c.complete?c.rounded:'—')+'</b></td></tr>'}).join('')+
+ '</tbody></table>';
 }
 async function saveRecord(statusOverride=null){
  if(!activeStudent||!state)return;

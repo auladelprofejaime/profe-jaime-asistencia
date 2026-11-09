@@ -173,7 +173,9 @@ function chooseReport(doc,student){
  if(vertical)return {orientation:'vertical',layout:vertical};
  const horizontal=measureReport(doc,student,205.9,129.7,2);
  if(horizontal)return {orientation:'horizontal',layout:horizontal};
- throw Error('Las actividades de '+student.name+' no caben legiblemente en media carta, incluso en dos columnas. No se omitió ninguna.');
+ const full=measureReport(doc,student,205.9,269.4,2);
+ if(full)return {orientation:'full',layout:full};
+ throw Error('Las actividades de '+student.name+' exceden incluso una hoja carta completa. Revisa el rango de fechas; no se omitió ninguna.');
 }
 async function generatePdf(){
  const st=q('weeklyTaskStatus');if(busy)return;
@@ -183,27 +185,29 @@ async function generatePdf(){
   if(!window.jspdf?.jsPDF)throw Error('No se cargó el generador de PDF.');
   const probe=new window.jspdf.jsPDF({unit:'mm',format:'letter'});
   const plans=weekly.roster.map(student=>({student,...chooseReport(probe,student)}));
-  // Each letter page holds two half-letter reports. Portrait letter for horizontal halves;
-  // landscape letter for vertical halves. Mixed orientations start a new page.
-  const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:plans[0]?.orientation==='horizontal'?'portrait':'landscape'});
-  let current=null,slot=0,pages=0;
+  // Half-letter reports share a letter sheet; exceptionally dense reports get a full letter sheet.
+  const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:plans[0]?.orientation==='vertical'?'landscape':'portrait'});
+  let current=null,slot=0,pages=0,fullCount=0;
   for(const plan of plans){
-   if(plan.orientation!==current||slot===2){
-    if(pages>0)doc.addPage('letter',plan.orientation==='horizontal'?'portrait':'landscape');
+   const isFull=plan.orientation==='full';
+   if(isFull||plan.orientation!==current||slot===2){
+    if(pages>0)doc.addPage('letter',plan.orientation==='vertical'?'landscape':'portrait');
     current=plan.orientation;slot=0;pages++;
    }
-   if(current==='horizontal'){
-    // 2 horizontal half-letters stacked on a portrait letter page.
+   if(isFull){
+    drawReport(doc,plan.student,5,5,205.9,269.4,plan.layout);
+    fullCount++;slot=2;
+   }else if(current==='horizontal'){
     drawReport(doc,plan.student,5,5+slot*(139.7+4),205.9,129.7,plan.layout);
+    slot++;
    }else{
-    // 2 vertical half-letters side by side on a landscape letter page.
     drawReport(doc,plan.student,5+slot*(132.7+4),5,132.7,205.9,plan.layout);
+    slot++;
    }
-   slot++;
   }
   const name='Seguimiento_tareas_3A_'+weekly.week_start+'_a_'+weekly.week_end+'.pdf';
   doc.save(name);
-  if(st)st.textContent='PDF generado: '+plans.length+' reportes personalizados, formato vertical u horizontal de dos columnas según el espacio; dos por hoja, sin continuaciones.';
+  if(st)st.textContent='PDF generado: '+plans.length+' reportes personalizados, media carta normalmente (dos por hoja) y '+fullCount+' reportes excepcionales en carta completa; sin continuaciones.';
  }catch(e){if(st)st.textContent='No se pudo generar el PDF: '+e.message}
  finally{busy=false}
 }
@@ -219,9 +223,9 @@ async function generateIndividualZip(){
   for(const student of weekly.roster){
    const probe=new window.jspdf.jsPDF({unit:'mm',format:'letter'});
    const plan=chooseReport(probe,student);
-   const horizontal=plan.orientation==='horizontal';
-   const doc=new window.jspdf.jsPDF({unit:'mm',format:horizontal?[215.9,139.7]:[139.7,215.9],orientation:horizontal?'landscape':'portrait'});
-   drawReport(doc,student,5,5,horizontal?205.9:132.7,horizontal?129.7:205.9,plan.layout);
+   const horizontal=plan.orientation==='horizontal',full=plan.orientation==='full';
+   const doc=new window.jspdf.jsPDF({unit:'mm',format:full?[215.9,279.4]:horizontal?[215.9,139.7]:[139.7,215.9],orientation:horizontal?'landscape':'portrait'});
+   drawReport(doc,student,5,5,full?205.9:horizontal?205.9:132.7,full?269.4:horizontal?129.7:205.9,plan.layout);
    let stem=String(student.name||student.student_id||'Alumno').normalize('NFC').replace(/[<>:"/\\|?*\x00-\x1f]/g,' ').replace(/\s+/g,' ').trim().slice(0,110)||'Alumno';
    let name=stem+'.pdf',n=2;
    while(used.has(name.toLocaleLowerCase('es'))){name=stem+' '+n+'.pdf';n++}

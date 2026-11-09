@@ -12,8 +12,8 @@ function fmt(v,weekday=false){
  return new Intl.DateTimeFormat('es-MX',{timeZone:'UTC',weekday:weekday?'long':undefined,day:'numeric',month:'long',year:'numeric'}).format(parseDate(v));
 }
 function fmtShort(v){if(!/^\d{4}-\d{2}-\d{2}$/.test(v||''))return '—';const [y,m,d]=v.split('-');return d+'/'+m+'/'+y}
-function profileFor(id){return weekly?.profiles?.find(p=>p.student_id===id)||{english:'',art:''}}
-function applies(t,p){return !t.variant||t.variant===p.english||t.variant===p.art}
+function profileFor(id){return weekly?.profiles?.find(p=>String(p.student_id)===String(id))||{english:'',art:''}}
+function applies(t,p){if(!t.variant)return true;const norm=v=>String(v||'').normalize('NFD').replace(/[\u0300-\u036f]/g,'').trim().toLowerCase();const v=norm(t.variant),subject=norm(t.subject);if(subject.includes('arte'))return v===norm(p.art);if(subject.includes('ingles'))return v===norm(p.english);return v===norm(p.art)||v===norm(p.english)}
 function taskPresentation(t){
  if(t.report_mode==='consult_student')return {kind:'consult',text:'Consulte con el alumno si cumplió con esta indicación.'};
  if(t.due_by_delivery)return {kind:'verify',text:''};
@@ -27,7 +27,7 @@ function renderSummary(){
  const box=q('weeklyTaskSummary');if(!box||!weekly)return;
  const tasks=weekly.tasks||[];
  box.innerHTML='<p><b>Periodo de seguimiento:</b> '+esc(fmt(weekly.week_start))+' al '+esc(fmt(weekly.week_end))+'.</p>'+
- '<p><b>Fecha de entrega del reporte:</b> '+esc(fmt(weekly.delivery_date))+'. <b>'+tasks.length+' actividad(es).</b> Las tareas vencidas o por entregar hasta esa fecha llevarán casillas de verificación; las posteriores aparecerán en la tabla PRÓXIMAS ENTREGAS.</p>'+
+ '<p><b>Fecha de entrega del reporte:</b> '+esc(fmt(weekly.delivery_date))+'. <b>'+tasks.length+' actividad(es).</b> Las tareas que vencen dentro del periodo seleccionado llevan casillas; las posteriores aparecen en PRÓXIMAS ENTREGAS, aunque venzan el día de entrega del reporte.</p>'+
  (tasks.length?'<div class="weekly-task-list">'+tasks.map(t=>'<article class="weekly-task-row" data-weekly-task="'+esc(t.id)+'"><div><b>'+esc(t.subject)+(t.variant?' · '+esc(t.variant):'')+'</b><div>'+esc(t.title)+'</div><small>Asignada: '+esc(fmt(t.assigned_date,true))+' · Entrega: '+esc(fmt(t.due_date,true))+'</small></div><label>En el reporte<select data-weekly-mode="'+esc(t.id)+'"><option value="include" '+(t.report_mode==='include'?'selected':'')+'>Incluir</option><option value="consult_student" '+(t.report_mode==='consult_student'?'selected':'')+'>Consultar con el alumno</option><option value="omit" '+(t.report_mode==='omit'?'selected':'')+'>Eliminar del reporte</option></select></label></article>').join(''):'<p>No hay tareas cargadas en este periodo. Los días sin foto simplemente no aparecen.</p>');
 }
 async function loadWeekly(){
@@ -60,7 +60,7 @@ async function loadWeekly(){
     const id=String(t.id||t.activity_id||JSON.stringify(t));
     if(seen.has(id))continue;
     seen.add(id);
-    tasks.push({...t,due_by_delivery:!!due&&due<=delivery});
+    tasks.push({...t,due_by_delivery:!!due&&due<=to});
   }
   tasks.sort((a,b)=>String(a.assigned_date||'').localeCompare(String(b.assigned_date||''))||String(a.subject||'').localeCompare(String(b.subject||'')));
   weekly={...out,week_start:from,week_end:to,delivery_date:delivery,tasks};renderSummary();

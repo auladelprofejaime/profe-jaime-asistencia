@@ -720,9 +720,29 @@ function quarterSummaryHtml(q){
  </div>`;
 }
 function renderGrades(){
- let m=currentGradeMethodology(),g=currentGrade(),pct=g?Math.min(100,(Number(g.finalDecimal||0)/10)*100):0;
+ const order=['Agosto','Septiembre','Octubre','Noviembre','Diciembre','Enero','Febrero','Marzo','Abril','Mayo','Junio','Julio'];
+ const monthly=(bundle.methodologies||[])
+   .filter(m=>(m.closed||m.provisionalPublished===true)&&m.gradeRecords?.[currentId]?.finalDecimal!=null&&!String(m.month||'').toLowerCase().includes('trimes'))
+   .sort((a,b)=>String(a.cycle||'').localeCompare(String(b.cycle||''))||Number(a.quarter||0)-Number(b.quarter||0)||order.indexOf(a.month)-order.indexOf(b.month)||String(a.updated||'').localeCompare(String(b.updated||'')));
+ const monthCards=monthly.map(m=>{
+   const g=m.gradeRecords?.[currentId]||{};
+   const pct=Math.min(100,(Number(g.finalDecimal||0)/10)*100);
+   return `<div class="card">
+     <div style="font-size:.78rem;font-weight:900;letter-spacing:.08em">CALIFICACIÓN MENSUAL</div>
+     <h3>${esc(m.month||'Mes')}</h3>
+     ${!m.closed?'<p>Calificación provisional. Puede cambiar antes del cierre del periodo.</p>':''}
+     <h1>${Number(g.finalDecimal).toFixed(2)}</h1>
+     <div class="progress"><i style="width:${pct}%"></i></div>
+     <p>Redondeada: <b>${g.rounded??'—'}</b></p>
+   </div>`;
+ }).join('');
  const q=(bundle.quarterSummaries||[]).slice().sort((a,b)=>Number(b.quarter||0)-Number(a.quarter||0))[0]||null;
- $('#gradeContent').innerHTML=`<div class="card"><div style="font-size:.78rem;font-weight:900;letter-spacing:.08em">CALIFICACIÓN MENSUAL</div><h3>${esc(m?.month||'')}</h3>${m&&!m.closed?'<p>El mes sigue abierto. Puedes usar tus puntos antes del cierre; el promedio puede cambiar.</p>':''}<h1>${g?.finalDecimal?.toFixed(2)||'—'}</h1><div class="progress"><i style="width:${pct}%"></i></div><p>Redondeada: <b>${g?.rounded??'—'}</b></p><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>${quarterSummaryHtml(q)}`;
+ $('#gradeContent').innerHTML=`
+   <h3 style="margin-bottom:12px">Calificaciones mensuales</h3>
+   ${monthCards||'<div class="card muted">Todavía no hay calificaciones mensuales publicadas.</div>'}
+   <h2 style="margin-top:28px;font-size:1.55rem">Calificación trimestral</h2>
+   ${quarterSummaryHtml(q)}
+   <div class="card"><p>Puntos disponibles: <b>${pointsAvailable().toFixed(2)}</b></p></div>`;
 }
 function renderMaterials(){
  $('#materialCards').innerHTML=bundle.materials.length?bundle.materials.map(m=>`<button class="card action" data-material="${esc(m.id)}"><b>${esc(m.title)}</b><p class="muted">${esc(m.type)} · ${m.source==='file'?'Archivo':'Enlace'}</p>${m.fileName?`<small class="muted">${esc(m.fileName)}</small>`:''}</button>`).join(''):'<div class="card muted">Sin materiales publicados.</div>';

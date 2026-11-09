@@ -16,7 +16,7 @@ function profileFor(id){return weekly?.profiles?.find(p=>p.student_id===id)||{en
 function applies(t,p){return !t.variant||t.variant===p.english||t.variant===p.art}
 function taskPresentation(t){
  if(t.report_mode==='consult_student')return {kind:'consult',text:'Consulte con el alumno si cumplió con esta indicación.'};
- if(t.due_in_period)return {kind:'verify',text:''};
+ if(t.due_by_delivery)return {kind:'verify',text:''};
  return {kind:'future',text:'Se entrega: '+fmt(t.due_date,true)+'.'};
 }
 function visibleTasks(student){
@@ -27,7 +27,7 @@ function renderSummary(){
  const box=q('weeklyTaskSummary');if(!box||!weekly)return;
  const tasks=weekly.tasks||[];
  box.innerHTML='<p><b>Periodo de seguimiento:</b> '+esc(fmt(weekly.week_start))+' al '+esc(fmt(weekly.week_end))+'.</p>'+
- '<p><b>'+tasks.length+' actividad(es) para este reporte.</b> Las que vencen dentro del periodo llevarán las opciones Entregada / No entregada / Realizada, pendiente de revisión. Las que vencen después solo mostrarán su fecha de entrega.</p>'+
+ '<p><b>Fecha de entrega del reporte:</b> '+esc(fmt(weekly.delivery_date))+'. <b>'+tasks.length+' actividad(es).</b> Las tareas cuya entrega sea hasta esa fecha llevarán casillas de verificación; las posteriores mostrarán su fecha de entrega.</p>'+
  (tasks.length?'<div class="weekly-task-list">'+tasks.map(t=>'<article class="weekly-task-row" data-weekly-task="'+esc(t.id)+'"><div><b>'+esc(t.subject)+(t.variant?' · '+esc(t.variant):'')+'</b><div>'+esc(t.title)+'</div><small>Asignada: '+esc(fmt(t.assigned_date,true))+' · Entrega: '+esc(fmt(t.due_date,true))+'</small></div><label>En el reporte<select data-weekly-mode="'+esc(t.id)+'"><option value="include" '+(t.report_mode==='include'?'selected':'')+'>Incluir</option><option value="consult_student" '+(t.report_mode==='consult_student'?'selected':'')+'>Consultar con el alumno</option><option value="omit" '+(t.report_mode==='omit'?'selected':'')+'>Eliminar del reporte</option></select></label></article>').join(''):'<p>No hay tareas cargadas en este periodo. Los días sin foto simplemente no aparecen.</p>');
 }
 async function loadWeekly(){
@@ -35,7 +35,9 @@ async function loadWeekly(){
  try{
   const from=q('weeklyRangeFrom')?.value;
   const to=q('weeklyRangeTo')?.value;
+  const delivery=q('weeklyDeliveryDate')?.value;
   if(!from||!to||from>to)throw Error('Selecciona un rango de fechas válido.');
+  if(!delivery||delivery<to)throw Error('La entrega del reporte debe ser el último día del periodo o una fecha posterior.');
   const fromDate=parseDate(from),toDate=parseDate(to);
   const days=Math.round((toDate-fromDate)/86400000);
   if(days>83)throw Error('Selecciona un periodo de hasta 12 semanas.');
@@ -56,10 +58,10 @@ async function loadWeekly(){
     const id=String(t.id||t.activity_id||JSON.stringify(t));
     if(seen.has(id))continue;
     seen.add(id);
-    tasks.push({...t,due_in_period:String(t.due_date||'')>=from&&String(t.due_date||'')<=to});
+    tasks.push({...t,due_by_delivery:!!due&&due<=delivery});
   }
   tasks.sort((a,b)=>String(a.assigned_date||'').localeCompare(String(b.assigned_date||''))||String(a.subject||'').localeCompare(String(b.subject||'')));
-  weekly={...out,week_start:from,week_end:to,tasks};renderSummary();
+  weekly={...out,week_start:from,week_end:to,delivery_date:delivery,tasks};renderSummary();
   if(st)st.textContent='Semana lista. Los días sin foto no generan ningún registro.';
   return true;
  }catch(e){if(st)st.textContent='No se pudo cargar el seguimiento semanal: '+e.message;return false}
@@ -107,7 +109,7 @@ function addReport(doc,student,x,y,w,h){
  const logo=window.JAIME_LASALLE_LOGO_JPEG||window.JAIME_LASALLE_LOGO;
  if(logo){try{doc.addImage(logo,'JPEG',left,y+4,20,9)}catch(_){try{doc.addImage(logo,'PNG',left,y+4,20,9)}catch(__){}}}
  doc.setTextColor(25);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Seguimiento de tareas · 3.º A',left+22,y+8);
- doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.text('Periodo: '+fmtShort(weekly.week_start)+' al '+fmtShort(weekly.week_end),left+22,y+12);
+ doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.text('Periodo: '+fmtShort(weekly.week_start)+' al '+fmtShort(weekly.week_end)+' · Entrega: '+fmtShort(weekly.delivery_date),left+22,y+12);
  doc.setFont('helvetica','bold');doc.setFontSize(8.2);doc.text(doc.splitTextToSize(student.name,maxW),left,y+19);
  doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.text('Matrícula: '+student.student_id+' · No. '+student.list_number,left,y+27);
  doc.setDrawColor(220);doc.line(left,y+29,right,y+29);
@@ -182,12 +184,14 @@ function init(){
  const dates=document.createElement('div');dates.className='daily-toolbar';
  const today=parseDate(localDate());const weekday=today.getUTCDay();today.setUTCDate(today.getUTCDate()-((weekday-5+7)%7));
  const friday=today.toISOString().slice(0,10);
- dates.innerHTML='<label>Desde <input type="date" id="weeklyRangeFrom"></label><label>Hasta <input type="date" id="weeklyRangeTo"></label>';
+ dates.innerHTML='<label>Desde <input type="date" id="weeklyRangeFrom"></label><label>Hasta <input type="date" id="weeklyRangeTo"></label><label>Fecha de entrega del reporte <input type="date" id="weeklyDeliveryDate"></label>';
  panel.insertBefore(dates,q('weeklyTaskSummary'));
  q('weeklyRangeFrom').value=friday;
  q('weeklyRangeTo').value=localDate();
+ q('weeklyDeliveryDate').value=localDate();
  q('weeklyRangeFrom').addEventListener('change',loadWeekly);
  q('weeklyRangeTo').addEventListener('change',loadWeekly);
+ q('weeklyDeliveryDate').addEventListener('change',loadWeekly);
  const style=document.createElement('style');style.textContent='#weeklyTaskPanel .weekly-task-list{display:grid;gap:10px;margin:12px 0}#weeklyTaskPanel .weekly-task-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,260px);gap:12px;align-items:end;border:1px solid #ddd5bf;border-radius:12px;padding:12px;background:#fffdf7}#weeklyTaskPanel .weekly-task-row small{display:block;margin-top:5px;color:#69645a}#weeklyTaskPanel select{width:100%}@media(max-width:720px){#weeklyTaskPanel .weekly-task-row{grid-template-columns:1fr}}';document.head.append(style);
  q('weeklyTaskRefresh').addEventListener('click',loadWeekly);q('weeklyTaskPdf').addEventListener('click',generatePdf);q('weeklyTaskIndividualZip').addEventListener('click',generateIndividualZip);
  panel.addEventListener('change',e=>{const id=e.target.dataset.weeklyMode;if(id)changeMode(id,e.target.value,e.target)});

@@ -44,6 +44,8 @@ async function loadWeekly(){
   // Consultar tambien tareas anteriores cuya fecha de entrega sigue vigente.
   const dates=[];
   const lookback=new Date(fromDate);lookback.setUTCDate(lookback.getUTCDate()-84);
+  // La RPC agrupa de viernes a jueves: consultar todos los viernes que intersectan el rango.
+  lookback.setUTCDate(lookback.getUTCDate()-((lookback.getUTCDay()-5+7)%7));
   for(let d=new Date(lookback);d<=toDate;d.setUTCDate(d.getUTCDate()+7)){
     dates.push(d.toISOString().slice(0,10));
   }

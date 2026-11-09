@@ -27,7 +27,7 @@ function renderSummary(){
  const box=q('weeklyTaskSummary');if(!box||!weekly)return;
  const tasks=weekly.tasks||[];
  box.innerHTML='<p><b>Periodo de seguimiento:</b> '+esc(fmt(weekly.week_start))+' al '+esc(fmt(weekly.week_end))+'.</p>'+
- '<p><b>Fecha de entrega del reporte:</b> '+esc(fmt(weekly.delivery_date))+'. <b>'+tasks.length+' actividad(es).</b> Las tareas cuya entrega sea hasta esa fecha llevarán casillas de verificación; las posteriores mostrarán su fecha de entrega.</p>'+
+ '<p><b>Fecha de entrega del reporte:</b> '+esc(fmt(weekly.delivery_date))+'. <b>'+tasks.length+' actividad(es).</b> Las tareas vencidas o por entregar hasta esa fecha llevarán casillas de verificación; las posteriores aparecerán en la tabla PRÓXIMAS ENTREGAS.</p>'+
  (tasks.length?'<div class="weekly-task-list">'+tasks.map(t=>'<article class="weekly-task-row" data-weekly-task="'+esc(t.id)+'"><div><b>'+esc(t.subject)+(t.variant?' · '+esc(t.variant):'')+'</b><div>'+esc(t.title)+'</div><small>Asignada: '+esc(fmt(t.assigned_date,true))+' · Entrega: '+esc(fmt(t.due_date,true))+'</small></div><label>En el reporte<select data-weekly-mode="'+esc(t.id)+'"><option value="include" '+(t.report_mode==='include'?'selected':'')+'>Incluir</option><option value="consult_student" '+(t.report_mode==='consult_student'?'selected':'')+'>Consultar con el alumno</option><option value="omit" '+(t.report_mode==='omit'?'selected':'')+'>Eliminar del reporte</option></select></label></article>').join(''):'<p>No hay tareas cargadas en este periodo. Los días sin foto simplemente no aparecen.</p>');
 }
 async function loadWeekly(){
@@ -82,12 +82,21 @@ async function changeMode(id,mode,select){
 
 function reportGroups(student){
  const groups=new Map();
- for(const t of visibleTasks(student)){
+ for(const t of visibleTasks(student).filter(t=>t.due_by_delivery||t.report_mode==='consult_student')){
   const subject=String(t.subject||'Sin materia').trim(),key=subject+'|'+String(t.variant||'');
   if(!groups.has(key))groups.set(key,{label:subject+(t.variant?' ('+t.variant+')':''),items:[]});
   groups.get(key).items.push(t);
  }
  return [...groups.values()];
+}
+function upcomingTasks(student){return visibleTasks(student).filter(t=>!t.due_by_delivery&&t.report_mode!=='consult_student').sort((a,b)=>String(a.due_date).localeCompare(String(b.due_date))||String(a.subject).localeCompare(String(b.subject),'es'));}
+function upcomingTable(doc,student,w,size){
+ const tasks=upcomingTasks(student),rows=[];if(!tasks.length)return {rows,height:0};
+ const widths=[w*.22,w*.57,w*.21],line=size*.43;
+ doc.setFont('helvetica','normal');doc.setFontSize(size);
+ for(const t of tasks){const subject=String(t.subject||'Sin materia')+(t.variant?' ('+t.variant+')':'');const cells=[subject,String(t.title||''),fmtShort(t.due_date)].map((v,i)=>doc.splitTextToSize(v,Math.max(8,widths[i]-3)));
+ rows.push({cells,height:Math.max(...cells.map(c=>c.length))*line+2.5});}
+ return {rows,widths,line,height:9+rows.reduce((n,r)=>n+r.height,0)};
 }
 function measureReport(doc,student,w,h,columns){
  const margin=5,gap=5,colW=(w-margin*2-gap*(columns-1))/columns;
@@ -95,6 +104,8 @@ function measureReport(doc,student,w,h,columns){
  const groups=reportGroups(student);
  for(let size=7.6;size>=6.0;size-=0.2){
   const line=size*0.43,spacing=2.1,blocks=[];
+  const future=upcomingTable(doc,student,w-10,size);
+  const contentUsable=usable-future.height-(future.rows.length?6:0);
   for(const group of groups){
    doc.setFont('helvetica','bold');doc.setFontSize(size+0.5);
    const heading=doc.splitTextToSize(group.label,colW);
@@ -117,7 +128,7 @@ function measureReport(doc,student,w,h,columns){
    // Keep subjects together; balance the two columns by height.
    cols[col].blocks.push(block);cols[col].height+=block.height;
   }
-  if(cols.every(c=>c.height<=usable))return {size,line,cols,colW,margin,gap,top,usable};
+  if(cols.every(c=>c.height<=contentUsable))return {size,line,cols,colW,margin,gap,top,usable,future};
  }
  return null;
 }
@@ -162,8 +173,25 @@ function drawReport(doc,student,x,y,w,h,layout){
   }
  });
  // On full-letter reports, place signatures just below the last activity.
- const contentEnd=y+layout.top+Math.max(...layout.cols.map(c=>c.height),0);
- const fy=h>240?Math.min(y+h-15,Math.max(y+51,contentEnd+12)):y+h-12;
+ let contentEnd=y+layout.top+Math.max(...layout.cols.map(c=>c.height),0);
+ if(layout.future?.rows.length){
+  const table=layout.future,tx=left,tw=w-10;
+  let ty=contentEnd+5;
+  doc.setTextColor(25);doc.setFont('helvetica','bold');doc.setFontSize(layout.size+0.7);
+  doc.text('PRÓXIMAS ENTREGAS',tx,ty);ty+=4;
+  const heads=['Materia','Actividad','Fecha'];let xx=tx;
+  doc.setFillColor(238,241,245);doc.rect(tx,ty-2.6,tw,5,'F');
+  for(let i=0;i<3;i++){doc.text(heads[i],xx+1,ty+0.7);xx+=table.widths[i]}
+  ty+=5;
+  doc.setFont('helvetica','normal');doc.setFontSize(layout.size);
+  for(const row of table.rows){xx=tx;doc.setDrawColor(220);doc.line(tx,ty+row.height-1,tx+tw,ty+row.height-1);
+   for(let i=0;i<3;i++){doc.text(row.cells[i],xx+1,ty+table.line);xx+=table.widths[i]}
+   ty+=row.height;
+  }
+  contentEnd=ty;
+ }
+
+ const fy=Math.min(y+h-12,Math.max(y+51,contentEnd+9));
  doc.setDrawColor(170);
  const available=right-left, parentW=available*0.49, titularW=available*0.28;
  const titularX=left+parentW+5, dateX=titularX+titularW+5;

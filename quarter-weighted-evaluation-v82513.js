@@ -291,7 +291,13 @@ async function generateQuarterPdf(){
        headStyles:{fillColor:yellow,textColor:dark,fontStyle:'bold',fontSize:5.5},
        alternateRowStyles:{fillColor:light},
        columnStyles:{0:{cellWidth:colW-35},1:{cellWidth:35}},
-       theme:'grid'
+       theme:'grid',
+       didParseCell:data=>{
+         if(data.section!=='body'||data.column.index!==1)return;
+         const txt=String(data.cell.raw||'').toLowerCase();
+         if(txt.includes('no entregado')||txt.includes('sin calificación'))data.cell.styles.textColor=[196,35,42];
+         else if(txt.includes('entregado')||txt.includes('calificación'))data.cell.styles.textColor=[24,142,76];
+       }
      });
      y=doc.lastAutoTable.finalY+1.5;
      const missing=cm.flatMap(v=>v.details.filter(d=>!d.delivered).map(d=>d.name));
@@ -308,6 +314,22 @@ async function generateQuarterPdf(){
      const sid=String(student.id),c=calc(sid);
      let top=header(student);
      const left=margin,right=margin+colW+gap;
+
+     // Resultado trimestral principal: visible y jerárquico, sin usar rojo de alerta.
+     doc.setFillColor(242,246,250);
+     doc.roundedRect(margin,top,pageW-margin*2,14,2,2,'F');
+     doc.setTextColor(20,48,86);
+     doc.setFont('helvetica','bold');doc.setFontSize(10);
+     doc.text('CALIFICACIÓN TRIMESTRAL',margin+4,top+5);
+     doc.setFontSize(18);
+     doc.text(c.complete?String(c.rounded):'Pendiente',pageW-margin-4,top+9,{align:'right'});
+     if(c.complete){
+       doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(75);
+       doc.text('Resultado sin redondear: '+c.finalDecimal.toFixed(2),pageW-margin-4,top+12.2,{align:'right'});
+     }
+     doc.setTextColor(0);
+     top+=18;
+
      const sep=months.find(m=>m.month==='Septiembre')||null;
      const oct=months.find(m=>m.month==='Octubre')||null;
      const ySep=monthBlock(sep,sid,left,top);
@@ -338,7 +360,17 @@ async function generateQuarterPdf(){
        headStyles:{fillColor:yellow,textColor:dark,fontStyle:'bold',fontSize:5.6},
        alternateRowStyles:{fillColor:light},
        columnStyles:{0:{cellWidth:pageW-margin*2-63},1:{cellWidth:38},2:{cellWidth:25,halign:'right'}},
-       theme:'grid'
+       theme:'grid',
+       didParseCell:data=>{
+         if(data.section!=='body')return;
+         const row=projectRows[data.row.index]||[];
+         const status=String(row[1]||'').toLowerCase();
+         const delivered=status==='en tiempo'||status==='justificado'||status==='extemporáneo';
+         if(data.column.index===0||data.column.index===1){
+           data.cell.styles.textColor=delivered?[24,142,76]:[196,35,42];
+           if(data.column.index===1)data.cell.styles.fontStyle='bold';
+         }
+       }
      });
 
      y=doc.lastAutoTable.finalY+2;

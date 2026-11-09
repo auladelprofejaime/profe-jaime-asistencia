@@ -80,75 +80,130 @@ async function changeMode(id,mode,select){
  finally{busy=false;select.disabled=false}
 }
 
-function addReport(doc,student,x,y,w,h){
- const tasks=visibleTasks(student),margin=5,left=x+margin,right=x+w-margin,maxW=w-margin*2;
+function reportGroups(student){
  const groups=new Map();
- for(const t of tasks){const subject=String(t.subject||'Sin materia').trim();const key=subject+'|'+String(t.variant||'');if(!groups.has(key))groups.set(key,{label:subject+(t.variant?' ('+t.variant+')':''),items:[]});groups.get(key).items.push(t)}
- const grouped=[...groups.values()];
- const top=y+31,bottom=y+h-19,available=bottom-top;
- let layout=null;
- for(let size=7.4;size>=4.4;size-=0.25){
-   const leading=size*0.43,spacing=size*0.36,blocks=[];let height=0;
-   for(const group of grouped){
-     doc.setFont('helvetica','bold');doc.setFontSize(size+0.5);
-     const heading=doc.splitTextToSize(group.label,maxW);
-     const entries=[];let blockHeight=heading.length*leading+1.1;
-     for(const t of group.items){
-       doc.setFont('helvetica','normal');doc.setFontSize(size);
-       const due='Entrega '+fmtShort(t.due_date);
-       const lines=doc.splitTextToSize(String(t.title||'')+' · '+due,maxW-5);
-       const view=taskPresentation(t);
-       const note=view.kind==='consult'?'Consultar con alumno':view.kind==='future'?'Entrega posterior':'E / NE / PR';
-       const rowHeight=lines.length*leading+spacing+2.2;
-       entries.push({t,lines,note,rowHeight});blockHeight+=rowHeight;
-     }
-     blockHeight+=1.3;blocks.push({heading,entries,blockHeight});height+=blockHeight;
-   }
-   if(height<=available){layout={size,leading,blocks};break}
+ for(const t of visibleTasks(student)){
+  const subject=String(t.subject||'Sin materia').trim(),key=subject+'|'+String(t.variant||'');
+  if(!groups.has(key))groups.set(key,{label:subject+(t.variant?' ('+t.variant+')':''),items:[]});
+  groups.get(key).items.push(t);
  }
- if(!layout)throw Error('Las actividades de '+student.name+' no caben legiblemente en media carta. No se omitió ninguna.');
+ return [...groups.values()];
+}
+function measureReport(doc,student,w,h,columns){
+ const margin=5,gap=5,colW=(w-margin*2-gap*(columns-1))/columns;
+ const top=31,bottom=h-19,usable=bottom-top;
+ const groups=reportGroups(student);
+ for(let size=7.6;size>=6.0;size-=0.2){
+  const line=size*0.43,spacing=2.1,blocks=[];
+  for(const group of groups){
+   doc.setFont('helvetica','bold');doc.setFontSize(size+0.5);
+   const heading=doc.splitTextToSize(group.label,colW);
+   let height=heading.length*line+1.7;
+   const entries=[];
+   for(const t of group.items){
+    doc.setFont('helvetica','normal');doc.setFontSize(size);
+    const lines=doc.splitTextToSize(String(t.title||'')+' · Entrega '+fmtShort(t.due_date),colW-4);
+    const view=taskPresentation(t);
+    const note=view.kind==='consult'?'Consultar con el alumno':view.kind==='future'?'Entrega posterior':'verify';
+    const rowHeight=lines.length*line+spacing+3.2;
+    entries.push({lines,note,rowHeight});
+    height+=rowHeight;
+   }
+   height+=1.2;blocks.push({heading,entries,height});
+  }
+  const cols=Array.from({length:columns},()=>({height:0,blocks:[]}));
+  for(const block of blocks){
+   let col=cols.reduce((best,c,i)=>c.height<cols[best].height?i:best,0);
+   // Keep subjects together; balance the two columns by height.
+   cols[col].blocks.push(block);cols[col].height+=block.height;
+  }
+  if(cols.every(c=>c.height<=usable))return {size,line,cols,colW,margin,gap,top,usable};
+ }
+ return null;
+}
+function drawReport(doc,student,x,y,w,h,layout){
+ const left=x+5,right=x+w-5;
  doc.setDrawColor(205);doc.rect(x,y,w,h);
  const logo=window.JAIME_LASALLE_LOGO_JPEG||window.JAIME_LASALLE_LOGO;
  if(logo){try{doc.addImage(logo,'JPEG',left,y+4,20,9)}catch(_){try{doc.addImage(logo,'PNG',left,y+4,20,9)}catch(__){}}}
- doc.setTextColor(25);doc.setFont('helvetica','bold');doc.setFontSize(9);doc.text('Seguimiento de tareas · 3.º A',left+22,y+8);
- doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.text('Periodo: '+fmtShort(weekly.week_start)+' al '+fmtShort(weekly.week_end)+' · Entrega: '+fmtShort(weekly.delivery_date),left+22,y+12);
- doc.setFont('helvetica','bold');doc.setFontSize(8.2);doc.text(doc.splitTextToSize(student.name,maxW),left,y+19);
- doc.setFont('helvetica','normal');doc.setFontSize(6.8);doc.text('Matrícula: '+student.student_id+' · No. '+student.list_number,left,y+27);
+ doc.setTextColor(25);doc.setFont('helvetica','bold');doc.setFontSize(9);
+ doc.text('Seguimiento de tareas · 3.º A',left+22,y+8);
+ doc.setFont('helvetica','normal');doc.setFontSize(6.8);
+ doc.text('Periodo: '+fmtShort(weekly.week_start)+' al '+fmtShort(weekly.week_end)+' · Entrega: '+fmtShort(weekly.delivery_date),left+22,y+12);
+ doc.setFont('helvetica','bold');doc.setFontSize(8.2);
+ const nameLines=doc.splitTextToSize(student.name,w-10);
+ if(nameLines.length>2)throw Error('El nombre de '+student.name+' excede el encabezado.');
+ doc.text(nameLines,left,y+19);
+ doc.setFont('helvetica','normal');doc.setFontSize(6.8);
+ doc.text('Matrícula: '+student.student_id+' · No. '+student.list_number,left,y+27);
  doc.setDrawColor(220);doc.line(left,y+29,right,y+29);
- let cy=top;
- for(const block of layout.blocks){
+ layout.cols.forEach((col,ci)=>{
+  const lx=left+ci*(layout.colW+layout.gap);
+  let cy=y+layout.top;
+  for(const block of col.blocks){
    doc.setFont('helvetica','bold');doc.setFontSize(layout.size+0.5);
-   doc.text(block.heading,left,cy);cy+=block.heading.length*layout.leading+1.1;
+   doc.text(block.heading,lx,cy);
+   cy+=block.heading.length*layout.line+1.7;
    for(const entry of block.entries){
-     doc.setFont('helvetica','normal');doc.setFontSize(layout.size);
-     doc.text(entry.lines,left+4,cy);cy+=entry.lines.length*layout.leading;
-     doc.setFontSize(Math.max(4.2,layout.size-0.7));
-     if(entry.note==='E / NE / PR'){let xx=left+4;for(const label of ['Entregada','No entregada','Pendiente de revisión']){doc.rect(xx,cy-1.1,1.8,1.8);doc.text(label,xx+2.5,cy+0.4);xx+=label==='Pendiente de revisión'?0:label==='Entregada'?27:31}}else doc.text(entry.note,left+4,cy+0.4);cy+=layout.size*0.36+2.2;
+    doc.setFont('helvetica','normal');doc.setFontSize(layout.size);
+    doc.text(entry.lines,lx+3,cy);
+    cy+=entry.lines.length*layout.line;
+    doc.setFontSize(Math.max(5.5,layout.size-0.6));
+    if(entry.note==='verify'){
+     // Short labels avoid collisions in the narrower column.
+     let xx=lx+3;
+     for(const [label,advance] of [['E',11],['NE',13],['PR',12]]){
+      doc.rect(xx,cy-1.1,1.8,1.8);doc.text(label,xx+2.6,cy+0.4);xx+=advance;
+     }
+    }else doc.text(entry.note,lx+3,cy+0.4);
+    cy+=layout.size*0.36+3.2;
    }
-   cy+=1.3;
- }
- const fy=y+h-12;doc.setDrawColor(170);doc.line(left,fy,right-48,fy);doc.line(right-43,fy,right,fy);
- doc.setFont('helvetica','normal');doc.setFontSize(6);doc.text('Firma del padre/madre/tutor',left,fy+3);doc.text('Fecha',right-43,fy+3);
- doc.setFontSize(5.5);doc.setTextColor(100);doc.text('E: entregada · NE: no entregada · PR: pendiente de revisión',left,y+h-4);
+   cy+=1.2;
+  }
+ });
+ const fy=y+h-12;doc.setDrawColor(170);
+ doc.line(left,fy,right-48,fy);doc.line(right-43,fy,right,fy);
+ doc.setFont('helvetica','normal');doc.setFontSize(6);
+ doc.text('Firma del padre/madre/tutor',left,fy+3);doc.text('Fecha',right-43,fy+3);
+ doc.setFontSize(5.5);doc.setTextColor(100);
+ doc.text('E: entregada · NE: no entregada · PR: pendiente de revisión',left,y+h-4);
+}
+function chooseReport(doc,student){
+ const vertical=measureReport(doc,student,135.7,205.9,1);
+ if(vertical)return {orientation:'vertical',layout:vertical};
+ const horizontal=measureReport(doc,student,205.9,129.7,2);
+ if(horizontal)return {orientation:'horizontal',layout:horizontal};
+ throw Error('Las actividades de '+student.name+' no caben legiblemente en media carta, incluso en dos columnas. No se omitió ninguna.');
 }
 async function generatePdf(){
  const st=q('weeklyTaskStatus');if(busy)return;
- // Actualizar SIEMPRE antes de imprimir, incluyendo fotos guardadas hace unos segundos.
  const loaded=await loadWeekly();if(!loaded||!weekly)return;
  busy=true;
  try{
   if(!window.jspdf?.jsPDF)throw Error('No se cargó el generador de PDF.');
-  // Dos medias cartas VERTICALES sobre una hoja carta horizontal.
-  const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:'landscape'});
-  const pageW=279.4,pageH=215.9,outer=5,gap=4,half=(pageW-outer*2-gap)/2;
-  weekly.roster.forEach((student,i)=>{
-    if(i>0&&i%2===0)doc.addPage();
-    const slot=i%2,x=outer+slot*(half+gap);
-    addReport(doc,student,x,outer,half,pageH-outer*2);
-  });
+  const probe=new window.jspdf.jsPDF({unit:'mm',format:'letter'});
+  const plans=weekly.roster.map(student=>({student,...chooseReport(probe,student)}));
+  // Each letter page holds two half-letter reports. Portrait letter for horizontal halves;
+  // landscape letter for vertical halves. Mixed orientations start a new page.
+  const doc=new window.jspdf.jsPDF({unit:'mm',format:'letter',orientation:plans[0]?.orientation==='horizontal'?'portrait':'landscape'});
+  let current=null,slot=0,pages=0;
+  for(const plan of plans){
+   if(plan.orientation!==current||slot===2){
+    if(pages>0)doc.addPage('letter',plan.orientation==='horizontal'?'portrait':'landscape');
+    current=plan.orientation;slot=0;pages++;
+   }
+   if(current==='horizontal'){
+    // 2 horizontal half-letters stacked on a portrait letter page.
+    drawReport(doc,plan.student,5,5+slot*(139.7+4),205.9,129.7,plan.layout);
+   }else{
+    // 2 vertical half-letters side by side on a landscape letter page.
+    drawReport(doc,plan.student,5+slot*(139.7+4),5,135.7,205.9,plan.layout);
+   }
+   slot++;
+  }
   const name='Seguimiento_tareas_3A_'+weekly.week_start+'_a_'+weekly.week_end+'.pdf';
   doc.save(name);
-  if(st)st.textContent='✓ PDF semanal generado: '+weekly.roster.length+' reportes personalizados, dos medias cartas verticales por hoja; '+weekly.tasks.length+' actividades del periodo; sin continuaciones.';
+  if(st)st.textContent='PDF generado: '+plans.length+' reportes personalizados, formato vertical u horizontal de dos columnas según el espacio; dos por hoja, sin continuaciones.';
  }catch(e){if(st)st.textContent='No se pudo generar el PDF: '+e.message}
  finally{busy=false}
 }
@@ -162,8 +217,11 @@ async function generateIndividualZip(){
   if(!window.DailyMissingReports?.zipArchive)throw Error('No se cargó el generador de archivos ZIP.');
   const used=new Set(),files=[];
   for(const student of weekly.roster){
-   const doc=new window.jspdf.jsPDF({unit:'mm',format:[139.7,215.9],orientation:'portrait'});
-   addReport(doc,student,2,2,135.7,211.9);
+   const probe=new window.jspdf.jsPDF({unit:'mm',format:'letter'});
+   const plan=chooseReport(probe,student);
+   const horizontal=plan.orientation==='horizontal';
+   const doc=new window.jspdf.jsPDF({unit:'mm',format:horizontal?[215.9,139.7]:[139.7,215.9],orientation:horizontal?'landscape':'portrait'});
+   drawReport(doc,student,5,5,horizontal?205.9:129.7,horizontal?129.7:205.9,plan.layout);
    let stem=String(student.name||student.student_id||'Alumno').normalize('NFC').replace(/[<>:"/\\|?*\x00-\x1f]/g,' ').replace(/\s+/g,' ').trim().slice(0,110)||'Alumno';
    let name=stem+'.pdf',n=2;
    while(used.has(name.toLocaleLowerCase('es'))){name=stem+' '+n+'.pdf';n++}

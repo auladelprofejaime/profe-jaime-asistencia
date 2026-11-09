@@ -94,8 +94,15 @@ function upcomingTable(doc,student,w,size){
  const tasks=upcomingTasks(student),rows=[];if(!tasks.length)return {rows,height:0};
  const widths=[w*.22,w*.57,w*.21],line=size*.43;
  doc.setFont('helvetica','normal');doc.setFontSize(size);
- for(const t of tasks){const subject=String(t.subject||'Sin materia')+(t.variant?' ('+t.variant+')':'');const cells=[subject,String(t.title||''),fmtShort(t.due_date)].map((v,i)=>doc.splitTextToSize(v,Math.max(8,widths[i]-3)));
- rows.push({cells,height:Math.max(...cells.map(c=>c.length))*line+2.5});}
+ const grouped=new Map();
+ for(const t of tasks){const subject=String(t.subject||'Sin materia')+(t.variant?' ('+t.variant+')':'');if(!grouped.has(subject))grouped.set(subject,[]);grouped.get(subject).push(t);}
+ for(const [subject,items] of grouped){
+  let first=true;
+  for(const t of items){
+   const cells=[first?subject:'',String(t.title||''),fmtShort(t.due_date)].map((v,i)=>doc.splitTextToSize(v,Math.max(8,widths[i]-3)));
+   rows.push({cells,height:Math.max(...cells.map(c=>c.length))*line+2.5});first=false;
+  }
+ }
  return {rows,widths,line,height:9+rows.reduce((n,r)=>n+r.height,0)};
 }
 function measureReport(doc,student,w,h,columns){
@@ -191,7 +198,7 @@ function drawReport(doc,student,x,y,w,h,layout){
   contentEnd=ty;
  }
 
- const fy=Math.min(y+h-12,Math.max(y+51,contentEnd+9));
+ const fy=Math.min(y+h-12,Math.max(y+58,contentEnd+(h>240?19:14)));
  doc.setDrawColor(170);
  const available=right-left, parentW=available*0.49, titularW=available*0.28;
  const titularX=left+parentW+5, dateX=titularX+titularW+5;

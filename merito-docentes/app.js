@@ -184,7 +184,11 @@ async function syncPending(){
    if(!d?.ok){
     item.error=friendlyReason(d);
     remaining.push(item);
-    if(['unauthorized','staff_inactive','trial_expired','pin_change_required'].includes(d?.reason))break;
+    if(['unauthorized','staff_inactive','trial_expired','pin_change_required'].includes(d?.reason)){
+     // Preserve all later pending movements; never discard records after an access error.
+     remaining.push(...q.slice(q.indexOf(item)+1));
+     break;
+    }
    }
   }catch(e){
    item.error=e.message||String(e);

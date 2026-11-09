@@ -20,20 +20,20 @@ function ensure(){
  if(q('poemEvaluationPanel'))return q('poemEvaluationPanel');
  const sec=q('poem-contest');if(!sec)return null;
  const panel=document.createElement('div');panel.id='poemEvaluationPanel';panel.className='card';
- panel.innerHTML='<div class="section"><div><h2>Evaluación de presentaciones</h2><p class="hint">Profesor 80% · Autoevaluación 10% · Coevaluación 10%</p></div><div class="actions"><button id="poemGenerateFeedback" class="primary" type="button">Generar retroalimentaciones del grupo</button><button id="poemEvalRefresh" class="secondary">Actualizar evaluación</button></div></div><div class="grid2"><label>Grupo<select id="poemEvalGroup"><option>1C</option><option>3A</option><option>3B</option><option>3C</option></select></label><div><b>Formulario para alumnos</b><p><a id="poemEvalLink" href="'+LINK+'" target="_blank" rel="noopener">'+LINK+'</a></p><button id="poemCopyLink" class="secondary" type="button">Copiar enlace</button></div></div><div style="margin-top:12px"><img id="poemEvalQr" alt="QR del formulario" style="width:180px;max-width:100%;border:1px solid #ddd;border-radius:12px" src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data='+encodeURIComponent(LINK)+'"><p class="hint">Matrícula de demostración del profesor: <b>0001</b></p></div><div id="poemEvalSessions"></div><div id="poemEvalStudents"></div><p id="poemEvalStatus" class="hint"></p>';
+ panel.innerHTML='<div class="section"><div><h2>Evaluación de presentaciones</h2><p class="hint">Profesor 80% · Autoevaluación 10% · Coevaluación 10%</p></div><div class="actions"><button id="poemGenerateFeedback" class="primary" type="button">Generar retroalimentaciones del grupo</button><button id="poemEvalRefresh" class="secondary">Actualizar evaluación</button></div></div><div class="grid2"><label>Grupo<select id="poemEvalGroup"><option>1C</option><option>3A</option><option>3B</option><option>3C</option></select></label><div><b>Formulario para alumnos</b><p><a id="poemEvalLink" href="'+LINK+'" target="_blank" rel="noopener">'+LINK+'</a></p><button id="poemCopyLink" class="secondary" type="button">Copiar enlace</button></div></div><div style="margin-top:12px"><img id="poemEvalQr" alt="QR del formulario" style="width:180px;max-width:100%;border:1px solid #ddd;border-radius:12px" src="https://api.qrserver.com/v1/create-qr-code/?size=360x360&data='+encodeURIComponent(LINK)+'"><p class="hint">Matrícula de demostración del profesor: <b>0001</b></p></div><div id="poemEvalSessions"></div><label style="display:block;margin:12px 0">Día del rol<select id="poemEvalDate"></select></label><div id="poemEvalStudents"></div><p id="poemEvalStatus" class="hint"></p>';
  sec.appendChild(panel);
- q('poemEvalRefresh').onclick=load;q('poemEvalGroup').onchange=load;q('poemCopyLink').onclick=()=>navigator.clipboard?.writeText(LINK);q('poemGenerateFeedback').onclick=generateFeedback;
+ q('poemEvalDate').onchange=renderStudents;q('poemEvalRefresh').onclick=load;q('poemEvalGroup').onchange=load;q('poemCopyLink').onclick=()=>navigator.clipboard?.writeText(LINK);q('poemGenerateFeedback').onclick=generateFeedback;
  return panel;
 }
 async function load(){if(busy)return;ensure();busy=true;q('poemEvalStatus').textContent='Cargando evaluaciones…';try{dash=await ProfeSupabase.rpc('teacher_poem_eval_dashboard',{p_group:q('poemEvalGroup').value});render();q('poemEvalStatus').textContent='Evaluación actualizada.'}catch(e){q('poemEvalStatus').textContent='No se pudo cargar: '+(e.message||e)}finally{busy=false}}
-function render(){renderSessions();renderStudents()}
+function render(){renderSessions();const sel=q('poemEvalDate'),prev=sel.value,dates=[...new Set((dash.sessions||[]).map(x=>x.date))].sort(),today=new Date().toLocaleDateString('en-CA');sel.innerHTML='<option value="">Todos los días</option>'+dates.map(d=>'<option value="'+esc(d)+'">'+esc(d)+'</option>').join('');sel.value=dates.includes(prev)?prev:(dates.includes(today)?today:(dates[0]||''));renderStudents()}
 function localDT(v){if(!v)return '';const d=new Date(v),pad=n=>String(n).padStart(2,'0');return d.getFullYear()+'-'+pad(d.getMonth()+1)+'-'+pad(d.getDate())+'T'+pad(d.getHours())+':'+pad(d.getMinutes())}
 function renderSessions(){const box=q('poemEvalSessions');box.innerHTML='<h3>Jornadas y periodos</h3>'+(dash.sessions||[]).map(s=>'<div class="row" style="align-items:end"><div><b>'+esc(s.date)+' · '+esc(String(s.start).slice(0,5))+'–'+esc(String(s.end).slice(0,5))+'</b><small>Apertura y cierre del formulario</small></div><label>Apertura<input type="datetime-local" data-open="'+esc(s.id)+'" value="'+localDT(s.opens_at)+'"></label><label>Cierre<input type="datetime-local" data-close="'+esc(s.id)+'" value="'+localDT(s.closes_at)+'"></label><button class="secondary" data-save-window="'+esc(s.id)+'">Guardar horario</button></div>').join('');
  box.querySelectorAll('[data-save-window]').forEach(b=>b.onclick=async()=>{const id=b.dataset.saveWindow,op=document.querySelector('[data-open="'+id+'"]').value,cl=document.querySelector('[data-close="'+id+'"]').value;if(!op||!cl)return;await ProfeSupabase.rpc('teacher_poem_set_window',{p_session_id:id,p_opens_at:new Date(op).toISOString(),p_closes_at:new Date(cl).toISOString()});await load()})
 }
 function renderStudents(){
  const box=q('poemEvalStudents'),sessions=new Map((dash.sessions||[]).map(x=>[x.id,x]));
- box.innerHTML='<h3>Expositores</h3>'+(dash.presenters||[]).map((p,i)=>{
+ const chosen=q('poemEvalDate')?.value||'';const presenters=(dash.presenters||[]).filter(p=>!chosen||sessions.get(p.session_id)?.date===chosen);box.innerHTML='<h3>Alumnos del rol'+(chosen?' · '+esc(chosen):'')+' · '+presenters.length+'</h3><p class="hint">Selecciona al alumno. Marca «Presentó» para habilitar la rúbrica y guardar su calificación.</p>'+(presenters||[]).map((p,i)=>{
   const ps=peerStats(p),fin=finalCalc(p),ses=sessions.get(p.session_id),status=p.presentation_status|| (p.presented?'presented':'pending');
   const statusLabel=status==='presented'?'Presentó':status==='absent'?'No presentó':'Pendiente';
   const statusTone=status==='presented'?'#176b35':status==='absent'?'#9b1c31':'#6b7280';
@@ -46,7 +46,7 @@ function renderStudents(){
   if(status==='absent'){
     body='<div class="message bad" style="margin-top:10px"><b>No presentó.</b> La calificación de esta presentación es 0 y el alumno no aparece en el formulario de coevaluación ni tiene autoevaluación habilitada.</div>';
   }else if(status==='pending'){
-    body='<div class="hint" style="margin-top:10px">Aún no se ha confirmado si presentó. Mientras permanezca en Pendiente no aparecerá como expositor disponible para los alumnos.</div>';
+    body='<div class="hint" style="margin-top:10px">Este alumno está programado para este día. Pulsa «Presentó» para mostrar los cinco criterios de la rúbrica del profesor y registrar la calificación.</div>';
   }else{
     body='<h4>Evaluación del profesor</h4><div class="grid2">'+rubricInputs(p)+'</div>'+
     '<button class="primary" data-save-teacher>Guardar rúbrica del profesor</button>'+
@@ -65,7 +65,7 @@ function renderStudents(){
  }).join('');
 
  box.querySelectorAll('[data-poem-eval]').forEach(d=>{
-  const p=dash.presenters[Number(d.dataset.poemEval)];
+  const p=presenters[Number(d.dataset.poemEval)];
   d.querySelectorAll('[data-status]').forEach(b=>b.onclick=async()=>{
     const status=b.dataset.status;
     if(status==='absent'&&!confirm('¿Marcar a '+p.name+' como NO PRESENTÓ? Su calificación quedará en 0 y dejará de aparecer para los alumnos.'))return;

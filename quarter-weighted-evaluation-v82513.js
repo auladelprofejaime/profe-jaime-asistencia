@@ -394,6 +394,61 @@ async function generateQuarterPdf(){
    console.error('PDF trimestral',e);qpdfStatus('No se pudo generar el PDF: '+(e.message||e));
  }finally{if(btn){btn.disabled=false;btn.textContent=old||'Generar PDF'}}
 }
+function exportFailedList(format){
+ const p=cfg();
+ if(!state||!roster.length){alert('Primero pulsa Calcular trimestre para cargar el grupo.');return}
+ const failed=[],pending=[];
+ for(const student of roster){
+  const result=calc(String(student.id));
+  if(!result.complete){pending.push(student);continue}
+  if(result.rounded<6)failed.push({student,grade:result.rounded});
+ }
+ const scale=2,width=900,rowH=42,headH=180,footerH=105;
+ const height=Math.max(420,headH+Math.max(1,failed.length)*rowH+footerH);
+ const canvas=document.createElement('canvas');canvas.width=width*scale;canvas.height=height*scale;
+ const ctx=canvas.getContext('2d');ctx.scale(scale,scale);
+ ctx.fillStyle='#ffffff';ctx.fillRect(0,0,width,height);
+ ctx.fillStyle='#1c2e47';ctx.fillRect(0,0,width,92);
+ ctx.fillStyle='#ffffff';ctx.font='bold 26px Arial';ctx.fillText('LISTADO DE ALUMNOS REPROBADOS',35,43);
+ ctx.font='16px Arial';ctx.fillText('Resumen trimestral · Español',35,72);
+ ctx.fillStyle='#202c3c';ctx.font='bold 17px Arial';
+ ctx.fillText('Turno: '+p.shift+'    Grupo: '+p.group+'    Ciclo: '+p.cycle+'    Trimestre: '+p.quarter,35,123);
+ ctx.font='14px Arial';ctx.fillText('Criterio: calificación final trimestral menor a 6',35,149);
+ ctx.fillStyle='#eaf0f5';ctx.fillRect(35,164,830,36);
+ ctx.fillStyle='#1c2e47';ctx.font='bold 15px Arial';
+ ctx.fillText('No.',49,188);ctx.fillText('Alumno',115,188);ctx.fillText('Calificación',720,188);
+ ctx.font='15px Arial';
+ let y=200;
+ for(let i=0;i<failed.length;i++){
+  const item=failed[i];if(i%2===1){ctx.fillStyle='#f5f7fa';ctx.fillRect(35,y,830,rowH)}
+  ctx.fillStyle='#202c3c';ctx.fillText(String(i+1),49,y+27);
+  const name=displayName(item.student);let shown=name;
+  while(ctx.measureText(shown).width>570&&shown.length>3)shown=shown.slice(0,-2)+'…';
+  ctx.fillText(shown,115,y+27);ctx.fillText(String(item.grade),745,y+27);y+=rowH;
+ }
+ if(!failed.length){ctx.fillStyle='#43546a';ctx.fillText('No hay alumnos con calificación reprobatoria registrada.',48,y+28)}
+ const fy=height-72;ctx.fillStyle='#202c3c';ctx.font='bold 15px Arial';
+ ctx.fillText('Total de reprobados: '+failed.length,35,fy);
+ ctx.font='13px Arial';ctx.fillText('Evaluaciones incompletas (no clasificadas): '+pending.length,35,fy+25);
+ const safe=v=>String(v).replace(/[^a-z0-9-]+/gi,'-');
+ const filename='Reprobados_'+safe(p.group)+'_T'+safe(p.quarter)+'_'+safe(p.cycle);
+ if(format==='png'){
+  canvas.toBlob(blob=>{if(!blob){alert('No se pudo crear la imagen.');return}const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download=filename+'.png';a.click();setTimeout(()=>URL.revokeObjectURL(url),30000)},'image/png');
+ }else{
+  if(!window.jspdf?.jsPDF){alert('No está disponible el generador de PDF.');return}
+  const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'a4'});
+  const pageW=210,pageH=297,ratio=width/height,drawW=190,drawH=drawW/ratio;
+  if(drawH<=277){doc.addImage(canvas.toDataURL('image/png'),'PNG',10,10,drawW,drawH)}
+  else{
+   const sourceH=Math.floor(width*277/190),tmp=document.createElement('canvas');tmp.width=canvas.width;
+   for(let sy=0;sy<canvas.height;sy+=sourceH*scale){
+    const take=Math.min(sourceH*scale,canvas.height-sy);tmp.height=take;const tc=tmp.getContext('2d');tc.clearRect(0,0,tmp.width,tmp.height);tc.drawImage(canvas,0,sy,tmp.width,take,0,0,tmp.width,take);
+    if(sy>0)doc.addPage();doc.addImage(tmp.toDataURL('image/png'),'PNG',10,10,190,190*(take/tmp.width));
+   }
+  }
+  doc.save(filename+'.pdf');
+ }
+}
 async function load(){
  if(loading)return;const p=cfg();if(!p.shift||!p.group||!p.cycle){state=null;render();return}
  loading=true;
@@ -411,6 +466,13 @@ window.addEventListener('load',()=>{
  if(!document.getElementById('quarterQuickStyles')){const st=document.createElement('style');st.id='quarterQuickStyles';st.textContent='#quarterWeightedPanel .quarter-student-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:thin}#quarterWeightedPanel .quarter-person,#quarterWeightedPanel .quarter-work{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;padding:13px;border-radius:12px;background:#fff1e9;border:1px solid #ddc8bb;color:#4a3024}#quarterWeightedPanel .quarter-person.quarter-done,#quarterWeightedPanel .quarter-work.quarter-done{background:#e4f4e8;border-color:#98c8a4;color:#1a5e36}#quarterWeightedPanel .quarter-person.quarter-late,#quarterWeightedPanel .quarter-work.quarter-late{background:#fff3cd;border-color:#d9b968;color:#725500}#quarterWeightedPanel .quarter-person span,#quarterWeightedPanel .quarter-work span{font-size:.85em}#quarterWeightedPanel .quarter-project-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-bottom:14px}';document.head.appendChild(st)}
 
  const btn=$('calculateQuarterBtn');if(btn)btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();load()},true);
+ const quarterActions=$('quarterPdfBtn')?.parentElement;
+ if(quarterActions&&!$('quarterFailedPdfBtn')){
+  for(const [id,label,format] of [['quarterFailedPdfBtn','Reprobados PDF','pdf'],['quarterFailedPngBtn','Reprobados imagen','png']]){
+   const b=document.createElement('button');b.id=id;b.type='button';b.className='secondary';b.textContent=label;
+   b.addEventListener('click',e=>{e.preventDefault();exportFailedList(format)});quarterActions.appendChild(b);
+  }
+ }
  const pdfBtn=$('quarterPdfBtn');if(pdfBtn)pdfBtn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();generateQuarterPdf()},true);
  document.querySelector('[data-mettab="quarter"]')?.addEventListener('click',()=>setTimeout(load,100));
  ['quarterShift','quarterGroup','quarterNumber'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(load,0)));

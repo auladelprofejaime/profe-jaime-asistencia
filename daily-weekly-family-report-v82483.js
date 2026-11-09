@@ -169,7 +169,7 @@ function drawReport(doc,student,x,y,w,h,layout){
  doc.text('E: entregada · NE: no entregada · PR: pendiente de revisión',left,y+h-4);
 }
 function chooseReport(doc,student){
- const vertical=measureReport(doc,student,135.7,205.9,1);
+ const vertical=measureReport(doc,student,132.7,205.9,1);
  if(vertical)return {orientation:'vertical',layout:vertical};
  const horizontal=measureReport(doc,student,205.9,129.7,2);
  if(horizontal)return {orientation:'horizontal',layout:horizontal};
@@ -197,7 +197,7 @@ async function generatePdf(){
     drawReport(doc,plan.student,5,5+slot*(139.7+4),205.9,129.7,plan.layout);
    }else{
     // 2 vertical half-letters side by side on a landscape letter page.
-    drawReport(doc,plan.student,5+slot*(139.7+4),5,135.7,205.9,plan.layout);
+    drawReport(doc,plan.student,5+slot*(132.7+4),5,132.7,205.9,plan.layout);
    }
    slot++;
   }
@@ -221,7 +221,7 @@ async function generateIndividualZip(){
    const plan=chooseReport(probe,student);
    const horizontal=plan.orientation==='horizontal';
    const doc=new window.jspdf.jsPDF({unit:'mm',format:horizontal?[215.9,139.7]:[139.7,215.9],orientation:horizontal?'landscape':'portrait'});
-   drawReport(doc,student,5,5,horizontal?205.9:129.7,horizontal?129.7:205.9,plan.layout);
+   drawReport(doc,student,5,5,horizontal?205.9:132.7,horizontal?129.7:205.9,plan.layout);
    let stem=String(student.name||student.student_id||'Alumno').normalize('NFC').replace(/[<>:"/\\|?*\x00-\x1f]/g,' ').replace(/\s+/g,' ').trim().slice(0,110)||'Alumno';
    let name=stem+'.pdf',n=2;
    while(used.has(name.toLocaleLowerCase('es'))){name=stem+' '+n+'.pdf';n++}

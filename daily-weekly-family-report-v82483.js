@@ -33,21 +33,30 @@ function renderSummary(){
 async function loadWeekly(){
  if(busy)return false;busy=true;const st=q('weeklyTaskStatus');if(st)st.textContent='Cargando semana…';
  try{
-  const reference=q('weeklyReferenceDate')?.value||localDate();
-  const previous=parseDate(reference);previous.setUTCDate(previous.getUTCDate()-7);
-  const previousDate=previous.toISOString().slice(0,10);
-  const [out,prior]=await Promise.all([
-    rpc('teacher_daily_task_weekly_load',{p_reference_date:reference}),
-    rpc('teacher_daily_task_weekly_load',{p_reference_date:previousDate})
-  ]);
-  if(!out?.week_start||!prior?.week_start)throw Error('No se pudieron cargar ambos periodos.');
-  const seen=new Set();const tasks=[];
-  for(const t of [...(prior.tasks||[]),...(out.tasks||[])]){
+  const from=q('weeklyRangeFrom')?.value;
+  const to=q('weeklyRangeTo')?.value;
+  if(!from||!to||from>to)throw Error('Selecciona un rango de fechas válido.');
+  const fromDate=parseDate(from),toDate=parseDate(to);
+  const days=Math.round((toDate-fromDate)/86400000);
+  if(days>83)throw Error('Selecciona un periodo de hasta 12 semanas.');
+  const dates=[];
+  for(let offset=0;offset<=days;offset+=7){
+    const d=new Date(fromDate);d.setUTCDate(d.getUTCDate()+offset);
+    dates.push(d.toISOString().slice(0,10));
+  }
+  const weeks=await Promise.all(dates.map(d=>rpc('teacher_daily_task_weekly_load',{p_reference_date:d})));
+  if(weeks.some(w=>!w?.week_start))throw Error('No se pudieron cargar las actividades del periodo.');
+  const out=weeks[0];
+  const seen=new Set(),tasks=[];
+  for(const w of weeks)for(const t of (w.tasks||[])){
+    if(String(t.assigned_date||'')<from||String(t.assigned_date||'')>to)continue;
     const id=String(t.id||t.activity_id||JSON.stringify(t));
-    if(seen.has(id))continue;seen.add(id);tasks.push(t);
+    if(seen.has(id))continue;
+    seen.add(id);
+    tasks.push({...t,due_in_period:String(t.due_date||'')>=from&&String(t.due_date||'')<=to});
   }
   tasks.sort((a,b)=>String(a.assigned_date||'').localeCompare(String(b.assigned_date||''))||String(a.subject||'').localeCompare(String(b.subject||'')));
-  weekly={...out,week_start:prior.week_start,tasks};renderSummary();
+  weekly={...out,week_start:from,week_end:to,tasks};renderSummary();
   if(st)st.textContent='Semana lista. Los días sin foto no generan ningún registro.';
   return true;
  }catch(e){if(st)st.textContent='No se pudo cargar el seguimiento semanal: '+e.message;return false}
@@ -165,12 +174,17 @@ function init(){
  const host=q('daily-task-review');if(!host||q('weeklyTaskPanel'))return;
  const first=host.querySelector('.card');
  const panel=document.createElement('div');panel.id='weeklyTaskPanel';panel.className='card';
- panel.innerHTML='<div class="section"><div><h2>Reporte semanal para familias</h2><p class="hint">Incluye la semana seleccionada y la anterior, para que no se omitan las tareas capturadas desde el viernes previo.</p></div><button type="button" id="weeklyTaskRefresh">Actualizar semana</button></div><div id="weeklyTaskSummary"></div><div class="daily-toolbar"><button type="button" id="weeklyTaskPdf" class="primary">Generar reportes semanales</button><button type="button" id="weeklyTaskIndividualZip" class="secondary">PDF individual por alumno (ZIP)</button></div><p id="weeklyTaskStatus" role="status" aria-live="polite"></p>';
+ panel.innerHTML='<div class="section"><div><h2>Reporte semanal para familias</h2><p class="hint">Selecciona las fechas de las fotografías que deseas incluir. Los registros de otros periodos se conservan.</p></div><button type="button" id="weeklyTaskRefresh">Actualizar semana</button></div><div id="weeklyTaskSummary"></div><div class="daily-toolbar"><button type="button" id="weeklyTaskPdf" class="primary">Generar reportes semanales</button><button type="button" id="weeklyTaskIndividualZip" class="secondary">PDF individual por alumno (ZIP)</button></div><p id="weeklyTaskStatus" role="status" aria-live="polite"></p>';
  host.insertBefore(panel,first||host.firstChild);
- const dateControl=document.createElement('label');dateControl.textContent='Semana de referencia (incluye esta semana y la anterior): ';
- const dateInput=document.createElement('input');dateInput.type='date';dateInput.id='weeklyReferenceDate';dateInput.value=localDate();dateControl.appendChild(dateInput);
- panel.insertBefore(dateControl,q('weeklyTaskSummary'));
- dateInput.addEventListener('change',loadWeekly);
+ const dates=document.createElement('div');dates.className='daily-toolbar';
+ const today=parseDate(localDate());const weekday=today.getUTCDay();today.setUTCDate(today.getUTCDate()-((weekday-5+7)%7));
+ const friday=today.toISOString().slice(0,10);
+ dates.innerHTML='<label>Desde <input type="date" id="weeklyRangeFrom"></label><label>Hasta <input type="date" id="weeklyRangeTo"></label>';
+ panel.insertBefore(dates,q('weeklyTaskSummary'));
+ q('weeklyRangeFrom').value=friday;
+ q('weeklyRangeTo').value=localDate();
+ q('weeklyRangeFrom').addEventListener('change',loadWeekly);
+ q('weeklyRangeTo').addEventListener('change',loadWeekly);
  const style=document.createElement('style');style.textContent='#weeklyTaskPanel .weekly-task-list{display:grid;gap:10px;margin:12px 0}#weeklyTaskPanel .weekly-task-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(210px,260px);gap:12px;align-items:end;border:1px solid #ddd5bf;border-radius:12px;padding:12px;background:#fffdf7}#weeklyTaskPanel .weekly-task-row small{display:block;margin-top:5px;color:#69645a}#weeklyTaskPanel select{width:100%}@media(max-width:720px){#weeklyTaskPanel .weekly-task-row{grid-template-columns:1fr}}';document.head.append(style);
  q('weeklyTaskRefresh').addEventListener('click',loadWeekly);q('weeklyTaskPdf').addEventListener('click',generatePdf);q('weeklyTaskIndividualZip').addEventListener('click',generateIndividualZip);
  panel.addEventListener('change',e=>{const id=e.target.dataset.weeklyMode;if(id)changeMode(id,e.target.value,e.target)});

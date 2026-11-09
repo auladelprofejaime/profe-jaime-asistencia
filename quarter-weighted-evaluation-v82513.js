@@ -70,14 +70,19 @@ function render(){
    : '';
 
  const projectButtons=(student&&c)
-   ? '<div style="margin-top:14px"><h4 style="margin-bottom:8px">'+esc(displayName(student))+'</h4>'+
+   ? '<div style="margin-top:14px"><h4 style="margin-bottom:8px">'+esc(displayName(student))+'</h4><p class="hint">Fecha límite: 8 de noviembre de 2026. Desde el 9 de noviembre, selecciona Extemporáneo (20 de 35 puntos como máximo si todos los trabajos son tardíos). Los trabajos ya registrados conservan su estado.</p>'+
      '<button type="button" id="quarterJustificationBtn" class="'+(c.rec?.projectJustified?'primary':'secondary')+'" style="margin-bottom:10px">'+(c.rec?.projectJustified?'✓ Justificante presentado':'Justificante presentado')+'</button>'+
      '<div class="quarter-project-buttons">'+items.map((it,i)=>{
        const st=c.statuses[String(it.id)]||'',share=items.length?35/items.length:0;
        const earned=(st==='on_time'||st==='justified')?share:st==='late'?share*Number(it.lateFactor??(20/35)):0;
-       return '<button type="button" class="quarter-work '+((st==='on_time'||st==='justified')?'quarter-done':st==='late'?'quarter-late':'')+'" data-project-item="'+esc(it.id)+'">'+
+       return '<div class="quarter-work '+((st==='on_time'||st==='justified')?'quarter-done':st==='late'?'quarter-late':'')+'" style="padding:8px;border:1px solid #ddd;border-radius:8px;margin:4px 0">'+
          '<b>'+(i+1)+'. '+esc(it.name)+'</b>'+
-         '<span>'+(st==='on_time'?'✓ En tiempo · '+earned.toFixed(2)+' pts':st==='justified'?'✓ Extemporáneo justificado · valor completo':st==='late'?'✓ Extemporáneo sin justificante · '+earned.toFixed(2)+' pts':'Pendiente')+'</span></button>';
+         '<label style="display:block;margin-top:5px">Estado del trabajo <select data-project-status="'+esc(it.id)+'" style="width:100%">'+
+         '<option value="" '+(!st?'selected':'')+'>No entregado · 0 puntos</option>'+
+         '<option value="on_time" '+(st==='on_time'?'selected':'')+'>Entregado en tiempo · '+share.toFixed(2)+' puntos</option>'+
+         '<option value="late" '+(st==='late'?'selected':'')+'>Extemporáneo sin justificante · '+(share*Number(it.lateFactor??(20/35))).toFixed(2)+' puntos</option>'+
+         '<option value="justified" '+(st==='justified'?'selected':'')+'>Extemporáneo con justificante · '+share.toFixed(2)+' puntos</option>'+
+         '</select></label><small>Registrado: '+(st?(st==='late'?'Extemporáneo':st==='justified'?'Justificado':'En tiempo'):'Sin entregar')+' · '+earned.toFixed(2)+' puntos</small></div>';
      }).join('')+'</div><p id="quarterQuickStatus" class="hint"></p></div>'
    : '';
 
@@ -127,17 +132,15 @@ async function saveRecord(statusOverride=null){
  const out=await rpc('teacher_save_quarter_record',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_student_id:activeStudent,p_record:{projectDelivered:delivered,projectDeliveryStatus:statuses,projectJustified:!!c.rec?.projectJustified,exam,responsibility},p_subject:p.subject});
  state.evaluation=out.evaluation;render();
 }
-async function toggleProjectForStudent(studentId,itemId,fromQuick=false){
+async function setProjectStatusForStudent(studentId,itemId,status){
  const items=state?.evaluation?.project_items||[],it=items.find(x=>String(x.id)===String(itemId));if(!it)return;
- const rec=state?.evaluation?.records?.[studentId]||{},statuses=projectStatuses(rec,items),old=statuses[String(itemId)];
- if(old){delete statuses[String(itemId)]}
- else statuses[String(itemId)]=isLateItem(it)?(rec.projectJustified?'justified':'late'):'on_time';
- const exam=rec.exam??null,responsibility=rec.responsibility??null,p=cfg(),target=fromQuick?$('quarterQuickStatus'):$('quarterSaveStatus');
- if(target)target.textContent='Guardando…';
- const out=await rpc('teacher_save_quarter_record',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_student_id:String(studentId),p_record:{projectDelivered:Object.keys(statuses),projectDeliveryStatus:statuses,projectJustified:!!rec.projectJustified,exam,responsibility},p_subject:p.subject});
- state.evaluation=out.evaluation;
- if(target)target.textContent=old?'Registro retirado.':(statuses[String(itemId)]==='late'?'✓ Entrega registrada como extemporánea.':'✓ Entrega registrada en tiempo.');
- render();
+ if(!['','on_time','late','justified'].includes(status))throw Error('Estado no válido');
+ const rec=state?.evaluation?.records?.[studentId]||{},statuses=projectStatuses(rec,items);
+ if(status)statuses[String(itemId)]=status;else delete statuses[String(itemId)];
+ const p=cfg(),target=$('quarterQuickStatus');
+ if(target)target.textContent='Guardando estado del trabajo…';
+ const out=await rpc('teacher_save_quarter_record',{p_shift:p.shift,p_group:p.group,p_cycle:p.cycle,p_quarter:p.quarter,p_student_id:String(studentId),p_record:{projectDelivered:Object.keys(statuses),projectDeliveryStatus:statuses,projectJustified:!!rec.projectJustified,exam:rec.exam??null,responsibility:rec.responsibility??null},p_subject:p.subject});
+ state.evaluation=out.evaluation;render();
 }
 async function toggleProjectJustification(){
  if(!activeStudent||!state)return;
@@ -156,7 +159,7 @@ function scheduleSave(){clearTimeout(saveTimer);saveTimer=setTimeout(()=>saveRec
 function bind(){
  const st=$('quarterStudent');if(st)st.onchange=()=>{activeStudent=st.value;render()};
  document.querySelectorAll('[data-quick-student-select]').forEach(b=>b.onclick=()=>{activeStudent=b.dataset.quickStudentSelect;render()});
- document.querySelectorAll('[data-project-item]').forEach(b=>b.onclick=()=>toggleProjectForStudent(activeStudent,b.dataset.projectItem,true).catch(e=>{if($('quarterQuickStatus'))$('quarterQuickStatus').textContent=e.message||e}));
+ document.querySelectorAll('[data-project-status]').forEach(sel=>sel.onchange=()=>setProjectStatusForStudent(activeStudent,sel.dataset.projectStatus,sel.value).catch(e=>{if($('quarterQuickStatus'))$('quarterQuickStatus').textContent=e.message||e;render()}));
  if($('quarterJustificationBtn'))$('quarterJustificationBtn').onclick=()=>toggleProjectJustification().catch(e=>{if($('quarterQuickStatus'))$('quarterQuickStatus').textContent=e.message||e});
  if($('quarterExam'))$('quarterExam').onchange=scheduleSave;
  if($('quarterResponsibility'))$('quarterResponsibility').onchange=scheduleSave;

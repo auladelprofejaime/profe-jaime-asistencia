@@ -51,6 +51,34 @@ function calc(sid){
  const finalDecimal=Math.min(10,baseDecimal+quarterPoints);
  return {rec,items,statuses,delivered,lateCount,months,monthlyAvg,projectPct,exam,resp,monthlyContribution,projectContribution,examContribution,respContribution,quarterPoints,baseDecimal,complete,finalDecimal,rounded:schoolRound(finalDecimal)}
 }
+async function applyTeacherQuarterPoints(){
+ const p=cfg();if(p.shift!=='Matutino'||p.group!=='22'||p.cycle!=='2026-2027'||p.quarter!=='1'){alert('Esta opción está habilitada para el primer trimestre del grupo 22 matutino.');return}
+ const sid=$('teacherQuarterPointStudent')?.value,raw=$('teacherQuarterPointAmount')?.value;
+ if(!sid||raw===''||raw==null){alert('Selecciona alumno y cantidad.');return}
+ const amount=Number(raw);if(!Number.isFinite(amount)||amount<0||amount>3||Math.round(amount*100)!==amount*100){alert('Ingresa de 0 a 3 puntos, con máximo dos decimales.');return}
+ const student=roster.find(x=>String(x.id)===sid);if(!student)return;
+ const current=Number(state?.quarter_points?.[sid]||0);
+ if(!confirm('Aplicar '+amount.toFixed(2)+' puntos trimestrales a '+displayName(student)+'? Actualmente tiene '+current.toFixed(2)+' aplicados. La diferencia se descontará o devolverá a su saldo.'))return;
+ const status=$('teacherQuarterPointStatus');if(status)status.textContent='Guardando puntos…';
+ try{
+  const result=await rpc('teacher_set_quarter_points',{p_student_id:sid,p_cycle:p.cycle,p_quarter:p.quarter,p_amount:amount});
+  if(!result?.ok)throw Error('No se pudo confirmar la operación');
+  state.quarter_points=state.quarter_points||{};state.quarter_points[sid]=Number(result.used);
+  renderSummary();render();
+  if(status)status.textContent='Guardado. Puntos aplicados: '+Number(result.used).toFixed(2)+' · Saldo restante: '+Number(result.balance).toFixed(2);
+ }catch(e){if(status)status.textContent='Error: '+(e.message||e)}
+}
+function renderTeacherQuarterPoints(){
+ const box=$('quarterTeacherPointsPanel');if(!box)return;
+ const p=cfg();
+ if(!state||p.shift!=='Matutino'||p.group!=='22'||p.cycle!=='2026-2027'||p.quarter!=='1'){box.style.display='none';return}
+ box.style.display='block';
+ const select=$('teacherQuarterPointStudent'),previous=select.value;
+ select.innerHTML='<option value="">Seleccionar alumno</option>'+roster.map(st=>'<option value="'+esc(st.id)+'">'+esc(displayName(st))+'</option>').join('');
+ if(roster.some(st=>String(st.id)===previous))select.value=previous;
+ const sync=()=>{const sid=select.value;$('teacherQuarterPointAmount').value=sid?Number(state?.quarter_points?.[sid]||0).toFixed(2):''};
+ select.onchange=sync;sync();
+}
 function ensureUI(){
  const pane=$('met-quarter');if(!pane)return null;
  let box=$('quarterWeightedPanel');
@@ -60,6 +88,7 @@ function ensureUI(){
 function render(){
  const box=ensureUI();if(!box)return;
  if(!state){box.innerHTML='<h2>Evaluación trimestral</h2><p class="hint">Selecciona turno, grupo, ciclo y trimestre; después pulsa Calcular trimestre.</p>';return}
+ renderTeacherQuarterPoints();
  const items=state.evaluation?.project_items||[];
  if(!items.some(x=>String(x.id)===String(activeProjectItem)))activeProjectItem=items[0]?String(items[0].id):'';
  const student=roster.find(s=>String(s.id)===String(activeStudent))||roster[0];if(student)activeStudent=String(student.id);
@@ -465,6 +494,13 @@ async function load(){
 window.addEventListener('load',()=>{
  if(!document.getElementById('quarterQuickStyles')){const st=document.createElement('style');st.id='quarterQuickStyles';st.textContent='#quarterWeightedPanel .quarter-student-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:thin}#quarterWeightedPanel .quarter-person,#quarterWeightedPanel .quarter-work{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;padding:13px;border-radius:12px;background:#fff1e9;border:1px solid #ddc8bb;color:#4a3024}#quarterWeightedPanel .quarter-person.quarter-done,#quarterWeightedPanel .quarter-work.quarter-done{background:#e4f4e8;border-color:#98c8a4;color:#1a5e36}#quarterWeightedPanel .quarter-person.quarter-late,#quarterWeightedPanel .quarter-work.quarter-late{background:#fff3cd;border-color:#d9b968;color:#725500}#quarterWeightedPanel .quarter-person span,#quarterWeightedPanel .quarter-work span{font-size:.85em}#quarterWeightedPanel .quarter-project-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-bottom:14px}';document.head.appendChild(st)}
 
+ const pane=$('met-quarter');
+ if(pane&&!$('quarterTeacherPointsPanel')){
+  const panel=document.createElement('div');panel.id='quarterTeacherPointsPanel';panel.className='card';panel.style.display='none';
+  panel.innerHTML='<h3>Aplicar puntos al trimestre · Grupo 22</h3><p class="hint">Máximo 3 puntos por alumno. Se descuentan del saldo disponible y se suman únicamente al promedio trimestral. Puedes ajustar la cantidad aplicada.</p><div class="grid3"><label>Alumno<select id="teacherQuarterPointStudent"></select></label><label>Puntos a aplicar<input id="teacherQuarterPointAmount" type="number" min="0" max="3" step="0.01" inputmode="decimal"></label><div class="actions"><button id="teacherQuarterPointSave" class="primary" type="button">Aplicar puntos</button></div></div><p id="teacherQuarterPointStatus" class="message" role="status"></p>';
+  $('quarterResults')?.parentElement?.after(panel);
+  $('teacherQuarterPointSave').addEventListener('click',applyTeacherQuarterPoints);
+ }
  const btn=$('calculateQuarterBtn');if(btn)btn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();load()},true);
  const quarterActions=$('quarterPdfBtn')?.parentElement;
  if(quarterActions&&!$('quarterFailedPdfBtn')){

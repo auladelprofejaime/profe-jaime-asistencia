@@ -340,8 +340,8 @@ async function generateQuarterPdf(){
        const st=c.statuses[String(it.id)]||'';
        const full=c.items.length?35/c.items.length:0;
        const earned=(st==='on_time'||st==='justified')?full:st==='late'?full*Number(it.lateFactor??(20/35)):0;
-       const label=st==='on_time'?'En tiempo':st==='justified'?'Justificado':st==='late'?'Extemporáneo':'No entregado';
-       return [(i+1)+'. '+it.name,label,earned.toFixed(2)+' pts'];
+       const label=st==='on_time'?'Entregado en tiempo':st==='justified'?'Entrega extemporánea justificada':st==='late'?'Trabajo entregado de manera extemporánea':'No entregado';
+       return [(i+1)+'. '+it.name,label,earned.toFixed(2)+' de '+full.toFixed(2)+' pts'];
      });
      doc.autoTable({
        startY:y,head:[['Trabajo','Estado','Valor']],body:projectRows,
@@ -349,13 +349,13 @@ async function generateQuarterPdf(){
        styles:{fontSize:4.8,cellPadding:.36,lineColor:[230,230,230],lineWidth:.12},
        headStyles:{fillColor:yellow,textColor:dark,fontStyle:'bold',fontSize:5.6},
        alternateRowStyles:{fillColor:light},
-       columnStyles:{0:{cellWidth:pageW-margin*2-63},1:{cellWidth:38},2:{cellWidth:25,halign:'right'}},
+       columnStyles:{0:{cellWidth:pageW-margin*2-111},1:{cellWidth:81},2:{cellWidth:30,halign:'right'}},
        theme:'grid',
        didParseCell:data=>{
          if(data.section!=='body')return;
          const row=projectRows[data.row.index]||[];
          const status=String(row[1]||'').toLowerCase();
-         const delivered=status==='en tiempo'||status==='justificado'||status==='extemporáneo';
+         const delivered=status.includes('entregado en tiempo')||status.includes('justificada')||status.includes('extemporánea');
          if(data.column.index===0||data.column.index===1){
            data.cell.styles.textColor=delivered?[24,142,76]:[196,35,42];
            if(data.column.index===1)data.cell.styles.fontStyle='bold';

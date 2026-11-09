@@ -274,7 +274,7 @@ async function generateQuarterPdf(){
      doc.autoTable({
        startY:y,head:[['Criterio','Calif.','Ent.','Pend.']],body:critRows,
        margin:{left:x,right:pageW-(x+colW)},tableWidth:colW,
-       styles:{fontSize:5.8,cellPadding:.9,valign:'middle',lineColor:[225,225,225],lineWidth:.15},
+       styles:{fontSize:5.1,cellPadding:.48,valign:'middle',lineColor:[225,225,225],lineWidth:.15},
        headStyles:{fillColor:yellow,textColor:dark,fontStyle:'bold',fontSize:5.8},
        alternateRowStyles:{fillColor:light},
        columnStyles:{0:{cellWidth:colW-33},1:{cellWidth:12,halign:'center'},2:{cellWidth:10,halign:'center'},3:{cellWidth:11,halign:'center'}},
@@ -282,18 +282,27 @@ async function generateQuarterPdf(){
      });
      y=doc.lastAutoTable.finalY+2;
 
-     // El resumen por criterio ya cuenta todas las entregas. Para evitar duplicados
-     // y garantizar una hoja, detallar únicamente lo que falta.
-     const missing=cm.flatMap(v=>v.details.filter(d=>!d.delivered).map(d=>d.name));
-     const txt=missing.length?missing.join(' · '):'Ninguna';
-     doc.setFont('helvetica','bold');doc.setFontSize(6.1);doc.setTextColor(...dark);
-     doc.text('ACTIVIDADES NO ENTREGADAS',x,y+2.5);
-     doc.setFont('helvetica','normal');doc.setFontSize(5.9);
-     doc.setTextColor(missing.length?196:24,missing.length?35:142,missing.length?42:76);
-     const lines=doc.splitTextToSize(txt,colW-2);
-     doc.text(lines,x,y+6.1);
-     doc.setTextColor(0);
-     return y+8+lines.length*2.5;
+     // Conservar TODAS las actividades, como el formato original.
+     // Filas muy compactas para que proyecto y resumen permanezcan en la misma hoja.
+     const details=[];
+     for(const v of cm)for(const d of v.details)details.push([d.name,d.label]);
+     doc.autoTable({
+       startY:y,head:[['Actividad','Estado / resultado']],body:details,
+       margin:{left:x,right:pageW-(x+colW),top:5,bottom:5},
+       tableWidth:colW,
+       styles:{fontSize:4.45,minCellHeight:0,cellPadding:{top:.28,bottom:.28,left:.65,right:.65},valign:'middle',lineColor:[230,230,230],lineWidth:.1,overflow:'linebreak'},
+       headStyles:{fillColor:yellow,textColor:dark,fontStyle:'bold',fontSize:4.6},
+       alternateRowStyles:{fillColor:light},
+       columnStyles:{0:{cellWidth:colW-35},1:{cellWidth:35}},
+       theme:'grid',
+       didParseCell:data=>{
+         if(data.section!=='body'||data.column.index!==1)return;
+         const txt=String(data.cell.raw||'').toLowerCase();
+         if(txt.includes('no entregado')||txt.includes('sin calificación'))data.cell.styles.textColor=[196,35,42];
+         else if(txt.includes('entregado')||txt.includes('calificación'))data.cell.styles.textColor=[24,142,76];
+       }
+     });
+     return doc.lastAutoTable.finalY+1.5;
    };
 
    roster.forEach((student,si)=>{
@@ -336,8 +345,8 @@ async function generateQuarterPdf(){
      });
      doc.autoTable({
        startY:y,head:[['Trabajo','Estado','Valor']],body:projectRows,
-       margin:{left:margin,right:margin},tableWidth:pageW-margin*2,
-       styles:{fontSize:5.5,cellPadding:.65,lineColor:[230,230,230],lineWidth:.12},
+       margin:{left:margin,right:margin,top:5,bottom:5},tableWidth:pageW-margin*2,
+       styles:{fontSize:4.8,cellPadding:.36,lineColor:[230,230,230],lineWidth:.12},
        headStyles:{fillColor:yellow,textColor:dark,fontStyle:'bold',fontSize:5.6},
        alternateRowStyles:{fillColor:light},
        columnStyles:{0:{cellWidth:pageW-margin*2-63},1:{cellWidth:38},2:{cellWidth:25,halign:'right'}},
@@ -369,7 +378,7 @@ async function generateQuarterPdf(){
      doc.autoTable({
        startY:y,head:[['Componente','Resultado','Aporte','Detalle']],body:summaryRows,
        margin:{left:margin,right:margin},tableWidth:pageW-margin*2,
-       styles:{fontSize:5.5,cellPadding:.65,lineColor:[225,225,225],lineWidth:.12},
+       styles:{fontSize:4.8,cellPadding:.36,lineColor:[225,225,225],lineWidth:.12},
        headStyles:{fillColor:yellow,textColor:dark,fontStyle:'bold',fontSize:5.6},
        alternateRowStyles:{fillColor:light},
        columnStyles:{0:{cellWidth:58},1:{cellWidth:30},2:{cellWidth:28},3:{cellWidth:pageW-margin*2-116}},
@@ -380,7 +389,7 @@ async function generateQuarterPdf(){
    });
 
    doc.save('Reporte_trimestral_'+p.group+'_'+p.cycle+'.pdf');
-   qpdfStatus('PDF trimestral generado en una sola hoja horizontal por alumno, con septiembre y octubre en dos columnas.');
+   qpdfStatus('Reporte trimestral generado con todas las actividades y desglose en formato horizontal compacto.');
  }catch(e){
    console.error('PDF trimestral',e);qpdfStatus('No se pudo generar el PDF: '+(e.message||e));
  }finally{if(btn){btn.disabled=false;btn.textContent=old||'Generar PDF'}}

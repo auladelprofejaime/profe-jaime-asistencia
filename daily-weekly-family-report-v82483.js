@@ -161,12 +161,21 @@ function drawReport(doc,student,x,y,w,h,layout){
    cy+=1.2;
   }
  });
- const fy=y+h-12;doc.setDrawColor(170);
- doc.line(left,fy,right-48,fy);doc.line(right-43,fy,right,fy);
- doc.setFont('helvetica','normal');doc.setFontSize(6);
- doc.text('Firma del padre/madre/tutor',left,fy+3);doc.text('Fecha',right-43,fy+3);
+ // On full-letter reports, place signatures just below the last activity.
+ const contentEnd=y+layout.top+Math.max(...layout.cols.map(c=>c.height),0);
+ const fy=h>240?Math.min(y+h-15,Math.max(y+51,contentEnd+12)):y+h-12;
+ doc.setDrawColor(170);
+ const available=right-left, parentW=available*0.49, titularW=available*0.28;
+ const titularX=left+parentW+5, dateX=titularX+titularW+5;
+ doc.line(left,fy,left+parentW,fy);
+ doc.line(titularX,fy,titularX+titularW,fy);
+ doc.line(dateX,fy,right,fy);
+ doc.setFont('helvetica','normal');doc.setFontSize(5.8);
+ doc.text('Firma del padre, madre o tutor',left,fy+3);
+ doc.text('Firma del titular',titularX,fy+3);
+ doc.text('Fecha',dateX,fy+3);
  doc.setFontSize(5.5);doc.setTextColor(100);
- doc.text('E: entregada · NE: no entregada · PR: pendiente de revisión',left,y+h-4);
+ doc.text('E: entregada · NE: no entregada · PR: pendiente de revisión',left,h>240?Math.min(y+h-4,fy+10):y+h-4);
 }
 function chooseReport(doc,student){
  const vertical=measureReport(doc,student,132.7,205.9,1);

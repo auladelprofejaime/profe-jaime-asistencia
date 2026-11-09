@@ -176,6 +176,11 @@ async function enterPortal(){
  await enforceStudentSchedule();
  startStudentScheduleWatch();
  await load();
+ // Si el permiso ya está concedido, renueva automáticamente la suscripción push
+ // para evitar endpoints antiguos después de actualizaciones/reinstalaciones.
+ if('Notification' in window && Notification.permission==='granted'){
+   syncStudentPushSubscription().catch(e=>console.warn('No se pudo resincronizar Web Push de alumno',e));
+ }
  return true;
 }
 async function logout(){try{if(currentToken)await portalLogout(currentToken)}catch(e){}clearSession();location.reload()}

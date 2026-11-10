@@ -280,7 +280,7 @@ function configureMeritPoints(){
  }
  panel.classList.toggle('hidden',!unlimited);
  panel.style.setProperty('display',unlimited?'block':'none','important');
- if(!unlimited){const selected=$('#pointButtons button.active').find(b=>!b.disabled);if(selected){points=selected.dataset.points===''?null:Number(selected.dataset.points)}$('#reasonWrap')?.classList.toggle('hidden',points===null)}
+ if(!unlimited){const selected=Array.from(document.querySelectorAll('#pointButtons button.active')).find(b=>!b.disabled);if(selected){points=selected.dataset.points===''?null:Number(selected.dataset.points)}$('#reasonWrap')?.classList.toggle('hidden',points===null)}
 }
 function showCapture(){
  configureMeritPoints();

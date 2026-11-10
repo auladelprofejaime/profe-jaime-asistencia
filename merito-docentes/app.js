@@ -15,7 +15,7 @@ function enforceCombinedRankingLayout(){
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',enforceCombinedRankingLayout);else enforceCombinedRankingLayout();
 setTimeout(enforceCombinedRankingLayout,300);
 
-const MERIT_APP_VERSION='97';
+const MERIT_APP_VERSION='98';
 let meritUpdateChecking=false,meritUpdatePending='',meritUpdateReloading=false,meritWorkerRegistration=null;
 function meritCaptureInProgress(){
  return document.querySelector('dialog[open]')!==null||$('#activateBtn')?.disabled===true||$('#saveNewPin')?.disabled===true||$('#reviewBtn')?.disabled===true||$('#sendConfirm')?.disabled===true||
@@ -280,7 +280,7 @@ function configureMeritPoints(){
  }
  panel.classList.toggle('hidden',!unlimited);
  panel.style.setProperty('display',unlimited?'block':'none','important');
- if(!unlimited){points=null;$('#reasonWrap')?.classList.add('hidden')}
+ if(!unlimited){const selected=$('#pointButtons button.active').find(b=>!b.disabled);if(selected){points=selected.dataset.points===''?null:Number(selected.dataset.points)}$('#reasonWrap')?.classList.toggle('hidden',points===null)}
 }
 function showCapture(){
  configureMeritPoints();

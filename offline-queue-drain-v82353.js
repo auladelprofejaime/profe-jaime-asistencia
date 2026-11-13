@@ -2,6 +2,7 @@
 (function(){
   let drainBusy=false;
   let drainTimer=null;
+  let lastQueueFailure=0;
 
   function queueDelay(ms){
     clearTimeout(drainTimer);
@@ -63,7 +64,7 @@
           if(is429(e)){
             try{cloudOnline=true;supabaseReady=true}catch(_){}
             updateConnectivityUi?.();
-            queueDelay(8000);
+            lastQueueFailure=Date.now();queueDelay(30000);
             return;
           }
 
@@ -71,14 +72,14 @@
             // Mantener intacto el pendiente y esperar; no rotarlo ni bombardear el refresh.
             offlineQueueSet(q);
             updateConnectivityUi?.();
-            queueDelay(60000);
+            lastQueueFailure=Date.now();queueDelay(60000);
             return;
           }
 
           if(isConnectivity(e)){
             try{cloudOnline=false}catch(_){}
             updateConnectivityUi?.();
-            queueDelay(5000);
+            lastQueueFailure=Date.now();queueDelay(30000);
             return;
           }
 
@@ -104,7 +105,7 @@
       drainBusy=false;
       const remain=offlineQueueGet();
       if(remain.length&&navigator.onLine){
-        queueDelay(2500);
+        queueDelay(lastQueueFailure&&Date.now()-lastQueueFailure<60000?30000:5000);
       }else if(!remain.length){
         try{
           const fresh=await _originalRpc('teacher_book_payment_dashboard',{});
@@ -142,6 +143,6 @@
   // Si sigue habiendo pendientes, revisar periódicamente sin esperar un minuto completo.
   clearInterval(window.__offlineDrainHeartbeat);
   window.__offlineDrainHeartbeat=setInterval(()=>{
-    if(navigator.onLine&&offlineQueueGet().length)drainOfflineQueueContinuously().catch(()=>{});
-  },15000);
+    if(document.visibilityState==='visible'&&navigator.onLine&&(!lastQueueFailure||Date.now()-lastQueueFailure>30000)&&offlineQueueGet().length)drainOfflineQueueContinuously().catch(()=>{});
+  },60000);
 })();

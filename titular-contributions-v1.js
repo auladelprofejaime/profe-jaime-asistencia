@@ -5,14 +5,14 @@ const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&
 let students=[],campaigns=[],payments=[],current='',busy=false;
 const status=m=>{const x=$('#tcMessage');if(x)x.textContent=m||''};
 function build(){
- const root=$('#titular');if(!root)return;
+ const root=$('#contributionsStandalone')||$('#titular');if(!root)return;
  const tabs=root.querySelector('.subtabs');
  if(tabs&&!root.querySelector('[data-tittab="contributions"]')){const b=document.createElement('button');b.className='sub';b.dataset.tittab='contributions';b.textContent='Cooperaciones';tabs.appendChild(b);}
  const pane=$('#tit-contributions')||document.createElement('div');pane.id='tit-contributions';pane.className='titpane';pane.innerHTML=`
  <div class="card"><div class="section"><div><h2>Cooperaciones · 3.º A</h2><p class="hint">Crea registros independientes. Toca el nombre al recibir su aportación; desaparecerá de pendientes y quedará registrado.</p></div><button type="button" id="tcReload" class="secondary">Actualizar</button></div>
  <div class="formgrid"><label>Concepto<input id="tcTitle" maxlength="100" placeholder="Ej. Cooperación para vela"></label><label>Monto por alumno ($)<input id="tcAmount" type="number" min="0.01" step="0.01" value="5"></label><button type="button" id="tcCreate" class="primary">Crear cooperación</button></div><p id="tcMessage" class="message" aria-live="polite"></p></div>
  <div class="card"><label>Registro de cooperación<select id="tcSelect"></select></label><div id="tcSummary" style="margin:12px 0"></div><h3>Pendientes de aportar</h3><div id="tcPending" style="display:flex;flex-wrap:wrap;gap:8px"></div><details style="margin-top:18px"><summary><b id="tcPaidHeading">Aportaciones recibidas</b></summary><div id="tcPaid" style="margin-top:10px"></div></details></div>`;
- if(!pane.parentElement)root.appendChild(pane);
+ if(!pane.parentElement)root.appendChild(pane);if($('#contributionsStandalone'))pane.classList.add('active');
  // The original titular tab controller may only know two panes: handle this tab independently.
  tabs?.addEventListener('click',e=>{const b=e.target.closest('[data-tittab]');if(!b)return;const key=b.dataset.tittab;if(key==='contributions'){root.querySelectorAll('.subtabs .sub').forEach(x=>x.classList.toggle('active',x===b));root.querySelectorAll('.titpane').forEach(x=>x.classList.toggle('active',x===pane));load()}else{pane.classList.remove('active');b.classList.add('active')}});
  $('#tcReload').onclick=load;
@@ -55,6 +55,6 @@ async function undo(id){
  if(busy||!current||!confirm('¿Quitar la aportación registrada para este alumno?'))return;busy=true;
  try{await api().remove('titular_contribution_payments','contribution_id=eq.'+encodeURIComponent(current)+'&student_id=eq.'+encodeURIComponent(id));payments=payments.filter(x=>x.student_id!==id);render();status('Registro corregido.')}catch(e){status('No se pudo corregir: '+e.message)}finally{busy=false}
 }
-function init(){build()}
+function init(){build();if($('#contributionsStandalone'))load()}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
 })();

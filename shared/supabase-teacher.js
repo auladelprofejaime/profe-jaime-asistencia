@@ -23,7 +23,8 @@ try{
 }catch(_){}
 let apiActive=0,apiLastStart=0,apiCooldownUntil=0;
 const apiQueue=[];
-const API_MAX_CONCURRENT=2,API_MIN_GAP=180;
+const API_MAX_CONCURRENT=4,API_MIN_GAP=70;
+const pendingReads=new Map();
 
 function apiSleep(ms){return new Promise(r=>setTimeout(r,ms))}
 function apiPump(){
@@ -209,6 +210,17 @@ function restore(){
 }
 async function logout(){const t=await token();if(t){try{await fetch(URL+'/auth/v1/logout',{method:'POST',headers:headers(t)})}catch{}}session=null;localStorage.removeItem(SESSION_KEY);sessionStorage.removeItem(SESSION_KEY)}
 async function rest(path,{method='GET',body,prefer,onConflict}={}){
+ if(method==='GET'){
+   const key=path;
+   const pending=pendingReads.get(key);
+   if(pending)return pending;
+   const promise=restUnshared(path,{method,body,prefer,onConflict});
+   pendingReads.set(key,promise);
+   try{return await promise}finally{if(pendingReads.get(key)===promise)pendingReads.delete(key)}
+ }
+ return restUnshared(path,{method,body,prefer,onConflict});
+}
+async function restUnshared(path,{method='GET',body,prefer,onConflict}={}){
  let t=await token();if(!t)throw new Error('Inicia sesión de profesor para sincronizar.');
  let p=path;if(onConflict)p+=(p.includes('?')?'&':'?')+'on_conflict='+encodeURIComponent(onConflict);
  const doFetch=async(tokenValue)=>{

@@ -846,7 +846,7 @@ $('#offlineRetry')?.addEventListener('click',syncPending);
 
 window.addEventListener('online',()=>{updateOfflineUI();checkDevice();syncPending();refreshTieVotes()});
 window.addEventListener('offline',()=>{updateOfflineUI();checkSystemReady()});
-setInterval(()=>{if(navigator.onLine&&getQueue().length)syncPending();if(navigator.onLine&&token){checkDevice();refreshTieVotes()}},30000);
+setInterval(()=>{if(document.visibilityState!=='visible'||!navigator.onLine)return;if(getQueue().length)syncPending();if(token){checkDevice();refreshTieVotes()}},180000);
 document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible'&&navigator.onLine&&token){checkDevice();refreshTieVotes()}});
 
 function escapeHtml(v){return String(v).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c])}

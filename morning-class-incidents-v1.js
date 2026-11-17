@@ -58,7 +58,7 @@ async function openFor(studentId,name,group){
    box.innerHTML=rows.length?'<h4>Historial</h4>'+rows.map(r=>'<p>'+esc(r.incident_date)+' · '+esc(labels[r.incident_code]||r.incident_code)+' <button type="button" data-remove="'+esc(r.id)+'">Eliminar</button></p>').join(''):'Sin incidencias registradas.';
    box.querySelectorAll('[data-remove]').forEach(b=>b.addEventListener('click',async()=>{
     if(!confirm('¿Eliminar esta incidencia?'))return;
-    try{await ProfeSupabase.delete('morning_class_incidents','id=eq.'+encodeURIComponent(b.dataset.remove));b.parentElement.remove()}
+    try{await ProfeSupabase.remove('morning_class_incidents','id=eq.'+encodeURIComponent(b.dataset.remove));b.parentElement.remove()}
     catch(e){status.textContent='No se pudo eliminar: '+(e.message||e)}
    }));
   }catch(e){box.textContent='No se pudo cargar: '+(e.message||e)}

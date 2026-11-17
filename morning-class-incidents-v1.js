@@ -78,5 +78,5 @@ function enhance(){
 const observer=new MutationObserver(()=>enhance());
 function init(){const el=document.querySelector('#activityRangeGrid');if(el){observer.observe(el,{childList:true,subtree:true});enhance()}else setTimeout(init,500)}
 if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
-window.MorningIncidents={read,labels};
+window.MorningIncidents={read,labels,openFor};
 })();

@@ -7,7 +7,8 @@
 <script>
 const SUPA='https://xqeyyjakmeiaahecfdmc.supabase.co',KEY='sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA';
 const q=id=>document.getElementById(id),esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-let ctx=null,mat='';
+let ctx=null,mat='',drafts={};
+const draftKey=(session,type,presenter)=>session+'|'+type+'|'+presenter;
 async function rpc(fn,args){const r=await fetch(SUPA+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify(args)});const t=await r.text();let d;try{d=JSON.parse(t)}catch{d=t}if(!r.ok)throw Error(d?.message||d?.hint||t||'No se pudo consultar');return d}
 const criteria=[['dominio','Dominio del poema'],['expresion','Expresión oral'],['interpretacion','Interpretación'],['postura','Postura y lenguaje corporal'],['estilo','Originalidad y estilo']];
 const reasonOptions=['Mostró dominio del poema','Se escuchó claramente','Utilizó buena dicción','Manejó adecuadamente el ritmo y las pausas','Transmitió la emoción o intención del poema','Mostró seguridad','Su expresión corporal apoyó la presentación','Mostró un estilo propio','Necesitó mayor volumen','Necesitó mejorar la claridad al hablar','Podría mejorar ritmo y pausas','Faltó mayor expresión o interpretación','Mostró inseguridad','Perdió continuidad o dominio del poema','Su postura o movimientos podrían mejorar'];
@@ -47,6 +48,10 @@ function render(){
   msg.className='status';
   msg.textContent='Te faltan '+remaining+' evaluaciones. Completa todas las que correspondan a compañeros que presentaron.';
   box.prepend(msg);
+  const done=Object.keys(drafts).filter(k=> (ctx.sessions||[]).some(s=> (s.presenters||[]).some(p=>draftKey(s.id,p.self?'self':'peer',p.student_id)===k && p.presented && (p.self?!s.self_done:!p.peer_done_by_me)))).length;
+  const footer=document.createElement('div');footer.className='card';footer.innerHTML='<h2>Envío final</h2><p class="meta">Respuestas preparadas: '+done+' de '+remaining+'</p><button id="submitAll" class="primary" style="width:100%" '+(done!==remaining?'disabled style="width:100%;opacity:.5"':'')+'>Enviar todas las evaluaciones</button><p id="submitStatus" class="status hidden"></p>';
+  box.appendChild(footer);
+  q('submitAll').onclick=async()=>{const st=q('submitStatus');try{const answers=[];for(const se of ctx.sessions||[])for(const p of se.presenters||[]){if(!p.presented||(p.self?se.self_done:p.peer_done_by_me))continue;const d=drafts[draftKey(se.id,p.self?'self':'peer',p.student_id)];if(!d)throw Error('Faltan evaluaciones por completar');answers.push(d)}q('submitAll').disabled=true;st.className='status';st.textContent='Enviando todas las respuestas…';const out=await rpc('public_poem_eval_submit_all',{p_matricula:mat,p_answers:answers});drafts={};st.className='status good';st.textContent=out.demo?'Demostración: no se guardaron respuestas.':'Todas las evaluaciones se enviaron correctamente.';await loadContext()}catch(e){q('submitAll').disabled=false;st.className='status bad';st.textContent=e.message}};
  }
  document.querySelectorAll('.peerBtn').forEach(b=>b.onclick=()=>openForm('peer',b.dataset.session,b.dataset.id,b.dataset.name));
  document.querySelectorAll('.selfBtn').forEach(b=>b.onclick=()=>openForm('self',b.dataset.session,b.dataset.id,ctx.student.name));
@@ -71,36 +76,19 @@ function openForm(type,session,presenter,name){
  sessions.appendChild(wrap);
  window.scrollTo({top:0,behavior:'smooth'});
  q('cancelEval').onclick=()=>render();
- q('saveEval').onclick=async()=>{
+ q('saveEval').onclick=()=>{
    const st=q('formStatus');
    try{
      const rubric=getRubric('r');
      const reasons=type==='peer'?[...document.querySelectorAll('input[name="reason"]:checked')].map(x=>x.value):[];
      if(type==='peer'&&!reasons.length)throw Error('Selecciona al menos una justificación');
-     st.className='status';
-     st.classList.remove('hidden');
-     st.textContent='Guardando…';
-     const out=await rpc('public_poem_eval_submit',{
-       p_matricula:mat,
-       p_session_id:session,
-       p_type:type,
-       p_presenter_id:presenter,
-       p_rubric:rubric,
-       p_reasons:reasons,
-       p_best:type==='self'?q('best').value:null,
-       p_improve:type==='self'?q('improve').value:null
-     });
-     st.className='status good';
-     st.textContent=out.demo?'Demostración completa. No se guardaron datos.':'Evaluación guardada.';
-     setTimeout(async()=>{await loadContext()},500);
-   }catch(e){
-     st.className='status bad';
-     st.classList.remove('hidden');
-     st.textContent=e.message;
-   }
+     drafts[draftKey(session,type,presenter)]={session_id:session,type,presenter_id:presenter,rubric,reasons,best:type==='self'?q('best').value:null,improve:type==='self'?q('improve').value:null};
+     render();
+   }catch(e){st.className='status bad';st.textContent=e.message}
  };
+
 }
 async function loadContext(){ctx=await rpc('public_poem_eval_context',{p_matricula:mat});render()}
 q('enter').onclick=async()=>{const st=q('loginStatus');mat=q('matricula').value.trim();if(!mat)return;st.className='status';st.classList.remove('hidden');st.textContent='Validando…';try{await loadContext()}catch(e){st.className='status bad';st.textContent=e.message}};
-q('matricula').addEventListener('keydown',e=>{if(e.key==='Enter')q('enter').click()});q('backTeacherApp').onclick=()=>{location.href='../index.html#poem-contest'};q('logout').onclick=()=>{ctx=null;mat='';q('app').classList.add('hidden');q('loginCard').classList.remove('hidden');q('matricula').value='';q('loginStatus').classList.add('hidden')};
+q('matricula').addEventListener('keydown',e=>{if(e.key==='Enter')q('enter').click()});q('backTeacherApp').onclick=()=>{location.href='../index.html#poem-contest'};q('logout').onclick=()=>{ctx=null;mat='';drafts={};q('app').classList.add('hidden');q('loginCard').classList.remove('hidden');q('matricula').value='';q('loginStatus').classList.add('hidden')};
 </script></body></html>

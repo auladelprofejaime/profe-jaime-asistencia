@@ -21,51 +21,33 @@ function render(){
  q('demo').classList.toggle('hidden',!ctx.demo);
  const box=q('sessions');
  box.innerHTML='';
-
- const sessions=ctx.sessions||[];
- for(const s of sessions){
-  const open=s.is_open;
-  const eligible=(s.presenters||[]).filter(p=>p.presented&&!p.self&&!p.peer_done_by_me);
-  const own=(s.presenters||[]).find(p=>p.self);
-  const self=(s.presenters||[]).find(p=>p.self&&p.presented);
-  const ownAbsent=!!(own&&own.presentation_status==='absent');
-  const peerComplete=s.peer_required>0&&s.peer_done>=s.peer_required;
-  const selfNeeded=!!self;
-  const selfComplete=!selfNeeded||s.self_done||ownAbsent;
-  const allComplete=peerComplete&&selfComplete;
-
+ let remaining=0;
+ for(const s of (ctx.sessions||[])){
+  const pending=(s.presenters||[]).filter(p=>p.presented&&!p.self&&!p.peer_done_by_me);
+  const own=(s.presenters||[]).find(p=>p.self&&p.presented&&!s.self_done);
+  if(!pending.length&&!own)continue;
+  remaining+=pending.length+(own?1:0);
   const card=document.createElement('div');
   card.className='card';
-
-  if(open&&allComplete){
-    card.innerHTML=
-      '<div style="text-align:center;padding:18px 8px">'+
-      '<div style="font-size:2.3rem;margin-bottom:8px">✓</div>'+
-      '<h2 style="margin-bottom:8px">Has terminado tu coevaluación</h2>'+
-      '<p class="meta" style="max-width:480px;margin:0 auto">Completaste todas las evaluaciones que te correspondían. Muchas gracias por participar.</p>'+
-      (ownAbsent?'<div class="presenter" style="margin-top:18px;border-color:#efc0c7;background:#fff6f7"><b>No puedes realizar la autoevaluación.</b><div class="meta" style="margin-top:6px">No realizaste tu presentación de poema en la fecha asignada.</div><div style="margin-top:10px;font-weight:900;color:#8b1d2a">Calificación de la presentación: 0</div></div>':'')+
-      '</div>';
-    box.appendChild(card);
-    continue;
-  }
-
-  const ownBlock=ownAbsent?
-    '<div class="presenter" style="border-color:#efc0c7;background:#fff6f7"><b>No puedes realizar la autoevaluación.</b><div class="meta" style="margin-top:6px">No realizaste tu presentación de poema en la fecha asignada.</div><div style="margin-top:10px;font-weight:900;color:#8b1d2a">Calificación de la presentación: 0</div></div>':'';
-
   card.innerHTML=
-   '<h2>'+esc(s.presentation_date)+'</h2>'+
-   '<p class="meta">Evaluación disponible hasta '+new Date(s.closes_at).toLocaleString('es-MX')+'</p>'+
-   (!open?'<p class="status bad">Esta evaluación no está abierta en este momento.</p>':'<p class="status good">Evaluación abierta.</p>')+
-   (open?'<p><b>Coevaluaciones:</b> '+s.peer_done+'/'+s.peer_required+'</p>':'')+
-   (open&&!peerComplete&&eligible.length?'<div>'+eligible.map(p=>'<div class="presenter"><b>'+esc(p.name)+'</b><div class="meta">'+esc(p.poem)+'</div><button class="primary peerBtn" data-session="'+esc(s.id)+'" data-id="'+esc(p.student_id)+'" data-name="'+esc(p.name)+'">Evaluar compañero</button></div>').join('')+'</div>':'')+
-   (open&&peerComplete?'<p class="status good">Ya completaste todas tus coevaluaciones.</p>':'')+
-   (open&&self&&!s.self_done?'<div class="presenter"><b>Tu autoevaluación</b><div class="meta">'+esc(self.poem)+'</div><button class="primary selfBtn" data-session="'+esc(s.id)+'" data-id="'+esc(self.student_id)+'">Realizar autoevaluación</button></div>':'')+
-   (open&&self&&s.self_done?'<p class="status good">Tu autoevaluación ya fue registrada.</p>':'')+
-   ownBlock;
-
+   '<h2>Presentaciones del '+esc(s.presentation_date)+'</h2>'+
+   '<p class="meta">Evaluaciones pendientes: '+(pending.length+(own?1:0))+'</p>'+
+   (!s.is_open?'<p class="status bad">Esta jornada está cerrada. Solicita al profesor que la habilite.</p>':'')+
+   (s.is_open?pending.map(p=>'<div class="presenter"><b>'+esc(p.name)+'</b><div class="meta">'+esc(p.poem)+'</div><button class="primary peerBtn" data-session="'+esc(s.id)+'" data-id="'+esc(p.student_id)+'" data-name="'+esc(p.name)+'">Evaluar compañero</button></div>').join(''):'')+
+   (s.is_open&&own?'<div class="presenter"><b>Tu autoevaluación</b><div class="meta">'+esc(own.poem)+'</div><button class="primary selfBtn" data-session="'+esc(s.id)+'" data-id="'+esc(own.student_id)+'">Realizar autoevaluación</button></div>':'');
   box.appendChild(card);
  }
-
+ if(!remaining){
+  const card=document.createElement('div');
+  card.className='card';
+  card.innerHTML='<h2>Evaluaciones completas</h2><p class="status good">No tienes evaluaciones pendientes de compañeros que hayan presentado ni autoevaluaciones habilitadas pendientes.</p>';
+  box.appendChild(card);
+ }else{
+  const msg=document.createElement('p');
+  msg.className='status';
+  msg.textContent='Te faltan '+remaining+' evaluaciones. Completa todas las que correspondan a compañeros que presentaron.';
+  box.prepend(msg);
+ }
  document.querySelectorAll('.peerBtn').forEach(b=>b.onclick=()=>openForm('peer',b.dataset.session,b.dataset.id,b.dataset.name));
  document.querySelectorAll('.selfBtn').forEach(b=>b.onclick=()=>openForm('self',b.dataset.session,b.dataset.id,ctx.student.name));
 }

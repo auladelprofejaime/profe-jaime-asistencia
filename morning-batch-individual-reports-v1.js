@@ -121,7 +121,14 @@ async function generate(){
    if(!sts.length)continue;
    status.textContent='Consultando grupo '+group+' ('+sts.length+' alumnos)…';
    const raw=await pages('activities','select=*&activity_date=gte.'+from+'&activity_date=lte.'+to);
-   const acts=raw.filter(a=>{if(!morning(a.shift))return false;const obj={...a.data,id:a.id,shift:a.shift,group:a.group_name};return typeof activityMatchesGroup==='function'?activityMatchesGroup(obj,group):same(a.group_name,group)}).sort((a,b)=>String(a.activity_date).localeCompare(String(b.activity_date)));
+   const acts=raw.filter(a=>{
+    if(!morning(a.shift))return false;
+    // data.groups es la asignación real; group_name solo identifica el registro original.
+    const targets=a.data?.groups;
+    if(Array.isArray(targets)&&targets.length)return targets.some(g=>same(g,group));
+    return same(a.group_name,group)||same(a.data?.group,group);
+   }).sort((a,b)=>String(a.activity_date).localeCompare(String(b.activity_date)));
+   status.textContent='Grupo '+group+': '+acts.length+' actividades asignadas en el intervalo.';
    if(acts.length>17)throw Error('El grupo '+group+' tiene '+acts.length+' actividades en el intervalo. Reduce las fechas para evitar cortar actividades en media carta (máximo 17).');
    const map=new Map();
    const incidentRows=window.MorningIncidents?.read?await window.MorningIncidents.read(sts.map(st=>String(st.id)),from,to):[];

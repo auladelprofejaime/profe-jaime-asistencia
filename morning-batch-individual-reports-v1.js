@@ -31,40 +31,50 @@ function fit(doc,text,width,maxLines=2){
  const lines=doc.splitTextToSize(String(text||'—'),width);
  return lines.slice(0,maxLines).map((line,i)=>i===maxLines-1&&lines.length>maxLines?line.replace(/.{2}$/,'…'):line);
 }
-function sheet(doc,st,group,acts,recordMap,from,to,y){
- const left=13,right=203,mid=108;
- doc.setDrawColor(155);doc.setLineWidth(.25);doc.rect(9,y,198,127);
- doc.setFont('helvetica','bold');doc.setFontSize(10);
- doc.text('REPORTE INDIVIDUAL DE ACTIVIDADES · ESPAÑOL',left,y+7);
- doc.setFontSize(8);doc.text('Alumno: '+String(st.name||st.id).slice(0,69),left,y+13);
- doc.setFont('helvetica','normal');doc.text('Grupo: '+group+'     Periodo: '+from+' al '+to,left,y+18);
- doc.setFillColor(237,239,242);doc.rect(left,y+21,190,6,'F');
- doc.setFont('helvetica','bold');doc.setFontSize(7);
- doc.text('ACTIVIDAD',left+2,y+25);doc.text('FECHA',mid+20,y+25);doc.text('ENTREGA',right-25,y+25);
- let yy=y+30,delivered=0;
- const maxRows=acts.length;
- for(const a of acts){
+function sheet(doc,st,group,acts,recordMap,from,to,y,incidents=[]){
+ const left=13,right=203;
+ doc.setDrawColor(170,170,170);doc.setLineWidth(.25);doc.rect(9,y,198,127);
+ // Mantener el lenguaje visual del reporte individual existente: encabezado institucional,
+ // franja amarilla, tabla de cinco columnas, resumen e incidencias.
+ doc.setFillColor(245,196,0);doc.rect(9,y,198,13,'F');
+ doc.setTextColor(33,27,18);doc.setFont('helvetica','bold');doc.setFontSize(10);
+ doc.text('REPORTE DE ACTIVIDADES',left,y+6);
+ doc.setFontSize(8);doc.text('ESPAÑOL · MATUTINO',left,y+10);
+ doc.setTextColor(0);doc.setFont('helvetica','bold');doc.setFontSize(8);
+ doc.text('Alumno: '+String(st.name||st.id).slice(0,75),left,y+19);
+ doc.setFont('helvetica','normal');doc.setFontSize(7.5);
+ doc.text('Grupo: '+group+'   No. de lista: '+(st.list_number||'—')+'   Periodo: '+from+' al '+to,left,y+24);
+ const body=acts.map(a=>{
   const r=recordMap.get(String(a.id)+'|'+String(st.id));
-  const yes=r?.delivered===true;
-  if(yes)delivered++;
-  doc.setFont('helvetica','normal');doc.setFontSize(6.6);
-  doc.text(fit(doc,a.title||a.name||'Actividad',99,1),left+2,yy);
-  doc.text(String(a.activity_date||a.date||'—').slice(0,10),mid+20,yy);
-  doc.text(yes?'Entregada':r?.delivered===false?'No entregada':'Sin registro',right-25,yy);
-  yy+=3.25;
+  return [String(a.title||a.name||'Actividad'),String(a.data?.type||a.evaluation_type||'Actividad'),String(a.activity_date||'—').slice(0,10),String(a.due_date||'—').slice(0,10),r?.delivered===true?'Entregada':r?.delivered===false?'No entregada':'Sin registro'];
+ });
+ doc.autoTable({startY:y+28,head:[['Actividad','Tipo','Asignada','Entrega','Estado']],body,
+  margin:{left:13,right:13},tableWidth:190,
+  styles:{fontSize:6.3,cellPadding:1.05,valign:'middle',overflow:'ellipsize'},
+  headStyles:{fillColor:[245,196,0],textColor:[33,27,18],fontStyle:'bold'},
+  columnStyles:{0:{cellWidth:76},1:{cellWidth:25},2:{cellWidth:25},3:{cellWidth:25},4:{cellWidth:39}},
+  pageBreak:'avoid'});
+ let yy=doc.lastAutoTable.finalY+4;
+ const count=acts.filter(a=>recordMap.get(String(a.id)+'|'+String(st.id))?.delivered===true).length;
+ doc.setFont('helvetica','bold');doc.setFontSize(8);doc.text('Entregadas / registradas: '+count+' de '+acts.length,left,yy);
+ yy+=5;
+ if(incidents.length){
+  doc.setFontSize(7.5);doc.text('Incidencias de comportamiento',left,yy);yy+=3;
+  for(const inc of incidents.slice(0,4)){
+   doc.setFont('helvetica','normal');doc.setFontSize(6.5);
+   doc.text(String(inc.incident_date||'')+' · '+String(window.MorningIncidents?.labels?.[inc.incident_code]||inc.incident_code||'').slice(0,105),left,yy);yy+=3.2;
+  }
+  if(incidents.length>4){doc.text('+'+(incidents.length-4)+' incidencias adicionales; reduzca el intervalo.',left,yy);yy+=3}
  }
- const allDelivered=acts.filter(a=>recordMap.get(String(a.id)+'|'+String(st.id))?.delivered===true).length;
- if(acts.length>maxRows){doc.setFontSize(7);doc.text('+'+(acts.length-maxRows)+' actividades adicionales: reduce el intervalo para verlas todas.',left+2,yy+2)}
- doc.setFont('helvetica','bold');doc.setFontSize(8);
- doc.text('Entregadas: '+allDelivered+' de '+acts.length,left+2,y+109);
- doc.setDrawColor(60);doc.line(124,y+110,198,y+110);
- doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text('Firma del padre, madre o tutor',126,y+114);
+ doc.setDrawColor(60);doc.line(122,y+108,199,y+108);
+ doc.setFont('helvetica','normal');doc.setFontSize(7);doc.text('Firma del padre, madre o tutor (de enterado)',125,y+112);
  doc.setFont('helvetica','bold');doc.setFontSize(7);
- const note1='IMPORTANTE: NO SE ACEPTARÁN ACTIVIDADES ATRASADAS ESTE TRIMESTRE.';
- doc.text(note1,left+2,y+118);doc.line(left+2,y+119, left+2+doc.getTextWidth(note1),y+119);
+ const warning='NO SE ACEPTARÁN ACTIVIDADES ATRASADAS ESTE TRIMESTRE.';
+ doc.text(warning,left,y+117);doc.line(left,y+118,left+doc.getTextWidth(warning),y+118);
  doc.setFont('helvetica','normal');doc.setFontSize(6.4);
- doc.text('Excepciones: inasistencia justificada; o actividades selladas o firmadas',left+2,y+122);
- doc.text('que no aparezcan registradas, previa verificación y actualización.',left+2,y+125);
+ doc.text('Excepto por inasistencia justificada. Se actualizarán actividades selladas o firmadas',left,y+122);
+ doc.text('que no aparezcan registradas, previa comprobación.',left,y+125);
+ if(yy>y+105)throw Error('El reporte del grupo '+group+' no cabe en media carta. Reduce el intervalo.');
 }
 function openViewer(blob,filename,count){
  const old=$('morningBatchPdfViewer');if(old)old.remove();
@@ -103,8 +113,10 @@ async function generate(){
    status.textContent='Consultando grupo '+group+' ('+sts.length+' alumnos)…';
    const raw=await pages('activities','select=*&activity_date=gte.'+from+'&activity_date=lte.'+to);
    const acts=raw.filter(a=>{if(!morning(a.shift))return false;const obj={...a.data,id:a.id,shift:a.shift,group:a.group_name};return typeof activityMatchesGroup==='function'?activityMatchesGroup(obj,group):same(a.group_name,group)}).sort((a,b)=>String(a.activity_date).localeCompare(String(b.activity_date)));
-   if(acts.length>24)throw Error('El grupo '+group+' tiene '+acts.length+' actividades en el intervalo. Reduce las fechas para evitar cortar actividades en media carta (máximo 24).');
+   if(acts.length>17)throw Error('El grupo '+group+' tiene '+acts.length+' actividades en el intervalo. Reduce las fechas para evitar cortar actividades en media carta (máximo 24).');
    const map=new Map();
+   const incidentRows=window.MorningIncidents?.read?await window.MorningIncidents.read(sts.map(st=>String(st.id)),from,to):[];
+   const incidentMap=new Map();for(const row of incidentRows){const key=String(row.student_id);if(!incidentMap.has(key))incidentMap.set(key,[]);incidentMap.get(key).push(row)}
    for(let i=0;i<acts.length;i+=15){
     const ids=acts.slice(i,i+15).map(a=>a.id);
     for(let j=0;j<sts.length;j+=60){
@@ -114,7 +126,7 @@ async function generate(){
    }
    for(const st of sts){
     if(!first&&printed%2===0)doc.addPage();
-    sheet(doc,st,group,acts,map,from,to,printed%2===0?12:145);
+    sheet(doc,st,group,acts,map,from,to,printed%2===0?12:145,incidentMap.get(String(st.id))||[]);
     printed++;first=false;
    }
   }

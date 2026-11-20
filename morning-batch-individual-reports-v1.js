@@ -42,7 +42,7 @@ function sheet(doc,st,group,acts,recordMap,from,to,y){
  doc.setFont('helvetica','bold');doc.setFontSize(7);
  doc.text('ACTIVIDAD',left+2,y+25);doc.text('FECHA',mid+20,y+25);doc.text('ENTREGA',right-25,y+25);
  let yy=y+30,delivered=0;
- const maxRows=acts.length>24?24:acts.length;
+ const maxRows=acts.length;
  for(const a of acts){
   const r=recordMap.get(String(a.id)+'|'+String(st.id));
   const yes=r?.delivered===true;
@@ -81,8 +81,9 @@ async function generate(){
    const sts=roster.filter(s=>morning(s.shift)&&same(s.group_name,group)).sort((a,b)=>(Number(a.list_number)||999)-(Number(b.list_number)||999)||String(a.name).localeCompare(String(b.name),'es'));
    if(!sts.length)continue;
    status.textContent='Consultando grupo '+group+' ('+sts.length+' alumnos)…';
-   const raw=await pages('activities','select=*&shift=eq.Matutino&activity_date=gte.'+from+'&activity_date=lte.'+to);
-   const acts=raw.filter(a=>{const obj={...a.data,id:a.id,shift:a.shift,group:a.group_name};return typeof activityMatchesGroup==='function'?activityMatchesGroup(obj,group):same(a.group_name,group)}).sort((a,b)=>String(a.activity_date).localeCompare(String(b.activity_date)));
+   const raw=await pages('activities','select=*&activity_date=gte.'+from+'&activity_date=lte.'+to);
+   const acts=raw.filter(a=>{if(!morning(a.shift))return false;const obj={...a.data,id:a.id,shift:a.shift,group:a.group_name};return typeof activityMatchesGroup==='function'?activityMatchesGroup(obj,group):same(a.group_name,group)}).sort((a,b)=>String(a.activity_date).localeCompare(String(b.activity_date)));
+   if(acts.length>24)throw Error('El grupo '+group+' tiene '+acts.length+' actividades en el intervalo. Reduce las fechas para evitar cortar actividades en media carta (máximo 24).');
    const map=new Map();
    for(let i=0;i<acts.length;i+=15){
     const ids=acts.slice(i,i+15).map(a=>a.id);

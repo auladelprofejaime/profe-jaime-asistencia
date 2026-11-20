@@ -31,27 +31,28 @@ function fit(doc,text,width,maxLines=2){
  const lines=doc.splitTextToSize(String(text||'—'),width);
  return lines.slice(0,maxLines).map((line,i)=>i===maxLines-1&&lines.length>maxLines?line.replace(/.{2}$/,'…'):line);
 }
-function sheet(doc,st,group,acts,recordMap,from,to,y,incidents=[]){
- const left=13,right=203;
- doc.setDrawColor(170,170,170);doc.setLineWidth(.25);doc.rect(9,y,198,127);
- // Mantener el lenguaje visual del reporte individual existente: encabezado institucional,
- // franja amarilla, tabla de cinco columnas, resumen e incidencias.
- doc.setFillColor(245,196,0);doc.rect(9,y,198,13,'F');
- doc.setTextColor(33,27,18);doc.setFont('helvetica','bold');doc.setFontSize(10);
- doc.text('REPORTE DE ACTIVIDADES',left,y+6);
- doc.setFontSize(8);doc.text('ESPAÑOL · MATUTINO',left,y+10);
- doc.setTextColor(0);doc.setFont('helvetica','bold');doc.setFontSize(8);
- doc.text('Alumno: '+String(st.name||st.id).slice(0,75),left,y+19);
- doc.setFont('helvetica','normal');doc.setFontSize(7.5);
- doc.text('Grupo: '+group+'   No. de lista: '+(st.list_number||'—')+'   Periodo: '+from+' al '+to,left,y+24);
+function sheet(doc,st,group,acts,recordMap,from,to,y,incidents=[],logoData){
+ const left=13;
+ // Encabezado fiel al reporte grupal: franja superior, logo, nombre del profesor y línea roja.
+ doc.setFillColor(245,196,0);doc.rect(9,y,198,2.4,'F');
+ if(logoData)doc.addImage(logoData,'PNG',13,y+5,15,15);
+ doc.setTextColor(35,35,35);doc.setFont('helvetica','bold');doc.setFontSize(10);
+ doc.text('Reporte de actividades',32,y+10);
+ doc.setFont('helvetica','normal');doc.setFontSize(6.5);
+ doc.text('Profesor: Jaime Armando Pérez Vázquez',32,y+14);
+ doc.setTextColor(153,22,43);doc.setFont('helvetica','bold');doc.text('ESPAÑOL',32,y+18);
+ doc.setDrawColor(158,19,43);doc.setLineWidth(.55);doc.line(13,y+22,203,y+22);
+ doc.setTextColor(25,25,25);doc.setFont('helvetica','bold');doc.setFontSize(7.4);
+ doc.text('Turno: Matutino    Grupo: '+group+'    Periodo: '+from+' al '+to,13,y+27);
+ doc.setFontSize(7.2);doc.text('Alumno: '+String(st.name||st.id).slice(0,78)+'    No. '+(st.list_number||'—'),13,y+32);
  const body=acts.map(a=>{
   const r=recordMap.get(String(a.id)+'|'+String(st.id));
   return [String(a.title||a.name||'Actividad'),String(a.data?.type||a.evaluation_type||'Actividad'),String(a.activity_date||'—').slice(0,10),String(a.due_date||'—').slice(0,10),r?.delivered===true?'Entregada':r?.delivered===false?'No entregada':'Sin registro'];
  });
- doc.autoTable({startY:y+28,head:[['Actividad','Tipo','Asignada','Entrega','Estado']],body,
+ doc.autoTable({startY:y+35,head:[['Actividad','Tipo','Asignada','Entrega','Estado']],body,
   margin:{left:13,right:13},tableWidth:190,
   styles:{fontSize:6.3,cellPadding:1.05,valign:'middle',overflow:'ellipsize'},
-  headStyles:{fillColor:[245,196,0],textColor:[33,27,18],fontStyle:'bold'},
+  headStyles:{fillColor:[245,196,0],textColor:[33,27,18],fontStyle:'bold'},alternateRowStyles:{fillColor:[245,245,245]},
   columnStyles:{0:{cellWidth:76},1:{cellWidth:25},2:{cellWidth:25},3:{cellWidth:25},4:{cellWidth:39}},
   pageBreak:'avoid'});
  let yy=doc.lastAutoTable.finalY+4;
@@ -96,6 +97,13 @@ function openViewer(blob,filename,count){
   }catch(e){if(e.name!=='AbortError')alert('No se pudo compartir: '+(e.message||e))}
  };
 }
+async function loadInstitutionalLogo(){
+ const img=new Image();img.src='logo-app-docente-v821.png';
+ await new Promise((resolve,reject)=>{img.onload=resolve;img.onerror=()=>reject(Error('No se pudo cargar el logotipo institucional.'));if(img.complete&&img.naturalWidth)resolve()});
+ const canvas=document.createElement('canvas');canvas.width=img.naturalWidth;canvas.height=img.naturalHeight;
+ canvas.getContext('2d').drawImage(img,0,0);
+ return canvas.toDataURL('image/png');
+}
 async function generate(){
  const btn=$('morningBatchGenerate'),status=$('morningBatchStatus');
  const chosen=[...document.querySelectorAll('.morningBatchGroup:checked')].map(x=>x.value);
@@ -105,6 +113,7 @@ async function generate(){
  btn.disabled=true;status.textContent='Consultando registros de los grupos…';
  try{
   const {jsPDF}=window.jspdf,doc=new jsPDF({unit:'mm',format:'letter'});
+  const logoData=await loadInstitutionalLogo();
   const roster=await pages('students','select=id,name,shift,group_name,list_number,active&active=eq.true');
   let printed=0,first=true;
   for(const group of chosen){
@@ -113,7 +122,7 @@ async function generate(){
    status.textContent='Consultando grupo '+group+' ('+sts.length+' alumnos)…';
    const raw=await pages('activities','select=*&activity_date=gte.'+from+'&activity_date=lte.'+to);
    const acts=raw.filter(a=>{if(!morning(a.shift))return false;const obj={...a.data,id:a.id,shift:a.shift,group:a.group_name};return typeof activityMatchesGroup==='function'?activityMatchesGroup(obj,group):same(a.group_name,group)}).sort((a,b)=>String(a.activity_date).localeCompare(String(b.activity_date)));
-   if(acts.length>17)throw Error('El grupo '+group+' tiene '+acts.length+' actividades en el intervalo. Reduce las fechas para evitar cortar actividades en media carta (máximo 24).');
+   if(acts.length>17)throw Error('El grupo '+group+' tiene '+acts.length+' actividades en el intervalo. Reduce las fechas para evitar cortar actividades en media carta (máximo 17).');
    const map=new Map();
    const incidentRows=window.MorningIncidents?.read?await window.MorningIncidents.read(sts.map(st=>String(st.id)),from,to):[];
    const incidentMap=new Map();for(const row of incidentRows){const key=String(row.student_id);if(!incidentMap.has(key))incidentMap.set(key,[]);incidentMap.get(key).push(row)}
@@ -126,7 +135,7 @@ async function generate(){
    }
    for(const st of sts){
     if(!first&&printed%2===0)doc.addPage();
-    sheet(doc,st,group,acts,map,from,to,printed%2===0?12:145,incidentMap.get(String(st.id))||[]);
+    sheet(doc,st,group,acts,map,from,to,printed%2===0?12:145,incidentMap.get(String(st.id))||[],logoData);
     printed++;first=false;
    }
   }

@@ -3,7 +3,7 @@
 'use strict';
 const $=id=>document.getElementById(id);
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const groups=['22','24','25','26'];
+const groups=['22','23','24','25','26'];
 const morning=v=>/matutino/i.test(String(v||''));
 const same=(a,b)=>String(a||'').replace(/[^a-z0-9]/gi,'').toLowerCase()===String(b||'').replace(/[^a-z0-9]/gi,'').toLowerCase();
 async function pages(table,query){
@@ -66,6 +66,26 @@ function sheet(doc,st,group,acts,recordMap,from,to,y){
  doc.text('Excepciones: inasistencia justificada; o actividades selladas o firmadas',left+2,y+122);
  doc.text('que no aparezcan registradas, previa verificación y actualización.',left+2,y+125);
 }
+function openViewer(blob,filename,count){
+ const old=$('morningBatchPdfViewer');if(old)old.remove();
+ const url=URL.createObjectURL(blob);
+ const overlay=document.createElement('div');overlay.id='morningBatchPdfViewer';
+ overlay.style.cssText='position:fixed;inset:0;z-index:2147483647;background:#fff;display:flex;flex-direction:column';
+ overlay.innerHTML='<div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:10px;background:#f5c400"><strong style="flex:1">Reportes individuales · '+count+' alumnos</strong><button type="button" id="morningBatchShare">Compartir PDF</button><button type="button" id="morningBatchDownload">Descargar PDF</button><button type="button" id="morningBatchClose">Cerrar y volver</button></div><iframe title="Vista previa de reportes" style="width:100%;flex:1;border:0"></iframe>';
+ document.body.appendChild(overlay);
+ overlay.querySelector('iframe').src=url;
+ const close=()=>{overlay.remove();URL.revokeObjectURL(url)};
+ $('morningBatchClose').onclick=close;
+ $('morningBatchDownload').onclick=()=>{const a=document.createElement('a');a.href=url;a.download=filename;document.body.appendChild(a);a.click();a.remove()};
+ $('morningBatchShare').onclick=async()=>{
+  try{
+   const file=new File([blob],filename,{type:'application/pdf'});
+   if(navigator.share&&navigator.canShare?.({files:[file]})){await navigator.share({files:[file],title:'Reportes individuales'});return}
+   if(navigator.share){await navigator.share({title:'Reportes individuales',url});return}
+   $('morningBatchDownload').click();alert('Se descargó el PDF para compartirlo desde tu dispositivo.');
+  }catch(e){if(e.name!=='AbortError')alert('No se pudo compartir: '+(e.message||e))}
+ };
+}
 async function generate(){
  const btn=$('morningBatchGenerate'),status=$('morningBatchStatus');
  const chosen=[...document.querySelectorAll('.morningBatchGroup:checked')].map(x=>x.value);
@@ -101,8 +121,7 @@ async function generate(){
   if(!printed)throw Error('No se encontraron alumnos activos de los grupos seleccionados.');
   status.textContent='PDF listo: '+printed+' reportes en '+Math.ceil(printed/2)+' hojas.';
   const blob=doc.output('blob');
-  if(typeof printContent==='function')printContent('Reportes individuales matutinos','<p>'+printed+' reportes · '+Math.ceil(printed/2)+' hojas tamaño carta</p>',blob,'reportes_matutino_'+from+'_'+to+'.pdf');
-  else doc.save('reportes_matutino_'+from+'_'+to+'.pdf');
+  openViewer(blob,'reportes_matutino_'+from+'_'+to+'.pdf',printed);
  }catch(e){console.error(e);status.textContent='No se pudo generar el PDF: '+(e.message||e)}
  finally{btn.disabled=false}
 }

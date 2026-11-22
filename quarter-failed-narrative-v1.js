@@ -23,10 +23,12 @@ function init(){
    const map=new Map(records.map(r=>[ctx.recordKey(r),r]));
    const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
    const H=doc.internal.pageSize.getHeight(),W=doc.internal.pageSize.getWidth();
-   function para(t,y){doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(40,40,40);const lines=doc.splitTextToSize(t,W-32);if(y+lines.length*5.1>H-22)throw Error('El texto excede una hoja; no se generó un documento incompleto.');doc.text(lines,16,y);return y+lines.length*5.1+6}
+   let bodyFontSize=10;
+   function para(t,y){doc.setFont('helvetica','normal');doc.setFontSize(bodyFontSize);doc.setTextColor(40,40,40);const lines=doc.splitTextToSize(t,W-32);if(y+lines.length*5.1>H-22)throw Error('El texto excede una hoja; no se generó un documento incompleto.');doc.text(lines,16,y);return y+lines.length*5.1+6}
    for(let i=0;i<failed.length;i++){
     if(i)doc.addPage();
     const {s,c}=failed[i];
+    bodyFontSize=c.items.length>8?9.4:10;
     if(typeof pdfHeader==='function')pdfHeader(doc,'Informe de desempeño trimestral','ESPAÑOL');
     else{doc.setFillColor(245,196,0);doc.rect(0,0,W,4,'F');doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text('Informe de desempeño trimestral',16,19)}
     let y=38;doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(33,27,18);
@@ -59,7 +61,7 @@ function init(){
     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(33,27,18);doc.text('Conclusión',16,y);y+=6;
     const causes=[];if(missingProjects.length)causes.push(missingProjects.length+' trabajos del proyecto no entregados');if(pending.length)causes.push(pending.reduce((n,r)=>n+Number(r[3]),0)+' registros mensuales pendientes');if(c.exam<6)causes.push('examen trimestral inferior a 6');
     y=para('La calificación resulta de la ponderación registrada.'+(causes.length?' Los principales factores identificados son: '+causes.join('; ')+'.':' Se recomienda revisar cada componente con el desglose trimestral.')+' Para mejorar, es importante verificar semanalmente las actividades, entregar el proyecto completo y preparar las evaluaciones del siguiente trimestre.',y);
-    if(y+26<H-26){doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(33,27,18);doc.text('Orientaciones para la familia',16,y+3);y+=10;y=para('Se sugiere revisar con el estudiante sus entregas pendientes, establecer fechas de cumplimiento y consultar periódicamente los registros de actividades. Este informe presenta las evidencias disponibles al momento de su generación.',y)}
+    if(y+42<H-26){doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(33,27,18);doc.text('Orientaciones para la familia',16,y+3);y+=10;y=para('Se sugiere revisar con el estudiante sus entregas pendientes, establecer fechas de cumplimiento y consultar periódicamente los registros de actividades. Este informe presenta las evidencias disponibles al momento de su generación.',y)}
     doc.setFontSize(7);doc.setTextColor(90,90,90);doc.text('Documento informativo · No modifica calificaciones.',16,H-12);
    }
    if(typeof pdfFooter==='function')pdfFooter(doc);

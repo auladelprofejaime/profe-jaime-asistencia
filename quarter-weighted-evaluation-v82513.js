@@ -491,6 +491,7 @@ async function load(){
  }catch(e){const box=ensureUI();if(box)box.innerHTML='<h2>Evaluación trimestral</h2><p class="message bad">No se pudo cargar: '+esc(e.message||e)+'</p>'}
  finally{loading=false}
 }
+window.__quarterNarrativeReadOnly=()=>({p:cfg(),state,roster:[...roster],calc,monthDataFromRow,monthlyCriterionModel,recordKey,displayName});
 window.addEventListener('load',()=>{
  if(!document.getElementById('quarterQuickStyles')){const st=document.createElement('style');st.id='quarterQuickStyles';st.textContent='#quarterWeightedPanel .quarter-student-strip{display:flex;gap:8px;overflow-x:auto;padding:4px 0 8px;scrollbar-width:thin}#quarterWeightedPanel .quarter-person,#quarterWeightedPanel .quarter-work{width:100%;text-align:left;display:flex;flex-direction:column;gap:6px;padding:13px;border-radius:12px;background:#fff1e9;border:1px solid #ddc8bb;color:#4a3024}#quarterWeightedPanel .quarter-person.quarter-done,#quarterWeightedPanel .quarter-work.quarter-done{background:#e4f4e8;border-color:#98c8a4;color:#1a5e36}#quarterWeightedPanel .quarter-person.quarter-late,#quarterWeightedPanel .quarter-work.quarter-late{background:#fff3cd;border-color:#d9b968;color:#725500}#quarterWeightedPanel .quarter-person span,#quarterWeightedPanel .quarter-work span{font-size:.85em}#quarterWeightedPanel .quarter-project-buttons{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:8px;margin-bottom:14px}';document.head.appendChild(st)}
 

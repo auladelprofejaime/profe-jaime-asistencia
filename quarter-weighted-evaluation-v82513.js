@@ -478,96 +478,6 @@ function exportFailedList(format){
   doc.save(filename+'.pdf');
  }
 }
-
-async function generateFailedNarrativePdf(){
- const p=cfg();
- if(p.shift!=='Matutino'||!state||!roster.length){qpdfStatus('Selecciona un grupo matutino y pulsa Calcular trimestre.');return}
- const failed=roster.map(student=>({student,c:calc(String(student.id))})).filter(x=>x.c.complete&&x.c.rounded<6);
- if(!failed.length){qpdfStatus('No hay alumnos con trimestre completo y calificación reprobatoria en este grupo.');return}
- const btn=$('quarterFailedNarrativeBtn'),label=btn?.textContent;
- if(btn){btn.disabled=true;btn.textContent='Generando informe…'}
- try{
-  if(!window.jspdf?.jsPDF)throw Error('No está disponible el generador de PDF.');
-  const methRows=await ProfeSupabase.select('methodologies','select=*&shift=eq.'+encodeURIComponent(p.shift)+'&group_name=eq.'+encodeURIComponent(p.group)+'&cycle=eq.'+encodeURIComponent(p.cycle)+'&quarter=eq.'+encodeURIComponent(p.quarter)+'&subject=eq.'+encodeURIComponent(p.subject));
-  const months=(methRows||[]).map(monthDataFromRow).filter(m=>['Septiembre','Octubre'].includes(m.month));
-  const acts=await all('activities'),recs=await all('activityRecords');
-  const recMap=new Map((recs||[]).map(r=>[recordKey(r),r]));
-  const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
-  const width=doc.internal.pageSize.getWidth(),height=doc.internal.pageSize.getHeight();
-  function paragraph(txt,y){
-   doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(40,40,40);
-   const lines=doc.splitTextToSize(txt,width-32);
-   if(y+lines.length*5.2>height-20)throw Error('El informe supera una hoja; revisa la longitud de los datos.');
-   doc.text(lines,16,y);return y+lines.length*5.2+5;
-  }
-  failed.forEach(({student,c},idx)=>{
-   if(idx)doc.addPage();
-   if(typeof pdfHeader==='function')pdfHeader(doc,'Informe de desempeño trimestral','ESPAÑOL');
-   else{doc.setFillColor(245,196,0);doc.rect(0,0,width,5,'F');doc.setFont('helvetica','bold');doc.setFontSize(15);doc.text('Informe de desempeño trimestral',16,19)}
-   let y=39;doc.setTextColor(33,27,18);doc.setFont('helvetica','bold');doc.setFontSize(11);
-   doc.text(doc.splitTextToSize(displayName(student),width-32)[0],16,y);y+=7;
-   doc.setFont('helvetica','normal');doc.setFontSize(9);
-   doc.text('Grupo '+p.group+'  |  Trimestre '+p.quarter+'  |  Ciclo '+p.cycle+'  |  Calificación: '+c.rounded.toFixed(1),16,y);y+=12;
-   doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Análisis del desempeño académico',16,y);y+=8;
-   y=paragraph('Durante el trimestre, el estudiante obtuvo una calificación final de '+c.rounded.toFixed(1)+', inferior al mínimo aprobatorio de 6. La evaluación se integró con proyecto (35%), evaluaciones mensuales (30%), examen (22%) y responsabilidad (13%).',y);
-   const projectDone=c.items.filter(it=>!!c.statuses[String(it.id)]).length;
-   const projectMissing=c.items.filter(it=>!c.statuses[String(it.id)]).map(it=>it.name);
-   y=paragraph('Proyecto integrador: registró '+projectDone+' de '+c.items.length+' trabajos. Su aportación al promedio fue de '+c.projectContribution.toFixed(2)+' puntos de 3.50 posibles.'+(c.lateCount?' Se registraron '+c.lateCount+' entregas extemporáneas con valor reducido.':'')+(projectMissing.length?' Trabajos pendientes: '+projectMissing.slice(0,4).join('; ')+(projectMissing.length>4?' y '+(projectMissing.length-4)+' más.':'.'):''),y);
-   y=paragraph('Evaluaciones mensuales: '+(c.months.length?c.months.map(m=>m.month+': '+m.value.toFixed(1)).join('; '):'sin calificaciones mensuales registradas')+'. Promedio mensual: '+(c.monthlyAvg==null?'pendiente':c.monthlyAvg.toFixed(2))+'. Aportación trimestral: '+c.monthlyContribution.toFixed(2)+' de 3.00 puntos.',y);
-   const missing=[];
-   for(const m of months){for(const cm of monthlyCriterionModel(m,String(student.id),acts,recMap)){if(cm.missing)missing.push({month:m.month,criterion:cm.criterion.name||'Criterio',missing:cm.missing,total:cm.total})}}
-   if(missing.length){
-    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(33,27,18);
-    doc.text('Actividades pendientes en las evaluaciones mensuales',16,y);y+=6;
-    y=paragraph('El siguiente desglose muestra los registros sin entrega o sin calificación, de acuerdo con las actividades asignadas a este alumno.',y);
-    const rows=missing.map(m=>[m.month,m.criterion,String(m.total-m.missing)+' de '+m.total,String(m.missing)]);
-    if(typeof doc.autoTable==='function'){
-     doc.autoTable({startY:y-2,head:[['Mes','Criterio','Registradas','Pendientes']],body:rows,
-      margin:{left:16,right:16},tableWidth:width-32,theme:'grid',
-      styles:{font:'helvetica',fontSize:8,cellPadding:2.1,overflow:'linebreak',lineColor:[220,220,220],lineWidth:.15,textColor:[40,40,40]},
-      headStyles:{fillColor:[245,196,0],textColor:[33,27,18],fontStyle:'bold'},
-      alternateRowStyles:{fillColor:[250,249,244]},
-      columnStyles:{0:{cellWidth:27},2:{cellWidth:27,halign:'center'},3:{cellWidth:24,halign:'center'}},
-      didParseCell:data=>{if(data.section==='body'&&data.column.index===3){data.cell.styles.textColor=[170,45,40];data.cell.styles.fontStyle='bold'}},
-      pageBreak:'avoid'});
-     if(doc.internal.getNumberOfPages()>idx+1)throw Error('Los pendientes exceden una hoja tamaño carta para '+displayName(student)+'.');
-     y=doc.lastAutoTable.finalY+8;
-    }else{
-     const col=[16,44,126,158],head=['Mes','Criterio','Registradas','Pendientes'];
-     doc.setFillColor(245,196,0);doc.rect(16,y-4,width-32,8,'F');
-     doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(33,27,18);
-     head.forEach((h,i)=>doc.text(h,col[i],y));y+=8;
-     for(let i=0;i<rows.length;i++){
-      const lines=doc.splitTextToSize(rows[i][1],78),rh=Math.max(8,lines.length*4+3);
-      if(y+rh>height-38)throw Error('Los pendientes exceden una hoja tamaño carta para '+displayName(student)+'.');
-      if(i%2===0){doc.setFillColor(250,249,244);doc.rect(16,y-4,width-32,rh,'F')}
-      doc.setFont('helvetica','normal');doc.setFontSize(7.8);doc.setTextColor(40,40,40);
-      doc.text(rows[i][0],col[0],y);doc.text(lines,col[1],y);doc.text(rows[i][2],col[2],y);
-      doc.setFont('helvetica','bold');doc.setTextColor(170,45,40);doc.text(rows[i][3],col[3],y);y+=rh;
-     }
-     y+=4;
-    }
-   }else y=paragraph('En las evaluaciones mensuales no se identificaron actividades pendientes de entrega o calificación.',y);
-   y=paragraph('Examen trimestral: '+c.exam.toFixed(1)+' de 10, equivalente a '+c.examContribution.toFixed(2)+' de 2.20 puntos. Responsabilidad: '+c.resp.toFixed(1)+' de 10, equivalente a '+c.respContribution.toFixed(2)+' de 1.30 puntos.'+(c.quarterPoints?' Se aplicaron '+c.quarterPoints.toFixed(2)+' puntos adicionales al trimestre.':''),y);
-   doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(33,27,18);doc.text('Conclusión',16,y);y+=8;
-   const causes=[];
-   if(projectMissing.length)causes.push('la falta de '+projectMissing.length+' de '+c.items.length+' trabajos del proyecto integrador');
-   if(c.lateCount)causes.push(c.lateCount+' entregas extemporáneas con valor reducido');
-   if(missing.length)causes.push('los '+missing.reduce((sum,m)=>sum+m.missing,0)+' registros pendientes de las evaluaciones mensuales');
-   if(c.exam<6)causes.push('el resultado del examen trimestral ('+c.exam.toFixed(1)+')');
-   if(c.resp<6)causes.push('la calificación de responsabilidad ('+c.resp.toFixed(1)+')');
-   y=paragraph('La calificación no aprobatoria se explica principalmente por '+(causes.length?causes.join('; '):'la suma ponderada de los componentes de evaluación')+'. Se recomienda atender específicamente estos aspectos durante el siguiente trimestre.'),y);
-   doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(95,95,95);doc.text('Documento informativo generado con registros de App Jaime. No modifica calificaciones.',16,height-11);
-  });
-  if(typeof pdfFooter==='function')pdfFooter(doc);
-  const blob=doc.output('blob');
-  if(typeof printContent==='function')printContent('Informe de alumnos no acreditados','<p>'+failed.length+' informes individuales, uno por hoja tamaño carta.</p>',blob,'informe_reprobados_'+p.group+'_T'+p.quarter+'.pdf');
-  else doc.save('informe_reprobados_'+p.group+'_T'+p.quarter+'.pdf');
-  qpdfStatus('Informe generado: '+failed.length+' alumnos no acreditados.');
- }catch(e){console.error(e);qpdfStatus('No se pudo generar el informe: '+(e.message||e))}
- finally{if(btn){btn.disabled=false;btn.textContent=label}}
-}
-
 async function load(){
  if(loading)return;const p=cfg();if(!p.shift||!p.group||!p.cycle){state=null;render();return}
  loading=true;
@@ -599,7 +509,6 @@ window.addEventListener('load',()=>{
    b.addEventListener('click',e=>{e.preventDefault();exportFailedList(format)});quarterActions.appendChild(b);
   }
  }
- if(quarterActions&&!$('quarterFailedNarrativeBtn')){const b=document.createElement('button');b.id='quarterFailedNarrativeBtn';b.type='button';b.className='secondary';b.textContent='Informe narrativo de reprobados (PDF)';b.addEventListener('click',e=>{e.preventDefault();generateFailedNarrativePdf()});quarterActions.appendChild(b)}
  const pdfBtn=$('quarterPdfBtn');if(pdfBtn)pdfBtn.addEventListener('click',e=>{e.preventDefault();e.stopImmediatePropagation();generateQuarterPdf()},true);
  document.querySelector('[data-mettab="quarter"]')?.addEventListener('click',()=>setTimeout(load,100));
  ['quarterShift','quarterGroup','quarterNumber'].forEach(id=>$(id)?.addEventListener('change',()=>setTimeout(load,0)));

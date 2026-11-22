@@ -4,7 +4,14 @@ async function rpc(name,args={}){const r=await fetch(`${SUPABASE_URL}/rest/v1/rp
 const esc=v=>String(v??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[c]);
 function countPending(){return Date.now()<new Date(scheduledReveal).getTime()}
 function countView(){const d=new Date(scheduledReveal),dateLabel=d.toLocaleDateString('es-MX',{timeZone:'America/Mexico_City',day:'numeric',month:'long'}),timeLabel=d.toLocaleTimeString('es-MX',{timeZone:'America/Mexico_City',hour:'numeric',minute:'2-digit'});$('#periodName').textContent='Resultados de octubre · Próximamente';$('#updated').textContent='';$('#leaderNow').innerHTML='<div class="countStage"><div class="countGlow"></div><div class="countSeal">MÉRITO GABINO A. PALMA</div><div class="countIcon">✦</div><div class="countKicker">EL MOMENTO DECISIVO SE ACERCA</div><h2>¡Estamos en el<br><em>conteo final!</em></h2><p class="countSubtitle">Cada punto cuenta. Estamos verificando los resultados para conocer al grupo que se llevará el Mérito del Mes.</p><div class="countReveal"><span>REVELACIÓN OFICIAL</span><strong>'+dateLabel+'</strong><small>A partir de las '+timeLabel+'</small></div><p class="countFooter">La clasificación permanecerá en secreto hasta el anuncio oficial.</p></div>';$('#ranking').innerHTML='';$('#categories').innerHTML='';$('#remainingRanking').classList.add('hidden');document.body.classList.add('meritCounting');}
-function render(){if(countPending()){countView();return;}document.body.classList.remove('meritCounting');
+function removeObsoleteDeductionNotice(){
+ const root=document.querySelector('#publicMain');if(!root)return;
+ for(const el of root.querySelectorAll('section,aside,.card,[role="note"],.notice,.alert')){
+  const t=(el.textContent||'').toLowerCase();
+  if(t.includes('15 puntos')&&(t.includes('descont')||t.includes('indisciplina')))el.remove();
+ }
+}
+function render(){removeObsoleteDeductionNotice();if(countPending()){countView();return;}document.body.classList.remove('meritCounting');
  $('#periodName').textContent=data?.period?.label||'Sin periodo abierto';
  const rows=Array.isArray(data?.ranking)?data.ranking:[],cats=Array.isArray(data?.category_leaders)?data.category_leaders:[];
  if(data?.state==='results_in_process'){ $('#leaderNow').innerHTML='<div class="empty"><div class="leaderCrown">🔒</div><h2>Se están contando los puntos</h2><p>La clasificación está temporalmente bloqueada mientras se revisan los movimientos y se determina el resultado.</p></div>';$('#ranking').innerHTML='';$('#categories').innerHTML='';$('#remainingRanking').classList.add('hidden');return }

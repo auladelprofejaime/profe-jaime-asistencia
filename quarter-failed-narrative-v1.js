@@ -23,7 +23,7 @@ function init(){
    const map=new Map(records.map(r=>[ctx.recordKey(r),r]));
    const doc=new window.jspdf.jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
    const H=doc.internal.pageSize.getHeight(),W=doc.internal.pageSize.getWidth();
-   function para(t,y){doc.setFont('helvetica','normal');doc.setFontSize(9);doc.setTextColor(40,40,40);const lines=doc.splitTextToSize(t,W-32);if(y+lines.length*4.4>H-22)throw Error('El texto excede una hoja; no se generó un documento incompleto.');doc.text(lines,16,y);return y+lines.length*4.4+5}
+   function para(t,y){doc.setFont('helvetica','normal');doc.setFontSize(10);doc.setTextColor(40,40,40);const lines=doc.splitTextToSize(t,W-32);if(y+lines.length*5.1>H-22)throw Error('El texto excede una hoja; no se generó un documento incompleto.');doc.text(lines,16,y);return y+lines.length*5.1+6}
    for(let i=0;i<failed.length;i++){
     if(i)doc.addPage();
     const {s,c}=failed[i];
@@ -33,15 +33,15 @@ function init(){
     doc.text(doc.splitTextToSize(ctx.displayName(s),W-32)[0],16,y);y+=7;
     y=para('Grupo '+p.group+' · Trimestre '+p.quarter+' · Ciclo '+p.cycle+' · Calificación final: '+c.rounded.toFixed(1),y);
     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Resultado trimestral',16,y);y+=6;
-    y=para('La calificación final de '+c.rounded.toFixed(1)+' es inferior al mínimo aprobatorio de 6. Se calcula con proyecto integrador (35%), evaluaciones mensuales (30%), examen (22%) y responsabilidad (13%).',y);
+    y=para('La calificación final de '+c.rounded.toFixed(1)+' es inferior al mínimo aprobatorio de 6. Se calcula con proyecto integrador (35%), evaluaciones mensuales (30%), examen (22%) y responsabilidad (13%). Cada componente aporta una parte de la calificación; por ello, un resultado favorable en el examen no necesariamente compensa trabajos pendientes.',y);
     const missingProjects=c.items.filter(it=>!c.statuses[String(it.id)]);
     y=para('Proyecto integrador: '+(c.items.length-missingProjects.length)+' de '+c.items.length+' trabajos registrados; aportó '+c.projectContribution.toFixed(2)+' de 3.50 puntos.'+(missingProjects.length?' Pendientes: '+missingProjects.map(it=>it.name).join(', ')+'.':'')+(c.lateCount?' Entregas extemporáneas: '+c.lateCount+'.':''),y);
     y=para('Evaluaciones mensuales: '+c.months.map(m=>m.month+' '+m.value.toFixed(1)).join('; ')+'. Promedio '+c.monthlyAvg.toFixed(2)+'; aportación '+c.monthlyContribution.toFixed(2)+' de 3.00 puntos.',y);
     const pending=[];
     for(const m of months)for(const cm of ctx.monthlyCriterionModel(m,String(s.id),acts,map))if(cm.missing)pending.push([m.month,cm.criterion.name||'Criterio',String(cm.done)+' / '+cm.total,String(cm.missing)]);
     if(pending.length){
-     doc.setFont('helvetica','bold');doc.setFontSize(10);doc.text('Desglose de actividades pendientes',16,y);y+=6;
-     y=para('Se muestran los registros sin entrega o sin calificación, únicamente de las actividades aplicables a este alumno.',y);
+     doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Desglose de actividades pendientes',16,y);y+=6;
+     y=para('Esta tabla permite identificar en qué mes y criterio faltaron evidencias. La columna «Entregadas» indica cuántas actividades cuentan con registro; «Pend.» señala las que no tienen entrega o calificación registrada.',y);
      const cols=[16,45,131,166],heads=['Mes','Criterio','Entregadas','Pend.'];
      const tableHeight=9+pending.reduce((sum,row)=>sum+Math.max(8,doc.splitTextToSize(row[1],80).length*4+3),0);
      if(y+tableHeight>H-62)throw Error('La tabla de '+ctx.displayName(s)+' no cabe en una hoja carta.');
@@ -56,9 +56,10 @@ function init(){
      });y+=5;
     }
     y=para('Examen trimestral: '+c.exam.toFixed(1)+' (aporta '+c.examContribution.toFixed(2)+' de 2.20). Responsabilidad: '+c.resp.toFixed(1)+' (aporta '+c.respContribution.toFixed(2)+' de 1.30).'+(c.quarterPoints?' Puntos adicionales: '+c.quarterPoints.toFixed(2)+'.':''),y);
-    doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(33,27,18);doc.text('Conclusión',16,y);y+=6;
+    doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(33,27,18);doc.text('Conclusión',16,y);y+=6;
     const causes=[];if(missingProjects.length)causes.push(missingProjects.length+' trabajos del proyecto no entregados');if(pending.length)causes.push(pending.reduce((n,r)=>n+Number(r[3]),0)+' registros mensuales pendientes');if(c.exam<6)causes.push('examen trimestral inferior a 6');
-    y=para('La calificación resulta de la ponderación registrada.'+(causes.length?' Los principales factores identificados son: '+causes.join('; ')+'.':' Se recomienda revisar cada componente con el desglose trimestral.')+' Se recomienda dar seguimiento a las entregas del siguiente trimestre.',y);
+    y=para('La calificación resulta de la ponderación registrada.'+(causes.length?' Los principales factores identificados son: '+causes.join('; ')+'.':' Se recomienda revisar cada componente con el desglose trimestral.')+' Para mejorar, es importante verificar semanalmente las actividades, entregar el proyecto completo y preparar las evaluaciones del siguiente trimestre.',y);
+    if(y+26<H-26){doc.setFont('helvetica','bold');doc.setFontSize(10);doc.setTextColor(33,27,18);doc.text('Orientaciones para la familia',16,y+3);y+=10;y=para('Se sugiere revisar con el estudiante sus entregas pendientes, establecer fechas de cumplimiento y consultar periódicamente los registros de actividades. Este informe presenta las evidencias disponibles al momento de su generación.',y)}
     doc.setFontSize(7);doc.setTextColor(90,90,90);doc.text('Documento informativo · No modifica calificaciones.',16,H-12);
    }
    if(typeof pdfFooter==='function')pdfFooter(doc);

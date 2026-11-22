@@ -515,11 +515,48 @@ async function generateFailedNarrativePdf(){
    y=paragraph('Proyecto integrador: registró '+projectDone+' de '+c.items.length+' trabajos. Su aportación al promedio fue de '+c.projectContribution.toFixed(2)+' puntos de 3.50 posibles.'+(c.lateCount?' Se registraron '+c.lateCount+' entregas extemporáneas con valor reducido.':'')+(projectMissing.length?' Trabajos pendientes: '+projectMissing.slice(0,4).join('; ')+(projectMissing.length>4?' y '+(projectMissing.length-4)+' más.':'.'):''),y);
    y=paragraph('Evaluaciones mensuales: '+(c.months.length?c.months.map(m=>m.month+': '+m.value.toFixed(1)).join('; '):'sin calificaciones mensuales registradas')+'. Promedio mensual: '+(c.monthlyAvg==null?'pendiente':c.monthlyAvg.toFixed(2))+'. Aportación trimestral: '+c.monthlyContribution.toFixed(2)+' de 3.00 puntos.',y);
    const missing=[];
-   for(const m of months){for(const cm of monthlyCriterionModel(m,String(student.id),acts,recMap)){if(cm.missing)missing.push(m.month+' / '+cm.criterion.name+': '+cm.missing+' de '+cm.total+' actividades sin entrega o calificación')}}
-   if(missing.length)y=paragraph('En los registros mensuales se identificó: '+missing.slice(0,5).join('; ')+(missing.length>5?'; además de otros '+(missing.length-5)+' criterios con pendientes.':'.'),y);
+   for(const m of months){for(const cm of monthlyCriterionModel(m,String(student.id),acts,recMap)){if(cm.missing)missing.push({month:m.month,criterion:cm.criterion.name||'Criterio',missing:cm.missing,total:cm.total})}}
+   if(missing.length){
+    doc.setFont('helvetica','bold');doc.setFontSize(10.5);doc.setTextColor(33,27,18);
+    doc.text('Actividades pendientes en las evaluaciones mensuales',16,y);y+=6;
+    y=paragraph('El siguiente desglose muestra los registros sin entrega o sin calificación, de acuerdo con las actividades asignadas a este alumno.',y);
+    const rows=missing.map(m=>[m.month,m.criterion,String(m.total-m.missing)+' de '+m.total,String(m.missing)]);
+    if(typeof doc.autoTable==='function'){
+     doc.autoTable({startY:y-2,head:[['Mes','Criterio','Registradas','Pendientes']],body:rows,
+      margin:{left:16,right:16},tableWidth:width-32,theme:'grid',
+      styles:{font:'helvetica',fontSize:8,cellPadding:2.1,overflow:'linebreak',lineColor:[220,220,220],lineWidth:.15,textColor:[40,40,40]},
+      headStyles:{fillColor:[245,196,0],textColor:[33,27,18],fontStyle:'bold'},
+      alternateRowStyles:{fillColor:[250,249,244]},
+      columnStyles:{0:{cellWidth:27},2:{cellWidth:27,halign:'center'},3:{cellWidth:24,halign:'center'}},
+      didParseCell:data=>{if(data.section==='body'&&data.column.index===3){data.cell.styles.textColor=[170,45,40];data.cell.styles.fontStyle='bold'}},
+      pageBreak:'avoid'});
+     if(doc.internal.getNumberOfPages()>idx+1)throw Error('Los pendientes exceden una hoja tamaño carta para '+displayName(student)+'.');
+     y=doc.lastAutoTable.finalY+8;
+    }else{
+     const col=[16,44,126,158],head=['Mes','Criterio','Registradas','Pendientes'];
+     doc.setFillColor(245,196,0);doc.rect(16,y-4,width-32,8,'F');
+     doc.setFont('helvetica','bold');doc.setFontSize(8);doc.setTextColor(33,27,18);
+     head.forEach((h,i)=>doc.text(h,col[i],y));y+=8;
+     for(let i=0;i<rows.length;i++){
+      const lines=doc.splitTextToSize(rows[i][1],78),rh=Math.max(8,lines.length*4+3);
+      if(y+rh>height-38)throw Error('Los pendientes exceden una hoja tamaño carta para '+displayName(student)+'.');
+      if(i%2===0){doc.setFillColor(250,249,244);doc.rect(16,y-4,width-32,rh,'F')}
+      doc.setFont('helvetica','normal');doc.setFontSize(7.8);doc.setTextColor(40,40,40);
+      doc.text(rows[i][0],col[0],y);doc.text(lines,col[1],y);doc.text(rows[i][2],col[2],y);
+      doc.setFont('helvetica','bold');doc.setTextColor(170,45,40);doc.text(rows[i][3],col[3],y);y+=rh;
+     }
+     y+=4;
+    }
+   }else y=paragraph('En las evaluaciones mensuales no se identificaron actividades pendientes de entrega o calificación.',y);
    y=paragraph('Examen trimestral: '+c.exam.toFixed(1)+' de 10, equivalente a '+c.examContribution.toFixed(2)+' de 2.20 puntos. Responsabilidad: '+c.resp.toFixed(1)+' de 10, equivalente a '+c.respContribution.toFixed(2)+' de 1.30 puntos.'+(c.quarterPoints?' Se aplicaron '+c.quarterPoints.toFixed(2)+' puntos adicionales al trimestre.':''),y);
-   doc.setFont('helvetica','bold');doc.setFontSize(11);doc.text('Conclusión',16,y);y+=8;
-   y=paragraph('El resultado se deriva de las evidencias académicas registradas y de la ponderación trimestral establecida. Se recomienda revisar los trabajos pendientes, fortalecer la preparación del examen y mantener seguimiento de las entregas durante el siguiente periodo.',y);
+   doc.setFont('helvetica','bold');doc.setFontSize(11);doc.setTextColor(33,27,18);doc.text('Conclusión',16,y);y+=8;
+   const causes=[];
+   if(projectMissing.length)causes.push('la falta de '+projectMissing.length+' de '+c.items.length+' trabajos del proyecto integrador');
+   if(c.lateCount)causes.push(c.lateCount+' entregas extemporáneas con valor reducido');
+   if(missing.length)causes.push('los '+missing.reduce((sum,m)=>sum+m.missing,0)+' registros pendientes de las evaluaciones mensuales');
+   if(c.exam<6)causes.push('el resultado del examen trimestral ('+c.exam.toFixed(1)+')');
+   if(c.resp<6)causes.push('la calificación de responsabilidad ('+c.resp.toFixed(1)+')');
+   y=paragraph('La calificación no aprobatoria se explica principalmente por '+(causes.length?causes.join('; '):'la suma ponderada de los componentes de evaluación')+'. Se recomienda atender específicamente estos aspectos durante el siguiente trimestre.'),y);
    doc.setFont('helvetica','normal');doc.setFontSize(7);doc.setTextColor(95,95,95);doc.text('Documento informativo generado con registros de App Jaime. No modifica calificaciones.',16,height-11);
   });
   if(typeof pdfFooter==='function')pdfFooter(doc);

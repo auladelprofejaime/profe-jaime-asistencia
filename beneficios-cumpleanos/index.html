@@ -1,0 +1,80 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#10284a">
+<title>Beneficios de cumpleaños · 3.º A</title>
+<style>
+:root{--navy:#10284a;--navy2:#193b69;--ink:#192132;--muted:#667085;--line:#e4e8ef;--bg:#f6f7f9;--gold:#f5c400;--red:#9f2433;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(circle at 50% -20%,rgba(245,196,0,.18),transparent 34%),var(--bg)}.wrap{width:min(100%,680px);margin:auto;padding:18px 14px 40px}.brand{display:flex;align-items:center;gap:11px;margin:4px 4px 18px}.brand img{width:48px;height:48px;object-fit:contain}.brand strong{display:block}.brand small{color:var(--muted)}
+.card{background:#fff;border:1px solid var(--line);border-radius:22px;padding:22px;box-shadow:0 14px 42px rgba(16,40,74,.08);margin-bottom:14px}.hero{color:#fff;background:linear-gradient(135deg,var(--navy),var(--navy2));border:none;overflow:hidden;position:relative}.hero:after{content:"";position:absolute;width:170px;height:170px;border-radius:50%;border:1px solid rgba(255,255,255,.12);right:-60px;top:-70px}.hero h1{margin:5px 0 8px;font-size:clamp(1.9rem,8vw,2.8rem);line-height:1}.hero p{margin:0;color:rgba(255,255,255,.82);line-height:1.5}.kicker{font-size:.75rem;font-weight:900;letter-spacing:.12em;text-transform:uppercase;color:#ffe57a}
+label{display:block;font-weight:850;margin:0 0 7px}input,button{font:inherit}input{width:100%;padding:14px 15px;border:1px solid #bac3cf;border-radius:13px;background:#fff;font-size:1.05rem}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}button,a.btn{border:0;border-radius:13px;padding:13px 17px;font-weight:900;cursor:pointer;text-decoration:none}.primary{background:var(--navy);color:#fff}.secondary{background:#edf1f6;color:var(--navy)}button:disabled{opacity:.55;cursor:not-allowed}.status{margin-top:12px;padding:12px 14px;border-radius:13px;background:#eef3f8;color:#314158;line-height:1.45}.bad{background:#fff0f1;color:#8a2630}.good{background:#edf8f0;color:#176b35}.hidden{display:none!important}
+.celebrate{text-align:center;padding:30px 22px}.cake{font-size:4rem;line-height:1}.celebrate h2{font-size:clamp(2rem,9vw,3rem);margin:10px 0 8px;letter-spacing:-.035em}.name{font-weight:900;color:var(--navy);font-size:1.15rem}.message{max-width:500px;margin:12px auto;color:#536173;line-height:1.55}
+.gift{margin:18px auto 0;padding:19px;border:1px dashed #d4aa00;border-radius:18px;background:#fff9df}.gift b{display:block;margin-bottom:5px}.benefit{margin-top:16px;padding:22px 18px;border-radius:18px;background:linear-gradient(135deg,#fff5c5,#fffdf5);border:1px solid #efd46b}.benefit .label{font-size:1.35rem;font-weight:950;line-height:1.25;color:#594700}.note{margin-top:10px;color:var(--muted);font-size:.86rem;line-height:1.45}.back{display:inline-flex;margin:4px 0 12px;color:var(--navy);font-weight:850;text-decoration:none}
+</style>
+</head>
+<body>
+<main class="wrap">
+  <div class="brand"><img src="../logo-app-docente-v821.png" alt=""><div><strong>El Aula del Profe Jaime</strong><small>Beneficios de cumpleaños · 3.º A</small></div></div>
+  <a class="back" href="../acceso/">← Volver al acceso</a>
+
+  <section class="card hero"><div class="kicker">Ciclo 2026–2027</div><h1>Tu cumpleaños tiene beneficio</h1><p>Ingresa tu matrícula. Si tu cumpleaños ya pasó o es hoy, podrás descubrir el beneficio que te corresponde.</p></section>
+
+  <section id="loginCard" class="card">
+    <label for="matricula">Matrícula</label>
+    <input id="matricula" inputmode="numeric" autocomplete="off" placeholder="Ej. 243403">
+    <div class="actions"><button id="enter" class="primary" type="button">Consultar</button></div>
+    <div id="loginStatus" class="status hidden"></div>
+  </section>
+
+  <section id="birthdayCard" class="card celebrate hidden">
+    <div class="cake">🎂</div>
+    <h2>¡Feliz cumpleaños!</h2>
+    <div id="studentName" class="name"></div>
+    <p class="message">Espero que hayas pasado un gran día. Tengo una sorpresa para ti: un beneficio especial para celebrar tu cumpleaños.</p>
+    <div id="giftBox" class="gift">
+      <b>Tu beneficio está listo.</b>
+      <div id="unrevealedText">Toca el botón para descubrirlo. El beneficio se guardará y no cambiará aunque vuelvas a entrar.</div>
+      <div class="actions" style="justify-content:center"><button id="reveal" class="primary" type="button">Descubrir mi beneficio</button></div>
+    </div>
+    <div id="benefitBox" class="benefit hidden"><div>Tu beneficio es:</div><div id="benefitLabel" class="label"></div><div id="benefitUses" class="note"></div></div>
+    <p class="note">Este beneficio es personal y queda registrado en App Jaime.</p>
+    <button id="change" class="secondary" type="button">Salir / cambiar matrícula</button>
+  </section>
+</main>
+<script>
+const SUPA='https://xqeyyjakmeiaahecfdmc.supabase.co';
+const KEY='sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA';
+const $=id=>document.getElementById(id);
+let matricula='',state=null;
+async function rpc(fn,args){
+  const r=await fetch(SUPA+'/rest/v1/rpc/'+fn,{method:'POST',headers:{apikey:KEY,Authorization:'Bearer '+KEY,'Content-Type':'application/json'},body:JSON.stringify(args)});
+  const t=await r.text();let d;try{d=JSON.parse(t)}catch{d=t}
+  if(!r.ok)throw Error(d?.message||d?.hint||t||'No se pudo consultar.');
+  return d;
+}
+function showStatus(msg,bad=false){const s=$('loginStatus');s.className='status '+(bad?'bad':'');s.textContent=msg;s.classList.remove('hidden')}
+function render(d){
+  state=d;
+  if(!d?.ok){showStatus(d?.reason==='student_not_found'?'La matrícula no corresponde a un alumno activo de 3.º A.':'No se pudo consultar el beneficio.',true);return}
+  if(!d.eligible){const bd=d.birthday_date?new Date(d.birthday_date+'T12:00:00'):null;const when=bd?bd.toLocaleDateString('es-MX',{day:'numeric',month:'long'}):'tu fecha registrada';showStatus('Tu beneficio se habilitará cuando llegue tu cumpleaños ('+when+').',true);return}
+  $('loginCard').classList.add('hidden');$('birthdayCard').classList.remove('hidden');$('studentName').textContent=d.student_name||'';
+  if(d.has_benefit&&d.benefit){
+    $('giftBox').classList.add('hidden');$('benefitBox').classList.remove('hidden');$('benefitLabel').textContent=d.benefit.label||'Beneficio de cumpleaños';
+    const total=Number(d.benefit.uses_total||1),used=Number(d.benefit.uses_used||0),remain=Math.max(0,total-used);
+    $('benefitUses').textContent=total>1?'Usos disponibles: '+remain+' de '+total+'.':'Tu beneficio ya quedó guardado.';
+  }else{$('giftBox').classList.remove('hidden');$('benefitBox').classList.add('hidden')}
+}
+async function consult(){
+  matricula=$('matricula').value.trim();if(!matricula){showStatus('Escribe tu matrícula.',true);return}
+  $('enter').disabled=true;showStatus('Consultando…');
+  try{render(await rpc('public_3a_birthday_status',{p_matricula:matricula}))}catch(e){showStatus(e.message||String(e),true)}
+  finally{$('enter').disabled=false}
+}
+$('enter').onclick=consult;$('matricula').addEventListener('keydown',e=>{if(e.key==='Enter')consult()});
+$('reveal').onclick=async()=>{$('reveal').disabled=true;$('reveal').textContent='Descubriendo…';try{render(await rpc('public_3a_birthday_reveal',{p_matricula:matricula}))}catch(e){alert(e.message||e);$('reveal').disabled=false;$('reveal').textContent='Descubrir mi beneficio'}};
+$('change').onclick=()=>{matricula='';state=null;$('birthdayCard').classList.add('hidden');$('loginCard').classList.remove('hidden');$('matricula').value='';$('loginStatus').classList.add('hidden');$('reveal').disabled=false;$('reveal').textContent='Descubrir mi beneficio'};
+</script>
+</body>
+</html>

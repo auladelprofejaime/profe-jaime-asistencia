@@ -6,281 +6,39 @@
 <meta name="theme-color" content="#10284a">
 <title>Acceso de alumnos</title>
 <style>
-:root{
-  --navy:#10284a;
-  --navy-2:#183a68;
-  --ink:#172033;
-  --muted:#667085;
-  --line:#e5e9ef;
-  --paper:#ffffff;
-  --bg:#f6f7f9;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;
-  color:var(--ink);
-  background:var(--bg);
-}
-*{box-sizing:border-box}
-body{
-  margin:0;
-  min-height:100svh;
-  background:
-    radial-gradient(circle at 50% -20%,rgba(16,40,74,.10),transparent 36%),
-    var(--bg);
-}
-.page{
-  width:min(100%,680px);
-  margin:0 auto;
-  padding:24px 18px 40px;
-}
-.brand{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-  margin:8px 0 24px;
-}
-.brand img{
-  width:54px;
-  height:54px;
-  object-fit:contain;
-}
-.brand-copy{
-  line-height:1.1;
-}
-.brand-copy strong{
-  display:block;
-  font-size:1rem;
-  letter-spacing:.01em;
-}
-.brand-copy span{
-  display:block;
-  margin-top:4px;
-  font-size:.82rem;
-  color:var(--muted);
-}
-.shell{
-  overflow:hidden;
-  border:1px solid var(--line);
-  border-radius:24px;
-  background:var(--paper);
-  box-shadow:0 18px 55px rgba(16,40,74,.10);
-}
-.hero{
-  position:relative;
-  padding:32px 28px 30px;
-  color:#fff;
-  background:
-    linear-gradient(145deg,rgba(255,255,255,.04),rgba(255,255,255,0)),
-    linear-gradient(135deg,var(--navy),var(--navy-2));
-}
-.hero:after{
-  content:"";
-  position:absolute;
-  right:-40px;
-  top:-70px;
-  width:180px;
-  height:180px;
-  border:1px solid rgba(255,255,255,.12);
-  border-radius:50%;
-}
-.kicker{
-  display:inline-flex;
-  align-items:center;
-  gap:8px;
-  margin-bottom:14px;
-  font-size:.76rem;
-  font-weight:800;
-  letter-spacing:.12em;
-  text-transform:uppercase;
-  opacity:.82;
-}
-.kicker:before{
-  content:"";
-  width:26px;
-  height:2px;
-  background:#fff;
-  opacity:.75;
-}
-.hero h1{
-  margin:0;
-  max-width:480px;
-  font-size:clamp(2rem,8vw,3.15rem);
-  line-height:.98;
-  letter-spacing:-.045em;
-}
-.hero p{
-  margin:16px 0 0;
-  max-width:510px;
-  font-size:1rem;
-  line-height:1.55;
-  color:rgba(255,255,255,.82);
-}
-.content{
-  padding:24px 28px 28px;
-}
-.section-label{
-  margin:0 0 8px;
-  color:var(--muted);
-  font-size:.76rem;
-  font-weight:800;
-  letter-spacing:.10em;
-  text-transform:uppercase;
-}
-.activity{
-  margin:0 0 18px;
-  padding:17px 18px;
-  border:1px solid var(--line);
-  border-radius:16px;
-  background:#fbfcfd;
-}
-.activity strong{
-  display:block;
-  font-size:1.05rem;
-  line-height:1.35;
-}
-.activity small{
-  display:block;
-  margin-top:6px;
-  color:var(--muted);
-  line-height:1.4;
-}
-.primary{
-  display:flex;
-  width:100%;
-  min-height:52px;
-  align-items:center;
-  justify-content:center;
-  gap:10px;
-  padding:13px 18px;
-  border-radius:14px;
-  background:var(--navy);
-  color:#fff;
-  text-decoration:none;
-  font-weight:800;
-  font-size:1rem;
-  transition:transform .15s ease,background .15s ease;
-}
-.primary:active{transform:scale(.99)}
-.primary:after{content:"→";font-size:1.15rem}
-.status{
-  padding:16px 17px;
-  border:1px solid #dce4ee;
-  border-radius:15px;
-  background:#f7f9fc;
-  color:#314158;
-  line-height:1.45;
-}
-.bad{
-  border-color:#f1cbd0;
-  background:#fff5f6;
-  color:#8b2430;
-}
-.footer{
-  padding:17px 28px 22px;
-  border-top:1px solid var(--line);
-  color:var(--muted);
-  font-size:.78rem;
-  text-align:center;
-}
-.loading-dot{
-  display:inline-block;
-  width:7px;
-  height:7px;
-  margin-right:8px;
-  border-radius:50%;
-  background:var(--navy-2);
-  animation:pulse 1s ease-in-out infinite alternate;
-}
-@keyframes pulse{to{opacity:.25}}
-@media(max-width:520px){
-  .page{padding:14px 12px 28px}
-  .brand{justify-content:flex-start;margin:8px 6px 18px}
-  .brand img{width:46px;height:46px}
-  .shell{border-radius:20px}
-  .hero{padding:27px 22px 25px}
-  .content{padding:21px 20px 23px}
-  .footer{padding:15px 20px 19px}
-}
+:root{--navy:#10284a;--navy2:#183a68;--ink:#172033;--muted:#667085;--line:#e5e9ef;--paper:#fff;--bg:#f6f7f9;--gold:#f5c400;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Inter,Roboto,Arial,sans-serif;color:var(--ink);background:var(--bg)}
+*{box-sizing:border-box}body{margin:0;min-height:100svh;background:radial-gradient(circle at 50% -20%,rgba(16,40,74,.12),transparent 38%),var(--bg)}
+.page{width:min(100%,720px);margin:0 auto;padding:22px 16px 42px}.brand{display:flex;align-items:center;justify-content:center;gap:12px;margin:8px 0 22px}.brand img{width:54px;height:54px;object-fit:contain}.brand-copy{line-height:1.1}.brand-copy strong{display:block}.brand-copy span{display:block;margin-top:4px;font-size:.82rem;color:var(--muted)}
+.shell{overflow:hidden;border:1px solid var(--line);border-radius:24px;background:var(--paper);box-shadow:0 18px 55px rgba(16,40,74,.10)}
+.hero{position:relative;padding:32px 28px 30px;color:#fff;background:linear-gradient(145deg,rgba(255,255,255,.04),transparent),linear-gradient(135deg,var(--navy),var(--navy2))}
+.hero:after{content:"";position:absolute;right:-42px;top:-72px;width:180px;height:180px;border:1px solid rgba(255,255,255,.12);border-radius:50%}
+.kicker{font-size:.76rem;font-weight:800;letter-spacing:.12em;text-transform:uppercase;opacity:.82}.hero h1{margin:10px 0 0;font-size:clamp(2rem,8vw,3.1rem);line-height:1;letter-spacing:-.04em}.hero p{margin:14px 0 0;max-width:540px;line-height:1.5;color:rgba(255,255,255,.82)}
+.content{padding:24px 28px 28px}.section-label{margin:0 0 12px;color:var(--muted);font-size:.76rem;font-weight:800;letter-spacing:.1em;text-transform:uppercase}
+.options{display:grid;gap:14px}.option{display:block;padding:20px;border:1px solid var(--line);border-radius:18px;text-decoration:none;color:inherit;background:#fff;transition:transform .14s ease,border-color .14s ease,box-shadow .14s ease}.option:active{transform:scale(.99)}.option:hover{border-color:#c8d1de;box-shadow:0 9px 26px rgba(16,40,74,.08)}.option .top{display:flex;gap:14px;align-items:center}.icon{display:grid;place-items:center;width:48px;height:48px;border-radius:14px;background:#edf2f8;font-size:1.45rem}.birthday .icon{background:#fff4c8}.option h2{margin:0;font-size:1.12rem}.option p{margin:6px 0 0;color:var(--muted);line-height:1.4}.arrow{margin-left:auto;font-size:1.4rem;color:var(--navy)}.badge{display:inline-block;margin-top:12px;padding:5px 9px;border-radius:999px;background:#f3f5f8;color:#536173;font-size:.76rem;font-weight:800}.birthday .badge{background:#fff6d6;color:#725800}
+.footer{padding:17px 28px 22px;border-top:1px solid var(--line);color:var(--muted);font-size:.78rem;text-align:center}
+@media(max-width:520px){.page{padding:14px 12px 28px}.brand{justify-content:flex-start;margin:8px 6px 18px}.brand img{width:46px;height:46px}.shell{border-radius:20px}.hero{padding:27px 22px 25px}.content{padding:21px 20px 23px}}
 </style>
 </head>
 <body>
 <main class="page">
-  <div class="brand">
-    <img src="../logo-app-docente-v821.png" alt="">
-    <div class="brand-copy">
-      <strong>El Aula del Profe Jaime</strong>
-      <span>Acceso de alumnos</span>
-    </div>
-  </div>
-
+  <div class="brand"><img src="../logo-app-docente-v821.png" alt=""><div class="brand-copy"><strong>El Aula del Profe Jaime</strong><span>Acceso de alumnos</span></div></div>
   <section class="shell">
-    <header class="hero">
-      <div class="kicker">Acceso escolar</div>
-      <h1 id="title">Acceso de alumnos</h1>
-      <p id="desc">Consultando la actividad disponible.</p>
-    </header>
-
+    <header class="hero"><div class="kicker">Acceso escolar</div><h1>¿A dónde quieres entrar?</h1><p>Selecciona la opción que necesitas. La evaluación de poemas se conserva y ahora también puedes consultar tu beneficio de cumpleaños.</p></header>
     <div class="content">
-      <p class="section-label">Actividad disponible</p>
-      <div id="state" class="status"><span class="loading-dot"></span>Cargando información…</div>
-
-      <div id="activityCard" class="activity" style="display:none">
-        <strong id="activityName"></strong>
-        <small>Ingresa únicamente si esta actividad corresponde a tu grupo.</small>
+      <p class="section-label">Opciones disponibles</p>
+      <div class="options">
+        <a class="option" href="../poemas-evaluacion/?v=20261124">
+          <div class="top"><div class="icon">📜</div><div><h2>Evaluación de poemas</h2><p>Autoevaluación y coevaluación de presentaciones.</p></div><div class="arrow">→</div></div>
+          <span class="badge">Vespertino</span>
+        </a>
+        <a class="option birthday" href="../beneficios-cumpleanos/?v=20261124">
+          <div class="top"><div class="icon">🎂</div><div><h2>Beneficios de cumpleaños</h2><p>Ingresa tu matrícula, recibe tu felicitación y descubre tu beneficio.</p></div><div class="arrow">→</div></div>
+          <span class="badge">Exclusivo 3.º A</span>
+        </a>
       </div>
-
-      <a id="go" class="primary" href="#" style="display:none">Ingresar</a>
     </div>
-
     <footer class="footer">Secundaria vespertina · Ciclo escolar 2026–2027</footer>
   </section>
 </main>
-
-<script>
-const SUPA='https://xqeyyjakmeiaahecfdmc.supabase.co';
-const KEY='sb_publishable_GY2NGAigumnZw3rIJKU7LA_a2qigAEA';
-
-(async()=>{
-  const st=document.getElementById('state');
-  const go=document.getElementById('go');
-  const card=document.getElementById('activityCard');
-  const name=document.getElementById('activityName');
-
-  try{
-    const r=await fetch(SUPA+'/rest/v1/rpc/public_student_entry',{
-      method:'POST',
-      headers:{
-        apikey:KEY,
-        Authorization:'Bearer '+KEY,
-        'Content-Type':'application/json'
-      },
-      body:'{}'
-    });
-
-    const t=await r.text();
-    let d;
-    try{d=JSON.parse(t)}catch{d=null}
-    if(!r.ok||!d)throw Error('No se pudo consultar el acceso.');
-
-    document.getElementById('title').textContent=d.title||'Acceso de alumnos';
-    document.getElementById('desc').textContent=d.description||'Consulta la actividad disponible.';
-
-    if(!d.active||!d.target_path){
-      st.className='status bad';
-      st.textContent='No hay una actividad disponible en este momento.';
-      return;
-    }
-
-    st.style.display='none';
-    name.textContent=d.target_label||'Actividad';
-    card.style.display='block';
-    go.href='../'+String(d.target_path).replace(/^\/+|\.\.\//g,'')+'?v=20261116-final2';
-    go.textContent='Ingresar';
-    go.style.display='flex';
-  }catch(e){
-    st.className='status bad';
-    st.textContent=e.message||String(e);
-  }
-})();
-</script>
 </body>
 </html>

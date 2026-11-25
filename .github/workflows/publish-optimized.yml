@@ -1,23 +1,25 @@
 name: Publish optimized GitHub Pages
+
 on:
   push:
     branches: [main]
   workflow_dispatch:
+
 permissions:
   contents: read
   pages: write
   id-token: write
+
 concurrency:
   group: optimized-pages
   cancel-in-progress: false
+
 jobs:
-  deploy:
+  build:
     runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
+
       - name: Prepare lightweight site without deleting repository files
         run: |
           mkdir -p _site
@@ -28,9 +30,19 @@ jobs:
           test -f _site/index.html
           test -f _site/app-v82312.js
           test -f _site/app-diagnostico/index.html
+
       - uses: actions/configure-pages@v5
+
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
       - id: deployment
         uses: actions/deploy-pages@v4

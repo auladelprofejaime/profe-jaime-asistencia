@@ -6,9 +6,12 @@ function countPending(){return Date.now()<new Date(scheduledReveal).getTime()}
 function countView(){const d=new Date(scheduledReveal),dateLabel=d.toLocaleDateString('es-MX',{timeZone:'America/Mexico_City',day:'numeric',month:'long'}),timeLabel=d.toLocaleTimeString('es-MX',{timeZone:'America/Mexico_City',hour:'numeric',minute:'2-digit'});$('#periodName').textContent='Resultados de octubre · Próximamente';$('#updated').textContent='';$('#leaderNow').innerHTML='<div class="countStage"><div class="countGlow"></div><div class="countSeal">MÉRITO GABINO A. PALMA</div><div class="countIcon">✦</div><div class="countKicker">EL MOMENTO DECISIVO SE ACERCA</div><h2>¡Estamos en el<br><em>conteo final!</em></h2><p class="countSubtitle">Cada punto cuenta. Estamos verificando los resultados para conocer al grupo que se llevará el Mérito del Mes.</p><div class="countReveal"><span>REVELACIÓN OFICIAL</span><strong>'+dateLabel+'</strong><small>A partir de las '+timeLabel+'</small></div><p class="countFooter">La clasificación permanecerá en secreto hasta el anuncio oficial.</p></div>';$('#ranking').innerHTML='';$('#categories').innerHTML='';$('#remainingRanking').classList.add('hidden');document.body.classList.add('meritCounting');}
 function removeObsoleteDeductionNotice(){
  const root=document.querySelector('#publicMain');if(!root)return;
- for(const el of root.querySelectorAll('section,aside,.card,[role="note"],.notice,.alert')){
+ for(const el of root.querySelectorAll('section,aside,.card,[role="note"],.notice,.alert,p,div,span')){
   const t=(el.textContent||'').toLowerCase();
-  if(t.includes('15 puntos')&&(t.includes('descont')||t.includes('indisciplina')))el.remove();
+  if(t.includes('15 puntos')&&(t.includes('descont')||t.includes('indisciplina'))){
+   const parent=el.closest('section[role="note"],aside,.card,.notice,.alert');
+   (parent||el).remove();
+  }
  }
 }
 function render(){removeObsoleteDeductionNotice();if(countPending()){countView();return;}document.body.classList.remove('meritCounting');
@@ -32,4 +35,4 @@ function formatMeritTime(v){if(!v)return'—';const[hh,mm]=String(v).slice(0,5).
 async function checkAccess(){try{const a=await rpc('merit_public_access_status'),block=$('#schoolHoursBlock'),main=$('#publicMain');if(a?.blocked){$('#schoolHoursTitle').textContent=a.message_title||'¡Ahora no, joven!';$('#schoolHoursMessage').textContent='Este portal está diseñado para consultarse fuera del horario de clases. Durante la jornada escolar, tu atención debe estar en tus clases, actividades y profesores, no en el celular.';$('#schoolHoursOpenTime').textContent=formatMeritTime(a.next_open);block.classList.remove('hidden');main.classList.add('hidden');return false}block.classList.add('hidden');main.classList.remove('hidden');return true}catch{return false}}
 async function load(){try{const c=await rpc('merit_get_public_schedule');if(c?.reveal_at)scheduledReveal=c.reveal_at}catch(_){}if(countPending()){ $('#schoolHoursBlock')?.classList.add('hidden');$('#publicMain')?.classList.remove('hidden');countView();return;}if(!await checkAccess())return;try{data=await rpc('merit_live_ranking');render()}catch(e){$('#leaderNow').innerHTML='<div class="empty">No se pudo actualizar el ranking.</div>'}}
 load();setInterval(load,15000);document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')load()});
-if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker-v15.js?v=18').catch(()=>{});
+if('serviceWorker'in navigator)navigator.serviceWorker.register('service-worker-v15.js?v=19').catch(()=>{});

@@ -125,7 +125,6 @@ function build(){
  $('#com3aPreview').addEventListener('input',()=>{message=clean($('#com3aPreview').value);updateActions()});
  $('#com3aStudent').addEventListener('change',()=>{resetMessage();updateActions()});
  $('#com3aGemini').addEventListener('click',generate);
- status(ok?'Mensaje copiado. Regresa a Gmail y pégalo.':'No se pudo copiar automáticamente; selecciona el texto del recuadro.');});
  $('#com3aGmail').addEventListener('click',openGmail);
  $('#com3aReload').addEventListener('click',load);
 }

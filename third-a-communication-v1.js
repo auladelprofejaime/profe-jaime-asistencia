@@ -24,11 +24,11 @@ const quick={
 function fixed(type,detail){
  const intro='Buen día.';
  let fact='';
- if(type==='retardo') fact='Te informo que el día de hoy se registró un retardo, ya que ingresaste al salón después del horario de inicio de la clase.';
- else if(type==='falta') fact='Te informo que el día de hoy se registró una falta de asistencia.';
- else if(type==='celular') fact='Te informo que el día de hoy se retiró tu teléfono celular debido a su uso no autorizado durante la jornada escolar.';
- else fact='Te informo que el día de hoy se registró la siguiente situación: '+detail;
- return [intro,fact,'Este aviso tiene la finalidad de mantenerte informado sobre tu seguimiento escolar.','Agradezco tu atención.','Profe Jaime'].join('\n\n');
+ if(type==='retardo') fact='Le informo que el día de hoy se registró un retardo del alumno, ya que ingresó al salón después del horario de inicio de la clase.';
+ else if(type==='falta') fact='Le informo que el día de hoy se registró una falta de asistencia del alumno.';
+ else if(type==='celular') fact='Le informo que el día de hoy se retiró el teléfono celular del alumno debido a su uso no autorizado durante la jornada escolar.';
+ else fact='Le informo que el día de hoy se registró la siguiente situación relacionada con el alumno: '+detail;
+ return [intro,fact,'Este aviso tiene la finalidad de mantenerle informado sobre el seguimiento escolar del alumno.','Agradezco su atención.','Profe Jaime'].join('\n\n');
 }
 function clean(t){return String(t||'').replace(/\r\n/g,'\n').replace(/\n{3,}/g,'\n\n').trim()}
 function status(t){const e=$('#com3aStatus');if(e)e.textContent=t||''}

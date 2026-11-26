@@ -79,11 +79,15 @@ async function copyMessage(){
 async function openChat(){
  const s=student();if(!s)return;
  message=clean($('#com3aPreview').value);if(!message)return;
- const copied=await copyMessage();
  const email=s.institutional_email||'';
- status(copied?'Mensaje copiado. Abriendo Google Chat…':'Abriendo Google Chat. Copia el mensaje desde el recuadro.');
- const url=email?'https://chat.google.com/u/0/#search/'+encodeURIComponent(email):'https://chat.google.com/';
- window.open(url,'_blank','noopener');
+ if(!email)return status('Este alumno no tiene correo institucional registrado.');
+ let copied=false;
+ try{await navigator.clipboard.writeText(email);copied=true}catch{
+   const ta=document.createElement('textarea');ta.value=email;ta.style.position='fixed';ta.style.opacity='0';document.body.appendChild(ta);ta.select();try{copied=document.execCommand('copy')}catch{}ta.remove();
+ }
+ status(copied?'Correo copiado. En Google Chat toca “Nuevo chat” y pega el correo del alumno. Después vuelve aquí y toca “Copiar mensaje”.':'Abriendo Google Chat. Usa este correo para iniciar el chat: '+email);
+ $('#com3aCopyMessage').hidden=false;
+ window.open('https://chat.google.com/','_blank','noopener');
 }
 function openGmail(){
  const s=student();if(!s?.institutional_email)return status('Este alumno no tiene correo institucional registrado.');
@@ -132,6 +136,7 @@ function build(){
   <textarea id="com3aPreview" placeholder="Aquí aparecerá el mensaje. Puedes modificarlo antes de abrir Chat o Gmail."></textarea>
   <div class="com3a-actions" style="margin-top:14px">
    <button id="com3aChat" type="button" class="primary com3a-send" disabled>Google Chat</button>
+   <button id="com3aCopyMessage" type="button" class="secondary com3a-send" hidden>Copiar mensaje</button>
    <button id="com3aGmail" type="button" class="secondary com3a-send" disabled>Gmail</button>
   </div>
   <p id="com3aStatus" class="message" aria-live="polite"></p>
@@ -143,6 +148,7 @@ function build(){
  $('#com3aStudent').addEventListener('change',()=>{resetMessage();updateActions()});
  $('#com3aGemini').addEventListener('click',generate);
  $('#com3aChat').addEventListener('click',openChat);
+ $('#com3aCopyMessage').addEventListener('click',async()=>{const ok=await copyMessage();status(ok?'Mensaje copiado. Regresa a Google Chat y pégalo.':'No se pudo copiar automáticamente; selecciona el texto del recuadro.');});
  $('#com3aGmail').addEventListener('click',openGmail);
  $('#com3aReload').addEventListener('click',load);
 }
